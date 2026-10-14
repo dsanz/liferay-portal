@@ -80,7 +80,11 @@ For `liferay-sample-etc-cron` and `liferay-sample-etc-spring-boot` the third typ
 
 - *liferay-sample-custom-element-7*
 
-	Build a custom element that connects to a given frontend data set.
+	Build a custom element that drives the search of a given frontend data set.
+
+- *liferay-sample-custom-element-8*
+
+	Build a custom element that takes the filtering of a given frontend data set over and offers a filter UI of its own.
 
 - *liferay-sample-editor-config-contributor-1*
 
@@ -102,6 +106,10 @@ For `liferay-sample-etc-cron` and `liferay-sample-etc-spring-boot` the third typ
 
 	Add a document link selector button to the CKEditor 5 link dialog as an example of augmenting the link plugin for document browsing without portal dependencies.
 
+- *liferay-sample-editor-config-contributor-6*
+
+	Enable the CKEditor 5 email editing plugins (Email Configuration Helper, Merge Fields, Template, and Export with Inline Styles, plus the nonpremium Layout Tables and Empty Block) as an example of registering premium and nonpremium plugins via a client extension.
+
 - *liferay-sample-etc-cron*
 
 	Use Spring Boot and OAuth (server to server) to read from and write to Liferay in timed intervals.
@@ -112,7 +120,7 @@ For `liferay-sample-etc-cron` and `liferay-sample-etc-spring-boot` the third typ
 
 	1. Go to `liferay-sample-workspace` and type `./gradlew :client-extensions:liferay-sample-etc-cron:deployDev`.
 
-	1. Login to Liferay and go to Control Panel > Configuration > OAuth 2 Administration. Select `Liferay Sample Etc Cron`.
+	1. Login to Liferay and go to Control Panel > Security > OAuth 2 Administration. Select `Liferay Sample Etc Cron`.
 
 	1. Copy the client secret. Open `liferay-sample-workspace/client-extensions/liferay-sample-etc-cron/src/main/resources/application-default.properties` and replace `liferay-sample-etc-cron.oauth2.headless.server.client.secret=myfancypassword` with the real client secret.
 

@@ -7,13 +7,18 @@ import Button from '@clayui/button';
 import Icon from '@clayui/icon';
 import Layout from '@clayui/layout';
 import LoadingIndicator from '@clayui/loading-indicator';
-import {Keys} from '@clayui/shared';
+import {Keys, sub} from '@clayui/shared';
 import classNames from 'classnames';
 import React, {useCallback, useState} from 'react';
 
 import {useFocusWithin} from '../aria';
 import {Scope, useScope} from './ScopeContext';
 import {useRow, useTable} from './context';
+
+const SORT_ICON_SYMBOLS = {
+	ascending: 'order-arrow-up',
+	descending: 'order-arrow-down',
+};
 
 interface IProps
 	extends React.ThHTMLAttributes<HTMLTableCellElement>,
@@ -187,6 +192,16 @@ export const Cell = React.forwardRef(
 		const isExpandable = (expandable || lazy) && !isLoading;
 		const isSortable = isHead && sortable;
 
+		const activeSortDirection =
+			isSortable && sort && keyValue === sort.column
+				? sort.direction
+				: null;
+
+		const sortColumnLabel =
+			isSortable && messages['sortColumn'] && textValue
+				? sub(messages['sortColumn'], [textValue])
+				: undefined;
+
 		return (
 			<As
 				{...otherProps}
@@ -194,23 +209,13 @@ export const Cell = React.forwardRef(
 				aria-colindex={isHead && !sortable ? undefined : index! + 1}
 				aria-describedby={isSortable ? sortDescriptionId : undefined}
 				aria-sort={
-					isSortable
-						? sort && keyValue === sort.column
-							? sort.direction
-							: 'none'
-						: undefined
+					isSortable ? activeSortDirection ?? 'none' : undefined
 				}
 				className={classNames(className, {
-					'order-arrow-down-active': isSortable
-						? sort &&
-							keyValue === sort.column &&
-							sort.direction === 'descending'
-						: undefined,
-					'order-arrow-up-active': isSortable
-						? sort &&
-							keyValue === sort.column &&
-							sort.direction === 'ascending'
-						: undefined,
+					'order-arrow-down-active':
+						activeSortDirection === 'descending',
+					'order-arrow-up-active':
+						activeSortDirection === 'ascending',
 					'table-cell-expand': truncate || expanded,
 					[`table-cell-${delimiter}`]: delimiter,
 					[`table-column-text-${textAlign}`]: textAlign,
@@ -270,11 +275,23 @@ export const Cell = React.forwardRef(
 
 						<Layout.ContentCol>
 							<button
+								aria-label={sortColumnLabel}
 								className="component-action"
-								title={messages['sortDescription']}
+								title={
+									sortColumnLabel ??
+									messages['sortDescription']
+								}
 								type="button"
 							>
-								<Icon symbol="order-arrow" />
+								<Icon
+									symbol={
+										activeSortDirection
+											? SORT_ICON_SYMBOLS[
+													activeSortDirection
+												]
+											: 'order-arrow'
+									}
+								/>
 							</button>
 						</Layout.ContentCol>
 					</Layout.ContentRow>

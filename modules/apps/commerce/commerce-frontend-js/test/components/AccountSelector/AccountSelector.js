@@ -49,6 +49,8 @@ describe('AccountSelector', () => {
 	});
 
 	beforeEach(() => {
+		fetchMock.mockGlobal();
+
 		const accountsEndpointRegexp = new RegExp(
 			ACCOUNTS_HEADLESS_API_ENDPOINT
 		);
@@ -63,9 +65,9 @@ describe('AccountSelector', () => {
 			COMMERCE_DELIVERY_CATALOG_HEADLESS_API_ENDPOINT
 		);
 
-		fetchMock.mock(accountsEndpointRegexp, (url) => getAccounts(url));
-		fetchMock.mock(ordersEndpointRegexp, (url) => getOrders(url));
-		fetchMock.mock(usersEndpointRegexp, () => Promise.resolve());
+		fetchMock.route(accountsEndpointRegexp, ({url}) => getAccounts(url));
+		fetchMock.route(ordersEndpointRegexp, ({url}) => getOrders(url));
+		fetchMock.route(usersEndpointRegexp, () => Promise.resolve());
 	});
 
 	afterAll(() => {
@@ -73,7 +75,7 @@ describe('AccountSelector', () => {
 	});
 
 	afterEach(() => {
-		fetchMock.restore();
+		fetchMock.hardReset();
 
 		cleanup();
 	});
@@ -158,12 +160,14 @@ describe('AccountSelector', () => {
 
 			fetchMock.post(
 				new RegExp('account-selector/setCurrentAccounts'),
-				(url, params) => {
+				({options: params, url}) => {
 					expect(params.body.get('accountId')).toEqual(
 						accountTemplate.id.toString()
 					);
 
-					expect(url.searchParams.get('groupId')).toBeTruthy();
+					expect(
+						new URL(url).searchParams.get('groupId')
+					).toBeTruthy();
 
 					return 200;
 				}
@@ -179,25 +183,26 @@ describe('AccountSelector', () => {
 		let renderedComponent;
 
 		beforeEach(async () => {
-			fetchMock.restore();
+			fetchMock.hardReset();
+			fetchMock.mockGlobal();
 
-			fetchMock.mock(
+			fetchMock.route(
 				new RegExp(ORGANIZATIONS_HEADLESS_API_ENDPOINT),
 				() => ({items: []})
 			);
 
-			fetchMock.mock(
+			fetchMock.route(
 				new RegExp(
 					`${ServiceProvider.DeliveryCartAPI(
 						'v1'
 					).cartsByAccountIdAndChannelIdURL(42332, 24324)}`
 				),
-				(url) => getOrders(url)
+				({url}) => getOrders(url)
 			);
 
-			fetchMock.mock(
+			fetchMock.route(
 				new RegExp(ACCOUNTS_HEADLESS_API_ENDPOINT),
-				(url) => ({
+				({url}) => ({
 					...getAccounts(url),
 					actions: {create: {method: 'POST'}},
 				})
@@ -327,6 +332,39 @@ describe('AccountSelector', () => {
 			);
 
 			expect(orders.length).toBe(10);
+		});
+
+		it('displays the account list when the back to accounts button is clicked', async () => {
+			await act(async () => {
+				fireEvent.click(
+					renderedComponent.baseElement.querySelector(
+						'.btn-account-selector'
+					)
+				);
+			});
+
+			await act(async () => {
+				fireEvent.click(
+					renderedComponent.getByLabelText('back-to-accounts')
+				);
+			});
+
+			await waitFor(() =>
+				expect(
+					renderedComponent.queryByText(/loading/i)
+				).not.toBeInTheDocument()
+			);
+
+			expect(
+				renderedComponent.baseElement.querySelector(
+					'.orders-list-container'
+				)
+			).not.toBeInTheDocument();
+			expect(
+				renderedComponent.baseElement.querySelectorAll(
+					'.accounts-list li'
+				).length
+			).toBe(11);
 		});
 	});
 

@@ -14,6 +14,7 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.WorkflowDefinitionLink;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalService;
+import com.liferay.portal.kernel.service.permission.ModelPermissions;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.workflow.NoSuchWorkflowDefinitionException;
@@ -54,19 +55,26 @@ public class WorkflowDefinitionManagerImpl
 	@Override
 	public WorkflowDefinition deployWorkflowDefinition(
 			byte[] bytes, long companyId, String externalReferenceCode,
+			long groupId, ModelPermissions modelPermissions, String name,
+			String scope, boolean system, String title, long userId)
+		throws WorkflowException {
+
+		return _workflowEngine.deployWorkflowDefinition(
+			externalReferenceCode, title, name, scope, system,
+			new UnsyncByteArrayInputStream(bytes),
+			_getServiceContext(companyId, groupId, modelPermissions, userId));
+	}
+
+	@Override
+	public WorkflowDefinition deployWorkflowDefinition(
+			byte[] bytes, long companyId, String externalReferenceCode,
 			long groupId, String name, String scope, boolean system,
 			String title, long userId)
 		throws WorkflowException {
 
-		ServiceContext serviceContext = new ServiceContext();
-
-		serviceContext.setCompanyId(companyId);
-		serviceContext.setScopeGroupId(groupId);
-		serviceContext.setUserId(userId);
-
-		return _workflowEngine.deployWorkflowDefinition(
-			externalReferenceCode, title, name, scope, system,
-			new UnsyncByteArrayInputStream(bytes), serviceContext);
+		return deployWorkflowDefinition(
+			bytes, companyId, externalReferenceCode, groupId, null, name, scope,
+			system, title, userId);
 	}
 
 	@Override
@@ -305,19 +313,25 @@ public class WorkflowDefinitionManagerImpl
 	@Override
 	public WorkflowDefinition saveWorkflowDefinition(
 			byte[] bytes, long companyId, String externalReferenceCode,
+			long groupId, ModelPermissions modelPermissions, String name,
+			String scope, boolean system, String title, long userId)
+		throws WorkflowException {
+
+		return _workflowEngine.saveWorkflowDefinition(
+			externalReferenceCode, title, name, scope, system, bytes,
+			_getServiceContext(companyId, groupId, modelPermissions, userId));
+	}
+
+	@Override
+	public WorkflowDefinition saveWorkflowDefinition(
+			byte[] bytes, long companyId, String externalReferenceCode,
 			long groupId, String name, String scope, boolean system,
 			String title, long userId)
 		throws WorkflowException {
 
-		ServiceContext serviceContext = new ServiceContext();
-
-		serviceContext.setCompanyId(companyId);
-		serviceContext.setScopeGroupId(groupId);
-		serviceContext.setUserId(userId);
-
-		return _workflowEngine.saveWorkflowDefinition(
-			externalReferenceCode, title, name, scope, system, bytes,
-			serviceContext);
+		return saveWorkflowDefinition(
+			bytes, companyId, externalReferenceCode, groupId, null, name, scope,
+			system, title, userId);
 	}
 
 	@Override
@@ -383,7 +397,7 @@ public class WorkflowDefinitionManagerImpl
 			serviceContext.setUserId(userId);
 
 			if (active) {
-				_kaleoDefinitionLocalService.activateKaleoDefinition(
+				_kaleoDefinitionService.activateKaleoDefinition(
 					name, version, serviceContext);
 			}
 			else {
@@ -396,7 +410,7 @@ public class WorkflowDefinitionManagerImpl
 						workflowDefinitionLinks);
 				}
 
-				_kaleoDefinitionLocalService.deactivateKaleoDefinition(
+				_kaleoDefinitionService.deactivateKaleoDefinition(
 					name, version, serviceContext);
 			}
 
@@ -559,6 +573,20 @@ public class WorkflowDefinitionManagerImpl
 		catch (Exception exception) {
 			throw new WorkflowException(exception);
 		}
+	}
+
+	private ServiceContext _getServiceContext(
+		long companyId, long groupId, ModelPermissions modelPermissions,
+		long userId) {
+
+		ServiceContext serviceContext = new ServiceContext();
+
+		serviceContext.setCompanyId(companyId);
+		serviceContext.setModelPermissions(modelPermissions);
+		serviceContext.setScopeGroupId(groupId);
+		serviceContext.setUserId(userId);
+
+		return serviceContext;
 	}
 
 	private WorkflowDefinition _getWorkflowDefinition(

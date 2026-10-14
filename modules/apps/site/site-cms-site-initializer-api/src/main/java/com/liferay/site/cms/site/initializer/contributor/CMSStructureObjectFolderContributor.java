@@ -13,7 +13,19 @@ import java.util.Map;
  */
 public interface CMSStructureObjectFolderContributor {
 
+	public default String getBaseObjectDefinitionExternalReferenceCode() {
+		return null;
+	}
+
+	public default String getCreationMenuIcon() {
+		return null;
+	}
+
 	public String getLabel();
+
+	public default String getObjectEntryFolderExternalReferenceCode() {
+		return null;
+	}
 
 	public String getObjectFolderExternalReferenceCode();
 

@@ -25,7 +25,10 @@ import org.osgi.service.component.annotations.Reference;
  * @author Marco Leo
  */
 @Component(
-	property = "dto.class.name=com.liferay.object.model.ObjectRelationship",
+	property = {
+		"default=true",
+		"dto.class.name=com.liferay.object.model.ObjectRelationship"
+	},
 	service = DTOConverter.class
 )
 public class ObjectRelationshipDTOConverter
@@ -62,6 +65,9 @@ public class ObjectRelationshipDTOConverter
 				setDeletionType(
 					() -> ObjectRelationship.DeletionType.create(
 						serviceBuilderObjectRelationship.getDeletionType()));
+				setDescription(
+					() -> LocalizedMapUtil.getLanguageIdMap(
+						serviceBuilderObjectRelationship.getDescriptionMap()));
 				setEdge(serviceBuilderObjectRelationship::isEdge);
 				setExternalReferenceCode(
 					() ->

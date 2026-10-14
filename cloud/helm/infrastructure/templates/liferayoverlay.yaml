@@ -16,5 +16,4 @@ spec:
     forceDestroy: {{ $overlayBucket.forceDestroy }}
     orphanOnDelete: {{ $overlayBucket.orphanOnDelete }}
     projectId: {{ .Values.projectId | quote }}
-    region: {{ .Values.region | quote }}
 {{- end -}}

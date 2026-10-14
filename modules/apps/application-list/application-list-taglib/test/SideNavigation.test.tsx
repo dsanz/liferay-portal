@@ -5,12 +5,20 @@
 
 import '@testing-library/jest-dom';
 import {configure} from '@testing-library/dom';
-import {fireEvent, render, screen, waitFor} from '@testing-library/react';
+import {
+	act,
+	fireEvent,
+	render,
+	screen,
+	waitFor,
+	within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {fetch} from 'frontend-js-web';
 import React from 'react';
 
 import {SideNavigation} from '../src/main/resources/META-INF/resources/js';
+import {SideNavigationItem} from '../src/main/resources/META-INF/resources/js/types/SideNavigation';
 
 jest.mock('frontend-js-web', () => ({
 	...(jest.requireActual('frontend-js-web') as any),
@@ -39,7 +47,7 @@ const NAVIGATION_ITEMS = {
 	],
 };
 
-const ITEMS = [
+const ITEMS: Array<SideNavigationItem> = [
 	{
 		id: 'content',
 		items: [
@@ -75,7 +83,26 @@ const ITEMS = [
 	},
 ];
 
-const renderComponent = ({expandedKeys = ['content', 'workflow']} = {}) =>
+const [CONTENT_ITEM, WORKFLOW_ITEM] = ITEMS;
+
+const ITEMS_WITH_SCOPES: Array<SideNavigationItem> = [
+	{href: 'homeHref', id: 'home', label: 'Home'},
+	{id: 'system', label: 'System', scope: 'system', scopeMarker: true},
+	{...CONTENT_ITEM, scope: 'system'},
+	{
+		id: 'instance',
+		label: 'Instance: Liferay',
+		scope: 'instance',
+		scopeMarker: true,
+	},
+	{...WORKFLOW_ITEM, scope: 'instance'},
+];
+
+const renderComponent = ({
+	expandedKeys = ['content', 'workflow'],
+	items = ITEMS,
+	selectedPortletId = 'assets',
+} = {}) =>
 	render(
 		<SideNavigation
 			canonicalName="sideNavigationCanonicalName"
@@ -84,10 +111,10 @@ const renderComponent = ({expandedKeys = ['content', 'workflow']} = {}) =>
 			colorSchemeSessionKey="colorSchemeSessionKey"
 			expandedKeys={expandedKeys}
 			expandedKeysSessionKey="expandedKeysSessionKey"
-			items={ITEMS}
+			items={items}
 			label="Applications"
 			navigationItemsURL="navigationItemsURL"
-			selectedPortletId="assets"
+			selectedPortletId={selectedPortletId}
 			siteAdministrationItemSelectedEventName="siteAdministrationItemSelectedEventName"
 			siteAdministrationItemSelectorUrl="siteAdministrationItemSelectorUrl"
 			visible
@@ -99,11 +126,32 @@ describe('SideNavigation', () => {
 	const languageGet = Liferay.Language.get as jest.Mock;
 	const languageGetImplementation = languageGet.getMockImplementation();
 
+	let intersectionObserverCallback: IntersectionObserverCallback;
+	let observedTargets: Array<Element> = [];
+
 	afterEach(() => {
 		languageGet.mockImplementation(languageGetImplementation!);
+
+		delete (window as any).IntersectionObserver;
 	});
 
 	beforeEach(() => {
+		observedTargets = [];
+
+		(window as any).IntersectionObserver = class {
+			constructor(callback: IntersectionObserverCallback) {
+				intersectionObserverCallback = callback;
+			}
+
+			disconnect() {}
+
+			observe(target: Element) {
+				observedTargets.push(target);
+			}
+
+			unobserve() {}
+		};
+
 		Liferay.Util = {
 			...Liferay.Util,
 			Session: {
@@ -175,6 +223,138 @@ describe('SideNavigation', () => {
 		expect(screen.getByText('Assets')).toHaveClass('active');
 		expect(screen.getByText('Workflow')).not.toHaveClass('active');
 		expect(screen.getByText('Metrics')).not.toHaveClass('active');
+	});
+
+	it('keeps a scope item out of the menu', () => {
+		renderComponent({items: ITEMS_WITH_SCOPES});
+
+		const scopeItems = screen.getAllByTestId('sideNavigationScopeItem');
+
+		expect(scopeItems).toHaveLength(2);
+
+		scopeItems.forEach((scopeItem) => {
+			expect(scopeItem).not.toHaveAttribute('tabindex');
+			expect(
+				within(scopeItem).queryByRole('menuitem')
+			).not.toBeInTheDocument();
+		});
+	});
+
+	it('tints an item with the scope it carries', () => {
+		renderComponent({items: ITEMS_WITH_SCOPES});
+
+		expect(screen.getByText('Content').parentElement).toHaveClass(
+			'side-navigation-scope-zone-system'
+		);
+
+		expect(screen.getByText('Workflow').parentElement).toHaveClass(
+			'side-navigation-scope-zone-instance'
+		);
+	});
+
+	it('leaves an item without a scope untinted', () => {
+		renderComponent({items: ITEMS_WITH_SCOPES});
+
+		const homeItem = screen.getByText('Home').parentElement;
+
+		expect(homeItem).not.toHaveClass('side-navigation-scope-zone-instance');
+		expect(homeItem).not.toHaveClass('side-navigation-scope-zone-system');
+	});
+
+	it('describes an item by the scope item of its zone', () => {
+		renderComponent({items: ITEMS_WITH_SCOPES});
+
+		expect(screen.getByText('Content')).toHaveAccessibleDescription(
+			'System'
+		);
+
+		expect(screen.getByText('Workflow')).toHaveAccessibleDescription(
+			'Instance: Liferay'
+		);
+	});
+
+	it('leaves an item without a scope undescribed', () => {
+		renderComponent({items: ITEMS_WITH_SCOPES});
+
+		expect(screen.getByText('Home')).not.toHaveAttribute(
+			'aria-describedby'
+		);
+	});
+
+	it('does not make a scope item the keyboard entry point', () => {
+		renderComponent({
+			items: ITEMS_WITH_SCOPES,
+			selectedPortletId: 'notInTheMenu',
+		});
+
+		const tabbable = screen
+			.getAllByRole('menuitem')
+			.filter((item) => item.getAttribute('tabindex') !== '-1');
+
+		expect(tabbable).toHaveLength(1);
+		expect(tabbable[0]).toHaveTextContent('Home');
+	});
+
+	it('does not shadow the scroll area at rest', () => {
+		const {container} = renderComponent({items: ITEMS_WITH_SCOPES});
+
+		expect(
+			container.querySelector('.side-navigation-scroll')
+		).not.toHaveClass('side-navigation-scroll-stuck');
+	});
+
+	it('shadows the scroll area once a scope item is pinned', async () => {
+		const {container} = renderComponent({items: ITEMS_WITH_SCOPES});
+
+		act(() => {
+			intersectionObserverCallback(
+				[{isIntersecting: false}] as IntersectionObserverEntry[],
+				{} as IntersectionObserver
+			);
+		});
+
+		await waitFor(() =>
+			expect(
+				container.querySelector('.side-navigation-scroll')
+			).toHaveClass('side-navigation-scroll-stuck')
+		);
+	});
+
+	it('does not shadow the scroll area while the scope item is below the top', async () => {
+		const {container} = renderComponent({items: ITEMS_WITH_SCOPES});
+
+		act(() => {
+			intersectionObserverCallback(
+				[{isIntersecting: true}] as IntersectionObserverEntry[],
+				{} as IntersectionObserver
+			);
+		});
+
+		await waitFor(() =>
+			expect(
+				container.querySelector('.side-navigation-scroll')
+			).not.toHaveClass('side-navigation-scroll-stuck')
+		);
+	});
+
+	it('watches a sentinel placed above the first scope item', () => {
+		const {container} = renderComponent({items: ITEMS_WITH_SCOPES});
+
+		expect(observedTargets).toHaveLength(1);
+
+		expect(observedTargets[0].nextElementSibling).toBe(
+			container.querySelector('.side-navigation-scope-item')
+		);
+	});
+
+	it('watches a sentinel at the top of the list without a scope item', () => {
+		const {container} = renderComponent();
+
+		expect(observedTargets).toHaveLength(1);
+
+		expect(observedTargets[0].parentElement).toBe(
+			container.querySelector('.sidebar-body')
+		);
 	});
 
 	it('shows only the navigation items from the expanded keys', () => {
@@ -252,6 +432,40 @@ describe('SideNavigation', () => {
 
 		expect(screen.getByText('Assets')).toBeInTheDocument();
 		expect(screen.queryByText('Categories')).not.toBeInTheDocument();
+	});
+
+	it('does not return a scope item as a filter result', async () => {
+		renderComponent({items: ITEMS_WITH_SCOPES});
+
+		await userEvent.type(
+			screen.getByTestId('sideNavigationSearchInput'),
+			'system'
+		);
+
+		await waitFor(() =>
+			expect(screen.queryByText('System')).not.toBeInTheDocument()
+		);
+
+		expect(screen.getByText('no-matching-items')).toBeInTheDocument();
+	});
+
+	it('keeps describing an item by its scope item while filtering', async () => {
+		renderComponent({items: ITEMS_WITH_SCOPES});
+
+		await userEvent.type(
+			screen.getByTestId('sideNavigationSearchInput'),
+			'content'
+		);
+
+		await waitFor(() =>
+			expect(screen.queryByText('Workflow')).not.toBeInTheDocument()
+		);
+
+		expect(screen.getByText('Content')).toHaveAccessibleDescription(
+			'System'
+		);
+
+		expect(screen.queryByText('Instance: Liferay')).not.toBeInTheDocument();
 	});
 
 	it('clears the query with the clear button and restores the tree', async () => {

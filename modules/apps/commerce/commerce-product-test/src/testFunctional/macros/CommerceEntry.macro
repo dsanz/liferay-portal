@@ -113,37 +113,6 @@ definition {
 	}
 
 	@summary = "Default summary"
-	macro addNewCatalogsEntry(catalogName = null, supplierAccountName = null, catalogLanguage = null, catalogCurrency = null) {
-		WaitForElementPresent(locator1 = "IFrame#MODAL_BODY");
-
-		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
-
-		Type(
-			locator1 = "CommerceEntry#NAME_FIELD",
-			value1 = ${catalogName});
-
-		Select(
-			key_title = "Default Catalog Language",
-			locator1 = "CommerceEntry#CATALOGS_FORM",
-			value1 = ${catalogLanguage});
-
-		Select(
-			key_title = "Currency",
-			locator1 = "CommerceEntry#CATALOGS_FORM",
-			value1 = ${catalogCurrency});
-
-		if (isSet(linkCatalogSupplier)) {
-			Click(
-				key_label = "Link Catalog to a Supplier",
-				locator1 = "CommerceEntry#ANY_AUTOCOMPLETE_CONTAINS_TEXT_FIELD");
-
-			Click(
-				key_categoryName = ${supplierAccountName},
-				locator1 = "CommerceEntry#COMMERCE_CATEGORY_AUTOCOMPLETE_SPECIFIC");
-		}
-	}
-
-	@summary = "Default summary"
 	macro addNewChannelsEntry(channelCurrency = null, siteName = null, channelName = null, channelType = null) {
 		WaitForElementPresent(locator1 = "IFrame#MODAL_IFRAME");
 
@@ -632,7 +601,7 @@ definition {
 	}
 
 	@summary = "Default summary"
-	macro addShippingOptionSettingsVariableRate(zip = null, country = null, subtotal = null, warehouse = null, region = null, shippingOption = null) {
+	macro addShippingOptionSettingsVariableRate(zip = null, country = null, subtotal = null, region = null, shippingOption = null) {
 		Variables.assertDefined(parameterList = ${shippingOption});
 
 		if (!(isSet(fixedPrice))) {
@@ -651,21 +620,11 @@ definition {
 			var weightTo = 100;
 		}
 
+		CommerceEntry.gotoShippingOptionSettings(shippingOption = ${shippingOption});
+
 		Click(locator1 = "Button#PLUS");
 
 		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
-
-		Select(
-			key_fieldLabel = "Shipping Option",
-			locator1 = "Select#GENERIC_SELECT_FIELD",
-			value1 = ${shippingOption});
-
-		if (isSet(warehouse)) {
-			Select(
-				key_fieldLabel = "Warehouse",
-				locator1 = "Select#GENERIC_SELECT_FIELD",
-				value1 = ${warehouse});
-		}
 
 		if (isSet(country)) {
 			Select(
@@ -721,9 +680,7 @@ definition {
 
 		Click(locator1 = "Icon#CLOSE");
 
-		SelectFrame.selectFrameTop();
-
-		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+		SelectFrameParent();
 	}
 
 	@summary = "Default summary"
@@ -1479,26 +1436,6 @@ definition {
 	}
 
 	@summary = "Default summary"
-	macro editWarehousesQuantity(northeastQuantity = null, productSku = null, italyQuantity = null, southwestQuantity = null, productName = null) {
-		Search.searchCP(searchTerm = ${productName});
-
-		CommerceNavigator.gotoTableListEntry(entryName = ${productName});
-
-		CommerceEntry.gotoMenuTab(menuTab = "SKUs");
-
-		CommerceNavigator.gotoTableListEntry(entryName = ${productSku});
-
-		SelectFrame(locator1 = "IFrame#IFRAME");
-
-		CommerceEntry.gotoMenuTab(menuTab = "Inventory");
-
-		CommerceSKUs.setSkuInventory(
-			italyQuantity = ${italyQuantity},
-			northeastQuantity = ${northeastQuantity},
-			southwestQuantity = ${southwestQuantity});
-	}
-
-	@summary = "Default summary"
 	macro getFileEntryIDFromProductMedia() {
 		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
 
@@ -1535,6 +1472,19 @@ definition {
 			key_nestedMenu = ${nestedMenu},
 			locator1 = "CommerceEntry#NESTED_MENU",
 			value1 = ${nestedMenu});
+	}
+
+	@summary = "Open the Shipping Option Settings tab of a shipping option from the shipping method's Shipping Options tab"
+	macro gotoShippingOptionSettings(shippingOption = null) {
+		CommerceNavigator.gotoEntry(entryName = ${shippingOption});
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		Click(
+			key_panel = "Details",
+			locator1 = "Panel#PANEL_COLLAPSED");
+
+		CommerceEntry.gotoMenuTab(menuTab = "Shipping Option Settings");
 	}
 
 	@summary = "Default summary"

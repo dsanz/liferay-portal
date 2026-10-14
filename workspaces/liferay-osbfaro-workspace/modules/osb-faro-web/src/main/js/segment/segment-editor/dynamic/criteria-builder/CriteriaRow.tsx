@@ -2,7 +2,7 @@ import AccountInput from '../inputs/AccountInput';
 import AccountSelectInput from '../inputs/AccountSelectInput';
 import BehaviorInput from '../inputs/BehaviorInput';
 import BooleanInput from '../inputs/BooleanInput';
-import ClayIcon from '@clayui/icon';
+import ClayIcon from 'shared/components/Icon';
 import ClaySticker from '@clayui/sticker';
 import CustomBooleanInput from '../inputs/CustomBooleanInput';
 import CustomDateInput from '../inputs/CustomDateInput';
@@ -22,6 +22,7 @@ import OrganizationSelectInput from '../inputs/OrganizationSelectInput';
 import OrganizationTextInput from '../inputs/OrganizationTextInput';
 import React from 'react';
 import RowActions from 'shared/components/RowActions';
+import SearchTermBooleanInput from '../inputs/SearchTermBooleanInput';
 import SessionInput from '../inputs/SessionInput';
 import StringInput from '../inputs/StringInput';
 import TagInput from '../inputs/TagInput';
@@ -221,6 +222,7 @@ interface ICriteriaRowProps extends PropsFromRedux {
 	id?: string;
 	hover?: boolean;
 	index: number;
+	keyboardTarget?: boolean;
 	onAdd: (index: number, criterion: Criterion) => void;
 	onChange: (criterion: Criterion | Criterion[]) => void;
 	onDelete: (index: number) => void;
@@ -469,6 +471,7 @@ class CriteriaRow extends React.Component<
 			[PropertyTypes.Duration]: DurationInput,
 			[PropertyTypes.Event]: EventInput,
 			[PropertyTypes.Interest]: InterestBooleanInput,
+			[PropertyTypes.SearchTerm]: SearchTermBooleanInput,
 			[PropertyTypes.Number]: NumberInput,
 			[PropertyTypes.OrganizationBoolean]: CustomBooleanInput,
 			[PropertyTypes.OrganizationNumber]: CustomNumberInput,
@@ -521,6 +524,7 @@ class CriteriaRow extends React.Component<
 				connectDropTarget,
 				dragging,
 				hover,
+				keyboardTarget,
 				stepNumber,
 			},
 			state: {selectedProperty},
@@ -528,7 +532,8 @@ class CriteriaRow extends React.Component<
 
 		const classes = getCN('criterion-row-root', {
 			'dnd-drag': dragging,
-			'dnd-hover': hover && canDrop,
+			'dnd-hover': (hover && canDrop) || keyboardTarget,
+			'keyboard-movement-target': keyboardTarget,
 		});
 
 		return connectDropTarget(

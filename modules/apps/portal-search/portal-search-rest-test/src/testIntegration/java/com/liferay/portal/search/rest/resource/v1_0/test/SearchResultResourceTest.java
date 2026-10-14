@@ -20,6 +20,9 @@ import com.liferay.journal.model.JournalFolder;
 import com.liferay.journal.service.JournalArticleLocalService;
 import com.liferay.journal.service.JournalFolderLocalService;
 import com.liferay.journal.test.util.JournalTestUtil;
+import com.liferay.layout.page.template.constants.LayoutPageTemplateEntryTypeConstants;
+import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
+import com.liferay.layout.page.template.test.util.LayoutPageTemplateTestUtil;
 import com.liferay.object.constants.ObjectDefinitionConstants;
 import com.liferay.object.constants.ObjectEntryFolderConstants;
 import com.liferay.object.field.builder.TextObjectFieldBuilder;
@@ -33,6 +36,8 @@ import com.liferay.object.service.ObjectRelationshipLocalService;
 import com.liferay.object.test.util.ObjectDefinitionTestUtil;
 import com.liferay.object.test.util.ObjectRelationshipTestUtil;
 import com.liferay.petra.function.UnsafeTriConsumer;
+import com.liferay.petra.function.transform.TransformUtil;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.json.JSONArray;
@@ -51,6 +56,7 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.TestInfo;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
+import com.liferay.portal.kernel.test.util.FeatureFlagTestUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.HTTPTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
@@ -62,12 +68,8 @@ import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.kernel.version.Version;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.odata.entity.EntityField;
-import com.liferay.portal.search.engine.ConnectionInformation;
-import com.liferay.portal.search.engine.NodeInformation;
-import com.liferay.portal.search.engine.SearchEngineInformation;
 import com.liferay.portal.search.rest.client.pagination.Page;
 import com.liferay.portal.search.rest.dto.v1_0.FacetConfiguration;
 import com.liferay.portal.search.rest.dto.v1_0.SearchRequestBody;
@@ -115,9 +117,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.skyscreamer.jsonassert.JSONAssert;
+import org.skyscreamer.jsonassert.JSONCompareMode;
+
 /**
  * @author Petteri Karttunen
  * @author Almir Ferreira
+ * @author Javier Moral
  */
 @RunWith(Arquillian.class)
 public class SearchResultResourceTest extends BaseSearchResultResourceTestCase {
@@ -154,6 +160,7 @@ public class SearchResultResourceTest extends BaseSearchResultResourceTestCase {
 
 	@Override
 	@Test
+	@TestInfo("LPD-105550")
 	public void testGetSearchPage() throws Exception {
 		String scope = String.valueOf(testGroup.getGroupId());
 
@@ -191,6 +198,19 @@ public class SearchResultResourceTest extends BaseSearchResultResourceTestCase {
 			(List<com.liferay.portal.search.rest.client.dto.v1_0.SearchResult>)
 				page.getItems());
 		assertValid(page, testGetSearchPage_getExpectedActions());
+
+		LayoutPageTemplateTestUtil.addLayoutPageTemplateEntry(
+			testGroup.getGroupId(),
+			LayoutPageTemplateEntryTypeConstants.DISPLAY_PAGE,
+			WorkflowConstants.STATUS_APPROVED);
+		LayoutPageTemplateTestUtil.addLayoutPageTemplateEntry(
+			testGroup.getGroupId(),
+			LayoutPageTemplateEntryTypeConstants.MASTER_LAYOUT,
+			WorkflowConstants.STATUS_APPROVED);
+
+		_testGetSearchPageType();
+		_testGetSearchPageTypeFilter();
+		_testGetSearchPageTypeNotIndexed();
 	}
 
 	@Override
@@ -631,6 +651,19 @@ public class SearchResultResourceTest extends BaseSearchResultResourceTestCase {
 			_serviceContext);
 	}
 
+	private void _assertEmbeddedJSONObject(
+		JSONObject expectedJSONObject, JSONObject jsonObject,
+		LayoutPageTemplateEntry layoutPageTemplateEntry) {
+
+		JSONAssert.assertEquals(
+			expectedJSONObject.put(
+				"key", layoutPageTemplateEntry.getLayoutPageTemplateEntryKey()
+			).put(
+				"name", layoutPageTemplateEntry.getName()
+			).toString(),
+			jsonObject.toString(), JSONCompareMode.LENIENT);
+	}
+
 	private SearchPage<SearchResult> _assertFacetConfiguration(
 			boolean anyMatch, String entryClassNames,
 			Map<String, Object> facetAttributes, String facetName,
@@ -755,21 +788,6 @@ public class SearchResultResourceTest extends BaseSearchResultResourceTestCase {
 		return sb.toString();
 	}
 
-	private Version _getSearchEngineVersion() {
-		List<ConnectionInformation> connectionInformationList =
-			_searchEngineInformation.getConnectionInformationList();
-
-		ConnectionInformation connectionInformation =
-			connectionInformationList.get(0);
-
-		List<NodeInformation> nodeInformationList =
-			connectionInformation.getNodeInformationList();
-
-		NodeInformation nodeInformation = nodeInformationList.get(0);
-
-		return Version.parseVersion(nodeInformation.getVersion());
-	}
-
 	private Map<String, JSONArray> _getSearchFacets(JSONObject jsonObject) {
 		JSONObject searchFacetsJSONObject = jsonObject.getJSONObject(
 			"searchFacets");
@@ -792,27 +810,11 @@ public class SearchResultResourceTest extends BaseSearchResultResourceTestCase {
 	}
 
 	private String _getUserHighlightedFullName() {
-		Version version = _getSearchEngineVersion();
-
-		if (_isSearchEngineElasticsearch() &&
-			(version.compareTo(Version.parseVersion("8.10.2")) >= 0)) {
-
-			return StringBundler.concat(
-				HighlightUtil.HIGHLIGHT_TAG_OPEN, _user.getFirstName(),
-				StringPool.SPACE, _user.getLastName(),
-				HighlightUtil.HIGHLIGHT_TAG_CLOSE);
-		}
-
 		return StringBundler.concat(
 			HighlightUtil.HIGHLIGHT_TAG_OPEN, _user.getFirstName(),
 			HighlightUtil.HIGHLIGHT_TAG_CLOSE, StringPool.SPACE,
 			HighlightUtil.HIGHLIGHT_TAG_OPEN, _user.getLastName(),
 			HighlightUtil.HIGHLIGHT_TAG_CLOSE);
-	}
-
-	private boolean _isSearchEngineElasticsearch() {
-		return StringUtil.startsWith(
-			_searchEngineInformation.getVendorString(), "Elasticsearch");
 	}
 
 	private SearchPage<SearchResult> _postSearchPage(
@@ -872,6 +874,65 @@ public class SearchResultResourceTest extends BaseSearchResultResourceTestCase {
 				"search", keywords
 			).build(),
 			searchRequestBody);
+	}
+
+	private void _testGetSearchPageType() throws Exception {
+		Page<com.liferay.portal.search.rest.client.dto.v1_0.SearchResult> page =
+			searchResultResource.getSearchPage(
+				null, true, LayoutPageTemplateEntry.class.getName(),
+				String.valueOf(testGroup.getGroupId()), null, null, null, null);
+
+		List<String> types = TransformUtil.transform(
+			page.getItems(), searchResult -> searchResult.getType());
+
+		Assert.assertTrue(
+			types.toString(),
+			types.contains(
+				String.valueOf(
+					LayoutPageTemplateEntryTypeConstants.DISPLAY_PAGE)));
+		Assert.assertTrue(
+			types.toString(),
+			types.contains(
+				String.valueOf(
+					LayoutPageTemplateEntryTypeConstants.MASTER_LAYOUT)));
+		Assert.assertEquals(types.toString(), 2, types.size());
+	}
+
+	private void _testGetSearchPageTypeFilter() throws Exception {
+		Page<com.liferay.portal.search.rest.client.dto.v1_0.SearchResult> page =
+			searchResultResource.getSearchPage(
+				null, true, LayoutPageTemplateEntry.class.getName(),
+				String.valueOf(testGroup.getGroupId()), null,
+				"type eq '" +
+					LayoutPageTemplateEntryTypeConstants.DISPLAY_PAGE + "'",
+				null, null);
+
+		List<com.liferay.portal.search.rest.client.dto.v1_0.SearchResult>
+			searchResults = ListUtil.fromCollection(page.getItems());
+
+		Assert.assertEquals(searchResults.toString(), 1, searchResults.size());
+
+		com.liferay.portal.search.rest.client.dto.v1_0.SearchResult
+			searchResult = searchResults.get(0);
+
+		Assert.assertEquals(
+			String.valueOf(LayoutPageTemplateEntryTypeConstants.DISPLAY_PAGE),
+			searchResult.getType());
+	}
+
+	private void _testGetSearchPageTypeNotIndexed() throws Exception {
+		Page<com.liferay.portal.search.rest.client.dto.v1_0.SearchResult> page =
+			searchResultResource.getSearchPage(
+				null, true, JournalArticle.class.getName(),
+				String.valueOf(testGroup.getGroupId()), null, null, null, null);
+
+		Assert.assertNotEquals(0, page.getTotalCount());
+
+		for (com.liferay.portal.search.rest.client.dto.v1_0.SearchResult
+				searchResult : page.getItems()) {
+
+			Assert.assertNull(searchResult.getType());
+		}
 	}
 
 	private void _testPostSearchPageAggregationNameAsFacetName()
@@ -993,6 +1054,7 @@ public class SearchResultResourceTest extends BaseSearchResultResourceTestCase {
 		}
 
 		_testPostSearchPageWithEmbeddedNestedFieldsInLayout();
+		_testPostSearchPageWithEmbeddedNestedFieldsInLayoutPageTemplateEntry();
 		_testPostSearchPageWithEmbeddedNestedFieldsInObjectEntry();
 	}
 
@@ -1021,6 +1083,91 @@ public class SearchResultResourceTest extends BaseSearchResultResourceTestCase {
 				JSONUtil.getValue(
 					searchResultJSONObject, "JSONObject/embedded"));
 		}
+	}
+
+	private void _testPostSearchPageWithEmbeddedNestedFieldsInLayoutPageTemplateEntry()
+		throws Exception {
+
+		LayoutPageTemplateEntry layoutPageTemplateEntry1 =
+			LayoutPageTemplateTestUtil.addLayoutPageTemplateEntry(
+				testGroup.getGroupId(),
+				LayoutPageTemplateEntryTypeConstants.BASIC,
+				WorkflowConstants.STATUS_APPROVED);
+		LayoutPageTemplateEntry layoutPageTemplateEntry2 =
+			LayoutPageTemplateTestUtil.addLayoutPageTemplateEntry(
+				testGroup.getGroupId(),
+				LayoutPageTemplateEntryTypeConstants.DISPLAY_PAGE,
+				WorkflowConstants.STATUS_APPROVED);
+		LayoutPageTemplateEntry layoutPageTemplateEntry3 =
+			LayoutPageTemplateTestUtil.addLayoutPageTemplateEntry(
+				testGroup.getGroupId(),
+				LayoutPageTemplateEntryTypeConstants.MASTER_LAYOUT,
+				WorkflowConstants.STATUS_APPROVED);
+		LayoutPageTemplateEntry layoutPageTemplateEntry4 =
+			LayoutPageTemplateTestUtil.addLayoutPageTemplateEntry(
+				testGroup.getGroupId(),
+				LayoutPageTemplateEntryTypeConstants.WIDGET_PAGE,
+				WorkflowConstants.STATUS_APPROVED);
+
+		SearchPage<SearchResult> searchPage = null;
+
+		try (SafeCloseable safeCloseable =
+				FeatureFlagTestUtil.setFeatureFlagsWithSafeCloseable(
+					true, "LPD-35443")) {
+
+			searchPage = _postSearchPage(
+				HashMapBuilder.put(
+					"entryClassNames", LayoutPageTemplateEntry.class.getName()
+				).put(
+					"nestedFields", "embedded"
+				).put(
+					"scope", String.valueOf(testGroup.getGroupId())
+				).build(),
+				new SearchRequestBody() {
+					{
+						attributes = HashMapBuilder.<String, Object>put(
+							"search.empty.search", true
+						).build();
+					}
+				});
+		}
+
+		Map<String, JSONObject> embeddedJSONObjects = JSONUtil.toJSONObjectMap(
+			JSONUtil.toJSONArray(
+				searchPage.getItems(),
+				searchResult -> JSONUtil.getValueAsJSONObject(
+					_jsonFactory.createJSONObject(String.valueOf(searchResult)),
+					"JSONObject/embedded")),
+			"key");
+
+		Assert.assertEquals(
+			embeddedJSONObjects.toString(), 4, embeddedJSONObjects.size());
+
+		_assertEmbeddedJSONObject(
+			JSONUtil.put("type", "ContentPageTemplate"),
+			embeddedJSONObjects.get(
+				layoutPageTemplateEntry1.getLayoutPageTemplateEntryKey()),
+			layoutPageTemplateEntry1);
+		_assertEmbeddedJSONObject(
+			JSONUtil.put(
+				"displayPageTemplateSettings", _jsonFactory.createJSONObject()),
+			embeddedJSONObjects.get(
+				layoutPageTemplateEntry2.getLayoutPageTemplateEntryKey()),
+			layoutPageTemplateEntry2);
+		_assertEmbeddedJSONObject(
+			JSONUtil.put(
+				"keywords", _jsonFactory.createJSONArray()
+			).put(
+				"markedAsDefault", false
+			),
+			embeddedJSONObjects.get(
+				layoutPageTemplateEntry3.getLayoutPageTemplateEntryKey()),
+			layoutPageTemplateEntry3);
+		_assertEmbeddedJSONObject(
+			JSONUtil.put("type", "WidgetPageTemplate"),
+			embeddedJSONObjects.get(
+				layoutPageTemplateEntry4.getLayoutPageTemplateEntryKey()),
+			layoutPageTemplateEntry4);
 	}
 
 	private void _testPostSearchPageWithEmbeddedNestedFieldsInObjectEntry()
@@ -1517,38 +1664,6 @@ public class SearchResultResourceTest extends BaseSearchResultResourceTestCase {
 			"nested", "test", "test");
 	}
 
-	private void _testPostSearchPageWithoutHighlightConfiguration()
-		throws Exception {
-
-		if (Objects.equals(_searchEngine.getVendor(), "Solr")) {
-			return;
-		}
-
-		SearchPage<SearchResult> searchPage =
-			_postSearchPageWithSXPBlueprintConfiguration(
-				_user.getModelClassName(), _user.getFullName(),
-				_addSXPBlueprint(false));
-
-		List<SearchResult> searchResults = ListUtil.fromCollection(
-			searchPage.getItems());
-
-		Assert.assertFalse(searchResults.isEmpty());
-
-		int count = ListUtil.count(
-			searchResults,
-			searchResult -> Objects.equals(
-				searchResult.getTitle(), _user.getFullName()));
-
-		Assert.assertTrue(count >= 1);
-
-		Assert.assertEquals(
-			0,
-			ListUtil.count(
-				searchResults,
-				searchResult -> Objects.equals(
-					searchResult.getTitle(), _getUserHighlightedFullName())));
-	}
-
 	private void _testPostSearchPageWithSiteFacetConfiguration()
 		throws Exception {
 
@@ -1671,6 +1786,38 @@ public class SearchResultResourceTest extends BaseSearchResultResourceTestCase {
 			String.valueOf(_user.getUserId()));
 	}
 
+	private void _testPostSearchPageWithoutHighlightConfiguration()
+		throws Exception {
+
+		if (Objects.equals(_searchEngine.getVendor(), "Solr")) {
+			return;
+		}
+
+		SearchPage<SearchResult> searchPage =
+			_postSearchPageWithSXPBlueprintConfiguration(
+				_user.getModelClassName(), _user.getFullName(),
+				_addSXPBlueprint(false));
+
+		List<SearchResult> searchResults = ListUtil.fromCollection(
+			searchPage.getItems());
+
+		Assert.assertFalse(searchResults.isEmpty());
+
+		int count = ListUtil.count(
+			searchResults,
+			searchResult -> Objects.equals(
+				searchResult.getTitle(), _user.getFullName()));
+
+		Assert.assertTrue(count >= 1);
+
+		Assert.assertEquals(
+			0,
+			ListUtil.count(
+				searchResults,
+				searchResult -> Objects.equals(
+					searchResult.getTitle(), _getUserHighlightedFullName())));
+	}
+
 	private void _testPostSearchPageZeroResults() throws Exception {
 		SearchPage<SearchResult> searchPage = _postSearchPage(
 			HashMapBuilder.put(
@@ -1759,9 +1906,6 @@ public class SearchResultResourceTest extends BaseSearchResultResourceTestCase {
 
 	@Inject
 	private SearchEngineHelper _searchEngineHelper;
-
-	@Inject
-	private SearchEngineInformation _searchEngineInformation;
 
 	private ServiceContext _serviceContext;
 

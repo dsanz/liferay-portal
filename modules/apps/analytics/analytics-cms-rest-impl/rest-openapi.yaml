@@ -582,6 +582,13 @@ paths:
                         format: int64
                         type: integer
                 -   in: query
+                    name: cmpProjectIds
+                    schema:
+                        items:
+                            format: int64
+                            type: integer
+                        type: array
+                -   in: query
                     name: depotEntryIds
                     schema:
                         items:
@@ -634,6 +641,13 @@ paths:
             operationId: getPerformanceHistogramMetric
             parameters:
                 -   in: query
+                    name: cmpProjectIds
+                    schema:
+                        items:
+                            format: int64
+                            type: integer
+                        type: array
+                -   in: query
                     name: depotEntryIds
                     schema:
                         items:
@@ -662,6 +676,13 @@ paths:
         get:
             operationId: getPerformanceMetric
             parameters:
+                -   in: query
+                    name: cmpProjectIds
+                    schema:
+                        items:
+                            format: int64
+                            type: integer
+                        type: array
                 -   in: query
                     name: depotEntryIds
                     schema:
@@ -695,6 +716,13 @@ paths:
         get:
             operationId: getPerformanceMetricExport
             parameters:
+                -   in: query
+                    name: cmpProjectIds
+                    schema:
+                        items:
+                            format: int64
+                            type: integer
+                        type: array
                 -   in: query
                     name: depotEntryIds
                     schema:
@@ -731,6 +759,13 @@ paths:
             operationId: getPerformanceOverviewMetric
             parameters:
                 -   in: query
+                    name: cmpProjectIds
+                    schema:
+                        items:
+                            format: int64
+                            type: integer
+                        type: array
+                -   in: query
                     name: depotEntryIds
                     schema:
                         items:
@@ -755,6 +790,13 @@ paths:
         get:
             operationId: getPerformanceTopAssetPage
             parameters:
+                -   in: query
+                    name: cmpProjectIds
+                    schema:
+                        items:
+                            format: int64
+                            type: integer
+                        type: array
                 -   in: query
                     name: depotEntryIds
                     schema:
@@ -811,6 +853,13 @@ paths:
         get:
             operationId: getPerformanceTopAssetExport
             parameters:
+                -   in: query
+                    name: cmpProjectIds
+                    schema:
+                        items:
+                            format: int64
+                            type: integer
+                        type: array
                 -   in: query
                     name: depotEntryIds
                     schema:

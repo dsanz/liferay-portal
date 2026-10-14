@@ -813,29 +813,6 @@ definition {
 	}
 
 	@summary = "Default summary"
-	macro addRelatedAssetPG(assetTitle = null, assetType = null) {
-		Panel.expandPanel(panel = "Related Assets");
-
-		var key_assetType = ${assetType};
-
-		AssertClick(
-			locator1 = "AssetRelatedAssets#RELATED_ASSETS_SELECT",
-			value1 = "Select");
-
-		MenuItem.click(menuItem = ${assetType});
-
-		var key_assetTitle = ${assetTitle};
-
-		SelectFrame(locator1 = "IFrame#MODAL_BODY");
-
-		AssertClick.assertPartialTextClickAt(
-			locator1 = "AssetRelatedAssets#ASSET_TABLE_CHOOSE",
-			value1 = ${assetType});
-
-		SelectFrame(value1 = "relative=top");
-	}
-
-	@summary = "Default summary"
 	macro addWithWorkflowCP(dmDocumentTitle = null, dmDocumentFile = null, dmDocumentTypeName = null, dmDocumentDescription = null) {
 		DMNavigator.gotoAddDocumentTypeCP(dmDocumentTypeName = ${dmDocumentTypeName});
 
@@ -1321,13 +1298,20 @@ definition {
 		MenuBar.click(menuBar = ${navTab});
 
 		if (isSet(bodyContent)) {
-			SelectFrame.selectFrameNoLoading(locator1 = "CKEditor#BODY_FIELD_IFRAME");
+			if (IsElementPresent(locator1 = "CKEditor#BODY_FIELD_IFRAME")) {
+				SelectFrame.selectFrameNoLoading(locator1 = "CKEditor#BODY_FIELD_IFRAME");
 
-			Type(
-				locator1 = "CKEditor#BODY",
-				value1 = ${bodyContent});
+				Type(
+					locator1 = "CKEditor#BODY",
+					value1 = ${bodyContent});
 
-			SelectFrame(value1 = "relative=top");
+				SelectFrame(value1 = "relative=top");
+			}
+			else {
+				Type(
+					locator1 = "CKEditor#BODY_FIELD_CONTENTEDITABLE",
+					value1 = ${bodyContent});
+			}
 		}
 
 		PortletEntry.save();
@@ -1434,9 +1418,6 @@ definition {
 			}
 			else if (isSet(copyToStagingSite)) {
 				Alert.viewErrorMessage(errorMessage = "Cannot copy to the live version of a site. Make your changes in staging and publish them to Live afterwards to make them public.");
-			}
-			else if (isSet(copyWithRequiredField)) {
-				Alert.viewErrorMessage(errorMessage = "No value defined for field name");
 			}
 			else if (isSet(copyExceedsSizeLimit)) {
 				Alert.viewErrorMessage(errorMessage = " Item cannot be copied because it exceeds the limit set in the destination site's site settings. The total size of all items to copy must not exceed ${copyExceedsSizeLimit}.");
@@ -2294,7 +2275,13 @@ definition {
 
 		echo("## * Document URL: ${dmDocumentURL}");
 
-		var curl = '''${dmDocumentURL} -I''';
+		// Pass the query string as quoted data: unquoted, its ampersands make
+		// the shell run curl in the background, so its output is not always read
+
+		var dmDocumentBaseURL = StringUtil.extractFirst(${dmDocumentURL}, "?");
+		var dmDocumentQueryString = StringUtil.extractLast(${dmDocumentURL}, "?");
+
+		var curl = '''${dmDocumentBaseURL} -G -d ${dmDocumentQueryString} -D - -o /dev/null''';
 
 		var responseHeader = JSONCurlUtil.post(${curl});
 
@@ -2640,6 +2627,8 @@ definition {
 		MouseOver(
 			key_oldFriendlyURL = ${oldFriendlyURL},
 			locator1 = "DocumentsAndMediaDocument#FRIENDLY_URL_HISTORY_ITEM");
+
+		WaitForVisible(locator1 = "Icon#FRIENDLY_URL_HISTORY_ITEM_RESTORE");
 
 		Click(locator1 = "Icon#FRIENDLY_URL_HISTORY_ITEM_RESTORE");
 
@@ -3210,7 +3199,7 @@ definition {
 		}
 
 		if (${indexNumber} == 2) {
-			Click(locator1 = "Button#DUPLICATE");
+			Button.click(button = "Add Option");
 
 			Type(
 				key_fieldLabel = "Mime Type",
@@ -3280,8 +3269,8 @@ definition {
 		}
 
 		if (isSet(guestWithoutViewPermission)) {
-			if (contains(${responseHeader}, 302)) {
-				echo("The guest user will be redirected to the login page when the user doesn't have view permissions.");
+			if (contains(${responseHeader}, 404)) {
+				echo("The guest user gets a not found response when the user doesn't have view permissions.");
 			}
 			else {
 				fail("FAIL!");
@@ -4086,7 +4075,13 @@ definition {
 			}
 
 			for (var category : list ${category}) {
-				AssertTextEquals(
+
+				// The node was just expanded, so its card body also holds
+				// the extension chips nested underneath it. Match on partial
+				// text to read the category and its item count without
+				// requiring the node to have no children. See LPD-107571.
+
+				AssertTextEquals.assertPartialText(
 					key_nodeName = ${category},
 					locator1 = "Treeview#NODE_ITEM",
 					value1 = ${category});

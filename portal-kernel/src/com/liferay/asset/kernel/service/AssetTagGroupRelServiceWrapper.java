@@ -30,10 +30,12 @@ public class AssetTagGroupRelServiceWrapper
 	}
 
 	@Override
-	public AssetTagGroupRel addAssetTagGroupRel(long groupId, long tagId)
+	public AssetTagGroupRel addAssetTagGroupRel(
+			long groupId, long tagId, int depotEntryType)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
-		return _assetTagGroupRelService.addAssetTagGroupRel(groupId, tagId);
+		return _assetTagGroupRelService.addAssetTagGroupRel(
+			groupId, tagId, depotEntryType);
 	}
 
 	@Override
@@ -55,10 +57,12 @@ public class AssetTagGroupRelServiceWrapper
 	}
 
 	@Override
-	public void setAssetTagGroupRels(long tagId, long[] groupIds)
+	public void setAssetTagGroupRels(
+			long tagId, long[] groupIds, int depotEntryType)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
-		_assetTagGroupRelService.setAssetTagGroupRels(tagId, groupIds);
+		_assetTagGroupRelService.setAssetTagGroupRels(
+			tagId, groupIds, depotEntryType);
 	}
 
 	@Override
@@ -76,4 +80,4 @@ public class AssetTagGroupRelServiceWrapper
 	private AssetTagGroupRelService _assetTagGroupRelService;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-716440590
+// LIFERAY-SERVICE-BUILDER-HASH:908544660

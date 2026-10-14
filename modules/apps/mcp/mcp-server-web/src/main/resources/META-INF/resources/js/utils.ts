@@ -10,8 +10,11 @@ import {
 	DataMaskTreeItem,
 	DataMaskTypeKey,
 	ProfileTool,
+	ToolSet,
 	ToolSummary,
 	ToolTreeItem,
+	TreeFilter,
+	TreeItem,
 } from './types';
 
 type ToastMessageOptions = {
@@ -56,15 +59,12 @@ export function buildToolChildren(
 ): ToolTreeItem[] {
 	const assignedToolIds = getAssignedToolIds(profileTools);
 
-	return tools.map((tool) => {
-		const id = toToolId(toolSetName, tool.name);
-
-		return {
-			assigned: assignedToolIds.has(id),
-			id,
+	return tools
+		.map((tool) => ({
+			id: toToolId(toolSetName, tool.name),
 			name: tool.name,
-		};
-	});
+		}))
+		.filter((toolTreeItem) => !assignedToolIds.has(toolTreeItem.id));
 }
 
 export function buildToolWaves<T extends {toolName: string}>(
@@ -100,28 +100,39 @@ export function buildToolWaves<T extends {toolName: string}>(
 export function filterDataMaskTree(
 	tree: DataMaskTreeItem[],
 	query: string
-): {expandedKeys: string[]; items: DataMaskTreeItem[]} {
-	if (!query) {
+): TreeFilter {
+	const loweredQuery = query.trim().toLowerCase();
+
+	if (!loweredQuery) {
 		return {
-			expandedKeys: tree.map((group) => group.id),
-			items: tree,
+			expandedKeys: new Set(tree.map((group) => group.id)),
+			matchCount: 0,
+			visibleKeys: new Set<string>(),
 		};
 	}
 
-	const loweredQuery = query.toLowerCase();
+	return filterTree(
+		tree,
+		(item) =>
+			!item.children && item.name.toLowerCase().includes(loweredQuery)
+	);
+}
 
-	const items = tree.flatMap((group) => {
-		const children = (group.children ?? []).filter((child) =>
-			child.name.toLowerCase().includes(loweredQuery)
-		);
+export function filterTree<T extends TreeItem<T>>(
+	tree: T[],
+	matches: (item: T) => boolean
+): TreeFilter {
+	const expandedKeys = new Set<string>();
+	const visibleKeys = new Set<string>();
 
-		return children.length ? [{...group, children}] : [];
-	});
+	const matchCount = collectVisibleKeys(
+		tree,
+		matches,
+		expandedKeys,
+		visibleKeys
+	);
 
-	return {
-		expandedKeys: items.map((group) => group.id),
-		items,
-	};
+	return {expandedKeys, matchCount, visibleKeys};
 }
 
 export function getAssignedToolIds(profileTools: ProfileTool[]): Set<string> {
@@ -132,8 +143,24 @@ export function getAssignedToolIds(profileTools: ProfileTool[]): Set<string> {
 	);
 }
 
-export function getEligibleToolIds(children: ToolTreeItem[]): string[] {
-	return children.filter((child) => !child.assigned).map((child) => child.id);
+export function getAvailableToolSets(
+	toolSets: ToolSet[],
+	profileTools: ProfileTool[],
+	toolsByToolSetName: Map<string, ToolSummary[] | null>
+): ToolSet[] {
+	return toolSets.filter((toolSet) => {
+		if (!toolsByToolSetName.has(toolSet.name)) {
+			return true;
+		}
+
+		const tools = toolsByToolSetName.get(toolSet.name);
+
+		if (!tools) {
+			return false;
+		}
+
+		return !!buildToolChildren(toolSet.name, tools, profileTools).length;
+	});
 }
 
 export function getSelectedDataMaskExternalReferenceCodes(
@@ -160,6 +187,13 @@ export function getSelectedTools(
 
 export function isSystemMask(dataMask: DataMask | null): boolean {
 	return dataMask?.maskType?.key === 'system';
+}
+
+export function isToolOfToolSet(
+	key: string | number,
+	toolSetName: string
+): boolean {
+	return String(key).startsWith(`${toolSetName}${TOOL_ID_SEPARATOR}`);
 }
 
 export function openErrorToast(
@@ -201,6 +235,38 @@ export function toODataStringLiteral(value: string): string {
 
 export function toToolId(toolSetName: string, toolName: string): string {
 	return `${toolSetName}${TOOL_ID_SEPARATOR}${toolName}`;
+}
+
+function collectVisibleKeys<T extends TreeItem<T>>(
+	tree: T[],
+	matches: (item: T) => boolean,
+	expandedKeys: Set<string>,
+	visibleKeys: Set<string>
+): number {
+	let matchCount = 0;
+
+	for (const item of tree) {
+		const childMatchCount = collectVisibleKeys(
+			item.children ?? [],
+			matches,
+			expandedKeys,
+			visibleKeys
+		);
+
+		if (childMatchCount) {
+			expandedKeys.add(item.id);
+		}
+
+		const itemMatches = matches(item);
+
+		if (itemMatches || childMatchCount) {
+			visibleKeys.add(item.id);
+		}
+
+		matchCount += childMatchCount + Number(itemMatches);
+	}
+
+	return matchCount;
 }
 
 function fromToolId(id: string): {toolName: string; toolSetName: string} {

@@ -28,6 +28,12 @@ public class SegmentsEntryConstants {
 
 	public static final String SOURCE_REFERRED = "REFERRED";
 
+	public static final int TYPE_BATCH = 1;
+
+	public static final int TYPE_DEFAULT = 0;
+
+	public static final int TYPE_REAL_TIME = 2;
+
 	public static String getDefaultSegmentsEntryName(Locale locale) {
 		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
 			"content.Language", locale, SegmentsEntryConstants.class);

@@ -16,6 +16,7 @@ import com.liferay.commerce.model.CommerceOrderAttachment;
 import com.liferay.commerce.model.CommerceOrderType;
 import com.liferay.commerce.model.CommerceShippingEngine;
 import com.liferay.commerce.model.CommerceShippingMethod;
+import com.liferay.commerce.order.CommerceOrderAttachmentURLProvider;
 import com.liferay.commerce.order.content.web.internal.constants.CommerceOrderFragmentFDSNames;
 import com.liferay.commerce.payment.integration.CommercePaymentIntegration;
 import com.liferay.commerce.payment.integration.CommercePaymentIntegrationRegistry;
@@ -29,7 +30,6 @@ import com.liferay.commerce.service.CommerceOrderTypeService;
 import com.liferay.commerce.util.CommerceOrderInfoItemUtil;
 import com.liferay.commerce.util.CommerceShippingEngineRegistry;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
-import com.liferay.document.library.util.DLURLHelperUtil;
 import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.renderer.FragmentRenderer;
 import com.liferay.fragment.renderer.FragmentRendererContext;
@@ -39,7 +39,6 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.account.configuration.manager.AccountEntryAddressSubtypeConfigurationManagerUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.json.JSONException;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
@@ -83,7 +82,6 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.FormatStyle;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -347,7 +345,7 @@ public class InfoBoxFragmentRenderer implements FragmentRenderer {
 		}
 		else if (field.equals("purchaseOrderDocument")) {
 			return _getPurchaseOrderDocumentAdditionalProps(
-				commerceOrder, permissionChecker);
+				commerceOrder, httpServletRequest, permissionChecker);
 		}
 		else if (field.equals("shippingAddress")) {
 			return HashMapBuilder.<String, Object>put(
@@ -603,72 +601,52 @@ public class InfoBoxFragmentRenderer implements FragmentRenderer {
 	}
 
 	private Map<String, Object> _getPurchaseOrderDocumentAdditionalProps(
-			CommerceOrder commerceOrder, PermissionChecker permissionChecker)
+			CommerceOrder commerceOrder, HttpServletRequest httpServletRequest,
+			PermissionChecker permissionChecker)
 		throws PortalException {
 
-		if (FeatureFlagManagerUtil.isEnabled(
-				commerceOrder.getCompanyId(), "LPD-6252")) {
-
-			Map<String, Object> additionalProps =
-				HashMapBuilder.<String, Object>put(
-					"fdsId",
-					() -> {
-						if (commerceOrder.isOpen()) {
-							return CommerceOrderFragmentFDSNames.
-								PENDING_ORDER_ATTACHMENTS;
-						}
-
+		Map<String, Object> additionalProps =
+			HashMapBuilder.<String, Object>put(
+				"fdsId",
+				() -> {
+					if (commerceOrder.isOpen()) {
 						return CommerceOrderFragmentFDSNames.
-							PLACED_ORDER_ATTACHMENTS;
+							PENDING_ORDER_ATTACHMENTS;
 					}
-				).build();
 
-			CommerceOrderAttachment commerceOrderAttachment =
-				_getPurchaseOrderDocumentCommerceOrderAttachment(
-					commerceOrder, permissionChecker);
+					return CommerceOrderFragmentFDSNames.
+						PLACED_ORDER_ATTACHMENTS;
+				}
+			).build();
 
-			if (commerceOrderAttachment == null) {
-				return additionalProps;
-			}
+		CommerceOrderAttachment commerceOrderAttachment =
+			_getPurchaseOrderDocumentCommerceOrderAttachment(
+				commerceOrder, permissionChecker);
 
-			FileEntry fileEntry = _dlAppLocalService.fetchFileEntry(
-				commerceOrderAttachment.getFileEntryId());
-
-			if (fileEntry == null) {
-				return additionalProps;
-			}
-
-			additionalProps.put(
-				"downloadURL",
-				DLURLHelperUtil.getDownloadURL(
-					fileEntry, fileEntry.getLatestFileVersion(), null,
-					StringPool.BLANK, true, true));
-			additionalProps.put(
-				"isOwner",
-				permissionChecker.getUserId() ==
-					commerceOrderAttachment.getUserId());
-			additionalProps.put(
-				"value",
-				commerceOrderAttachment.getCommerceOrderAttachmentId());
-
+		if (commerceOrderAttachment == null) {
 			return additionalProps;
 		}
 
-		FileEntry fileEntry = _getPurchaseOrderDocumentFileEntry(
-			commerceOrder, permissionChecker);
+		FileEntry fileEntry = _dlAppLocalService.fetchFileEntry(
+			commerceOrderAttachment.getFileEntryId());
 
 		if (fileEntry == null) {
-			return Collections.emptyMap();
+			return additionalProps;
 		}
 
-		return HashMapBuilder.<String, Object>put(
+		additionalProps.put(
 			"downloadURL",
-			DLURLHelperUtil.getDownloadURL(
-				fileEntry, fileEntry.getLatestFileVersion(), null,
-				StringPool.BLANK, true, true)
-		).put(
-			"value", fileEntry.getFileEntryId()
-		).build();
+			_commerceOrderAttachmentURLProvider.getDownloadURL(
+				commerceOrderAttachment.getCommerceOrderAttachmentId(),
+				httpServletRequest));
+		additionalProps.put(
+			"isOwner",
+			permissionChecker.getUserId() ==
+				commerceOrderAttachment.getUserId());
+		additionalProps.put(
+			"value", commerceOrderAttachment.getCommerceOrderAttachmentId());
+
+		return additionalProps;
 	}
 
 	private CommerceOrderAttachment
@@ -707,30 +685,16 @@ public class InfoBoxFragmentRenderer implements FragmentRenderer {
 			CommerceOrder commerceOrder, PermissionChecker permissionChecker)
 		throws PortalException {
 
-		if (FeatureFlagManagerUtil.isEnabled(
-				commerceOrder.getCompanyId(), "LPD-6252")) {
+		CommerceOrderAttachment commerceOrderAttachment =
+			_getPurchaseOrderDocumentCommerceOrderAttachment(
+				commerceOrder, permissionChecker);
 
-			CommerceOrderAttachment commerceOrderAttachment =
-				_getPurchaseOrderDocumentCommerceOrderAttachment(
-					commerceOrder, permissionChecker);
-
-			if (commerceOrderAttachment == null) {
-				return null;
-			}
-
-			return _dlAppLocalService.fetchFileEntry(
-				commerceOrderAttachment.getFileEntryId());
-		}
-
-		List<FileEntry> attachmentFileEntries =
-			commerceOrder.getAttachmentFileEntries(
-				QueryUtil.ALL_POS, QueryUtil.ALL_POS);
-
-		if (attachmentFileEntries.isEmpty()) {
+		if (commerceOrderAttachment == null) {
 			return null;
 		}
 
-		return attachmentFileEntries.get(0);
+		return _dlAppLocalService.fetchFileEntry(
+			commerceOrderAttachment.getFileEntryId());
 	}
 
 	private boolean _hasPermission(
@@ -792,6 +756,10 @@ public class InfoBoxFragmentRenderer implements FragmentRenderer {
 	)
 	private ModelResourcePermission<CommerceOrderAttachment>
 		_commerceOrderAttachmentModelResourcePermission;
+
+	@Reference
+	private CommerceOrderAttachmentURLProvider
+		_commerceOrderAttachmentURLProvider;
 
 	@Reference(
 		target = "(model.class.name=com.liferay.commerce.model.CommerceOrder)"

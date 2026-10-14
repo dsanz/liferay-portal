@@ -33,9 +33,17 @@ const test = mergeTests(
 
 const PICKLIST = 'CMS Bulk Action Statuses';
 
+const RELATED_CONTENT_LABEL = 'Reference';
+
 function getDiffBox(frame: FrameLocator, fieldName: string): Locator {
 	return frame.locator(
 		`[data-field-name="ObjectField_${fieldName}"] .cms-compare-versions-diff`
+	);
+}
+
+function getRelatedContentDiffBox(frame: FrameLocator): Locator {
+	return frame.locator(
+		'[data-field-name^="ObjectField_r_"] .cms-compare-versions-diff'
 	);
 }
 
@@ -83,6 +91,23 @@ async function selectPicklistOption(
 	await page.getByRole('option', {name: option}).click();
 }
 
+async function selectRelatedContent(page: Page, title: string) {
+	const combobox = page.getByRole('combobox', {
+		exact: true,
+		name: RELATED_CONTENT_LABEL,
+	});
+
+	const option = page.getByRole('option', {exact: true, name: title});
+
+	await expect(async () => {
+		await combobox.fill(title, {timeout: 2000});
+
+		await expect(option).toBeVisible({timeout: 3000});
+	}).toPass({timeout: 30000});
+
+	await option.click();
+}
+
 async function uploadAttachment(page: Page, fileName: string) {
 	const fileChooserPromise = page.waitForEvent('filechooser');
 
@@ -97,7 +122,7 @@ async function uploadAttachment(page: Page, fileName: string) {
 
 test(
 	'Compares every field type against the previous version',
-	{tag: '@LPD-101811'},
+	{tag: ['@LPD-101811', '@LPD-106606']},
 	async ({
 		apiHelpers,
 		assetsPage,
@@ -109,13 +134,26 @@ test(
 		const contentTitle = `zoo content ${getRandomString()}`;
 		const revisedTitle = `${contentTitle} revised`;
 		const spaceName = `Space ${getRandomString()}`;
+		const firstRelatedTitle = `first reference ${getRandomString()}`;
+		const secondRelatedTitle = `second reference ${getRandomString()}`;
 
-		await test.step('Create a space', async () => {
+		await test.step('Create a space with two contents to reference', async () => {
 			await apiHelpers.headlessAssetLibrary.createAssetLibrary({
 				name: spaceName,
 				settings: {},
 				type: 'Space',
 			});
+
+			for (const title of [firstRelatedTitle, secondRelatedTitle]) {
+				await apiHelpers.objectEntry.postObjectEntry(
+					{
+						objectEntryFolderExternalReferenceCode: 'L_CONTENTS',
+						title,
+					},
+					'cms/basic-web-contents',
+					spaceName
+				);
+			}
 		});
 
 		await test.step('Create a structure with every field type', async () => {
@@ -138,6 +176,8 @@ test(
 				['Date', 'Day', {}],
 				['Date and Time', 'Moment', {}],
 				['Boolean', 'Flag', {}],
+				['Email', 'Contact', {}],
+				['Phone Number', 'Line', {}],
 				['Select from List', 'State', {picklist: PICKLIST}],
 				[
 					'Select from List',
@@ -156,6 +196,11 @@ test(
 				});
 			}
 
+			await structureBuilderPage.addRelatedContent(
+				RELATED_CONTENT_LABEL,
+				'Basic Web Content'
+			);
+
 			await structureBuilderPage.publishStructure();
 		});
 
@@ -170,9 +215,13 @@ test(
 				{label: 'Essay', value: 'First long text value.'},
 				{label: 'Amount', value: '10'},
 				{label: 'Ratio', value: '1.5'},
-				{label: 'Day', value: '2026-08-28'},
-				{label: 'Moment', value: '2026-08-28T10:30'},
+				{label: 'Contact', value: 'first@liferay.com'},
+				{label: 'Line', value: '600111222'},
+				{label: 'Day', type: 'Date', value: '08/28/2026'},
+				{label: 'Moment', type: 'Date', value: '08/28/2026 10:30 AM'},
 			]);
+
+			await selectRelatedContent(page, firstRelatedTitle);
 
 			await selectPicklistOption(page, 'State', 'Completed');
 			await selectPicklistOption(page, 'Tags', 'Initial');
@@ -194,10 +243,14 @@ test(
 				{label: 'Essay', value: 'Second long text value.'},
 				{label: 'Amount', value: '25'},
 				{label: 'Ratio', value: '3.75'},
-				{label: 'Day', value: '2026-09-15'},
-				{label: 'Moment', value: '2026-09-15T16:45'},
+				{label: 'Contact', value: 'second@liferay.com'},
+				{label: 'Line', value: '600999888'},
+				{label: 'Day', type: 'Date', value: '09/15/2026'},
+				{label: 'Moment', type: 'Date', value: '09/15/2026 04:45 PM'},
 				{label: 'Flag', type: 'Checkbox', value: true},
 			]);
+
+			await selectRelatedContent(page, secondRelatedTitle);
 
 			await selectPicklistOption(page, 'State', 'Failed');
 			await selectPicklistOption(page, 'Tags', 'Started');
@@ -241,7 +294,30 @@ test(
 			}
 
 			await page.keyboard.press('Escape');
+		});
 
+		await test.step('A single version shows its boolean, phone number and rich text as text', async () => {
+			const frame = page.frameLocator('iframe[title="Version 2"]');
+
+			await expectDiffBoxToShow(frame, 'flag', 'Yes');
+			await expectDiffBoxToShow(frame, 'line', '600999888');
+			await expectDiffBoxToShow(frame, 'story', 'Rich text version two.');
+
+			await expect(getDiffBox(frame, 'line')).not.toHaveClass(
+				/form-control-select/
+			);
+
+			const textareaHeight = await frame
+				.locator('[data-field-name="ObjectField_essay"] textarea')
+				.evaluate((textarea) => getComputedStyle(textarea).height);
+
+			await expect(getDiffBox(frame, 'story')).toHaveCSS(
+				'min-height',
+				textareaHeight
+			);
+		});
+
+		await test.step('Select the previous version as the target', async () => {
 			await page
 				.getByRole('combobox', {
 					name: 'Select a Version for Comparison',
@@ -266,6 +342,62 @@ test(
 			}
 		});
 
+		await test.step('Clicking a field scrolls the other version to the same field', async () => {
+			const leftField = leftFrame.locator(
+				'[data-field-name="ObjectField_flag"]'
+			);
+			const rightField = rightFrame.locator(
+				'[data-field-name="ObjectField_flag"]'
+			);
+
+			await leftField.evaluate((field) => field.scrollIntoView());
+
+			await getDiffBox(leftFrame, 'flag').click();
+
+			await expect(async () => {
+				const leftBox = await leftField.boundingBox();
+				const rightBox = await rightField.boundingBox();
+
+				expect(Math.abs(leftBox!.y - rightBox!.y)).toBeLessThan(1);
+			}).toPass({timeout: 10000});
+		});
+
+		await test.step('Moving the focus with the keyboard also aligns the other version', async () => {
+			await getDiffBox(rightFrame, 'essay').click();
+
+			await rightFrame
+				.locator('[data-field-name="ObjectField_attachment"]')
+				.evaluate((field) => field.scrollIntoView());
+
+			await leftFrame
+				.locator('[data-field-name="ObjectField_title"]')
+				.evaluate((field) => field.scrollIntoView());
+
+			await page.keyboard.press('Tab');
+
+			const fieldName = await rightFrame
+				.locator(':focus')
+				.evaluate(
+					(element) =>
+						element.closest<HTMLElement>('[data-field-name]')
+							?.dataset.fieldName
+				);
+
+			expect(fieldName).toBeTruthy();
+			expect(fieldName).not.toBe('ObjectField_essay');
+
+			await expect(async () => {
+				const leftBox = await leftFrame
+					.locator(`[data-field-name="${fieldName}"]`)
+					.boundingBox();
+				const rightBox = await rightFrame
+					.locator(`[data-field-name="${fieldName}"]`)
+					.boundingBox();
+
+				expect(Math.abs(leftBox!.y - rightBox!.y)).toBeLessThan(1);
+			}).toPass({timeout: 10000});
+		});
+
 		await test.step('Each pane marks its own value of every changed field', async () => {
 			const cases: [string, string, string][] = [
 				['title', revisedTitle, contentTitle],
@@ -285,7 +417,16 @@ test(
 			}
 		});
 
-		await test.step('A changed date is marked as a single value', async () => {
+		await test.step('Each diff box is a read only text box named after its field', async () => {
+			for (const label of ['Day', 'Flag', 'Story', 'Words']) {
+				const textbox = leftFrame.getByRole('textbox', {name: label});
+
+				await expect(textbox).toHaveAttribute('aria-readonly', 'true');
+				await expect(textbox).toHaveClass(/cms-compare-versions-diff/);
+			}
+		});
+
+		await test.step('A changed atomic value is marked as one unit', async () => {
 			const leftDay = getDiffBox(leftFrame, 'day').locator(
 				'.diff-html-added'
 			);
@@ -300,6 +441,33 @@ test(
 			await expect(
 				getDiffBox(leftFrame, 'moment').locator('.diff-html-added')
 			).toHaveText('09/15/2026, 04:45 PM');
+
+			const atomicCases: [string, string, string][] = [
+				['contact', 'second@liferay.com', 'first@liferay.com'],
+				['line', '+1600999888', '+1600111222'],
+				['ratio', '3.75', '1.5'],
+			];
+
+			for (const [fieldName, leftValue, rightValue] of atomicCases) {
+				await expect(
+					getDiffBox(leftFrame, fieldName).locator('.diff-html-added')
+				).toHaveText(leftValue);
+				await expect(
+					getDiffBox(rightFrame, fieldName).locator(
+						'.diff-html-added'
+					)
+				).toHaveText(rightValue);
+			}
+		});
+
+		await test.step('A changed reference is marked by its title', async () => {
+			await expect(
+				getRelatedContentDiffBox(leftFrame).locator('.diff-html-added')
+			).toHaveText(secondRelatedTitle);
+
+			await expect(
+				getRelatedContentDiffBox(rightFrame).locator('.diff-html-added')
+			).toHaveText(firstRelatedTitle);
 		});
 
 		await test.step('A replaced attachment shows each version thumbnail and file name', async () => {
@@ -336,7 +504,7 @@ test(
 
 test(
 	'Falls back to the default language and shows an empty state for missing translations',
-	{tag: '@LPD-104103'},
+	{tag: ['@LPD-104103', '@LPD-106618']},
 	async ({
 		apiHelpers,
 		assetsPage,
@@ -457,6 +625,208 @@ test(
 			await expect(
 				page.getByText('No Translation Available')
 			).toBeVisible();
+		});
+
+		await test.step('The version can still be changed from the empty state', async () => {
+			await page
+				.getByRole('combobox', {
+					name: /Select a version. Current version: 1/,
+				})
+				.click();
+
+			await page.getByRole('option', {name: 'Version 2'}).click();
+
+			await expect(
+				page.getByText('No Translation Available')
+			).toBeHidden();
+
+			await expectDiffBoxToShow(rightFrame, 'words', 'Green');
+		});
+	}
+);
+
+test(
+	'Keeps both versions read only',
+	{tag: '@LPD-106618'},
+	async ({
+		apiHelpers,
+		assetsPage,
+		contentsPage,
+		page,
+		structureBuilderPage,
+	}) => {
+		const referencedStructureLabel = `Nested${getRandomInt()}`;
+		const structureLabel = `ReadOnly${getRandomInt()}`;
+		const contentTitle = `read only content ${getRandomString()}`;
+		const spaceName = `Space ${getRandomString()}`;
+
+		await test.step('Create a space and a structure with a repeatable group', async () => {
+			await apiHelpers.headlessAssetLibrary.createAssetLibrary({
+				name: spaceName,
+				settings: {},
+				type: 'Space',
+			});
+
+			await structureBuilderPage.createStructureFromData({
+				label: referencedStructureLabel,
+				name: referencedStructureLabel,
+				page: structureBuilderPage,
+				publish: true,
+			});
+
+			await structureBuilderPage.createStructureFromData({
+				label: structureLabel,
+				name: structureLabel,
+				page: structureBuilderPage,
+				publish: false,
+			});
+
+			await structureBuilderPage.addField('Decimal');
+
+			await structureBuilderPage.changeFieldSettings({label: 'Ratio'});
+
+			await structureBuilderPage.addField('Date');
+
+			await structureBuilderPage.changeFieldSettings({label: 'Day'});
+
+			await structureBuilderPage.addReferencedStructures([
+				referencedStructureLabel,
+			]);
+
+			await structureBuilderPage.publishStructure();
+		});
+
+		await test.step('Publish two versions', async () => {
+			await contentsPage.goto();
+
+			await contentsPage.createContent(structureLabel, spaceName);
+
+			await contentsPage.fillData([
+				{label: 'Title', value: contentTitle},
+				{label: 'Ratio', value: '1.5'},
+				{label: 'Day', type: 'Date', value: '08/28/2026'},
+			]);
+
+			await page
+				.locator('.lfr-layout-structure-item-form-relationship')
+				.getByRole('textbox', {exact: true, name: 'Title'})
+				.fill('Nested title');
+
+			await contentsPage.saveContent();
+
+			await contentsPage.editContent(contentTitle);
+
+			await contentsPage.fillData([{label: 'Ratio', value: '3.75'}]);
+
+			await contentsPage.saveContent();
+		});
+
+		await test.step('Open the comparison of both versions', async () => {
+			await assetsPage.execItemAction({
+				action: 'View History',
+				filter: contentTitle,
+			});
+
+			await page
+				.getByRole('button', {name: `${contentTitle} Actions`})
+				.first()
+				.click();
+
+			await page.getByRole('menuitem', {name: 'Compare to...'}).click();
+
+			await page
+				.getByRole('combobox', {
+					name: 'Select a Version for Comparison',
+				})
+				.click();
+
+			await page.getByRole('option', {name: 'Version 1'}).click();
+		});
+
+		const leftFrame = page.frameLocator('iframe[title="Version 2"]');
+		const rightFrame = page.frameLocator('iframe[title="Version 1"]');
+
+		await test.step('The key help icon shows a tooltip with its label', async () => {
+			await page
+				.getByRole('button', {name: 'Compare Versions Key Help'})
+				.hover();
+
+			await expect(
+				page
+					.getByRole('tooltip')
+					.filter({hasText: 'Compare Versions Key Help'})
+			).toBeVisible();
+
+			await page.mouse.move(0, 0);
+		});
+
+		await test.step('Each pane shows its own value of the changed field', async () => {
+			await expectDiffBoxToShow(leftFrame, 'ratio', '3.75');
+			await expectDiffBoxToShow(rightFrame, 'ratio', '1.5');
+		});
+
+		await test.step('The repeatable group is read only', async () => {
+			for (const frame of [leftFrame, rightFrame]) {
+				await expect(
+					frame.locator(
+						'.lfr-layout-structure-item-form-relationship'
+					)
+				).toBeVisible();
+
+				await expect(frame.getByText('Add New')).toHaveCount(0);
+			}
+		});
+
+		await test.step('An unchanged date keeps the read only focus style', async () => {
+			const field = leftFrame.locator(
+				'[data-field-name="ObjectField_day"]'
+			);
+
+			const dateInput = field.locator('input.form-control');
+			const inputGroupItem = field.locator('.input-group-item-focusable');
+
+			const getStyle = () =>
+				inputGroupItem.evaluate(async (element) => {
+					await Promise.all(
+						element
+							.getAnimations()
+							.map((animation) => animation.finished)
+					);
+
+					const {backgroundColor, boxShadow} =
+						getComputedStyle(element);
+
+					return {backgroundColor, boxShadow};
+				});
+
+			const style = await getStyle();
+
+			await dateInput.click();
+
+			await expect(dateInput).toBeFocused();
+
+			expect(await getStyle()).toEqual(style);
+		});
+
+		await test.step('A changed field keeps the read-only input style', async () => {
+			for (const frame of [leftFrame, rightFrame]) {
+				const field = frame.locator(
+					'[data-field-name="ObjectField_ratio"]'
+				);
+
+				const getBackgroundColor = (locator: Locator) =>
+					locator.evaluate(
+						(element) => getComputedStyle(element).backgroundColor
+					);
+
+				expect(
+					await getBackgroundColor(
+						field.locator('.cms-compare-versions-diff')
+					)
+				).toBe(
+					await getBackgroundColor(field.locator('input[readonly]'))
+				);
+			}
 		});
 	}
 );
@@ -764,5 +1134,228 @@ test(
 			'cms/basic-documents',
 			String(objectEntry.id)
 		);
+	}
+);
+
+test(
+	'Shows an unchanged file entry image in both versions',
+	{tag: '@LPD-106618'},
+	async ({apiHelpers, assetsPage, page}) => {
+		const title = `file compare ${getRandomString()}`;
+
+		const fileName = `compare_${getRandomString()}.jpg`;
+
+		const objectEntry =
+			await test.step('Publish a second version keeping the same file', async () => {
+				const entry = await apiHelpers.objectEntry.postObjectEntry(
+					{
+						file: {
+							fileBase64: fs
+								.readFileSync(
+									path.join(
+										__dirname,
+										'dependencies',
+										'file_upload_image_1.jpg'
+									)
+								)
+								.toString('base64'),
+							name: fileName,
+						},
+						objectEntryFolderExternalReferenceCode: 'L_FILES',
+						title,
+					},
+					'cms/basic-documents',
+					'Default'
+				);
+
+				await apiHelpers.objectEntry.patchObjectEntry(
+					{title: `${title} revised`},
+					'cms/basic-documents',
+					entry.id
+				);
+
+				return entry;
+			});
+
+		await test.step('Compare both versions from the version history', async () => {
+			await assetsPage.gotoFiles();
+
+			await assetsPage.execCardItemAction({
+				action: 'View History',
+				filter: title,
+			});
+
+			await page
+				.getByRole('button', {name: `${title} Actions`})
+				.first()
+				.click();
+
+			await page.getByRole('menuitem', {name: 'Compare to...'}).click();
+
+			await expect(
+				page
+					.frameLocator('iframe[title="Version 2"]')
+					.locator('.cms-compare-versions-attachment:visible')
+			).toHaveAttribute('src', new RegExp(`/documents/.*${fileName}`), {
+				timeout: 90000,
+			});
+
+			await page
+				.getByRole('combobox', {
+					name: 'Select a Version for Comparison',
+				})
+				.click();
+
+			await page.getByRole('option', {name: 'Version 1'}).click();
+		});
+
+		await test.step('Both versions show the image without a diff border', async () => {
+			for (const version of [1, 2]) {
+				const image = page
+					.frameLocator(`iframe[title="Version ${version}"]`)
+					.locator('.cms-compare-versions-attachment:visible');
+
+				await expect(image).toHaveAttribute(
+					'src',
+					new RegExp(`/documents/.*${fileName}`),
+					{timeout: 90000}
+				);
+				await expect(image).not.toHaveClass(/border-(danger|success)/);
+			}
+		});
+
+		await apiHelpers.objectEntry.deleteObjectEntry(
+			'cms/basic-documents',
+			String(objectEntry.id)
+		);
+	}
+);
+
+test(
+	'Aligns the same repeatable item in the other version',
+	{tag: '@LPD-106618'},
+	async ({
+		apiHelpers,
+		assetsPage,
+		contentsPage,
+		page,
+		structureBuilderPage,
+	}) => {
+		const structureLabel = `Repeatable${getRandomInt()}`;
+		const contentTitle = `repeatable content ${getRandomString()}`;
+		const spaceName = `Space ${getRandomString()}`;
+
+		await test.step('Create a space and a structure with a repeatable group', async () => {
+			await apiHelpers.headlessAssetLibrary.createAssetLibrary({
+				name: spaceName,
+				settings: {},
+				type: 'Space',
+			});
+
+			await structureBuilderPage.createStructureFromData({
+				label: structureLabel,
+				name: structureLabel,
+				page: structureBuilderPage,
+				publish: false,
+			});
+
+			await structureBuilderPage.addField('Long Text');
+
+			await structureBuilderPage.changeFieldSettings({label: 'Intro'});
+
+			await structureBuilderPage.addField('Text');
+
+			await structureBuilderPage.changeFieldSettings({label: 'Note'});
+
+			await structureBuilderPage.createRepeatableGroup({
+				fields: [{label: 'Note'}],
+				label: 'Items',
+			});
+
+			await structureBuilderPage.publishStructure();
+		});
+
+		await test.step('Publish a second version with a shorter intro', async () => {
+			const objectDefinition =
+				await apiHelpers.objectAdmin.getObjectDefinitionByName(
+					structureLabel
+				);
+
+			const applicationName = objectDefinition.restContextPath.replace(
+				'/o/',
+				''
+			);
+			const items = Array.from({length: 6}, (_, index) => ({
+				externalReferenceCode: `note-${index}`,
+				note: `Note ${index}`,
+			}));
+			const relationshipName =
+				objectDefinition.objectRelationships[0].name;
+
+			const objectEntry = await apiHelpers.objectEntry.postObjectEntry(
+				{
+					intro: Array.from(
+						{length: 30},
+						(_, index) => `Intro line ${index}.`
+					).join('\n'),
+					objectEntryFolderExternalReferenceCode: 'L_CONTENTS',
+					[relationshipName]: items,
+					title: contentTitle,
+				},
+				applicationName,
+				spaceName
+			);
+
+			await apiHelpers.objectEntry.patchObjectEntry(
+				{intro: 'Short intro.', [relationshipName]: items},
+				applicationName,
+				objectEntry.id
+			);
+		});
+
+		await test.step('Open the comparison of both versions', async () => {
+			await contentsPage.goto();
+
+			await assetsPage.execItemAction({
+				action: 'View History',
+				filter: contentTitle,
+			});
+
+			await page
+				.getByRole('button', {name: `${contentTitle} Actions`})
+				.first()
+				.click();
+
+			await page.getByRole('menuitem', {name: 'Compare to...'}).click();
+
+			await page
+				.getByRole('combobox', {
+					name: 'Select a Version for Comparison',
+				})
+				.click();
+
+			await page.getByRole('option', {name: 'Version 1'}).click();
+		});
+
+		await test.step('Clicking a repeatable item scrolls the other version to the same item', async () => {
+			const getLastNote = (version: number) =>
+				page
+					.frameLocator(`iframe[title="Version ${version}"]`)
+					.locator('[data-field-name$="_note"]')
+					.nth(5);
+
+			await expect(getLastNote(1)).toBeAttached({timeout: 90000});
+
+			await getLastNote(2).locator('.form-control').first().click();
+
+			await expect(async () => {
+				const leftBox = await getLastNote(2).boundingBox();
+				const rightBox = await getLastNote(1).boundingBox();
+
+				expect(
+					Math.abs((leftBox?.y ?? 0) - (rightBox?.y ?? Infinity))
+				).toBeLessThan(2);
+			}).toPass({timeout: 10000});
+		});
 	}
 );

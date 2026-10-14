@@ -14,43 +14,6 @@ import java.util.regex.Pattern;
  */
 public class ControllerPortalTopLevelBuildData extends PortalTopLevelBuildData {
 
-	public String getTestrayBuildName() {
-		String testrayProjectName = getTestrayProjectName();
-
-		if (testrayProjectName == null) {
-			return null;
-		}
-
-		return JenkinsResultsParserUtil.combine(
-			getTestrayRoutineName(), " - ", String.valueOf(getBuildNumber()),
-			" - ",
-			JenkinsResultsParserUtil.toDateString(
-				new Date(getStartTime()), "yyyy-MM-dd[HH:mm:ss]",
-				"America/Los_Angeles"));
-	}
-
-	public String getTestrayProjectName() {
-		String testrayProjectName = Environment.get("TESTRAY_PROJECT_NAME");
-
-		if ((testrayProjectName != null) && !testrayProjectName.isEmpty()) {
-			return testrayProjectName;
-		}
-
-		return null;
-	}
-
-	public String getTestrayRoutineName() {
-		String testrayProjectName = getTestrayProjectName();
-
-		if (testrayProjectName == null) {
-			return null;
-		}
-
-		return JenkinsResultsParserUtil.combine(
-			"[", getPortalUpstreamBranchName(), "] ci:test:",
-			getTestSuiteName());
-	}
-
 	public String getTestSuiteName() {
 		String jobName = getJobName();
 
@@ -69,33 +32,75 @@ public class ControllerPortalTopLevelBuildData extends PortalTopLevelBuildData {
 		return testSuiteName;
 	}
 
+	public String getTestrayBuildName() {
+		String testrayProjectName = getTestrayProjectName();
+
+		if (testrayProjectName == null) {
+			return null;
+		}
+
+		return JenkinsResultsParserUtil.combine(
+			getTestrayRoutineName(), " - ", String.valueOf(getBuildNumber()),
+			" - ",
+			JenkinsResultsParserUtil.toDateString(
+				new Date(getStartTime()), "yyyy-MM-dd[HH:mm:ss]",
+				"America/Los_Angeles"));
+	}
+
+	public String getTestrayProjectName() {
+		String testrayProjectName = Environment.get("TESTRAY_PROJECT_NAME");
+
+		if (!JenkinsResultsParserUtil.isNullOrEmpty(testrayProjectName)) {
+			return testrayProjectName;
+		}
+
+		return null;
+	}
+
+	public String getTestrayRoutineName() {
+		String testrayProjectName = getTestrayProjectName();
+
+		if (testrayProjectName == null) {
+			return null;
+		}
+
+		String testrayRoutineName = Environment.get("TESTRAY_ROUTINE_NAME");
+
+		if (!JenkinsResultsParserUtil.isNullOrEmpty(testrayRoutineName)) {
+			return testrayRoutineName;
+		}
+
+		String testrayBuildType = Environment.get("TESTRAY_BUILD_TYPE");
+
+		if (!JenkinsResultsParserUtil.isNullOrEmpty(testrayBuildType)) {
+			return testrayBuildType;
+		}
+
+		return JenkinsResultsParserUtil.combine(
+			"[", getPortalUpstreamBranchName(), "] ci:test:",
+			getTestSuiteName());
+	}
+
 	protected ControllerPortalTopLevelBuildData(
 		String runId, String jobName, String buildURL) {
 
 		super(runId, jobName, buildURL);
 
-		setPortalBranchSHA(_getPortalBranchSHA());
 		setPortalGitHubURL(_getPortalGitHubURL());
+		setPortalRemoteGitRef(GitUtil.getRemoteGitRef(_getPortalGitHubURL()));
 		setPortalUpstreamBranchName(_getPortalUpstreamBranchName());
 
 		String jenkinsGitHubURL = getBuildParameter("JENKINS_GITHUB_URL");
 
-		if ((jenkinsGitHubURL != null) && !jenkinsGitHubURL.isEmpty()) {
+		if (!JenkinsResultsParserUtil.isNullOrEmpty(jenkinsGitHubURL)) {
 			setJenkinsGitHubURL(jenkinsGitHubURL);
 		}
-	}
-
-	private String _getPortalBranchSHA() {
-		RemoteGitRef remoteGitRef = GitUtil.getRemoteGitRef(
-			_getPortalGitHubURL());
-
-		return remoteGitRef.getSHA();
 	}
 
 	private String _getPortalGitHubURL() {
 		String portalGitHubURL = Environment.get("PORTAL_GITHUB_URL");
 
-		if ((portalGitHubURL != null) && !portalGitHubURL.isEmpty()) {
+		if (!JenkinsResultsParserUtil.isNullOrEmpty(portalGitHubURL)) {
 			return portalGitHubURL;
 		}
 

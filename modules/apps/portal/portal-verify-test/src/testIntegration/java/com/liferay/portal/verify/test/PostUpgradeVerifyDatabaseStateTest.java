@@ -1,0 +1,766 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2026 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+package com.liferay.portal.verify.test;
+
+import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
+import com.liferay.object.constants.ObjectDefinitionConstants;
+import com.liferay.object.constants.ObjectFieldConstants;
+import com.liferay.object.field.util.ObjectFieldUtil;
+import com.liferay.object.model.ObjectDefinition;
+import com.liferay.object.service.ObjectDefinitionLocalService;
+import com.liferay.object.test.util.ObjectDefinitionTestUtil;
+import com.liferay.petra.function.transform.TransformUtil;
+import com.liferay.petra.io.unsync.UnsyncByteArrayInputStream;
+import com.liferay.petra.io.unsync.UnsyncByteArrayOutputStream;
+import com.liferay.petra.string.StringBundler;
+import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.dao.db.DB;
+import com.liferay.portal.kernel.dao.db.DBManagerUtil;
+import com.liferay.portal.kernel.dao.db.DBType;
+import com.liferay.portal.kernel.dao.db.IndexMetadata;
+import com.liferay.portal.kernel.db.DBResourceUtil;
+import com.liferay.portal.kernel.model.Release;
+import com.liferay.portal.kernel.model.ReleaseConstants;
+import com.liferay.portal.kernel.model.ServiceComponent;
+import com.liferay.portal.kernel.service.ReleaseLocalService;
+import com.liferay.portal.kernel.service.ServiceComponentLocalService;
+import com.liferay.portal.kernel.test.rule.AggregateTestRule;
+import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.PropsValues;
+import com.liferay.portal.kernel.util.SetUtil;
+import com.liferay.portal.test.log.LogCapture;
+import com.liferay.portal.test.log.LogEntry;
+import com.liferay.portal.test.log.LoggerTestUtil;
+import com.liferay.portal.test.rule.Inject;
+import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
+import com.liferay.portal.verify.PostUpgradeVerifyDatabaseState;
+import com.liferay.portal.verify.VerifyProcess;
+import com.liferay.portal.verify.test.util.BaseVerifyProcessTestCase;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.jar.Attributes;
+import java.util.jar.JarFile;
+import java.util.jar.JarOutputStream;
+import java.util.jar.Manifest;
+import java.util.zip.ZipEntry;
+
+import org.junit.Assert;
+import org.junit.Assume;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
+import org.osgi.framework.FrameworkUtil;
+
+/**
+ * @author Mariano Álvaro Sáiz
+ */
+@RunWith(Arquillian.class)
+public class PostUpgradeVerifyDatabaseStateTest
+	extends BaseVerifyProcessTestCase {
+
+	@ClassRule
+	@Rule
+	public static final AggregateTestRule aggregateTestRule =
+		new LiferayIntegrationTestRule();
+
+	@Test
+	public void testGetErrorMessages() throws Exception {
+		alterColumnName("UserTracker", "companyId", "companyId_backup LONG");
+
+		try {
+			_testGetMessages(
+				PostUpgradeVerifyDatabaseState::getErrorMessages,
+				LoggerTestUtil.ERROR,
+				_getExpectedMessage(
+					StringBundler.concat(
+						"Missing columns were detected for ",
+						getNormalizedName("UserTracker"), " table"),
+					ReleaseConstants.DEFAULT_SERVLET_CONTEXT_NAME,
+					getNormalizedName("companyId")));
+		}
+		finally {
+			alterColumnName(
+				"UserTracker", "companyId_backup", "companyId LONG");
+		}
+	}
+
+	@Test
+	public void testGetWarnMessages() throws Exception {
+		alterColumnType("Address", "city", "VARCHAR(100)");
+
+		try {
+			_testGetMessages(
+				PostUpgradeVerifyDatabaseState::getWarnMessages,
+				LoggerTestUtil.WARN,
+				_getExpectedMessage(
+					StringBundler.concat(
+						"Column ", getNormalizedName("city"),
+						" is not defined as VARCHAR(75) null for ",
+						getNormalizedName("Address"), " table"),
+					ReleaseConstants.DEFAULT_SERVLET_CONTEXT_NAME));
+		}
+		finally {
+			alterColumnType("Address", "city", "VARCHAR(75)");
+		}
+	}
+
+	@Test
+	public void testVerifyPostUpgradeColumns() throws Exception {
+		alterColumnName(
+			"UserTracker", "remoteAddr", "remoteAddr_backup VARCHAR(75) null");
+
+		try {
+			_testVerifyMessages(
+				_getExpectedMessage(
+					StringBundler.concat(
+						"Missing columns were detected for ",
+						getNormalizedName("UserTracker"), " table"),
+					ReleaseConstants.DEFAULT_SERVLET_CONTEXT_NAME,
+					getNormalizedName("remoteAddr")),
+				_getExpectedMessage(
+					StringBundler.concat(
+						"Stale columns were detected for ",
+						getNormalizedName("UserTracker"), " table"),
+					ReleaseConstants.DEFAULT_SERVLET_CONTEXT_NAME,
+					getNormalizedName("remoteAddr_backup")));
+		}
+		finally {
+			alterColumnName(
+				"UserTracker", "remoteAddr_backup",
+				"remoteAddr VARCHAR(75) null");
+		}
+
+		alterColumnType("Address", "city", "VARCHAR(100)");
+
+		try {
+			_testVerifyMessages(
+				_getExpectedMessage(
+					StringBundler.concat(
+						"Column ", getNormalizedName("city"),
+						" is not defined as VARCHAR(75) null for ",
+						getNormalizedName("Address"), " table"),
+					ReleaseConstants.DEFAULT_SERVLET_CONTEXT_NAME));
+		}
+		finally {
+			alterColumnType("Address", "city", "VARCHAR(75)");
+		}
+	}
+
+	@Test
+	public void testVerifyPostUpgradeCustomTable() throws Exception {
+		String tableName = getNormalizedName("TestCustomTable");
+
+		_createTable(tableName);
+
+		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
+				PostUpgradeVerifyDatabaseState.class.getName(),
+				LoggerTestUtil.INFO)) {
+
+			testVerify();
+
+			String message = _getMessage(logCapture, tableName);
+
+			Assert.assertTrue(
+				message, message.contains("Custom or untracked tables"));
+		}
+		finally {
+			_dropTable(tableName);
+		}
+	}
+
+	@Test
+	public void testVerifyPostUpgradeIndexes() throws Exception {
+		Map<String, List<IndexMetadata>> portalTablesIndexMetadatas =
+			DBResourceUtil.getPortalTablesIndexMetadatas();
+
+		IndexMetadata indexMetadata = _getIndexMetadata(
+			portalTablesIndexMetadatas.get("UserTracker"), false);
+
+		dropIndex(indexMetadata.getIndexName(), "UserTracker");
+
+		try {
+			_testVerifyMessages(
+				_getExpectedMessage(
+					StringBundler.concat(
+						"Missing indexes were detected for ",
+						getNormalizedName("UserTracker"), " table"),
+					ReleaseConstants.DEFAULT_SERVLET_CONTEXT_NAME,
+					getNormalizedName(indexMetadata.getIndexName())));
+		}
+		finally {
+			addIndex(
+				indexMetadata.getIndexName(), "UserTracker", false,
+				indexMetadata.getColumnNames());
+		}
+
+		try {
+			updateIndex(
+				indexMetadata.getIndexName(), "UserTracker", false,
+				ArrayUtil.append(indexMetadata.getColumnNames(), "remoteAddr"));
+
+			List<String> columnNames = TransformUtil.transformToList(
+				indexMetadata.getColumnNames(), this::getNormalizedName);
+
+			_testVerifyMessages(
+				_getExpectedMessage(
+					StringBundler.concat(
+						"Index ",
+						getNormalizedName(indexMetadata.getIndexName()),
+						" is not defined as ", columnNames, " for ",
+						getNormalizedName("UserTracker"), " table"),
+					ReleaseConstants.DEFAULT_SERVLET_CONTEXT_NAME));
+		}
+		finally {
+			updateIndex(
+				indexMetadata.getIndexName(), "UserTracker", false,
+				indexMetadata.getColumnNames());
+		}
+
+		IndexMetadata uniqueIndexMetadata = _getIndexMetadata(
+			portalTablesIndexMetadatas.get("Address"), true);
+
+		try {
+			updateIndex(
+				uniqueIndexMetadata.getIndexName(), "Address", false,
+				uniqueIndexMetadata.getColumnNames());
+
+			_testGetMessages(
+				PostUpgradeVerifyDatabaseState::getErrorMessages,
+				LoggerTestUtil.ERROR,
+				_getExpectedMessage(
+					StringBundler.concat(
+						"Index ",
+						getNormalizedName(uniqueIndexMetadata.getIndexName()),
+						" must be defined as unique for ",
+						getNormalizedName("Address"), " table"),
+					ReleaseConstants.DEFAULT_SERVLET_CONTEXT_NAME));
+		}
+		finally {
+			updateIndex(
+				uniqueIndexMetadata.getIndexName(), "Address", true,
+				uniqueIndexMetadata.getColumnNames());
+		}
+	}
+
+	@Test
+	public void testVerifyPostUpgradeLengthLimitedIndexColumns()
+		throws Exception {
+
+		DB db = DBManagerUtil.getDB();
+
+		Assume.assumeTrue(db.getDBType() == DBType.POSTGRESQL);
+
+		Map<String, List<IndexMetadata>> portalTablesIndexMetadatas =
+			DBResourceUtil.getPortalTablesIndexMetadatas();
+
+		IndexMetadata indexMetadata = _getIndexMetadata(
+			portalTablesIndexMetadatas.get("UserTracker"), "sessionId");
+
+		try {
+			updateIndex(
+				indexMetadata.getIndexName(), "UserTracker", false,
+				"left(sessionId, 50)");
+
+			_testVerifyMessages();
+		}
+		finally {
+			updateIndex(
+				indexMetadata.getIndexName(), "UserTracker", false,
+				indexMetadata.getColumnNames());
+		}
+	}
+
+	@Test
+	public void testVerifyPostUpgradeMalformedIndexes() throws Exception {
+		Bundle bundle = _installBundle("create wrong index");
+
+		try {
+			_testGetMessages(
+				PostUpgradeVerifyDatabaseState::getErrorMessages,
+				LoggerTestUtil.ERROR, "Unable to get the declared indexes");
+		}
+		finally {
+			bundle.uninstall();
+		}
+	}
+
+	@Test
+	public void testVerifyPostUpgradeMissingNonserviceBuilderTable()
+		throws Exception {
+
+		ObjectDefinition objectDefinition =
+			ObjectDefinitionTestUtil.publishObjectDefinition(
+				Collections.singletonList(
+					ObjectFieldUtil.createObjectField(
+						ObjectFieldConstants.BUSINESS_TYPE_TEXT,
+						ObjectFieldConstants.DB_TYPE_STRING, "textField")),
+				ObjectDefinitionConstants.SCOPE_COMPANY);
+
+		String tableName = getNormalizedName(objectDefinition.getDBTableName());
+
+		_dropTable(tableName);
+
+		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
+				PostUpgradeVerifyDatabaseState.class.getName(),
+				LoggerTestUtil.ERROR)) {
+
+			testVerify();
+
+			Assert.assertEquals(
+				_getExpectedMessage(
+					"Missing tables were detected", StringPool.BLANK,
+					tableName),
+				_getMessage(logCapture, tableName));
+		}
+		finally {
+			_objectDefinitionLocalService.deleteObjectDefinition(
+				objectDefinition);
+		}
+	}
+
+	@Test
+	public void testVerifyPostUpgradePrimaryKeys() throws Exception {
+		try {
+			removePrimaryKey("Phone");
+
+			updatePrimaryKey("UserTracker", "userTrackerId", "mvccVersion");
+
+			_testGetMessages(
+				PostUpgradeVerifyDatabaseState::getErrorMessages,
+				LoggerTestUtil.ERROR,
+				_getExpectedMessage(
+					StringBundler.concat(
+						"Missing primary key was detected for ",
+						getNormalizedName("Phone"), " table: [",
+						getNormalizedName("phoneId"), ", ",
+						getNormalizedName("ctCollectionId"), "]"),
+					ReleaseConstants.DEFAULT_SERVLET_CONTEXT_NAME),
+				_getExpectedMessage(
+					StringBundler.concat(
+						"Primary key [", getNormalizedName("userTrackerId"),
+						", ", getNormalizedName("mvccVersion"),
+						"] is not defined as [",
+						getNormalizedName("userTrackerId"), "] for ",
+						getNormalizedName("UserTracker"), " table"),
+					ReleaseConstants.DEFAULT_SERVLET_CONTEXT_NAME));
+		}
+		finally {
+			updatePrimaryKey("Phone", "phoneId", "ctCollectionId");
+			updatePrimaryKey("UserTracker", "userTrackerId");
+		}
+	}
+
+	@Test
+	public void testVerifyPostUpgradeRequireSchemaVersionBundleTable()
+		throws Exception {
+
+		Map<String, String> tablesServletContextNames =
+			DBResourceUtil.getTablesServletContextNames();
+
+		Assert.assertEquals(
+			"com.liferay.portal.configuration.persistence.impl",
+			tablesServletContextNames.get("Configuration_"));
+
+		String tableName = getNormalizedName("Configuration_");
+
+		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
+				PostUpgradeVerifyDatabaseState.class.getName(),
+				LoggerTestUtil.INFO)) {
+
+			testVerify();
+
+			for (String message : logCapture.getMessages()) {
+				Assert.assertFalse(message, message.contains(tableName));
+			}
+		}
+	}
+
+	@Test
+	public void testVerifyPostUpgradeStaleIndexes() throws Exception {
+		addIndex("IX_TEST", "UserTracker", false, "companyId", "userId");
+
+		try {
+			_testGetMessages(
+				PostUpgradeVerifyDatabaseState::getWarnMessages,
+				LoggerTestUtil.WARN,
+				_getExpectedMessage(
+					StringBundler.concat(
+						"Stale indexes were detected for ",
+						getNormalizedName("UserTracker"), " table"),
+					ReleaseConstants.DEFAULT_SERVLET_CONTEXT_NAME,
+					getNormalizedName("IX_TEST")));
+		}
+		finally {
+			dropIndex("IX_TEST", "UserTracker");
+		}
+
+		addIndex("IX_TEST", "UserTracker", true, "userTrackerId", "companyId");
+
+		try {
+			_testGetMessages(
+				PostUpgradeVerifyDatabaseState::getErrorMessages,
+				LoggerTestUtil.ERROR,
+				_getExpectedMessage(
+					StringBundler.concat(
+						"Stale unique indexes were detected for ",
+						getNormalizedName("UserTracker"), " table"),
+					ReleaseConstants.DEFAULT_SERVLET_CONTEXT_NAME,
+					getNormalizedName("IX_TEST")));
+		}
+		finally {
+			dropIndex("IX_TEST", "UserTracker");
+		}
+	}
+
+	@Test
+	public void testVerifyPostUpgradeStaleTable() throws Exception {
+		String tableName = getNormalizedName("TestStaleTable");
+
+		_createTable(tableName);
+
+		Release release = null;
+		ServiceComponent serviceComponent = _addServiceComponent(tableName);
+
+		try {
+			try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
+					PostUpgradeVerifyDatabaseState.class.getName(),
+					LoggerTestUtil.WARN)) {
+
+				testVerify();
+
+				Assert.assertEquals(
+					_getExpectedMessage(
+						"Stale tables were detected", _BUILD_NAMESPACE,
+						tableName),
+					_getMessage(logCapture, tableName));
+			}
+
+			release = _releaseLocalService.addRelease(
+				_BUILD_NAMESPACE, "1.0.0");
+
+			release.setState(ReleaseConstants.STATE_UPGRADE_FAILURE);
+
+			release = _releaseLocalService.updateRelease(release);
+
+			try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
+					PostUpgradeVerifyDatabaseState.class.getName(),
+					LoggerTestUtil.ERROR)) {
+
+				testVerify();
+
+				Assert.assertEquals(
+					StringBundler.concat(
+						"Module ", _BUILD_NAMESPACE,
+						" has release state upgrade failure, schema version ",
+						"1.0.0"),
+					_getMessage(logCapture, "release state"));
+			}
+		}
+		finally {
+			if (release != null) {
+				_releaseLocalService.deleteRelease(release);
+			}
+
+			_serviceComponentLocalService.deleteServiceComponent(
+				serviceComponent);
+
+			_dropTable(tableName);
+		}
+	}
+
+	@Test
+	public void testVerifyPostUpgradeViews() throws Exception {
+		Assume.assumeTrue(PropsValues.DATABASE_PARTITION_ENABLED);
+
+		String staleViewName = getNormalizedName(_STALE_VIEW_NAME);
+
+		renameView(_VIEW_NAME, _STALE_VIEW_NAME);
+
+		ServiceComponent serviceComponent = null;
+
+		try {
+			try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
+					PostUpgradeVerifyDatabaseState.class.getName(),
+					LoggerTestUtil.INFO)) {
+
+				testVerify();
+
+				Assert.assertEquals(
+					_getExpectedMessage(
+						"Missing views were detected",
+						ReleaseConstants.DEFAULT_SERVLET_CONTEXT_NAME,
+						getNormalizedName(_VIEW_NAME)),
+					_getMessage(logCapture, "Missing views were detected"));
+
+				String message = _getMessage(
+					logCapture, "Custom or untracked views");
+
+				Assert.assertTrue(message, message.contains(staleViewName));
+			}
+
+			serviceComponent = _addServiceComponent(_STALE_VIEW_NAME);
+
+			try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
+					PostUpgradeVerifyDatabaseState.class.getName(),
+					LoggerTestUtil.WARN)) {
+
+				testVerify();
+
+				Assert.assertEquals(
+					_getExpectedMessage(
+						"Stale views were detected", _BUILD_NAMESPACE,
+						staleViewName),
+					_getMessage(logCapture, "Stale views were detected"));
+			}
+		}
+		finally {
+			if (serviceComponent != null) {
+				_serviceComponentLocalService.deleteServiceComponent(
+					serviceComponent);
+			}
+
+			renameView(_STALE_VIEW_NAME, _VIEW_NAME);
+		}
+	}
+
+	@Override
+	protected VerifyProcess getVerifyProcess() {
+		return new PostUpgradeVerifyDatabaseState();
+	}
+
+	private ServiceComponent _addServiceComponent(String tableName)
+		throws Exception {
+
+		ServiceComponent serviceComponent =
+			_serviceComponentLocalService.createServiceComponent(
+				RandomTestUtil.nextLong());
+
+		serviceComponent.setMvccVersion(0);
+		serviceComponent.setBuildNamespace(_BUILD_NAMESPACE);
+		serviceComponent.setData(
+			StringBundler.concat("<![CDATA[create table ", tableName, " ("));
+
+		return _serviceComponentLocalService.addServiceComponent(
+			serviceComponent);
+	}
+
+	private void _createTable(String tableName) throws Exception {
+		DB db = DBManagerUtil.getDB();
+
+		db.runSQL("create table " + tableName + " (id LONG)");
+	}
+
+	private void _dropTable(String tableName) throws Exception {
+		DB db = DBManagerUtil.getDB();
+
+		db.runSQL("DROP_TABLE_IF_EXISTS(" + tableName + ")");
+	}
+
+	private String _getExpectedMessage(
+			String message, String servletContextName)
+		throws Exception {
+
+		if (PropsValues.DATABASE_PARTITION_ENABLED) {
+			message = StringBundler.concat(
+				message, " for company ", TestPropsValues.getCompanyId());
+		}
+
+		if (!servletContextName.isEmpty()) {
+			message = StringBundler.concat(
+				message, " in module ", servletContextName);
+		}
+
+		return message;
+	}
+
+	private String _getExpectedMessage(
+			String prefix, String servletContextName, String name)
+		throws Exception {
+
+		return StringBundler.concat(
+			_getExpectedMessage(prefix, servletContextName), StringPool.COLON,
+			StringPool.SPACE, StringPool.OPEN_BRACKET, name,
+			StringPool.CLOSE_BRACKET);
+	}
+
+	private IndexMetadata _getIndexMetadata(
+		List<IndexMetadata> indexMetadatas, boolean unique) {
+
+		for (IndexMetadata indexMetadata : indexMetadatas) {
+			if (indexMetadata.isUnique() == unique) {
+				return indexMetadata;
+			}
+		}
+
+		throw new IllegalStateException(
+			"Unable to find an index metadata with unique " + unique);
+	}
+
+	private IndexMetadata _getIndexMetadata(
+		List<IndexMetadata> indexMetadatas, String columnName) {
+
+		for (IndexMetadata indexMetadata : indexMetadatas) {
+			if (ArrayUtil.contains(
+					indexMetadata.getColumnNames(), columnName)) {
+
+				return indexMetadata;
+			}
+		}
+
+		throw new IllegalStateException(
+			"Unable to find an index metadata with column " + columnName);
+	}
+
+	private String _getMessage(LogCapture logCapture, String text) {
+		List<String> messages = logCapture.getMessages();
+
+		for (String message : messages) {
+			if (message.contains(text)) {
+				return message;
+			}
+		}
+
+		return messages.toString();
+	}
+
+	private Bundle _installBundle(String indexesSQL) throws Exception {
+		try (UnsyncByteArrayOutputStream unsyncByteArrayOutputStream =
+				new UnsyncByteArrayOutputStream()) {
+
+			try (JarOutputStream jarOutputStream = new JarOutputStream(
+					unsyncByteArrayOutputStream)) {
+
+				Manifest manifest = new Manifest();
+
+				Attributes attributes = manifest.getMainAttributes();
+
+				attributes.putValue(Constants.BUNDLE_MANIFESTVERSION, "2");
+				attributes.putValue(
+					Constants.BUNDLE_SYMBOLICNAME, _BUNDLE_SYMBOLIC_NAME);
+				attributes.putValue(Constants.BUNDLE_VERSION, "1.0.0");
+				attributes.putValue("Liferay-Require-SchemaVersion", "1.0.0");
+				attributes.putValue("Manifest-Version", "1");
+
+				jarOutputStream.putNextEntry(
+					new ZipEntry(JarFile.MANIFEST_NAME));
+
+				manifest.write(jarOutputStream);
+
+				jarOutputStream.closeEntry();
+
+				jarOutputStream.putNextEntry(
+					new ZipEntry("META-INF/sql/indexes.sql"));
+
+				jarOutputStream.write(indexesSQL.getBytes());
+
+				jarOutputStream.closeEntry();
+			}
+
+			Bundle bundle = FrameworkUtil.getBundle(
+				PostUpgradeVerifyDatabaseStateTest.class);
+
+			BundleContext bundleContext = bundle.getBundleContext();
+
+			return bundleContext.installBundle(
+				_BUNDLE_SYMBOLIC_NAME,
+				new UnsyncByteArrayInputStream(
+					unsyncByteArrayOutputStream.unsafeGetByteArray(), 0,
+					unsyncByteArrayOutputStream.size()));
+		}
+	}
+
+	private void _testGetMessages(
+			Function<PostUpgradeVerifyDatabaseState, List<String>> function,
+			String priority, String... expectedMessages)
+		throws Exception {
+
+		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
+				PostUpgradeVerifyDatabaseState.class.getName(),
+				LoggerTestUtil.WARN)) {
+
+			PostUpgradeVerifyDatabaseState postUpgradeVerifyDatabaseState =
+				new PostUpgradeVerifyDatabaseState();
+
+			postUpgradeVerifyDatabaseState.verify();
+
+			List<String> logMessages = new ArrayList<>();
+
+			for (LogEntry logEntry : logCapture.getLogEntries()) {
+				if (priority.equals(logEntry.getPriority())) {
+					logMessages.add(logEntry.getMessage());
+				}
+			}
+
+			List<String> messages = function.apply(
+				postUpgradeVerifyDatabaseState);
+
+			Assert.assertEquals(logMessages, messages);
+			Assert.assertTrue(
+				messages.toString(),
+				messages.containsAll(Arrays.asList(expectedMessages)));
+		}
+	}
+
+	private void _testVerifyMessages(String... expectedMessages)
+		throws Exception {
+
+		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
+				PostUpgradeVerifyDatabaseState.class.getName(),
+				LoggerTestUtil.WARN)) {
+
+			testVerify();
+
+			Set<String> messages = new HashSet<>();
+
+			for (String message : logCapture.getMessages()) {
+				if (ArrayUtil.exists(_MESSAGE_PREFIXES, message::startsWith)) {
+					messages.add(message);
+				}
+			}
+
+			Assert.assertEquals(SetUtil.fromArray(expectedMessages), messages);
+		}
+	}
+
+	private static final String _BUILD_NAMESPACE = "com.liferay.test.service";
+
+	private static final String _BUNDLE_SYMBOLIC_NAME =
+		"com.liferay." + RandomTestUtil.randomString();
+
+	private static final String[] _MESSAGE_PREFIXES = {
+		"Column ", "Index ", "Missing columns", "Missing indexes",
+		"Missing primary key", "Primary key ", "Stale columns", "Stale indexes",
+		"Stale unique indexes"
+	};
+
+	private static final String _STALE_VIEW_NAME = "TestStaleView";
+
+	private static final String _VIEW_NAME = "VirtualHost";
+
+	@Inject
+	private ObjectDefinitionLocalService _objectDefinitionLocalService;
+
+	@Inject
+	private ReleaseLocalService _releaseLocalService;
+
+	@Inject
+	private ServiceComponentLocalService _serviceComponentLocalService;
+
+}

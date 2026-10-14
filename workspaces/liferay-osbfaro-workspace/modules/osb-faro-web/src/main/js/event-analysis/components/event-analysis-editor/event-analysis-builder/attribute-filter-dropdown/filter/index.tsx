@@ -1,24 +1,19 @@
 import BooleanFilter from './BooleanFilter';
 import ClayButton from '@clayui/button';
-import ClayIcon from '@clayui/icon';
+import ClayIcon from 'shared/components/Icon';
 import DateFilter from './DateFilter';
 import DurationFilter from './DurationFilter';
 import FilterInfo from '../../FilterInfo';
 import NumberFilter from './NumberFilter';
 import React from 'react';
 import StringFilter from './StringFilter';
-import {
-	AddFilter,
-	EditFilter,
-	withAttributesConsumer,
-} from '../../../context/attributes';
+import {DataTypes} from 'shared/types/DataTypes';
 import {
 	Attribute,
 	AttributeOwnerTypes,
-	DataTypes,
 	Filter,
-	Filters,
 } from 'event-analysis/utils/types';
+import {useAttributes} from '../../../context/attributes';
 
 const FILTERS_MAP = {
 	[DataTypes.Boolean]: BooleanFilter,
@@ -29,30 +24,24 @@ const FILTERS_MAP = {
 };
 
 interface IFilterOptionsProps extends React.HTMLAttributes<HTMLDivElement> {
-	addFilter: AddFilter;
 	attribute: Attribute;
 	attributeOwnerType: AttributeOwnerTypes;
-	editFilter: EditFilter;
 	eventId: string;
-	filterId?: string;
-	filters: Filters;
 	onActiveChange: (active: boolean) => void;
 	onAttributeChange: (attribute?: Attribute) => void;
 	onEditClick?: (id: string) => void;
 }
 
 const FilterOptions: React.FC<IFilterOptionsProps> = ({
-	addFilter,
 	attribute,
 	attributeOwnerType,
-	editFilter,
 	eventId,
-	filterId,
-	filters,
 	onActiveChange,
 	onAttributeChange,
 	onEditClick,
 }) => {
+	const {addFilter} = useAttributes();
+
 	const {
 		dataType,
 		description,
@@ -63,22 +52,11 @@ const FilterOptions: React.FC<IFilterOptionsProps> = ({
 
 	const FilterBody = FILTERS_MAP[dataType];
 
-	const filter = filterId ? filters[filterId] : undefined;
-
 	const onSubmit = (newFilter: Filter) => {
-		if (filterId) {
-			editFilter({
-				attribute,
-				filter: newFilter,
-				id: filterId,
-			});
-		}
-		else {
-			addFilter({
-				attribute,
-				filter: newFilter,
-			});
-		}
+		addFilter({
+			attribute,
+			filter: newFilter,
+		});
 
 		onAttributeChange(undefined);
 
@@ -115,13 +93,10 @@ const FilterOptions: React.FC<IFilterOptionsProps> = ({
 				description={description}
 				displayName={displayName ?? ''}
 				eventId={eventId}
-				filter={
-					filter?.attributeId === attributeId ? filter : undefined
-				}
 				onSubmit={onSubmit}
 			/>
 		</div>
 	);
 };
 
-export default withAttributesConsumer(FilterOptions);
+export default FilterOptions;

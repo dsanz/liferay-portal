@@ -11,6 +11,7 @@ type NavigableItem = {
 	icon: string;
 	key: string;
 	onClick: () => void;
+	onDelete?: () => void;
 	title: string;
 };
 
@@ -23,7 +24,8 @@ type Section = {
 
 export default function useKeyboardNavigation(
 	sections: Section[],
-	onOpen: () => void
+	onOpen: () => void,
+	inputRef: React.RefObject<HTMLInputElement>
 ) {
 	const [activeIndex, setActiveIndex] = useState<number>(-1);
 
@@ -71,6 +73,15 @@ export default function useKeyboardNavigation(
 		[sections]
 	);
 
+	const stepIndex = (delta: 1 | -1) =>
+		setActiveIndex((index) => {
+			if (delta === 1) {
+				return (index + 1) % navigableItems.length;
+			}
+
+			return index <= 0 ? navigableItems.length - 1 : index - 1;
+		});
+
 	const onInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
 		if (!navigableItems.length) {
 			return;
@@ -79,23 +90,56 @@ export default function useKeyboardNavigation(
 		if (event.key === 'ArrowDown') {
 			event.preventDefault();
 
-			setActiveIndex((index) => (index + 1) % navigableItems.length);
+			stepIndex(1);
 		}
 		else if (event.key === 'ArrowUp') {
 			event.preventDefault();
 
-			setActiveIndex((index) =>
-				index <= 0 ? navigableItems.length - 1 : index - 1
-			);
+			stepIndex(-1);
 		}
 		else if (event.key === 'Enter' && activeIndex >= 0) {
 			event.preventDefault();
 
 			navigableItems[activeIndex].onClick();
 		}
+		else if (event.key === 'Tab' && !event.shiftKey && activeIndex >= 0) {
+			if (navigableItems[activeIndex].onDelete) {
+				const activeRow = document.getElementById(
+					`omniSearchOption${activeIndex}`
+				);
+
+				const deleteButton =
+					activeRow?.parentElement?.querySelector<HTMLButtonElement>(
+						'.omni-search-result-delete'
+					);
+
+				if (deleteButton) {
+					event.preventDefault();
+
+					requestAnimationFrame(() => deleteButton.focus());
+				}
+			}
+		}
 	};
 
-	return {activeIndex, onInputKeyDown, sectionOffsets};
+	const onDeleteKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+		if (event.key === 'ArrowDown') {
+			event.preventDefault();
+
+			stepIndex(1);
+
+			inputRef.current?.focus();
+		}
+		else if (event.key === 'ArrowUp') {
+			event.preventDefault();
+
+			stepIndex(-1);
+
+			inputRef.current?.focus();
+		}
+	};
+
+	return {activeIndex, onDeleteKeyDown, onInputKeyDown, sectionOffsets};
 }
 
 export type {NavigableItem, Section};

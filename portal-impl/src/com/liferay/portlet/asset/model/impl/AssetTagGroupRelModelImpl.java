@@ -62,7 +62,7 @@ public class AssetTagGroupRelModelImpl
 		{"mvccVersion", Types.BIGINT}, {"ctCollectionId", Types.BIGINT},
 		{"uuid_", Types.VARCHAR}, {"assetTagGroupRelId", Types.BIGINT},
 		{"groupId", Types.BIGINT}, {"companyId", Types.BIGINT},
-		{"tagId", Types.BIGINT}
+		{"tagId", Types.BIGINT}, {"depotEntryType", Types.INTEGER}
 	};
 
 	public static final Map<String, Integer> TABLE_COLUMNS_MAP =
@@ -76,10 +76,11 @@ public class AssetTagGroupRelModelImpl
 		TABLE_COLUMNS_MAP.put("groupId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("companyId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("tagId", Types.BIGINT);
+		TABLE_COLUMNS_MAP.put("depotEntryType", Types.INTEGER);
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table AssetTagGroupRel (mvccVersion LONG default 0 not null,ctCollectionId LONG default 0 not null,uuid_ VARCHAR(75) null,assetTagGroupRelId LONG not null,groupId LONG,companyId LONG,tagId LONG,primary key (assetTagGroupRelId, ctCollectionId))";
+		"create table AssetTagGroupRel (mvccVersion LONG default 0 not null,ctCollectionId LONG default 0 not null,uuid_ VARCHAR(75) null,assetTagGroupRelId LONG not null,groupId LONG,companyId LONG,tagId LONG,depotEntryType INTEGER,primary key (assetTagGroupRelId, ctCollectionId))";
 
 	public static final String TABLE_SQL_DROP = "drop table AssetTagGroupRel";
 
@@ -125,26 +126,32 @@ public class AssetTagGroupRelModelImpl
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long GROUPID_COLUMN_BITMASK = 2L;
+	public static final long DEPOTENTRYTYPE_COLUMN_BITMASK = 2L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long TAGID_COLUMN_BITMASK = 4L;
+	public static final long GROUPID_COLUMN_BITMASK = 4L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long UUID_COLUMN_BITMASK = 8L;
+	public static final long TAGID_COLUMN_BITMASK = 8L;
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
+	 */
+	@Deprecated
+	public static final long UUID_COLUMN_BITMASK = 16L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
 	 *		#getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long ASSETTAGGROUPRELID_COLUMN_BITMASK = 16L;
+	public static final long ASSETTAGGROUPRELID_COLUMN_BITMASK = 32L;
 
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
 		com.liferay.portal.kernel.util.PropsUtil.get(
@@ -258,6 +265,8 @@ public class AssetTagGroupRelModelImpl
 			attributeGetterFunctions.put(
 				"companyId", AssetTagGroupRel::getCompanyId);
 			attributeGetterFunctions.put("tagId", AssetTagGroupRel::getTagId);
+			attributeGetterFunctions.put(
+				"depotEntryType", AssetTagGroupRel::getDepotEntryType);
 
 			_attributeGetterFunctions = Collections.unmodifiableMap(
 				attributeGetterFunctions);
@@ -303,6 +312,10 @@ public class AssetTagGroupRelModelImpl
 			attributeSetterBiConsumers.put(
 				"tagId",
 				(BiConsumer<AssetTagGroupRel, Long>)AssetTagGroupRel::setTagId);
+			attributeSetterBiConsumers.put(
+				"depotEntryType",
+				(BiConsumer<AssetTagGroupRel, Integer>)
+					AssetTagGroupRel::setDepotEntryType);
 
 			_attributeSetterBiConsumers = Collections.unmodifiableMap(
 				(Map)attributeSetterBiConsumers);
@@ -457,6 +470,31 @@ public class AssetTagGroupRelModelImpl
 		return GetterUtil.getLong(this.<Long>getColumnOriginalValue("tagId"));
 	}
 
+	@JSON
+	@Override
+	public int getDepotEntryType() {
+		return _depotEntryType;
+	}
+
+	@Override
+	public void setDepotEntryType(int depotEntryType) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_depotEntryType = depotEntryType;
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #getColumnOriginalValue(String)}
+	 */
+	@Deprecated
+	public int getOriginalDepotEntryType() {
+		return GetterUtil.getInteger(
+			this.<Integer>getColumnOriginalValue("depotEntryType"));
+	}
+
 	public long getColumnBitmask() {
 		if (_columnBitmask > 0) {
 			return _columnBitmask;
@@ -520,6 +558,7 @@ public class AssetTagGroupRelModelImpl
 		assetTagGroupRelImpl.setGroupId(getGroupId());
 		assetTagGroupRelImpl.setCompanyId(getCompanyId());
 		assetTagGroupRelImpl.setTagId(getTagId());
+		assetTagGroupRelImpl.setDepotEntryType(getDepotEntryType());
 
 		assetTagGroupRelImpl.resetOriginalValues();
 
@@ -544,6 +583,8 @@ public class AssetTagGroupRelModelImpl
 			this.<Long>getColumnOriginalValue("companyId"));
 		assetTagGroupRelImpl.setTagId(
 			this.<Long>getColumnOriginalValue("tagId"));
+		assetTagGroupRelImpl.setDepotEntryType(
+			this.<Integer>getColumnOriginalValue("depotEntryType"));
 
 		return assetTagGroupRelImpl;
 	}
@@ -640,6 +681,8 @@ public class AssetTagGroupRelModelImpl
 
 		assetTagGroupRelCacheModel.tagId = getTagId();
 
+		assetTagGroupRelCacheModel.depotEntryType = getDepotEntryType();
+
 		return assetTagGroupRelCacheModel;
 	}
 
@@ -709,6 +752,7 @@ public class AssetTagGroupRelModelImpl
 	private long _groupId;
 	private long _companyId;
 	private long _tagId;
+	private int _depotEntryType;
 
 	public <T> T getColumnValue(String columnName) {
 		columnName = _attributeNames.getOrDefault(columnName, columnName);
@@ -747,6 +791,7 @@ public class AssetTagGroupRelModelImpl
 		_columnOriginalValues.put("groupId", _groupId);
 		_columnOriginalValues.put("companyId", _companyId);
 		_columnOriginalValues.put("tagId", _tagId);
+		_columnOriginalValues.put("depotEntryType", _depotEntryType);
 	}
 
 	private static final Map<String, String> _attributeNames;
@@ -784,6 +829,8 @@ public class AssetTagGroupRelModelImpl
 
 		columnBitmasks.put("tagId", 64L);
 
+		columnBitmasks.put("depotEntryType", 128L);
+
 		_columnBitmasks = Collections.unmodifiableMap(columnBitmasks);
 	}
 
@@ -791,4 +838,4 @@ public class AssetTagGroupRelModelImpl
 	private AssetTagGroupRel _escapedModel;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-1667253176
+// LIFERAY-SERVICE-BUILDER-HASH:393018188

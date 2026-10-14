@@ -32,14 +32,20 @@ const mockFDSContext = {
 	namespace: 'testNamespace_',
 	onSnapshotChange: jest.fn(),
 	portletId: 'testPortlet',
+	updateUserConfiguration: jest.fn(() => Promise.resolve()),
 };
 
 const ownedSnapshot = {erc: 'owned-erc', id: 1, label: 'Owned View'};
 const sharedSnapshot = {erc: 'shared-erc', id: 2, label: 'Shared View'};
 
-const renderSnapshotsControls = (viewsState: any) =>
+const renderSnapshotsControls = (
+	viewsState: any,
+	globalFDSState: any = {filters: []}
+) =>
 	render(
-		<FrontendDataSetContext.Provider value={mockFDSContext as any}>
+		<FrontendDataSetContext.Provider
+			value={{...mockFDSContext, globalFDSState} as any}
+		>
 			<ViewsContext.Provider value={[viewsState, jest.fn()] as any}>
 				<SnapshotsControls />
 			</ViewsContext.Provider>
@@ -70,6 +76,7 @@ describe('SnapshotsControls action gating', () => {
 				snapshotUpdated: false,
 				snapshots: [{headerVisible: false, items: [ownedSnapshot]}],
 				sorts: [],
+				userConfiguration: null,
 				visibleFieldNames: {},
 			});
 		});
@@ -102,6 +109,7 @@ describe('SnapshotsControls action gating', () => {
 					},
 				],
 				sorts: [],
+				userConfiguration: null,
 				visibleFieldNames: {},
 			});
 		});
@@ -115,6 +123,121 @@ describe('SnapshotsControls action gating', () => {
 			expect(screen.queryByText('share-view')).not.toBeInTheDocument();
 			expect(screen.queryByText('delete-view')).not.toBeInTheDocument();
 		});
+	});
+});
+
+describe('SnapshotsControls initial view', () => {
+	it('sets the active view as the initial view through the user configuration', async () => {
+		renderSnapshotsControls({
+			activeSnapshotERC: ownedSnapshot.erc,
+			activeView: null,
+			defaultSnapshot: {},
+			paginationDelta: null,
+			snapshotUpdated: false,
+			snapshots: [{headerVisible: false, items: [ownedSnapshot]}],
+			sorts: [],
+			userConfiguration: {initialDataSetSnapshotERC: 'previous-erc'},
+			visibleFieldNames: {},
+		});
+
+		await openActionsDropdown();
+
+		await userEvent.click(await screen.findByText('set-as-initial-view'));
+
+		await waitFor(() =>
+			expect(mockFDSContext.updateUserConfiguration).toHaveBeenCalledWith(
+				{
+					initialDataSetSnapshotERC: ownedSnapshot.erc,
+				}
+			)
+		);
+	});
+
+	it('hides "Set as Initial View" when the active view is already the initial view', async () => {
+		renderSnapshotsControls({
+			activeSnapshotERC: ownedSnapshot.erc,
+			activeView: null,
+			defaultSnapshot: {},
+			paginationDelta: null,
+			snapshotUpdated: false,
+			snapshots: [{headerVisible: false, items: [ownedSnapshot]}],
+			sorts: [],
+			userConfiguration: {initialDataSetSnapshotERC: ownedSnapshot.erc},
+			visibleFieldNames: {},
+		});
+
+		await openActionsDropdown();
+
+		expect(await screen.findByText('save-view-as')).toBeInTheDocument();
+		expect(
+			screen.queryByText('set-as-initial-view')
+		).not.toBeInTheDocument();
+	});
+});
+
+describe('SnapshotsControls saving what a connection filters by', () => {
+	const CUSTOM_CONFIGS = {
+		sampleCustomElement: {selections: {color: ['Blue']}},
+	};
+
+	const saveViewAs = async (globalFDSState: any) => {
+		renderSnapshotsControls(
+			{
+				activeSnapshotERC: null,
+				activeView: {name: 'table'},
+				defaultSnapshot: {},
+				paginationDelta: 20,
+				snapshotUpdated: false,
+				snapshots: [{headerVisible: false, items: []}],
+				sorts: [],
+				visibleFieldNames: {},
+			},
+			globalFDSState
+		);
+
+		await openActionsDropdown();
+
+		await userEvent.click(await screen.findByText('save-view-as'));
+
+		const {contentComponent} = (openModal as jest.Mock).mock.calls.at(
+			-1
+		)[0];
+
+		render(contentComponent({closeModal: jest.fn()}));
+
+		await userEvent.type(screen.getByLabelText(/name/), 'Blue things');
+
+		fetch.mockResponseOnce(
+			JSON.stringify({
+				externalReferenceCode: 'erc',
+				id: 1,
+				label: 'Blue things',
+				viewConfig: '{}',
+			})
+		);
+
+		await userEvent.click(screen.getByRole('button', {name: 'save'}));
+
+		await waitFor(() => expect(fetch).toHaveBeenCalled());
+
+		const {body} = fetch.mock.calls.at(-1)![1]!;
+
+		return JSON.parse(JSON.parse(body as string).viewConfig);
+	};
+
+	it('keeps what the connection that owns the filtering applied', async () => {
+		const viewConfig = await saveViewAs({
+			appliedCustomConfigs: CUSTOM_CONFIGS,
+			filters: [],
+		});
+
+		expect(viewConfig.customConfigs).toEqual(CUSTOM_CONFIGS);
+	});
+
+	it('keeps nothing of the sort when no connection applied anything', async () => {
+		const viewConfig = await saveViewAs({filters: []});
+
+		expect(viewConfig).not.toHaveProperty('customConfigs');
 	});
 });
 

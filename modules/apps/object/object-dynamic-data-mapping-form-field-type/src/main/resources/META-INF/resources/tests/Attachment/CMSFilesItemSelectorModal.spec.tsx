@@ -65,14 +65,35 @@ jest.mock('@liferay/frontend-js-item-selector-web', () => ({
 				>
 					Click Space
 				</button>
+
+				<button
+					data-testid="simulate-folder-click"
+					onClick={() => {
+						const folderItem = {
+							embedded: {
+								id: 'folder-1',
+								title: 'Folder A',
+							},
+							entryClassName:
+								'com.liferay.object.model.ObjectEntryFolder',
+						};
+						const view = props.fdsProps?.views?.[0];
+						const itemProps = view?.setItemComponentProps?.({
+							item: folderItem,
+							props: {},
+						});
+
+						itemProps?.onClick?.();
+					}}
+				>
+					Click Folder
+				</button>
 			</div>
 		);
 	},
 	getCMSItemSelectorFilters: jest.fn().mockReturnValue([]),
 	getCMSItemSelectorGroupedFilters: jest.fn().mockReturnValue([]),
 }));
-
-jest.mock('uuid', () => ({v4: () => 'test-uuid'}));
 
 (globalThis as any).Liferay = {
 	Language: {
@@ -109,6 +130,12 @@ afterEach(() => {
 	jest.clearAllMocks();
 	lastItemSelectorProps = null;
 });
+
+function getDecodedApiURL() {
+	return decodeURIComponent(
+		screen.getByTestId('api-url').textContent ?? ''
+	).replace(/\+/g, ' ');
+}
 
 describe('CMSFilesItemSelectorModal — initial state', () => {
 	it('passes SPACES_API_URL when opening for the first time', () => {
@@ -167,6 +194,36 @@ describe('CMSFilesItemSelectorModal — space navigation', () => {
 
 		expect(screen.getByTestId('api-url')).toHaveTextContent(SPACES_API_URL);
 		expect(screen.queryByTestId('breadcrumbs')).not.toBeInTheDocument();
+	});
+});
+
+describe('CMSFilesItemSelectorModal — expired content filtering', () => {
+	it('excludes non-approved and expired content from the space root URL', () => {
+		render(<CMSFilesItemSelectorModal {...defaultProps} open={true} />);
+
+		fireEvent.click(screen.getByTestId('simulate-space-click'));
+
+		const apiURL = getDecodedApiURL();
+
+		expect(apiURL).toContain('status in (0)');
+		expect(apiURL).toContain(
+			'dateExpiration eq null or dateExpiration gt now()'
+		);
+	});
+
+	it('excludes non-approved and expired content from the child folder URL', () => {
+		render(<CMSFilesItemSelectorModal {...defaultProps} open={true} />);
+
+		fireEvent.click(screen.getByTestId('simulate-space-click'));
+		fireEvent.click(screen.getByTestId('simulate-folder-click'));
+
+		const apiURL = getDecodedApiURL();
+
+		expect(apiURL).toContain('folderId eq folder-1');
+		expect(apiURL).toContain('status in (0)');
+		expect(apiURL).toContain(
+			'dateExpiration eq null or dateExpiration gt now()'
+		);
 	});
 });
 

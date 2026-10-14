@@ -4,6 +4,7 @@
  */
 
 import ClayButton from '@clayui/button';
+import ClayEmptyState from '@clayui/empty-state';
 import ClayLoadingIndicator from '@clayui/loading-indicator';
 import {PropTypes} from 'prop-types';
 import React, {PureComponent} from 'react';
@@ -12,7 +13,6 @@ import {HTML5Backend} from 'react-dnd-html5-backend';
 
 import {KEY_CODES} from '../../utils/constants.es';
 import {isNull, toggleListItem} from '../../utils/util.es';
-import ClayEmptyState, {DISPLAY_STATES} from '../shared/ClayEmptyState.es';
 import ErrorBoundary from '../shared/ErrorBoundary.es';
 import Item from './Item.es';
 import ItemDragLayer from './ItemDragLayer.es';
@@ -273,6 +273,7 @@ class List extends PureComponent {
 										description={Liferay.Language.get(
 											'sorry,-no-results-were-found'
 										)}
+										imgSrc={`${Liferay.ThemeDisplay.getPathThemeImages()}/states/search_state.svg`}
 										title={Liferay.Language.get(
 											'no-results-found'
 										)}
@@ -281,20 +282,23 @@ class List extends PureComponent {
 
 								{displayError && (
 									<ClayEmptyState
-										actionLabel={Liferay.Language.get(
-											'try-again'
-										)}
 										description={Liferay.Language.get(
 											'an-error-has-occurred-and-we-were-unable-to-load-the-results'
 										)}
-										displayState={DISPLAY_STATES.EMPTY}
-										onClickAction={
-											this._handleLoadMoreResults
-										}
+										imgSrc={`${Liferay.ThemeDisplay.getPathThemeImages()}/states/empty_state.svg`}
 										title={Liferay.Language.get(
 											'unable-to-load-content'
 										)}
-									/>
+									>
+										<ClayButton
+											displayType="secondary"
+											onClick={
+												this._handleLoadMoreResults
+											}
+										>
+											{Liferay.Language.get('try-again')}
+										</ClayButton>
+									</ClayEmptyState>
 								)}
 
 								{showLoadMore && (

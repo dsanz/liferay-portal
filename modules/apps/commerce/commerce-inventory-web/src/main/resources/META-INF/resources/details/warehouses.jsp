@@ -27,6 +27,5 @@ CommerceInventoryDisplayContext commerceInventoryDisplayContext = (CommerceInven
 		dataProviderKey="<%= CommerceInventoryFDSNames.INVENTORY_WAREHOUSES %>"
 		id="<%= CommerceInventoryFDSNames.INVENTORY_WAREHOUSES %>"
 		selectedItemsKey="commerceInventoryWarehouseItemId"
-		showSearch="<%= false %>"
 	/>
 </commerce-ui:panel>

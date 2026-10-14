@@ -26,11 +26,6 @@ import org.json.JSONObject;
 public abstract class BaseBuildDatabase implements BuildDatabase {
 
 	@Override
-	public File getBuildDatabaseFile() {
-		return _buildDatabaseFile;
-	}
-
-	@Override
 	public JSONObject getBuildDataJSONObject(String key) {
 		JSONObject buildsJSONObject = _jsonObject.getJSONObject("builds");
 
@@ -64,6 +59,16 @@ public abstract class BaseBuildDatabase implements BuildDatabase {
 	}
 
 	@Override
+	public File getBuildDatabaseFile() {
+		return _buildDatabaseFile;
+	}
+
+	@Override
+	public JSONObject getJSONObject() {
+		return new JSONObject(_jsonObject.toString());
+	}
+
+	@Override
 	public Job getJob(String key) {
 		if (!hasJob(key)) {
 			return null;
@@ -91,11 +96,6 @@ public abstract class BaseBuildDatabase implements BuildDatabase {
 		}
 
 		return jobs;
-	}
-
-	@Override
-	public JSONObject getJSONObject() {
-		return new JSONObject(_jsonObject.toString());
 	}
 
 	@Override
@@ -529,15 +529,17 @@ public abstract class BaseBuildDatabase implements BuildDatabase {
 	}
 
 	@Override
-	public synchronized void putProperty(
+	public void putProperty(
 		String key, String propertyName, String propertyValue,
 		boolean writeFile) {
 
-		Properties properties = getProperties(key);
+		synchronized (_buildDatabaseFile) {
+			Properties properties = getProperties(key);
 
-		properties.setProperty(propertyName, propertyValue);
+			properties.setProperty(propertyName, propertyValue);
 
-		putProperties(key, properties, writeFile);
+			putProperties(key, properties, writeFile);
+		}
 	}
 
 	@Override
@@ -912,7 +914,7 @@ public abstract class BaseBuildDatabase implements BuildDatabase {
 		return jsonArray;
 	}
 
-	private synchronized void _writeJSONFile() {
+	private void _writeJSONFile() {
 		synchronized (_buildDatabaseFile) {
 			try {
 				JenkinsResultsParserUtil.write(

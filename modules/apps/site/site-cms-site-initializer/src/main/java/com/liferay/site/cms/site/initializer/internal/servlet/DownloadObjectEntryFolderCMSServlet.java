@@ -26,9 +26,11 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
+import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
+import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermissionRegistryUtil;
 import com.liferay.portal.kernel.servlet.HttpHeaders;
 import com.liferay.portal.kernel.servlet.ServletResponseUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
@@ -266,8 +268,19 @@ public class DownloadObjectEntryFolderCMSServlet extends BaseCMSServlet {
 		if (StringUtil.equalsIgnoreCase(
 				className, ObjectEntryFolder.class.getName())) {
 
-			ObjectEntryFolder objectEntryFolder =
-				_objectEntryFolderService.getObjectEntryFolder(classPK);
+			ObjectEntryFolder objectEntryFolder = null;
+
+			try {
+				objectEntryFolder =
+					_objectEntryFolderService.getObjectEntryFolder(classPK);
+			}
+			catch (PrincipalException principalException) {
+				if (_log.isDebugEnabled()) {
+					_log.debug(principalException);
+				}
+
+				return;
+			}
 
 			_zipObjectEntryFolder(
 				objectEntryFolder.getGroupId(), classPK,
@@ -286,27 +299,52 @@ public class DownloadObjectEntryFolderCMSServlet extends BaseCMSServlet {
 			PermissionChecker permissionChecker, ZipWriter zipWriter)
 		throws IOException, PortalException {
 
+		ObjectField attachmentObjectField = null;
+		long fileEntryId = 0;
 		Map<String, Serializable> values = objectEntry.getValues();
 
-		List<ObjectField> objectFields =
-			_objectFieldLocalService.getObjectFields(
-				objectEntry.getObjectDefinitionId());
+		List<ObjectField> attachmentObjectFields =
+			_objectFieldLocalService.getObjectFieldsByBusinessType(
+				objectEntry.getObjectDefinitionId(),
+				ObjectFieldConstants.BUSINESS_TYPE_ATTACHMENT);
 
-		String objectFieldName = StringPool.SLASH;
+		for (ObjectField objectField : attachmentObjectFields) {
+			long candidateFileEntryId = GetterUtil.getLong(
+				values.get(objectField.getName()));
 
-		for (ObjectField objectField : objectFields) {
-			if (objectField.compareBusinessType(
-					ObjectFieldConstants.BUSINESS_TYPE_ATTACHMENT)) {
+			if (candidateFileEntryId != 0) {
+				attachmentObjectField = objectField;
+				fileEntryId = candidateFileEntryId;
 
-				objectFieldName = objectField.getName();
+				break;
 			}
 		}
 
-		Serializable serializable = values.get(objectFieldName);
-
-		long fileEntryId = GetterUtil.getLong(serializable);
-
 		if (fileEntryId == 0) {
+			return;
+		}
+
+		ModelResourcePermission<ObjectEntry>
+			objectEntryModelResourcePermission =
+				ModelResourcePermissionRegistryUtil.getModelResourcePermission(
+					objectEntry.getModelClassName());
+
+		if (objectEntryModelResourcePermission == null) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(
+					"No model resource permission registered for " +
+						objectEntry.getModelClassName());
+			}
+
+			return;
+		}
+
+		if (!objectEntryModelResourcePermission.contains(
+				permissionChecker, objectEntry, ActionKeys.VIEW) ||
+			!objectEntryModelResourcePermission.contains(
+				permissionChecker, objectEntry,
+				attachmentObjectField.getAttachmentDownloadActionKey())) {
+
 			return;
 		}
 

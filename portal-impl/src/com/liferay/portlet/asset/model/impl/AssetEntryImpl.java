@@ -20,6 +20,7 @@ import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.view.count.ViewCountManagerUtil;
 import com.liferay.portlet.asset.util.DeletedAssetObjectThreadLocal;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -60,6 +61,13 @@ public class AssetEntryImpl extends AssetEntryBaseImpl {
 
 	@Override
 	public List<AssetCategory> getCategories() {
+		int count = AssetCategoryLocalServiceUtil.getCompanyCategoriesCount(
+			getCompanyId());
+
+		if (count == 0) {
+			return Collections.emptyList();
+		}
+
 		return AssetCategoryLocalServiceUtil.getEntryCategories(getEntryId());
 	}
 
@@ -76,6 +84,10 @@ public class AssetEntryImpl extends AssetEntryBaseImpl {
 
 	@Override
 	public List<AssetTag> getTags() {
+		if (AssetTagLocalServiceUtil.getCompanyTagsCount(getCompanyId()) == 0) {
+			return Collections.emptyList();
+		}
+
 		return AssetTagLocalServiceUtil.getEntryTags(getEntryId());
 	}
 

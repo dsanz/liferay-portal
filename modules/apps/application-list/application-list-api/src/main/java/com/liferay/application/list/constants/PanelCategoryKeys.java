@@ -31,8 +31,8 @@ public interface PanelCategoryKeys {
 	public static final String CONTROL_PANEL_APPS =
 		PortletCategoryKeys.CONTROL_PANEL_APPS;
 
-	public static final String CONTROL_PANEL_CONFIGURATION =
-		PortletCategoryKeys.CONTROL_PANEL_CONFIGURATION;
+	public static final String CONTROL_PANEL_INSTANCE =
+		PortletCategoryKeys.CONTROL_PANEL_INSTANCE;
 
 	public static final String CONTROL_PANEL_MARKETPLACE =
 		"control_panel.marketplace";

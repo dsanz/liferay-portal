@@ -254,7 +254,7 @@ ManifestSummary manifestSummary = ExportImportHelperUtil.getManifestSummary(user
 														%>
 
 														<div class="input-checkbox">
-															<aui:input checked="<%= true %>" label="<%= portletTitle + badgeHTML %>" name="<%= rootControlId %>" type="checkbox" />
+															<aui:input checked="<%= true %>" label="<%= HtmlUtil.escape(portletTitle) + badgeHTML %>" name="<%= rootControlId %>" type="checkbox" />
 
 															<c:if test="<%= Validator.isNotNull(description) %>">
 																<div class="selected-labels">
@@ -298,7 +298,7 @@ ManifestSummary manifestSummary = ExportImportHelperUtil.getManifestSummary(user
 															<div class="hide" id="<portlet:namespace />content_<%= portlet.getRootPortletId() %>">
 																<ul class="lfr-tree list-unstyled">
 																	<li class="tree-item">
-																		<aui:fieldset cssClass="portlet-type-data-section" id="<%= portletTitle %>">
+																		<aui:fieldset cssClass="portlet-type-data-section" id="<%= HtmlUtil.escapeAttribute(portletTitle) %>">
 																			<c:if test="<%= importPortletDataHandlerControls != null %>">
 
 																				<%

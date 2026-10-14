@@ -121,6 +121,8 @@ public class AssetTagGroupRelPersistenceTest {
 
 		newAssetTagGroupRel.setTagId(RandomTestUtil.nextLong());
 
+		newAssetTagGroupRel.setDepotEntryType(RandomTestUtil.nextInt());
+
 		newAssetTagGroupRel = _persistence.update(newAssetTagGroupRel);
 
 		_assetTagGroupRels.add(newAssetTagGroupRel);
@@ -148,6 +150,9 @@ public class AssetTagGroupRelPersistenceTest {
 		Assert.assertEquals(
 			existingAssetTagGroupRel.getTagId(),
 			newAssetTagGroupRel.getTagId());
+		Assert.assertEquals(
+			existingAssetTagGroupRel.getDepotEntryType(),
+			newAssetTagGroupRel.getDepotEntryType());
 	}
 
 	@Test
@@ -192,11 +197,28 @@ public class AssetTagGroupRelPersistenceTest {
 	}
 
 	@Test
-	public void testCountByG_T() throws Exception {
-		_persistence.countByG_T(
-			RandomTestUtil.nextLong(), RandomTestUtil.nextLong());
+	public void testCountByG_D() throws Exception {
+		_persistence.countByG_D(
+			RandomTestUtil.nextLong(), RandomTestUtil.nextInt());
 
-		_persistence.countByG_T(0L, 0L);
+		_persistence.countByG_D(0L, 0);
+	}
+
+	@Test
+	public void testCountByT_D() throws Exception {
+		_persistence.countByT_D(
+			RandomTestUtil.nextLong(), RandomTestUtil.nextInt());
+
+		_persistence.countByT_D(0L, 0);
+	}
+
+	@Test
+	public void testCountByG_T_D() throws Exception {
+		_persistence.countByG_T_D(
+			RandomTestUtil.nextLong(), RandomTestUtil.nextLong(),
+			RandomTestUtil.nextInt());
+
+		_persistence.countByG_T_D(0L, 0L, 0);
 	}
 
 	@Test
@@ -226,7 +248,7 @@ public class AssetTagGroupRelPersistenceTest {
 		return OrderByComparatorFactoryUtil.create(
 			"AssetTagGroupRel", "mvccVersion", true, "ctCollectionId", true,
 			"uuid", true, "assetTagGroupRelId", true, "groupId", true,
-			"companyId", true, "tagId", true);
+			"companyId", true, "tagId", true, "depotEntryType", true);
 	}
 
 	@Test
@@ -519,6 +541,11 @@ public class AssetTagGroupRelPersistenceTest {
 			ReflectionTestUtil.<Long>invoke(
 				assetTagGroupRel, "getColumnOriginalValue",
 				new Class<?>[] {String.class}, "tagId"));
+		Assert.assertEquals(
+			Integer.valueOf(assetTagGroupRel.getDepotEntryType()),
+			ReflectionTestUtil.<Integer>invoke(
+				assetTagGroupRel, "getColumnOriginalValue",
+				new Class<?>[] {String.class}, "depotEntryType"));
 	}
 
 	protected AssetTagGroupRel addAssetTagGroupRel() throws Exception {
@@ -536,6 +563,8 @@ public class AssetTagGroupRelPersistenceTest {
 
 		assetTagGroupRel.setTagId(RandomTestUtil.nextLong());
 
+		assetTagGroupRel.setDepotEntryType(RandomTestUtil.nextInt());
+
 		_assetTagGroupRels.add(_persistence.update(assetTagGroupRel));
 
 		return assetTagGroupRel;
@@ -547,4 +576,4 @@ public class AssetTagGroupRelPersistenceTest {
 	private ClassLoader _dynamicQueryClassLoader;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-2103746051
+// LIFERAY-SERVICE-BUILDER-HASH:-43199871

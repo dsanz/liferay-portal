@@ -7,17 +7,22 @@ import {expect, mergeTests} from '@playwright/test';
 import path from 'path';
 
 import {apiHelpersTest} from '../../../fixtures/apiHelpersTest';
+import {featureFlagsTest} from '../../../fixtures/featureFlagsTest';
 import {isolatedSiteTest} from '../../../fixtures/isolatedSiteTest';
 import {loginTest} from '../../../fixtures/loginTest';
 import {messageBoardsPagesTest} from '../../../fixtures/messageBoardsTest';
 import {workflowPagesTest} from '../../../fixtures/workflowPagesTest';
 import {CommentsPage} from '../../../pages/comment/CommentsPage';
+import {clickAndExpectToBeVisible} from '../../../utils/clickAndExpectToBeVisible';
 import getRandomString from '../../../utils/getRandomString';
 import {nextPage, setItemsPerPage} from '../../../utils/pagination';
 import {performUserSwitchViaApi, userData} from '../../../utils/performLogin';
 
 export const test = mergeTests(
 	apiHelpersTest,
+	featureFlagsTest({
+		'LPD-105225': {enabled: true},
+	}),
 	isolatedSiteTest,
 	messageBoardsPagesTest,
 	loginTest(),
@@ -152,10 +157,11 @@ test(
 			'[id="_com_liferay_message_boards_web_portlet_MBPortlet_mbCategoriesSearchContainer_1_menu"]'
 		);
 
-		await searchMenu.waitFor();
-		await searchMenu.click();
-
-		await page.getByRole('menuitem', {name: 'Move'}).click();
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: page.getByRole('menuitem', {name: 'Move'}),
+			trigger: searchMenu,
+		});
 
 		await page.getByRole('button', {name: 'Select'}).click();
 

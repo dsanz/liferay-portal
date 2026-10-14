@@ -20,16 +20,21 @@ export class CommerceAdminPriceListDetailsPage extends CommerceDNDTablePage {
 	readonly addTierPriceEntryQuantity: Locator;
 	readonly addTierPriceEntryQuantityNotAllowedError: Locator;
 	readonly addTierPriceEntrySaveButton: Locator;
+	readonly bulkPricingRadio: Locator;
 	readonly catalogSelect: Locator;
 	readonly currencySelect: Locator;
 	readonly editPriceTierFrame: FrameLocator;
 	readonly editPriceTierPrice: Locator;
+	readonly editPriceTierQuantity: Locator;
+	readonly editPriceTierQuantityNotAllowedError: Locator;
+	readonly editPriceTierSaveButton: Locator;
 	readonly eligibilityEntryCell: (name: string) => Locator;
 	readonly eligibilityFindInput: (placeholder: string) => Locator;
 	readonly eligibilityRowSelectButton: (entryName: string) => Locator;
 	readonly eligibilityTab: Locator;
 	readonly entriesTab: Locator;
 	readonly findSkuInput: Locator;
+	readonly itemFinderRows: Locator;
 	readonly nameInput: Locator;
 	readonly page: Page;
 	readonly parentAutocomplete: Locator;
@@ -40,6 +45,10 @@ export class CommerceAdminPriceListDetailsPage extends CommerceDNDTablePage {
 	readonly priceModifierRowActions: (title: string) => Locator;
 	readonly priceModifierRowDeleteMenuItem: Locator;
 	readonly priceModifierSaveButton: Locator;
+	readonly priceEntryRowLink: (
+		sku: string,
+		unitOfMeasureKey: string
+	) => Locator;
 	readonly priceModifiersTab: Locator;
 	readonly priceTypeSelect: Locator;
 	readonly priorityInput: Locator;
@@ -59,6 +68,7 @@ export class CommerceAdminPriceListDetailsPage extends CommerceDNDTablePage {
 	readonly specificAccountsRadio: Locator;
 	readonly specificChannelsRadio: Locator;
 	readonly specificOrderTypesRadio: Locator;
+	readonly tieredPricingRadio: Locator;
 
 	constructor(page: Page) {
 		super(
@@ -99,6 +109,9 @@ export class CommerceAdminPriceListDetailsPage extends CommerceDNDTablePage {
 			);
 		this.addTierPriceEntrySaveButton =
 			this.addTierPriceEntryFrame.getByRole('button', {name: 'Submit'});
+		this.bulkPricingRadio = page
+			.frameLocator('iframe')
+			.getByRole('radio', {name: 'Bulk Pricing'});
 		this.catalogSelect = page.locator(
 			'select[name$="commerceCatalogGroupId"]'
 		);
@@ -110,6 +123,17 @@ export class CommerceAdminPriceListDetailsPage extends CommerceDNDTablePage {
 			.frameLocator('iframe');
 		this.editPriceTierPrice = this.editPriceTierFrame.getByLabel(
 			'Tier Price Required'
+		);
+		this.editPriceTierQuantity =
+			this.editPriceTierFrame.getByLabel('Quantity Required');
+		this.editPriceTierQuantityNotAllowedError =
+			this.editPriceTierFrame.getByText(
+				'The specified quantity is not allowed.',
+				{exact: false}
+			);
+		this.editPriceTierSaveButton = this.editPriceTierFrame.getByRole(
+			'button',
+			{exact: true, name: 'Save'}
 		);
 		this.eligibilityEntryCell = (name: string) =>
 			page.getByRole('cell', {name}).first();
@@ -126,6 +150,7 @@ export class CommerceAdminPriceListDetailsPage extends CommerceDNDTablePage {
 		});
 		this.entriesTab = page.getByRole('link', {name: 'Entries'});
 		this.findSkuInput = page.getByPlaceholder('Find a SKU');
+		this.itemFinderRows = page.locator('.add-or-create tbody tr');
 		this.nameInput = page.locator('input[name$="_name"]').first();
 		this.page = page;
 		this.parentAutocomplete = page
@@ -155,6 +180,16 @@ export class CommerceAdminPriceListDetailsPage extends CommerceDNDTablePage {
 			exact: true,
 			name: 'Save',
 		});
+		this.priceEntryRowLink = (sku: string, unitOfMeasureKey: string) =>
+			page
+				.getByRole('row')
+				.filter({
+					has: page.getByRole('cell', {
+						exact: true,
+						name: unitOfMeasureKey,
+					}),
+				})
+				.getByRole('link', {exact: true, name: sku});
 		this.priceModifiersTab = page.getByRole('link', {
 			exact: true,
 			name: 'Price Modifiers',
@@ -203,6 +238,9 @@ export class CommerceAdminPriceListDetailsPage extends CommerceDNDTablePage {
 		this.specificOrderTypesRadio = page.getByRole('radio', {
 			name: 'Specific Order Types',
 		});
+		this.tieredPricingRadio = page
+			.frameLocator('iframe')
+			.getByRole('radio', {name: 'Tiered Pricing'});
 	}
 
 	async assertUOMSelectedInSidePanel({

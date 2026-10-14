@@ -1,69 +1,6 @@
 definition {
 
 	@summary = "Default summary"
-	macro assertSingleRolePermissionsPG(roleTitle = null, permissions = null) {
-		SelectFrameTop(value1 = "relative=top");
-
-		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
-
-		var key_roleTitle = StringUtil.replace(${roleTitle}, " ", "-");
-
-		var key_roleTitle = StringUtil.lowerCase(${key_roleTitle});
-
-		for (var permission : list ${permissions}) {
-			var permission = StringUtil.upperCase(${permission});
-
-			AssertChecked.assertCheckedNotVisible(locator1 = "Permissions#INLINE_PERMISSIONS_${permission}_CHECKBOX");
-		}
-	}
-
-	@summary = "Default summary"
-	macro defineCatalogPermissionsViaJSONAPI(view = null, roleTitle = null, permissions = null, update = null, delete = null) {
-		if (${view} == "true") {
-			Permissions.definePermissionViaJSONAPI(
-				resourceAction = "VIEW_CONTROL_PANEL",
-				resourceName = 90,
-				roleTitle = ${roleTitle});
-
-			Permissions.definePermissionViaJSONAPI(
-				resourceAction = "ACCESS_IN_CONTROL_PANEL",
-				resourceName = "com_liferay_commerce_catalog_web_internal_portlet_CommerceCatalogsPortlet",
-				roleTitle = ${roleTitle});
-
-			Permissions.definePermissionViaJSONAPI(
-				resourceAction = "VIEW",
-				resourceName = "com.liferay.commerce.product.model.CommerceCatalog",
-				roleTitle = ${roleTitle});
-
-			Permissions.definePermissionViaJSONAPI(
-				resourceAction = "VIEW_COMMERCE_CATALOGS",
-				resourceName = "com.liferay.commerce.catalog",
-				roleTitle = ${roleTitle});
-		}
-
-		if (${permissions} == "true") {
-			Permissions.definePermissionViaJSONAPI(
-				resourceAction = "PERMISSIONS",
-				resourceName = "com.liferay.commerce.product.model.CommerceCatalog",
-				roleTitle = ${roleTitle});
-		}
-
-		if (${update} == "true") {
-			Permissions.definePermissionViaJSONAPI(
-				resourceAction = "UPDATE",
-				resourceName = "com.liferay.commerce.product.model.CommerceCatalog",
-				roleTitle = ${roleTitle});
-		}
-
-		if (${delete} == "true") {
-			Permissions.definePermissionViaJSONAPI(
-				resourceAction = "DELETE",
-				resourceName = "com.liferay.commerce.product.model.CommerceCatalog",
-				roleTitle = ${roleTitle});
-		}
-	}
-
-	@summary = "Default summary"
 	macro defineChannelPermissionsViaJSONAPI(view = null, roleTitle = null, permissions = null, update = null, tax = null, currency = null, delete = null) {
 		if (${view} == "true") {
 			Permissions.definePermissionViaJSONAPI(
@@ -150,28 +87,26 @@ definition {
 
 	@summary = "Default summary"
 	macro definePermissionsPG(permissionDefinitionKey = null, roleTitles = null) {
-		SelectFrameTop(value1 = "relative=top");
-
-		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
-
 		for (var roleTitle : list ${roleTitles}) {
 			var key_roleTitle = StringUtil.replace(${roleTitle}, " ", "-");
 
 			var key_roleTitle = StringUtil.lowerCase(${key_roleTitle});
+
+			CommercePermissions.searchRolePG(roleTitle = ${roleTitle});
+
+			WaitForElementPresent(locator1 = "Permissions#${permissionDefinitionKey}");
 
 			Check.checkNotVisible(locator1 = "Permissions#${permissionDefinitionKey}");
-		}
 
-		Button.clickSave();
+			Button.clickSave();
 
-		AssertTextEquals.assertPartialText(
-			locator1 = "Message#SUCCESS",
-			value1 = "Your request completed successfully.");
+			AssertTextEquals.assertPartialText(
+				locator1 = "Message#SUCCESS",
+				value1 = "Your request completed successfully.");
 
-		for (var roleTitle : list ${roleTitles}) {
-			var key_roleTitle = StringUtil.replace(${roleTitle}, " ", "-");
+			CommercePermissions.searchRolePG(roleTitle = ${roleTitle});
 
-			var key_roleTitle = StringUtil.lowerCase(${key_roleTitle});
+			WaitForElementPresent(locator1 = "Permissions#${permissionDefinitionKey}");
 
 			AssertChecked.assertCheckedNotVisible(locator1 = "Permissions#${permissionDefinitionKey}");
 		}
@@ -220,35 +155,6 @@ definition {
 	}
 
 	@summary = "Default summary"
-	macro defineSingleRolePermissionsPG(roleTitle = null, permissions = null) {
-		SelectFrameTop(value1 = "relative=top");
-
-		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
-
-		var key_roleTitle = StringUtil.replace(${roleTitle}, " ", "-");
-
-		var key_roleTitle = StringUtil.lowerCase(${key_roleTitle});
-
-		for (var permission : list ${permissions}) {
-			var permission = StringUtil.upperCase(${permission});
-
-			Check.checkNotVisible(locator1 = "Permissions#INLINE_PERMISSIONS_${permission}_CHECKBOX");
-		}
-
-		Button.clickSave();
-
-		AssertTextEquals.assertPartialText(
-			locator1 = "Message#SUCCESS",
-			value1 = "Your request completed successfully.");
-
-		for (var permission : list ${permissions}) {
-			var permission = StringUtil.upperCase(${permission});
-
-			AssertChecked.assertCheckedNotVisible(locator1 = "Permissions#INLINE_PERMISSIONS_${permission}_CHECKBOX");
-		}
-	}
-
-	@summary = "Default summary"
 	macro removeAccountRolePermission(roleTitle = null, permission = null) {
 		Navigator.gotoNavTab(navTab = "Account Roles");
 
@@ -271,50 +177,62 @@ definition {
 
 	@summary = "Default summary"
 	macro removePermissionsPG(permissionDefinitionKey = null, roleTitles = null) {
-		SelectFrameTop(value1 = "relative=top");
-
-		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
-
 		for (var roleTitle : list ${roleTitles}) {
 			var key_roleTitle = StringUtil.replace(${roleTitle}, " ", "-");
 
 			var key_roleTitle = StringUtil.lowerCase(${key_roleTitle});
+
+			CommercePermissions.searchRolePG(roleTitle = ${roleTitle});
+
+			WaitForElementPresent(locator1 = "Permissions#${permissionDefinitionKey}");
 
 			Uncheck.uncheckNotVisible(locator1 = "Permissions#${permissionDefinitionKey}");
-		}
 
-		Button.clickSave();
+			Button.clickSave();
 
-		AssertTextEquals.assertPartialText(
-			locator1 = "Message#SUCCESS",
-			value1 = "Your request completed successfully.");
+			AssertTextEquals.assertPartialText(
+				locator1 = "Message#SUCCESS",
+				value1 = "Your request completed successfully.");
 
-		for (var roleTitle : list ${roleTitles}) {
-			var key_roleTitle = StringUtil.replace(${roleTitle}, " ", "-");
+			CommercePermissions.searchRolePG(roleTitle = ${roleTitle});
 
-			var key_roleTitle = StringUtil.lowerCase(${key_roleTitle});
+			WaitForElementPresent(locator1 = "Permissions#${permissionDefinitionKey}");
 
 			AssertNotChecked.assertNotCheckedNotVisible(locator1 = "Permissions#${permissionDefinitionKey}");
 		}
 	}
 
 	@summary = "Default summary"
-	macro removeRegularRolePermission(roleTitle = null, permission = null) {
-		CommerceNavigator.gotoExactEntry(entryName = ${roleTitle});
+	macro searchRolePG(roleTitle = null) {
+		SelectFrameTop(value1 = "relative=top");
 
-		Navigator.gotoNavTab(navTab = "Define Permissions");
+		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
 
-		ClickNoError(
-			key_resourceAction = ${permission},
-			locator1 = "CommercePermissions#REMOVE_PERMISSION");
+		if (IsElementPresent(locator1 = "ManagementBar#CLEAR_FILTER")) {
+			Click(locator1 = "ManagementBar#CLEAR_FILTER");
 
-		AssertConfirm(value1 = "Are you sure you want to remove this permission?");
+			SelectFrameTop(value1 = "relative=top");
 
-		AssertElementNotPresent(
-			key_resourceAction = ${permission},
-			locator1 = "CommercePermissions#REMOVE_PERMISSION");
+			SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
 
-		Click(locator1 = "CommerceNavigation#BACK");
+			WaitForElementNotPresent(locator1 = "ManagementBar#CLEAR_FILTER");
+		}
+
+		WaitForElementPresent(locator1 = "TextInput#SEARCH");
+
+		Type(
+			locator1 = "TextInput#SEARCH",
+			value1 = ${roleTitle});
+
+		KeyPress(
+			locator1 = "TextInput#SEARCH",
+			value1 = "\RETURN");
+
+		SelectFrameTop(value1 = "relative=top");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
+
+		WaitForElementPresent(locator1 = "ManagementBar#CLEAR_FILTER");
 	}
 
 }

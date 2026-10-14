@@ -506,13 +506,11 @@ public class BatchBuildTestrayCaseResult
 			if (result == null) {
 				testResultErrors = "Unable to finish build on CI";
 			}
-
-			if (result.equals("ABORTED")) {
+			else if (result.equals("ABORTED")) {
 				testResultErrors =
 					buildReport.getJobName() + " timed out after 2 hours";
 			}
-
-			if (result.equals("SUCCESS") || result.equals("UNSTABLE")) {
+			else if (result.equals("SUCCESS") || result.equals("UNSTABLE")) {
 				testResultErrors = "Unable to run test on CI";
 			}
 
@@ -745,6 +743,35 @@ public class BatchBuildTestrayCaseResult
 			getAxisName() + "/gradle_plugins.tar.gz");
 	}
 
+	private List<TestrayAttachment> _getJStacksTestrayAttachments() {
+		List<TestrayAttachment> testrayAttachments = new ArrayList<>();
+
+		BuildReport buildReport = getBuildReport();
+
+		if (buildReport == null) {
+			return testrayAttachments;
+		}
+
+		for (URL testrayAttachmentURL :
+				buildReport.getTestrayAttachmentURLs()) {
+
+			Matcher matcher = _jStacksURLPattern.matcher(
+				String.valueOf(testrayAttachmentURL));
+
+			if (!matcher.find()) {
+				continue;
+			}
+
+			testrayAttachments.add(
+				getTestrayAttachment(
+					buildReport,
+					"Docker Log (" + matcher.group("fileName") + ")",
+					getAxisName() + "/" + matcher.group("key")));
+		}
+
+		return testrayAttachments;
+	}
+
 	private TestrayAttachment _getJenkinsConsoleTestrayAttachment() {
 		String name = "Jenkins Console";
 		String key = getAxisName() + "/jenkins-console.txt.gz";
@@ -832,35 +859,6 @@ public class BatchBuildTestrayCaseResult
 
 		return JobPropertyFactory.newJobProperty(
 			basePropertyName, getBatchName(), job);
-	}
-
-	private List<TestrayAttachment> _getJStacksTestrayAttachments() {
-		List<TestrayAttachment> testrayAttachments = new ArrayList<>();
-
-		BuildReport buildReport = getBuildReport();
-
-		if (buildReport == null) {
-			return testrayAttachments;
-		}
-
-		for (URL testrayAttachmentURL :
-				buildReport.getTestrayAttachmentURLs()) {
-
-			Matcher matcher = _jStacksURLPattern.matcher(
-				String.valueOf(testrayAttachmentURL));
-
-			if (!matcher.find()) {
-				continue;
-			}
-
-			testrayAttachments.add(
-				getTestrayAttachment(
-					buildReport,
-					"Docker Log (" + matcher.group("fileName") + ")",
-					getAxisName() + "/" + matcher.group("key")));
-		}
-
-		return testrayAttachments;
 	}
 
 	private String _upperCaseFirstLetterOfEachWord(String string) {

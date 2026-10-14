@@ -10,6 +10,7 @@ import com.liferay.headless.commerce.admin.catalog.client.json.BaseJSONParser;
 
 import jakarta.annotation.Generated;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -79,6 +80,20 @@ public class GroupedProductSerDes {
 			sb.append("\"entryProductName\": ");
 
 			sb.append(_toJSON(groupedProduct.getEntryProductName()));
+		}
+
+		if (groupedProduct.getEntryProductType() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"entryProductType\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(groupedProduct.getEntryProductType()));
+
+			sb.append("\"");
 		}
 
 		if (groupedProduct.getId() != null) {
@@ -193,6 +208,15 @@ public class GroupedProductSerDes {
 				String.valueOf(groupedProduct.getEntryProductName()));
 		}
 
+		if (groupedProduct.getEntryProductType() == null) {
+			map.put("entryProductType", null);
+		}
+		else {
+			map.put(
+				"entryProductType",
+				String.valueOf(groupedProduct.getEntryProductType()));
+		}
+
 		if (groupedProduct.getId() == null) {
 			map.put("id", null);
 		}
@@ -268,6 +292,9 @@ public class GroupedProductSerDes {
 			else if (Objects.equals(jsonParserFieldName, "entryProductName")) {
 				return true;
 			}
+			else if (Objects.equals(jsonParserFieldName, "entryProductType")) {
+				return false;
+			}
 			else if (Objects.equals(jsonParserFieldName, "id")) {
 				return false;
 			}
@@ -315,6 +342,12 @@ public class GroupedProductSerDes {
 				if (jsonParserFieldValue != null) {
 					groupedProduct.setEntryProductName(
 						(Map<String, String>)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "entryProductType")) {
+				if (jsonParserFieldValue != null) {
+					groupedProduct.setEntryProductType(
+						(String)jsonParserFieldValue);
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "id")) {
@@ -404,6 +437,12 @@ public class GroupedProductSerDes {
 			return "null";
 		}
 
+		if (value instanceof Collection) {
+			Collection<?> collection = (Collection<?>)value;
+
+			return _toJSON(collection.toArray());
+		}
+
 		if (value instanceof Map) {
 			return _toJSON((Map)value);
 		}
@@ -436,4 +475,4 @@ public class GroupedProductSerDes {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:-1483957715
+// LIFERAY-REST-BUILDER-HASH:1790005814

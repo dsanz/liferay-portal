@@ -1856,7 +1856,7 @@ test(
 
 		await clickAndExpectToBeVisible({
 			target: page.getByText('Known Segment Members'),
-			trigger: page.getByTitle('View Members'),
+			trigger: page.getByRole('button', {name: 'View Members'}),
 		});
 
 		await viewNameOnTableList({
@@ -1976,7 +1976,7 @@ test(
 
 		await editSegment(page);
 
-		await expect(page.locator('.total-members-count')).toHaveText('3');
+		await expect(page.getByText(/Total Members: 3/)).toBeVisible();
 	}
 );
 
@@ -2228,7 +2228,7 @@ test(
 
 		await clickAndExpectToBeVisible({
 			target: page.getByText('Known Segment Members'),
-			trigger: page.getByTitle('View Members'),
+			trigger: page.getByRole('button', {name: 'View Members'}),
 		});
 
 		await viewNameOnTableList({
@@ -2263,7 +2263,7 @@ test(
 
 		await clickAndExpectToBeVisible({
 			target: page.getByText('Known Segment Members'),
-			trigger: page.getByTitle('View Members'),
+			trigger: page.getByRole('button', {name: 'View Members'}),
 		});
 
 		await viewNameOnTableList({
@@ -2897,7 +2897,7 @@ test(
 
 		await clickAndExpectToBeVisible({
 			target: page.getByText('Known Segment Members'),
-			trigger: page.getByTitle('View Members'),
+			trigger: page.getByRole('button', {name: 'View Members'}),
 		});
 
 		await viewNameOnTableList({

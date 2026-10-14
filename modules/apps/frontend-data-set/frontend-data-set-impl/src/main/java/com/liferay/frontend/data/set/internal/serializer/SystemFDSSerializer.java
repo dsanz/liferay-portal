@@ -35,8 +35,6 @@ import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -78,6 +76,28 @@ public class SystemFDSSerializer
 	}
 
 	@Override
+	public String serializeAPIURL(
+		String fdsName, HttpServletRequest httpServletRequest,
+		boolean interpolate, JSONObject tokenResolutionsJSONObject) {
+
+		SystemFDSEntry systemFDSEntry =
+			systemFDSEntryRegistry.getSystemFDSEntry(fdsName);
+
+		if (systemFDSEntry == null) {
+			return null;
+		}
+
+		return createFDSAPIURLBuilder(
+			httpServletRequest, systemFDSEntry.getRESTApplication(),
+			systemFDSEntry.getRESTEndpoint(), systemFDSEntry.getRESTSchema()
+		).setTokenResolutions(
+			tokenResolutionsJSONObject
+		).build(
+			interpolate
+		);
+	}
+
+	@Override
 	public String serializeAdditionalAPIURLParameters(
 		String fdsName, HttpServletRequest httpServletRequest,
 		boolean interpolate, JSONObject tokenResolutionsJSONObject) {
@@ -97,28 +117,6 @@ public class SystemFDSSerializer
 		).setTokenResolutions(
 			tokenResolutionsJSONObject
 		).buildQueryString(
-			interpolate
-		);
-	}
-
-	@Override
-	public String serializeAPIURL(
-		String fdsName, HttpServletRequest httpServletRequest,
-		boolean interpolate, JSONObject tokenResolutionsJSONObject) {
-
-		SystemFDSEntry systemFDSEntry =
-			systemFDSEntryRegistry.getSystemFDSEntry(fdsName);
-
-		if (systemFDSEntry == null) {
-			return null;
-		}
-
-		return createFDSAPIURLBuilder(
-			httpServletRequest, systemFDSEntry.getRESTApplication(),
-			systemFDSEntry.getRESTEndpoint(), systemFDSEntry.getRESTSchema()
-		).setTokenResolutions(
-			tokenResolutionsJSONObject
-		).build(
 			interpolate
 		);
 	}
@@ -312,6 +310,20 @@ public class SystemFDSSerializer
 	}
 
 	@Override
+	public boolean serializeSearchSuggestionsEnabled(
+		String fdsName, HttpServletRequest httpServletRequest) {
+
+		SystemFDSEntry systemFDSEntry =
+			systemFDSEntryRegistry.getSystemFDSEntry(fdsName);
+
+		if (systemFDSEntry == null) {
+			return _systemFDSEntry.getSearchSuggestionsEnabled();
+		}
+
+		return systemFDSEntry.getSearchSuggestionsEnabled();
+	}
+
+	@Override
 	public boolean serializeShowSearch(
 		String fdsName, HttpServletRequest httpServletRequest) {
 
@@ -329,16 +341,9 @@ public class SystemFDSSerializer
 	public JSONArray serializeSnapshots(
 		String fdsName, HttpServletRequest httpServletRequest) {
 
-		try {
-			return serializeSnapshots(
-				fdsName, httpServletRequest, _objectDefinitionLocalService,
-				_objectEntryManagerRegistry);
-		}
-		catch (Exception exception) {
-			_log.error("Unable to serialize snapshots", exception);
-
-			return JSONUtil.putAll();
-		}
+		return serializeSnapshots(
+			fdsName, httpServletRequest, _objectDefinitionLocalService,
+			_objectEntryManagerRegistry);
 	}
 
 	@Override
@@ -366,6 +371,14 @@ public class SystemFDSSerializer
 		}
 
 		return fdsSorts.getFDSSortItems(httpServletRequest);
+	}
+
+	@Override
+	public JSONObject serializeUserConfiguration(
+		String fdsName, HttpServletRequest httpServletRequest) {
+
+		return serializeUserConfiguration(
+			fdsName, httpServletRequest, _objectDefinitionLocalService);
 	}
 
 	@Override
@@ -503,9 +516,6 @@ public class SystemFDSSerializer
 			jsonArray.put(jsonObject);
 		}
 	}
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		SystemFDSSerializer.class);
 
 	private static final SystemFDSEntry _systemFDSEntry = new SystemFDSEntry() {
 

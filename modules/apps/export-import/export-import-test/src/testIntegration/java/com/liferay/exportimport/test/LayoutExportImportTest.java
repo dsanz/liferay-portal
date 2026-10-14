@@ -26,7 +26,11 @@ import com.liferay.exportimport.kernel.configuration.ExportImportConfigurationSe
 import com.liferay.exportimport.kernel.configuration.constants.ExportImportConfigurationConstants;
 import com.liferay.exportimport.kernel.exception.LARTypeException;
 import com.liferay.exportimport.kernel.lar.ExportImportHelperUtil;
+import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.exportimport.kernel.lar.PortletDataHandlerKeys;
+import com.liferay.exportimport.kernel.lifecycle.ExportImportLifecycleEvent;
+import com.liferay.exportimport.kernel.lifecycle.ExportImportLifecycleListener;
+import com.liferay.exportimport.kernel.lifecycle.constants.ExportImportLifecycleConstants;
 import com.liferay.exportimport.kernel.model.ExportImportConfiguration;
 import com.liferay.exportimport.kernel.service.ExportImportConfigurationLocalServiceUtil;
 import com.liferay.exportimport.kernel.service.ExportImportLocalServiceUtil;
@@ -45,6 +49,7 @@ import com.liferay.fragment.service.FragmentEntryLocalService;
 import com.liferay.friendly.url.constants.FriendlyURLEntryConstants;
 import com.liferay.friendly.url.model.FriendlyURLEntry;
 import com.liferay.friendly.url.service.FriendlyURLEntryLocalService;
+import com.liferay.journal.constants.JournalContentPortletKeys;
 import com.liferay.journal.constants.JournalFolderConstants;
 import com.liferay.journal.constants.JournalPortletKeys;
 import com.liferay.journal.model.JournalArticle;
@@ -113,8 +118,11 @@ import com.liferay.portal.test.log.LogEntry;
 import com.liferay.portal.test.log.LoggerTestUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
+import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 import com.liferay.segments.service.SegmentsExperienceLocalService;
 import com.liferay.sites.kernel.util.Sites;
+
+import jakarta.portlet.PortletPreferences;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -127,6 +135,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -134,6 +143,11 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.ServiceRegistration;
 
 /**
  * @author Eduardo García
@@ -144,7 +158,9 @@ public class LayoutExportImportTest extends BaseExportImportTestCase {
 	@ClassRule
 	@Rule
 	public static final AggregateTestRule aggregateTestRule =
-		new LiferayIntegrationTestRule();
+		new AggregateTestRule(
+			new LiferayIntegrationTestRule(),
+			PermissionCheckerMethodTestRule.INSTANCE);
 
 	@Before
 	@Override
@@ -198,6 +214,47 @@ public class LayoutExportImportTest extends BaseExportImportTestCase {
 	}
 
 	@Test
+	public void testDeleteMissingLayoutsPrivate() throws Exception {
+		Layout layout1 = LayoutTestUtil.addTypePortletLayout(group, true);
+		Layout layout2 = LayoutTestUtil.addTypePortletLayout(group, true);
+
+		exportLayouts(
+			ExportImportHelperUtil.getLayoutIds(
+				_layoutLocalService.getLayouts(group.getGroupId(), true)),
+			getExportParameterMap(), false, true);
+
+		importLayouts(getImportParameterMap(), false, true);
+
+		Assert.assertEquals(
+			_layoutLocalService.getLayoutsCount(group, true),
+			_layoutLocalService.getLayoutsCount(importedGroup, true));
+
+		LayoutTestUtil.addTypePortletLayout(importedGroup, true);
+
+		Map<String, String[]> parameterMap = getImportParameterMap();
+
+		parameterMap.put(
+			PortletDataHandlerKeys.DELETE_MISSING_LAYOUTS,
+			new String[] {Boolean.TRUE.toString()});
+
+		exportLayouts(
+			new long[] {layout1.getLayoutId()}, getExportParameterMap(), false,
+			true);
+
+		importLayouts(parameterMap, false, true);
+
+		Assert.assertEquals(
+			_layoutLocalService.getLayoutsCount(group, true),
+			_layoutLocalService.getLayoutsCount(importedGroup, true));
+		Assert.assertNotNull(
+			_layoutLocalService.fetchLayoutByUuidAndGroupId(
+				layout1.getUuid(), importedGroup.getGroupId(), true));
+		Assert.assertNotNull(
+			_layoutLocalService.fetchLayoutByUuidAndGroupId(
+				layout2.getUuid(), importedGroup.getGroupId(), true));
+	}
+
+	@Test
 	public void testDeleteMissingLayoutsSameGroupWithPromoteContentFeatureFlags()
 		throws Exception {
 
@@ -244,6 +301,84 @@ public class LayoutExportImportTest extends BaseExportImportTestCase {
 		finally {
 			importedGroup = originalImportedGroup;
 		}
+	}
+
+	@Test
+	@TestInfo("LPD-108615")
+	public void testEnableLocalStagingKeepsLayoutAddedToStagingGroupDuringPublication()
+		throws Exception {
+
+		LayoutTestUtil.addTypePortletLayout(group);
+
+		AtomicReference<Layout> stagingLayoutAtomicReference =
+			new AtomicReference<>();
+
+		Bundle bundle = FrameworkUtil.getBundle(LayoutExportImportTest.class);
+
+		BundleContext bundleContext = bundle.getBundleContext();
+
+		ServiceRegistration<ExportImportLifecycleListener> serviceRegistration =
+			bundleContext.registerService(
+				ExportImportLifecycleListener.class,
+				new ExportImportLifecycleListener() {
+
+					@Override
+					public boolean isParallel() {
+						return false;
+					}
+
+					@Override
+					public void onExportImportLifecycleEvent(
+							ExportImportLifecycleEvent
+								exportImportLifecycleEvent)
+						throws Exception {
+
+						if (exportImportLifecycleEvent.getCode() !=
+								ExportImportLifecycleConstants.
+									EVENT_LAYOUT_IMPORT_STARTED) {
+
+							return;
+						}
+
+						List<Serializable> attributes =
+							exportImportLifecycleEvent.getAttributes();
+
+						PortletDataContext portletDataContext =
+							(PortletDataContext)attributes.get(0);
+
+						if ((portletDataContext.getSourceGroupId() !=
+								group.getGroupId()) ||
+							(stagingLayoutAtomicReference.get() != null)) {
+
+							return;
+						}
+
+						stagingLayoutAtomicReference.set(
+							LayoutTestUtil.addTypePortletLayout(
+								portletDataContext.getGroupId()));
+					}
+
+				},
+				null);
+
+		try {
+			GroupTestUtil.enableLocalStaging(group);
+		}
+		finally {
+			serviceRegistration.unregister();
+		}
+
+		Layout stagingLayout = stagingLayoutAtomicReference.get();
+
+		Assert.assertNotNull(stagingLayout);
+
+		Group stagingGroup = group.getStagingGroup();
+
+		Assert.assertEquals(
+			stagingGroup.getGroupId(), stagingLayout.getGroupId());
+
+		Assert.assertNotNull(
+			_layoutLocalService.fetchLayout(stagingLayout.getPlid()));
 	}
 
 	@Test
@@ -837,20 +972,6 @@ public class LayoutExportImportTest extends BaseExportImportTestCase {
 	}
 
 	@Test
-	public void testExportImportLayouts() throws Exception {
-		LayoutTestUtil.addTypePortletLayout(group);
-
-		exportImportLayouts(
-			ExportImportHelperUtil.getLayoutIds(
-				_layoutLocalService.getLayouts(group.getGroupId(), false)),
-			getImportParameterMap());
-
-		Assert.assertEquals(
-			_layoutLocalService.getLayoutsCount(group, false),
-			_layoutLocalService.getLayoutsCount(importedGroup, false));
-	}
-
-	@Test
 	public void testExportImportLayoutSetInvalidLARType() throws Exception {
 
 		// Import a layout set to a layout prototype
@@ -948,6 +1069,56 @@ public class LayoutExportImportTest extends BaseExportImportTestCase {
 
 			group = null;
 		}
+	}
+
+	@Test
+	@TestInfo("LPD-90359")
+	public void testExportImportLayoutThemeSettings() throws Exception {
+		Layout layout = LayoutTestUtil.addTypePortletLayout(
+			group.getGroupId(),
+			UnicodePropertiesBuilder.put(
+				"lfr-theme:regular:show-header-search", Boolean.FALSE.toString()
+			).put(
+				"lfr-theme:regular:show-maximize-minimize-application-links",
+				Boolean.TRUE.toString()
+			).buildString());
+
+		exportImportLayouts(
+			new long[] {layout.getLayoutId()}, getImportParameterMap());
+
+		Layout importedLayout = _layoutLocalService.getLayoutByUuidAndGroupId(
+			layout.getUuid(), importedGroup.getGroupId(), false);
+
+		Assert.assertEquals(
+			Boolean.FALSE.toString(),
+			importedLayout.getTypeSettingsProperty(
+				"lfr-theme:regular:show-header-search"));
+		Assert.assertEquals(
+			Boolean.TRUE.toString(),
+			importedLayout.getTypeSettingsProperty(
+				"lfr-theme:regular:show-maximize-minimize-application-links"));
+	}
+
+	@Test
+	@TestInfo("LPD-77689")
+	public void testExportImportLayoutUtilityPageEntryWithPreviewFileEntryWithBatch()
+		throws Exception {
+
+		_testExportImportLayoutUtilityPageEntryWithPreviewFileEntry();
+	}
+
+	@Test
+	public void testExportImportLayouts() throws Exception {
+		LayoutTestUtil.addTypePortletLayout(group);
+
+		exportImportLayouts(
+			ExportImportHelperUtil.getLayoutIds(
+				_layoutLocalService.getLayouts(group.getGroupId(), false)),
+			getImportParameterMap());
+
+		Assert.assertEquals(
+			_layoutLocalService.getLayoutsCount(group, false),
+			_layoutLocalService.getLayoutsCount(importedGroup, false));
 	}
 
 	@Test
@@ -1078,6 +1249,8 @@ public class LayoutExportImportTest extends BaseExportImportTestCase {
 				CompanyThreadLocal.setCompanyIdWithSafeCloseable(
 					_company.getCompanyId())) {
 
+			UserTestUtil.setUser(adminUser);
+
 			Group newCompanyGroup = GroupTestUtil.addGroup(
 				_company.getCompanyId(), adminUser.getUserId(),
 				GroupConstants.DEFAULT_PARENT_GROUP_ID);
@@ -1099,6 +1272,64 @@ public class LayoutExportImportTest extends BaseExportImportTestCase {
 			Arrays.asList(LocaleUtil.US, LocaleUtil.US),
 			Arrays.asList(LocaleUtil.US, LocaleUtil.SPAIN, LocaleUtil.US),
 			false);
+	}
+
+	@Test
+	public void testExportImportLayoutsWithJournalContentPortletIntoAnotherInstance()
+		throws Exception {
+
+		JournalArticle journalArticle = JournalTestUtil.addArticle(
+			group.getGroupId(),
+			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID);
+
+		String portletId = LayoutTestUtil.addPortletToLayout(
+			layout, JournalContentPortletKeys.JOURNAL_CONTENT,
+			HashMapBuilder.put(
+				"articleExternalReferenceCode",
+				new String[] {journalArticle.getExternalReferenceCode()}
+			).put(
+				"groupExternalReferenceCode",
+				new String[] {group.getExternalReferenceCode()}
+			).build());
+
+		exportLayouts(
+			new long[] {layout.getLayoutId()}, getExportParameterMap());
+
+		_company = CompanyTestUtil.addCompany(true);
+
+		User adminUser = UserTestUtil.getAdminUser(_company.getCompanyId());
+
+		try (SafeCloseable safeCloseable =
+				CompanyThreadLocal.setCompanyIdWithSafeCloseable(
+					_company.getCompanyId())) {
+
+			UserTestUtil.setUser(adminUser);
+
+			Group newCompanyGroup = GroupTestUtil.addGroup(
+				_company.getCompanyId(), adminUser.getUserId(),
+				GroupConstants.DEFAULT_PARENT_GROUP_ID);
+
+			_importLayouts(adminUser, newCompanyGroup);
+
+			importedLayout = _layoutLocalService.getLayoutByUuidAndGroupId(
+				layout.getUuid(), newCompanyGroup.getGroupId(), false);
+
+			PortletPreferences portletPreferences =
+				LayoutTestUtil.getPortletPreferences(importedLayout, portletId);
+
+			JournalArticle importedJournalArticle =
+				_journalArticleLocalService.
+					fetchLatestArticleByExternalReferenceCode(
+						newCompanyGroup.getGroupId(),
+						portletPreferences.getValue(
+							"articleExternalReferenceCode", null));
+
+			Assert.assertEquals(
+				journalArticle.getTitle(), importedJournalArticle.getTitle());
+			Assert.assertEquals(
+				journalArticle.getContent(),
+				importedJournalArticle.getContent());
+		}
 	}
 
 	@Test
@@ -1234,42 +1465,6 @@ public class LayoutExportImportTest extends BaseExportImportTestCase {
 			html + " contains " + updatedTitle, html.contains(updatedTitle));
 		Assert.assertTrue(
 			html + " does not contain " + title, html.contains(title));
-	}
-
-	@Test
-	@TestInfo("LPD-90359")
-	public void testExportImportLayoutThemeSettings() throws Exception {
-		Layout layout = LayoutTestUtil.addTypePortletLayout(
-			group.getGroupId(),
-			UnicodePropertiesBuilder.put(
-				"lfr-theme:regular:show-header-search", Boolean.FALSE.toString()
-			).put(
-				"lfr-theme:regular:show-maximize-minimize-application-links",
-				Boolean.TRUE.toString()
-			).buildString());
-
-		exportImportLayouts(
-			new long[] {layout.getLayoutId()}, getImportParameterMap());
-
-		Layout importedLayout = _layoutLocalService.getLayoutByUuidAndGroupId(
-			layout.getUuid(), importedGroup.getGroupId(), false);
-
-		Assert.assertEquals(
-			Boolean.FALSE.toString(),
-			importedLayout.getTypeSettingsProperty(
-				"lfr-theme:regular:show-header-search"));
-		Assert.assertEquals(
-			Boolean.TRUE.toString(),
-			importedLayout.getTypeSettingsProperty(
-				"lfr-theme:regular:show-maximize-minimize-application-links"));
-	}
-
-	@Test
-	@TestInfo("LPD-77689")
-	public void testExportImportLayoutUtilityPageEntryWithPreviewFileEntryWithBatch()
-		throws Exception {
-
-		_testExportImportLayoutUtilityPageEntryWithPreviewFileEntry();
 	}
 
 	@Test
@@ -1491,6 +1686,37 @@ public class LayoutExportImportTest extends BaseExportImportTestCase {
 			importedLayout2.getPriority() > importedLayout3.getPriority());
 	}
 
+	@Test
+	@TestInfo("LPD-108615")
+	public void testPublishToLiveKeepsLiveLayoutWithDifferentExternalReferenceCode()
+		throws Exception {
+
+		GroupTestUtil.enableLocalStaging(group);
+
+		Group stagingGroup = group.getStagingGroup();
+
+		Layout stagingLayout = LayoutTestUtil.addTypePortletLayout(
+			stagingGroup);
+
+		_publishToLive(stagingGroup);
+
+		Layout liveLayout = _layoutLocalService.getLayoutByUuidAndGroupId(
+			stagingLayout.getUuid(), group.getGroupId(), false);
+
+		Assert.assertEquals(
+			stagingLayout.getExternalReferenceCode(),
+			liveLayout.getExternalReferenceCode());
+
+		liveLayout.setExternalReferenceCode(RandomTestUtil.randomString());
+
+		liveLayout = _layoutLocalService.updateLayout(liveLayout);
+
+		_publishToLive(stagingGroup);
+
+		Assert.assertNotNull(
+			_layoutLocalService.fetchLayout(liveLayout.getPlid()));
+	}
+
 	protected void testAvailableLocales(
 			Collection<Locale> sourceAvailableLocales,
 			Collection<Locale> targetAvailableLocales, boolean expectFailure)
@@ -1676,6 +1902,15 @@ public class LayoutExportImportTest extends BaseExportImportTestCase {
 
 		ExportImportLocalServiceUtil.importLayouts(
 			exportImportConfiguration, larFile);
+	}
+
+	private void _publishToLive(Group stagingGroup) throws Exception {
+		StagingUtil.publishLayouts(
+			TestPropsValues.getUserId(),
+			ExportImportConfigurationFactory.
+				buildDefaultLocalPublishingExportImportConfiguration(
+					TestPropsValues.getUser(), stagingGroup.getGroupId(),
+					stagingGroup.getLiveGroupId(), false));
 	}
 
 	private void _testExportImportLayoutUtilityPageEntryWithPreviewFileEntry()

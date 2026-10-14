@@ -33,7 +33,7 @@ exports[`IndividualDetails should render 1`] = `
         class="base-results-root d-flex flex-column flex-grow-1 searchable-table-root searchable-table-borderless"
       >
         <div
-          class="toolbar-root"
+          class="search-toolbar-root"
         >
           <nav
             class="navbar navbar-root management-bar management-bar-light navbar-expand"
@@ -121,7 +121,7 @@ exports[`IndividualDetails should render 1`] = `
             class="table-responsive"
           >
             <table
-              class="table table-autofit table-list table-nowrap table-head-bordered table-hover table-striped"
+              class="table table-autofit table-list table-head-bordered table-hover table-striped"
             >
               <thead>
                 <tr>
@@ -147,12 +147,9 @@ exports[`IndividualDetails should render 1`] = `
                         >
                           <svg
                             class="lexicon-icon lexicon-icon-order_arrow_ascending icon-root"
+                            data-file="order_arrow_ascending.svg"
                             role="presentation"
-                          >
-                            <use
-                              href="#order_arrow_ascending"
-                            />
-                          </svg>
+                          />
                         </button>
                       </div>
                     </button>
@@ -230,7 +227,7 @@ exports[`IndividualDetails should render 1`] = `
                     </button>
                   </th>
                   <th
-                    class="table-head-title"
+                    class="table-head-title text-nowrap"
                   >
                     <button
                       class="inline-item text-truncate-inline btn btn-unstyled"
@@ -301,7 +298,9 @@ exports[`IndividualDetails should render 1`] = `
                       -
                     </a>
                   </td>
-                  <td>
+                  <td
+                    class="text-nowrap"
+                  >
                     -
                   </td>
                 </tr>
@@ -338,7 +337,9 @@ exports[`IndividualDetails should render 1`] = `
                       -
                     </a>
                   </td>
-                  <td>
+                  <td
+                    class="text-nowrap"
+                  >
                     -
                   </td>
                 </tr>
@@ -375,7 +376,9 @@ exports[`IndividualDetails should render 1`] = `
                       -
                     </a>
                   </td>
-                  <td>
+                  <td
+                    class="text-nowrap"
+                  >
                     -
                   </td>
                 </tr>
@@ -412,7 +415,9 @@ exports[`IndividualDetails should render 1`] = `
                       -
                     </a>
                   </td>
-                  <td>
+                  <td
+                    class="text-nowrap"
+                  >
                     -
                   </td>
                 </tr>
@@ -449,7 +454,9 @@ exports[`IndividualDetails should render 1`] = `
                       -
                     </a>
                   </td>
-                  <td>
+                  <td
+                    class="text-nowrap"
+                  >
                     -
                   </td>
                 </tr>

@@ -1,6 +1,6 @@
 ---
 
-description: Audit, prompt, and enable Liferay feature flags required by a given workflow. Use when a skill needs a flag set (LPD-63311 for MCP, LPD-35443 for Site API, LPD-17564 for object collaborators, etc.), when the user asks to enable a flag, when an API returns 404, or when a Headless endpoint silently returns 400 UnsupportedOperationException.
+description: Audit, prompt, and enable Liferay feature flags required by a given workflow. Use when a skill needs a flag set (LPD-63311 for MCP, LPD-17564 for object collaborators, etc.), when the user asks to enable a flag, when an API returns 404, or when a Headless endpoint silently returns 400 UnsupportedOperationException.
 name: feature-flags
 
 ---
@@ -82,10 +82,10 @@ Liferay derives the env var name by: (1) prefixing `LIFERAY_`, (2) **uppercasing
 | `-` (hyphen) | `_MINUS_` |
 | letters / digits | passed through; letters uppercased — **no per character encoding** |
 
-**Worked example** — `feature.flag.LPD-35443=true` becomes:
+**Worked example** — `feature.flag.LPD-63311=true` becomes:
 
 ```
-LIFERAY_FEATURE_PERIOD_FLAG_PERIOD_LPD_MINUS_35443=true
+LIFERAY_FEATURE_PERIOD_FLAG_PERIOD_LPD_MINUS_63311=true
 ```
 
 **Best practice**: rather than hand encoding, look up the exact `Env:` variable name shown beneath each property in the Liferay Learn *Portal Properties* reference, and cross check against existing entries in `liferay.env` if present.
@@ -96,8 +96,7 @@ For the full table see `rules/feature-flags-catalog.md`.
 
 | Flag | Default | Unlocks |
 | --- | --- | --- |
-| `LPD-63311` | off | MCP server (current path `/o/mcp`; `/o/mcp/sse` only on 2025.Q4) |
-| `LPD-35443` | off | Headless Admin Site public layout API |
+| `LPD-63311` | off | MCP server (current path `/o/mcp`; `/o/mcp/sse` only on 2025.Q4); on 2026.Q3, only together with the `MCPServerConfiguration` `enabled` switch, which is not a flag (see `skills/mcp-server/SKILL.md`) |
 | `LPD-39244` | off | Headless Admin Fragment / composition API |
 | `LPD-17564` | off | Object collaborators API |
 | `LPD-52006` | off | Object entry folders |

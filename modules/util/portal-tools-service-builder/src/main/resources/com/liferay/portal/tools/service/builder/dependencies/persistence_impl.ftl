@@ -117,6 +117,7 @@ import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
 <#if serviceBuilder.isVersionGTE_7_4_0()>
 	import com.liferay.portal.kernel.service.persistence.impl.ArrayableFinderColumn;
 	import com.liferay.portal.kernel.service.persistence.impl.CollectionPersistenceFinder;
+
 	<#if entity.isPermissionCheckEnabled()>
 		import com.liferay.portal.kernel.service.persistence.impl.FilterCollectionPersistenceFinder;
 	</#if>
@@ -894,9 +895,9 @@ public class ${entity.name}PersistenceImpl extends BasePersistenceImpl<${entity.
 			}
 			else {
 				<#if serviceBuilder.isVersionGTE_7_3_0()>
-					if (!Objects.equals(${entity.variableName}ModelImpl.getColumnOriginalValue("externalReferenceCode"), ${entity.variableName}.getExternalReferenceCode())) {
+					if (<#if entity.hasUuid()>!Objects.equals(${entity.variableName}.getUuid(), ${entity.variableName}.getExternalReferenceCode()) && </#if>!Objects.equals(${entity.variableName}ModelImpl.getColumnOriginalValue("externalReferenceCode"), ${entity.variableName}.getExternalReferenceCode())) {
 				<#else>
-					if (!Objects.equals(${entity.variableName}ModelImpl.getOriginalExternalReferenceCode(), ${entity.variableName}.getExternalReferenceCode())) {
+					if (<#if entity.hasUuid()>!Objects.equals(${entity.variableName}.getUuid(), ${entity.variableName}.getExternalReferenceCode()) && </#if>!Objects.equals(${entity.variableName}ModelImpl.getOriginalExternalReferenceCode(), ${entity.variableName}.getExternalReferenceCode())) {
 				</#if>
 
 					long userId = GetterUtil.getLong(PrincipalThreadLocal.getName());

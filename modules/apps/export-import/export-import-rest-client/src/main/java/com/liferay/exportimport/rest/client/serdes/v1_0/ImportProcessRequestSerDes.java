@@ -11,6 +11,7 @@ import com.liferay.exportimport.rest.client.json.BaseJSONParser;
 
 import jakarta.annotation.Generated;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -153,6 +154,36 @@ public class ImportProcessRequestSerDes {
 			sb.append("]");
 		}
 
+		if (importProcessRequest.getSiteExternalReferenceCodes() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"siteExternalReferenceCodes\": ");
+
+			sb.append("[");
+
+			for (int i = 0;
+				 i <
+					 importProcessRequest.
+						 getSiteExternalReferenceCodes().length;
+				 i++) {
+
+				sb.append(
+					_toJSON(
+						importProcessRequest.getSiteExternalReferenceCodes()
+							[i]));
+
+				if ((i + 1) < importProcessRequest.
+						getSiteExternalReferenceCodes().length) {
+
+					sb.append(", ");
+				}
+			}
+
+			sb.append("]");
+		}
+
 		if (importProcessRequest.getSitePagesSettings() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -283,6 +314,16 @@ public class ImportProcessRequestSerDes {
 					importProcessRequest.getRequestPortletDataHandlers()));
 		}
 
+		if (importProcessRequest.getSiteExternalReferenceCodes() == null) {
+			map.put("siteExternalReferenceCodes", null);
+		}
+		else {
+			map.put(
+				"siteExternalReferenceCodes",
+				String.valueOf(
+					importProcessRequest.getSiteExternalReferenceCodes()));
+		}
+
 		if (importProcessRequest.getSitePagesSettings() == null) {
 			map.put("sitePagesSettings", null);
 		}
@@ -360,6 +401,11 @@ public class ImportProcessRequestSerDes {
 			}
 			else if (Objects.equals(
 						jsonParserFieldName, "requestPortletDataHandlers")) {
+
+				return false;
+			}
+			else if (Objects.equals(
+						jsonParserFieldName, "siteExternalReferenceCodes")) {
 
 				return false;
 			}
@@ -451,6 +497,14 @@ public class ImportProcessRequestSerDes {
 						requestPortletDataHandlersArray);
 				}
 			}
+			else if (Objects.equals(
+						jsonParserFieldName, "siteExternalReferenceCodes")) {
+
+				if (jsonParserFieldValue != null) {
+					importProcessRequest.setSiteExternalReferenceCodes(
+						toStrings((Object[])jsonParserFieldValue));
+				}
+			}
 			else if (Objects.equals(jsonParserFieldName, "sitePagesSettings")) {
 				if (jsonParserFieldValue != null) {
 					importProcessRequest.setSitePagesSettings(
@@ -527,6 +581,12 @@ public class ImportProcessRequestSerDes {
 			return "null";
 		}
 
+		if (value instanceof Collection) {
+			Collection<?> collection = (Collection<?>)value;
+
+			return _toJSON(collection.toArray());
+		}
+
 		if (value instanceof Map) {
 			return _toJSON((Map)value);
 		}
@@ -559,4 +619,4 @@ public class ImportProcessRequestSerDes {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:-71757991
+// LIFERAY-REST-BUILDER-HASH:376992532

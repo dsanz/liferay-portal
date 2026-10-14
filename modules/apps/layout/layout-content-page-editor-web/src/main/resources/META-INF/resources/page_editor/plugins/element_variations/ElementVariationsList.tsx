@@ -11,14 +11,9 @@ import ClayList from '@clayui/list';
 import ClayLoadingIndicator from '@clayui/loading-indicator';
 import React from 'react';
 
+import {hasValueInAnyLanguage} from './elementVariationFilters';
 import {ElementVariation} from './elementVariationsReducer';
 import {EditableElementOption} from './getEditableElementOptions';
-
-function hasValueInAnyLanguage(
-	localizedValue: Record<string, string>
-): boolean {
-	return Object.values(localizedValue).some(Boolean);
-}
 
 interface Props {
 	audiences: Array<{label: string; value: string}>;
@@ -62,13 +57,14 @@ export default function ElementVariationsList({
 				([targetElement, targetElementVariations]) => (
 					<ClayList className="mx-3" key={targetElement}>
 						{[
-							<ClayList.Header className="text-none" key="header">
-								{editableElementOptions.find(
+							<ElementVariationsListHeader
+								editableElementOption={editableElementOptions.find(
 									(editableElementOption) =>
 										editableElementOption.value ===
 										targetElement
-								)?.label ?? targetElement}
-							</ClayList.Header>,
+								)}
+								key="header"
+							/>,
 							...targetElementVariations.map(
 								(elementVariation) => (
 									<ClayList.Item
@@ -81,19 +77,37 @@ export default function ElementVariationsList({
 												{elementVariation.name}
 											</ClayList.ItemTitle>
 
-											<ClayList.ItemText>
-												{elementVariation.audienceEntryERCs
-													.map(
-														(audienceEntryERC) =>
-															audiences.find(
-																(audience) =>
-																	audience.value ===
-																	audienceEntryERC
-															)?.label
-													)
-													.filter(Boolean)
-													.join(', ')}
-											</ClayList.ItemText>
+											{elementVariation.audienceEntryERCs
+												.length ? (
+												<ClayList.ItemText>
+													{elementVariation.audienceEntryERCs
+														.map(
+															(
+																audienceEntryERC
+															) =>
+																audiences.find(
+																	(
+																		audience
+																	) =>
+																		audience.value ===
+																		audienceEntryERC
+																)?.label
+														)
+														.filter(Boolean)
+														.join(', ')}
+												</ClayList.ItemText>
+											) : (
+												<ClayList.ItemText className="text-warning">
+													<ClayIcon
+														className="mr-2"
+														symbol="warning-full"
+													/>
+
+													{Liferay.Language.get(
+														'missing-audience'
+													)}
+												</ClayList.ItemText>
+											)}
 
 											<ClayList.ItemText>
 												<div>
@@ -185,6 +199,32 @@ export default function ElementVariationsList({
 				)
 			)}
 		</>
+	);
+}
+
+interface ElementVariationsListHeaderProps {
+	editableElementOption?: EditableElementOption;
+}
+
+function ElementVariationsListHeader({
+	editableElementOption,
+}: ElementVariationsListHeaderProps) {
+	if (editableElementOption) {
+		return (
+			<ClayList.Header className="text-none">
+				{editableElementOption.label}
+			</ClayList.Header>
+		);
+	}
+
+	return (
+		<ClayList.Header className="text-none">
+			<span className="text-warning">
+				<ClayIcon className="mr-2 text-3" symbol="warning-full" />
+
+				{Liferay.Language.get('missing-page-element')}
+			</span>
+		</ClayList.Header>
 	);
 }
 

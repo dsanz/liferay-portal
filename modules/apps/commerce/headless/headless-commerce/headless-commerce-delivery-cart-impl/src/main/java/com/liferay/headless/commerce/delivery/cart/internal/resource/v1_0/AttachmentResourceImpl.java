@@ -8,23 +8,19 @@ package com.liferay.headless.commerce.delivery.cart.internal.resource.v1_0;
 import com.liferay.commerce.exception.NoSuchOrderException;
 import com.liferay.commerce.model.CommerceOrder;
 import com.liferay.commerce.model.CommerceOrderAttachment;
+import com.liferay.commerce.order.CommerceOrderAttachmentURLProvider;
 import com.liferay.commerce.service.CommerceOrderAttachmentService;
 import com.liferay.commerce.service.CommerceOrderService;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
-import com.liferay.document.library.util.DLURLHelperUtil;
 import com.liferay.headless.commerce.delivery.cart.dto.v1_0.Attachment;
 import com.liferay.headless.commerce.delivery.cart.dto.v1_0.AttachmentBase64;
-import com.liferay.headless.commerce.delivery.cart.internal.dto.v1_0.converter.constants.DTOConverterConstants;
 import com.liferay.headless.commerce.delivery.cart.internal.odata.entity.v1_0.AttachmentEntityModel;
 import com.liferay.headless.commerce.delivery.cart.resource.v1_0.AttachmentResource;
 import com.liferay.list.type.model.ListTypeDefinition;
 import com.liferay.list.type.model.ListTypeEntry;
 import com.liferay.list.type.service.ListTypeDefinitionLocalService;
 import com.liferay.list.type.service.ListTypeEntryLocalService;
-import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
-import com.liferay.portal.kernel.repository.LocalRepository;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Sort;
@@ -37,7 +33,6 @@ import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.odata.entity.EntityModel;
-import com.liferay.portal.vulcan.dto.converter.DTOConverter;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 import com.liferay.portal.vulcan.util.ActionUtil;
@@ -67,20 +62,8 @@ public class AttachmentResourceImpl extends BaseAttachmentResourceImpl {
 	public void deleteCartAttachment(Long attachmentId, Long cartId)
 		throws Exception {
 
-		if (FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-6252")) {
-
-			_commerceOrderAttachmentService.deleteCommerceOrderAttachment(
-				attachmentId);
-
-			return;
-		}
-
-		CommerceOrder commerceOrder = _commerceOrderService.getCommerceOrder(
-			cartId);
-
-		_commerceOrderService.deleteAttachmentFileEntry(
-			attachmentId, commerceOrder.getCommerceOrderId());
+		_commerceOrderAttachmentService.deleteCommerceOrderAttachment(
+			attachmentId);
 	}
 
 	@Override
@@ -100,31 +83,16 @@ public class AttachmentResourceImpl extends BaseAttachmentResourceImpl {
 					externalReferenceCode);
 		}
 
-		if (FeatureFlagManagerUtil.isEnabled(
-				commerceOrder.getCompanyId(), "LPD-6252")) {
+		CommerceOrderAttachment commerceOrderAttachment =
+			_commerceOrderAttachmentService.
+				fetchCommerceOrderAttachmentByExternalReferenceCode(
+					attachmentExternalReferenceCode,
+					contextCompany.getCompanyId());
 
-			CommerceOrderAttachment commerceOrderAttachment =
-				_commerceOrderAttachmentService.
-					fetchCommerceOrderAttachmentByExternalReferenceCode(
-						attachmentExternalReferenceCode,
-						contextCompany.getCompanyId());
-
-			if (commerceOrderAttachment != null) {
-				_commerceOrderAttachmentService.deleteCommerceOrderAttachment(
-					commerceOrderAttachment.getCommerceOrderAttachmentId());
-			}
-
-			return;
+		if (commerceOrderAttachment != null) {
+			_commerceOrderAttachmentService.deleteCommerceOrderAttachment(
+				commerceOrderAttachment.getCommerceOrderAttachmentId());
 		}
-
-		LocalRepository localRepository = commerceOrder.getLocalRepository();
-
-		FileEntry fileEntry =
-			localRepository.getFileEntryByExternalReferenceCode(
-				attachmentExternalReferenceCode);
-
-		deleteCartAttachment(
-			fileEntry.getFileEntryId(), commerceOrder.getCommerceOrderId());
 	}
 
 	@Override
@@ -136,33 +104,21 @@ public class AttachmentResourceImpl extends BaseAttachmentResourceImpl {
 		CommerceOrder commerceOrder = _commerceOrderService.getCommerceOrder(
 			cartId);
 
-		if (FeatureFlagManagerUtil.isEnabled(
-				commerceOrder.getCompanyId(), "LPD-6252")) {
-
-			return SearchUtil.search(
-				Collections.emptyMap(),
-				booleanQuery -> booleanQuery.getPreBooleanFilter(), filter,
-				CommerceOrderAttachment.class.getName(), search, pagination,
-				queryConfig -> queryConfig.setSelectedFieldNames(
-					Field.ENTRY_CLASS_PK),
-				searchContext -> {
-					searchContext.setAttribute(
-						"commerceOrderId", commerceOrder.getCommerceOrderId());
-					searchContext.setCompanyId(contextCompany.getCompanyId());
-				},
-				sorts,
-				document -> _toAttachment(
-					_commerceOrderAttachmentService.getCommerceOrderAttachment(
-						GetterUtil.getLong(
-							document.get(Field.ENTRY_CLASS_PK)))));
-		}
-
-		return Page.of(
-			transform(
-				commerceOrder.getAttachmentFileEntries(
-					pagination.getStartPosition(), pagination.getEndPosition()),
-				_attachmentDTOConverter::toDTO),
-			pagination, commerceOrder.getAttachmentFileEntriesCount());
+		return SearchUtil.search(
+			Collections.emptyMap(),
+			booleanQuery -> booleanQuery.getPreBooleanFilter(), filter,
+			CommerceOrderAttachment.class.getName(), search, pagination,
+			queryConfig -> queryConfig.setSelectedFieldNames(
+				Field.ENTRY_CLASS_PK),
+			searchContext -> {
+				searchContext.setAttribute(
+					"commerceOrderId", commerceOrder.getCommerceOrderId());
+				searchContext.setCompanyId(contextCompany.getCompanyId());
+			},
+			sorts,
+			document -> _toAttachment(
+				_commerceOrderAttachmentService.getCommerceOrderAttachment(
+					GetterUtil.getLong(document.get(Field.ENTRY_CLASS_PK)))));
 	}
 
 	@Override
@@ -201,24 +157,12 @@ public class AttachmentResourceImpl extends BaseAttachmentResourceImpl {
 		CommerceOrder commerceOrder = _commerceOrderService.getCommerceOrder(
 			cartId);
 
-		if (FeatureFlagManagerUtil.isEnabled(
-				commerceOrder.getCompanyId(), "LPD-6252")) {
-
-			return _toAttachment(
-				_commerceOrderAttachmentService.addCommerceOrderAttachment(
-					commerceOrder.getCommerceOrderId(),
-					GetterUtil.getDouble(attachmentBase64.getPriority()),
-					GetterUtil.getBoolean(attachmentBase64.getRestricted()),
-					attachmentBase64.getTitle(), attachmentBase64.getType(),
-					attachmentBase64.getTitle(),
-					new ByteArrayInputStream(
-						Base64.decode(attachmentBase64.getAttachment()))));
-		}
-
-		return _attachmentDTOConverter.toDTO(
-			_commerceOrderService.addAttachmentFileEntry(
-				attachmentBase64.getExternalReferenceCode(),
-				contextUser.getUserId(), commerceOrder.getCommerceOrderId(),
+		return _toAttachment(
+			_commerceOrderAttachmentService.addCommerceOrderAttachment(
+				commerceOrder.getCommerceOrderId(),
+				GetterUtil.getDouble(attachmentBase64.getPriority()),
+				GetterUtil.getBoolean(attachmentBase64.getRestricted()),
+				attachmentBase64.getTitle(), attachmentBase64.getType(),
 				attachmentBase64.getTitle(),
 				new ByteArrayInputStream(
 					Base64.decode(attachmentBase64.getAttachment()))));
@@ -333,18 +277,17 @@ public class AttachmentResourceImpl extends BaseAttachmentResourceImpl {
 							return null;
 						}
 
-						return DLURLHelperUtil.getDownloadURL(
-							fileEntry, fileEntry.getLatestFileVersion(), null,
-							StringPool.BLANK, true, true);
+						return _commerceOrderAttachmentURLProvider.
+							getDownloadURL(
+								commerceOrderAttachment.
+									getCommerceOrderAttachmentId(),
+								contextHttpServletRequest);
 					});
 			}
 		};
 	}
 
 	private static final EntityModel _entityModel = new AttachmentEntityModel();
-
-	@Reference(target = DTOConverterConstants.ATTACHMENT_DTO_CONVERTER)
-	private DTOConverter<FileEntry, Attachment> _attachmentDTOConverter;
 
 	@Reference(
 		target = "(model.class.name=com.liferay.commerce.model.CommerceOrderAttachment)"
@@ -354,6 +297,10 @@ public class AttachmentResourceImpl extends BaseAttachmentResourceImpl {
 
 	@Reference
 	private CommerceOrderAttachmentService _commerceOrderAttachmentService;
+
+	@Reference
+	private CommerceOrderAttachmentURLProvider
+		_commerceOrderAttachmentURLProvider;
 
 	@Reference
 	private CommerceOrderService _commerceOrderService;

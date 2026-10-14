@@ -5,29 +5,38 @@
 
 package com.liferay.portal.instances.web.internal.portlet.action;
 
-import com.liferay.portal.instances.web.internal.constants.PortalInstancesPortletKeys;
-import com.liferay.portal.kernel.exception.CompanyNameException;
-import com.liferay.portal.kernel.exception.CompanyVirtualHostException;
-import com.liferay.portal.kernel.exception.CompanyWebIdException;
-import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.batch.engine.jaxrs.uri.BatchEngineUriInfo;
+import com.liferay.headless.portal.instances.resource.v1_0.PortalInstanceImportResource;
+import com.liferay.portal.db.partition.util.DBPartitionUtil;
+import com.liferay.portal.instances.constants.PortalInstancesPortletKeys;
+import com.liferay.portal.instances.web.internal.util.PortalInstancesResourceContextUtil;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.instance.PortalInstancePool;
+import com.liferay.portal.kernel.json.JSONFactory;
+import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.portlet.JSONPortletResponseUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
-import com.liferay.portal.kernel.service.CompanyService;
-import com.liferay.portal.kernel.servlet.SessionMessages;
+import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.vulcan.batch.engine.resource.VulcanBatchEngineImportTaskResourceFactory;
 
 import jakarta.portlet.ActionRequest;
 import jakarta.portlet.ActionResponse;
 
+import java.util.Collections;
+
+import org.osgi.service.component.ComponentServiceObjects;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceScope;
 
 /**
  * @author Jorge Avalos
@@ -47,133 +56,148 @@ public class AddDBPartitionCompanyMVCActionCommand
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
+		hideDefaultSuccessMessage(actionRequest);
+
+		JSONObject jsonObject = _jsonFactory.createJSONObject();
+
 		try {
-			Company company = _addDBPartitionCompany(actionRequest);
+			_validateSchemaName(
+				ParamUtil.getString(actionRequest, "schemaName"));
 
-			if (SessionMessages.contains(
-					actionRequest,
-					_portal.getPortletId(actionRequest) +
-						SessionMessages.
-							KEY_SUFFIX_HIDE_DEFAULT_SUCCESS_MESSAGE)) {
-
-				SessionMessages.clear(actionRequest);
-			}
-
-			SessionMessages.add(
-				actionRequest, "requestProcessed",
-				_language.format(
-					actionRequest.getLocale(), "the-instance-was-imported-to-x",
-					company.getWebId()));
-
-			JSONPortletResponseUtil.writeJSON(
-				actionRequest, actionResponse,
-				JSONUtil.put("companyId", company.getCompanyId()));
+			_importPortalInstance(actionRequest);
 		}
 		catch (Exception exception) {
-			String errorMessage = _getErrorMessage(exception);
-
-			if (errorMessage.equals("an-unexpected-error-occurred")) {
-				_log.error("Unable to import portal instance", exception);
-			}
-			else if (_log.isDebugEnabled()) {
-				_log.debug("Unable to import portal instance", exception);
+			if (_log.isDebugEnabled()) {
+				_log.debug(exception);
 			}
 
-			JSONPortletResponseUtil.writeJSON(
-				actionRequest, actionResponse,
-				JSONUtil.put(
-					"error",
-					_language.get(actionRequest.getLocale(), errorMessage)));
-
-			hideDefaultSuccessMessage(actionRequest);
+			jsonObject.put(
+				"error",
+				_language.get(
+					actionRequest.getLocale(), _getErrorMessageKey(exception)));
 		}
+
+		JSONPortletResponseUtil.writeJSON(
+			actionRequest, actionResponse, jsonObject);
 	}
 
-	private Company _addDBPartitionCompany(ActionRequest actionRequest)
-		throws Exception {
-
-		String name = ParamUtil.getString(actionRequest, "name");
-		String schemaName = ParamUtil.getString(actionRequest, "schemaName");
-		String virtualHostname = ParamUtil.getString(
-			actionRequest, "virtualHostname");
-		String webId = ParamUtil.getString(actionRequest, "webId");
-
-		return _companyService.addDBPartitionCompany(
-			schemaName, name, virtualHostname, webId);
-	}
-
-	private String _getErrorMessage(Exception exception) {
+	private String _getErrorMessageKey(Exception exception) {
 		if (exception instanceof IllegalArgumentException) {
 			String message = GetterUtil.getString(exception.getMessage());
 
-			if (message.startsWith("Database partition ")) {
+			if (message.endsWith(" already exists")) {
 				return "an-instance-for-this-schema-already-exists";
 			}
 
-			if (message.startsWith(
-					"Unable to insert the database partition ")) {
-
+			if (message.endsWith(" does not exist")) {
 				return "the-exported-schema-does-not-exist";
 			}
 
-			if (message.startsWith("Invalid schema name ") ||
-				message.endsWith(" is the default company ID")) {
-
-				return "please-enter-a-valid-schema-name";
-			}
-
-			return "an-unexpected-error-occurred";
+			return "please-enter-a-valid-schema-name";
 		}
 
-		if (exception instanceof UnsupportedOperationException) {
-			String message = GetterUtil.getString(exception.getMessage());
-
-			if (message.equals("Database partitioning must be enabled")) {
-				return "database-partitioning-must-be-enabled";
-			}
-
-			if (message.equals(
-					"Company in import process company ID is not null")) {
-
-				return "importing-an-instance-is-already-in-progress";
-			}
-
-			return "an-unexpected-error-occurred";
-		}
-
-		Throwable throwable = exception.getCause();
-
-		if ((exception instanceof CompanyNameException) ||
-			(throwable instanceof CompanyNameException)) {
-
-			return "please-enter-a-valid-name";
-		}
-
-		if ((exception instanceof CompanyVirtualHostException) ||
-			(throwable instanceof CompanyVirtualHostException)) {
-
-			return "please-enter-a-valid-virtual-host";
-		}
-
-		if ((exception instanceof CompanyWebIdException) ||
-			(throwable instanceof CompanyWebIdException)) {
-
-			return "please-enter-a-valid-web-id";
-		}
+		_log.error(exception);
 
 		return "an-unexpected-error-occurred";
+	}
+
+	private void _importPortalInstance(ActionRequest actionRequest)
+		throws Exception {
+
+		PortalInstanceImportResource portalInstanceImportResource =
+			_componentServiceObjects.getService();
+
+		try {
+			portalInstanceImportResource.setContextAcceptLanguage(
+				PortalInstancesResourceContextUtil.getAcceptLanguage(
+					_portal.getLocale(actionRequest)));
+			portalInstanceImportResource.setContextCompany(
+				_portal.getCompany(actionRequest));
+			portalInstanceImportResource.setContextHttpServletRequest(
+				PortalInstancesResourceContextUtil.getHttpServletRequest(
+					_portal.getHttpServletRequest(actionRequest)));
+			portalInstanceImportResource.setContextUriInfo(
+				new BatchEngineUriInfo.Builder(
+				).build());
+			portalInstanceImportResource.setContextUser(
+				_portal.getUser(actionRequest));
+			portalInstanceImportResource.setVulcanBatchEngineImportTaskResource(
+				_vulcanBatchEngineImportTaskResourceFactory.create());
+
+			portalInstanceImportResource.postPortalInstanceImportBatch(
+				null,
+				Collections.singletonList(
+					HashMapBuilder.put(
+						"name", ParamUtil.getString(actionRequest, "name")
+					).put(
+						"schemaName",
+						ParamUtil.getString(actionRequest, "schemaName")
+					).put(
+						"virtualHost",
+						ParamUtil.getString(actionRequest, "virtualHostname")
+					).put(
+						"webId", ParamUtil.getString(actionRequest, "webId")
+					).build()));
+		}
+		finally {
+			_componentServiceObjects.ungetService(portalInstanceImportResource);
+		}
+	}
+
+	private void _validateSchemaName(String schemaName) throws PortalException {
+		String databaseExportedPartitionSchemaNamePrefix =
+			DBPartitionUtil.DATABASE_EXPORTED_PARTITION_SCHEMA_NAME_PREFIX;
+
+		if (!StringUtil.startsWith(
+				schemaName, databaseExportedPartitionSchemaNamePrefix)) {
+
+			throw new IllegalArgumentException(
+				"Invalid schema name \"" + schemaName + "\"");
+		}
+
+		long companyId = GetterUtil.getLong(
+			schemaName.substring(
+				databaseExportedPartitionSchemaNamePrefix.length()));
+
+		if ((companyId <= 0) ||
+			(companyId == PortalInstancePool.getDefaultCompanyId())) {
+
+			throw new IllegalArgumentException(
+				"Invalid schema name \"" + schemaName + "\"");
+		}
+
+		if (_companyLocalService.fetchCompany(companyId) != null) {
+			throw new IllegalArgumentException(
+				"Company ID " + companyId + " already exists");
+		}
+
+		if (!DBPartitionUtil.existsExportedPartition(companyId)) {
+			throw new IllegalArgumentException(
+				"Schema \"" + schemaName + "\" does not exist");
+		}
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		AddDBPartitionCompanyMVCActionCommand.class);
 
 	@Reference
-	private CompanyService _companyService;
+	private CompanyLocalService _companyLocalService;
+
+	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
+	private ComponentServiceObjects<PortalInstanceImportResource>
+		_componentServiceObjects;
+
+	@Reference
+	private JSONFactory _jsonFactory;
 
 	@Reference
 	private Language _language;
 
 	@Reference
 	private Portal _portal;
+
+	@Reference
+	private VulcanBatchEngineImportTaskResourceFactory
+		_vulcanBatchEngineImportTaskResourceFactory;
 
 }

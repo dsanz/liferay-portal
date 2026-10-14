@@ -408,25 +408,7 @@ public class DSRecipient implements Serializable {
 
 			sb.append("\"tabs\": ");
 
-			if (tabs instanceof Collection) {
-				sb.append(JSONFactoryUtil.createJSONArray((Collection<?>)tabs));
-			}
-			else if (tabs instanceof Map) {
-				sb.append(JSONFactoryUtil.createJSONObject((Map<?, ?>)tabs));
-			}
-			else if (tabs instanceof Object[]) {
-				sb.append(
-					JSONFactoryUtil.createJSONArray(
-						Arrays.asList((Object[])tabs)));
-			}
-			else if (tabs instanceof String) {
-				sb.append("\"");
-				sb.append(_escape((String)tabs));
-				sb.append("\"");
-			}
-			else {
-				sb.append(tabs);
-			}
+			sb.append(_toJSON(tabs));
 		}
 
 		sb.append("}");
@@ -522,6 +504,27 @@ public class DSRecipient implements Serializable {
 		return sb.toString();
 	}
 
+	private static String _toJSON(Object value) {
+		if (value instanceof Collection) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONArray((Collection<?>)value));
+		}
+		else if (value instanceof Map) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONObject((Map<?, ?>)value));
+		}
+		else if (value instanceof Object[]) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONArray(
+					Arrays.asList((Object[])value)));
+		}
+		else if (value instanceof String) {
+			return StringBundler.concat("\"", _escape(value), "\"");
+		}
+
+		return String.valueOf(value);
+	}
+
 	private static final String[][] _JSON_ESCAPE_STRINGS = {
 		{"\\", "\"", "\b", "\f", "\n", "\r", "\t"},
 		{"\\\\", "\\\"", "\\b", "\\f", "\\n", "\\r", "\\t"}
@@ -530,4 +533,4 @@ public class DSRecipient implements Serializable {
 	private Map<String, Serializable> _extendedProperties;
 
 }
-// LIFERAY-REST-BUILDER-HASH:539060413
+// LIFERAY-REST-BUILDER-HASH:1294215765

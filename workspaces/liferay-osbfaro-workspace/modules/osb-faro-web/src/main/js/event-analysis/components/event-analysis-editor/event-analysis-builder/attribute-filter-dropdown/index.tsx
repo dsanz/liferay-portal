@@ -14,10 +14,8 @@ import {
 	Attribute,
 	AttributeOwnerTypes,
 	AttributeTypes,
-	Filter,
 } from 'event-analysis/utils/types';
 import {close, modalTypes, open} from 'shared/actions/modals';
-import {connect, ConnectedProps} from 'react-redux';
 import {CSSTransition, TransitionGroup} from 'react-transition-group';
 import {DISPLAY_NAME} from 'shared/util/pagination';
 import {
@@ -26,38 +24,31 @@ import {
 } from 'event-analysis/utils/utils';
 import {OrderByDirections} from 'shared/util/constants';
 import {SafeResults} from 'shared/hoc/util';
+import {useDispatch} from 'react-redux';
 import {useQuery} from '@apollo/client';
 
-const connector = connect(null, {close, open});
-
-type PropsFromRedux = ConnectedProps<typeof connector>;
-
-interface IAttributeFilterDropdownProps extends PropsFromRedux {
+interface IAttributeFilterDropdownProps {
 	alignmentPosition?: (typeof Align)[keyof typeof Align];
-	attribute?: Attribute;
 	disabledIds?: string[];
 	eventId: string;
-	filter?: Filter;
 	trigger: React.ReactElement;
 	uneditableIds: string[];
 }
 
 const AttributeFilterDropdown: React.FC<IAttributeFilterDropdownProps> = ({
 	alignmentPosition = Align.RightTop,
-	attribute,
-	close,
 	disabledIds,
 	eventId,
-	filter,
-	open,
 	trigger,
 	uneditableIds,
 }) => {
+	const dispatch = useDispatch();
+
 	const [attributeOwnerType, setAttributeOwnerType] =
 		useState<AttributeOwnerTypes>(AttributeOwnerTypes.Event);
 	const [query, setQuery] = useState('');
 	const [selectedAttribute, setSelectedAttribute] =
-		useState<Attribute | null>(filter && attribute ? attribute : null);
+		useState<Attribute | null>(null);
 
 	const result = useQuery<
 		EventAttributeDefinitionsData,
@@ -77,15 +68,12 @@ const AttributeFilterDropdown: React.FC<IAttributeFilterDropdownProps> = ({
 		},
 	});
 
-	const attributeId = attribute ? attribute.id : null;
-	const filterId = filter ? filter.id : null;
-
 	const onClose = (save: boolean) => {
 		if (save) {
 			result.refetch();
 		}
 
-		close();
+		dispatch(close());
 	};
 
 	return (
@@ -96,9 +84,7 @@ const AttributeFilterDropdown: React.FC<IAttributeFilterDropdownProps> = ({
 				if (!active) {
 					setAttributeOwnerType(AttributeOwnerTypes.Event);
 					setQuery('');
-					setSelectedAttribute(
-						filter && attribute ? attribute : null
-					);
+					setSelectedAttribute(null);
 				}
 			}}
 			trigger={trigger}
@@ -138,7 +124,6 @@ const AttributeFilterDropdown: React.FC<IAttributeFilterDropdownProps> = ({
 										const modifiedEventAttributeDefinitions =
 											getModifiedEventAttributeDefinitions(
 												{
-													attribute: attribute!,
 													attributeOwnerType,
 													eventAttributeDefinitions,
 												}
@@ -146,9 +131,6 @@ const AttributeFilterDropdown: React.FC<IAttributeFilterDropdownProps> = ({
 
 										return (
 											<BaseDropdown.SearchableList
-												activeId={
-													attributeId ?? undefined
-												}
 												disabledIds={disabledIds}
 												items={
 													modifiedEventAttributeDefinitions
@@ -158,16 +140,19 @@ const AttributeFilterDropdown: React.FC<IAttributeFilterDropdownProps> = ({
 														return;
 													}
 
-													open(
-														modalTypes.EDIT_ATTRIBUTE_EVENT_MODAL,
-														{
-															id: item.id,
-															mutation:
-																UPDATE_EVENT_ATTRIBUTE_DEFINITION,
-															onClose,
-															query: EVENT_ATTRIBUTE_DEFINITION_QUERY,
-															showTypecast: true,
-														}
+													dispatch(
+														open(
+															modalTypes.EDIT_ATTRIBUTE_EVENT_MODAL,
+															{
+																id: item.id,
+																mutation:
+																	UPDATE_EVENT_ATTRIBUTE_DEFINITION,
+																onClose,
+																query: EVENT_ATTRIBUTE_DEFINITION_QUERY,
+																showTypecast:
+																	true,
+															}
+														)
 													);
 
 													setActive(false);
@@ -202,10 +187,9 @@ const AttributeFilterDropdown: React.FC<IAttributeFilterDropdownProps> = ({
 									attribute={selectedAttribute!}
 									attributeOwnerType={attributeOwnerType}
 									eventId={eventId}
-									filterId={filterId ?? undefined}
 									onActiveChange={setActive}
-									onAttributeChange={(params: Attribute) => {
-										setSelectedAttribute(params);
+									onAttributeChange={(attribute) => {
+										setSelectedAttribute(attribute ?? null);
 									}}
 									onEditClick={
 										uneditableIds &&
@@ -214,18 +198,21 @@ const AttributeFilterDropdown: React.FC<IAttributeFilterDropdownProps> = ({
 												uneditableAttributeId ===
 												selectedAttribute.id
 										)
-											? null
+											? undefined
 											: () => {
-													open(
-														modalTypes.EDIT_ATTRIBUTE_EVENT_MODAL,
-														{
-															id: selectedAttribute.id,
-															mutation:
-																UPDATE_EVENT_ATTRIBUTE_DEFINITION,
-															onClose,
-															query: EVENT_ATTRIBUTE_DEFINITION_QUERY,
-															showTypecast: true,
-														}
+													dispatch(
+														open(
+															modalTypes.EDIT_ATTRIBUTE_EVENT_MODAL,
+															{
+																id: selectedAttribute.id,
+																mutation:
+																	UPDATE_EVENT_ATTRIBUTE_DEFINITION,
+																onClose,
+																query: EVENT_ATTRIBUTE_DEFINITION_QUERY,
+																showTypecast:
+																	true,
+															}
+														)
 													);
 
 													setActive(false);
@@ -241,4 +228,4 @@ const AttributeFilterDropdown: React.FC<IAttributeFilterDropdownProps> = ({
 	);
 };
 
-export default connector(AttributeFilterDropdown);
+export default AttributeFilterDropdown;

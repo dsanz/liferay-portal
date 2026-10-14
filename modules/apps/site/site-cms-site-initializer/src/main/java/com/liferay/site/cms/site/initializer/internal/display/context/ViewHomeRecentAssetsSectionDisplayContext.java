@@ -108,6 +108,9 @@ public class ViewHomeRecentAssetsSectionDisplayContext
 		List<FDSActionDropdownItem> fdsActionDropdownItems =
 			super.getFDSActionDropdownItems();
 
+		SectionDisplayContextUtil.addEditImageFDSActionDropdownItem(
+			fdsActionDropdownItems, httpServletRequest);
+
 		fdsActionDropdownItems.add(
 			1,
 			new FDSActionDropdownItem(

@@ -57,7 +57,6 @@ COREntryDisplayContext corEntryDisplayContext = (COREntryDisplayContext)request.
 							dataProviderKey="<%= COREntryFDSNames.COR_ENTRY_PRODUCTS_LIMITS %>"
 							formName="fm"
 							id="<%= COREntryFDSNames.COR_ENTRY_PRODUCTS_LIMITS %>"
-							showSearch="<%= false %>"
 						/>
 					</commerce-ui:panel>
 				</div>

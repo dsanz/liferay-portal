@@ -1,6 +1,6 @@
 {
 	"dependencies": {
-		"qrcode": "1.4.4"
+		"qrcode": "1.5.4"
 	},
 	"main": "js/index.js",
 	"name": "multi-factor-authentication-timebased-otp-web",
@@ -9,5 +9,5 @@
 		"checkFormat": "node-scripts format --check",
 		"format": "node-scripts format"
 	},
-	"version": "2.0.51"
+	"version": "2.0.52"
 }

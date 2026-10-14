@@ -18,6 +18,7 @@ import {pageEditorPagesTest} from '../../../../fixtures/pageEditorPagesTest';
 import {pageViewModePagesTest} from '../../../../fixtures/pageViewModePagesTest';
 import {usersAndOrganizationsPagesTest} from '../../../../fixtures/usersAndOrganizationsPagesTest';
 import {liferayConfig} from '../../../../liferay.config';
+import {getTableRowCells} from '../../../../pages/commerce/commerce-order-content-web/orderImportPage';
 import {getRandomInt} from '../../../../utils/getRandomInt';
 import getRandomString from '../../../../utils/getRandomString';
 import {
@@ -29,10 +30,14 @@ import {waitForAlert} from '../../../../utils/waitForAlert';
 import getFragmentDefinition from '../../../layout-content-page-editor-web/main/utils/getFragmentDefinition';
 import getPageDefinition from '../../../layout-content-page-editor-web/main/utils/getPageDefinition';
 import getWidgetDefinition from '../../../layout-content-page-editor-web/main/utils/getWidgetDefinition';
+import {templatesPageTest} from '../../../template-web/main/fixtures/templatesPageTest';
 import {
 	configureBuyerUserForSite,
 	configureOperationsManagerUserForSite,
 	configureOrderManagerUserForSite,
+	createAccountWithBuyerUser,
+	createProductWithOptions,
+	findSkuByOptionValueKeys,
 	miniumSetUp,
 } from '../../utils/commerce';
 
@@ -49,6 +54,7 @@ export const test = mergeTests(
 	notificationPagesTest,
 	pageEditorPagesTest,
 	pageViewModePagesTest,
+	templatesPageTest,
 	usersAndOrganizationsPagesTest
 );
 
@@ -584,16 +590,17 @@ test(
 
 		await pendingOrdersPage.viewButton.click();
 
-		await pendingOrdersPage.orderItemActionsButton.click();
+		await expect(async () => {
+			await pendingOrdersPage.orderActionsButton.click();
 
-		await page
-			.locator(
-				"//div[contains(@class, 'dropdown')]/a[contains(@class, 'action') and contains(@class, 'btn-primary')]"
-			)
-			.click();
-		await page.getByRole('menuitem', {name: 'Print'}).click();
+			await expect(pendingOrdersPage.printMenuItem).toBeVisible({
+				timeout: 500,
+			});
+		}).toPass({timeout: 5000});
 
 		const downloadPromise = page.waitForEvent('download');
+
+		await pendingOrdersPage.printMenuItem.click();
 
 		const download = await downloadPromise;
 		expect(download.suggestedFilename()).toEqual(
@@ -1077,14 +1084,11 @@ test('LPD-33783 Pending orders table displays correct fields', async ({
 		'Amount',
 	];
 
-	tableHeaderLabels.forEach((tableHeaderLabel) => {
-		expect(
-			page.getByRole('columnheader', {
-				exact: true,
-				name: tableHeaderLabel,
-			})
+	for (const tableHeaderLabel of tableHeaderLabels) {
+		await expect(
+			page.getByRole('columnheader', {name: tableHeaderLabel})
 		).toBeVisible();
-	});
+	}
 });
 
 test(
@@ -2138,5 +2142,342 @@ test(
 		await expect(
 			commerceLayoutsPage.orderActionsButton('Request a Quote')
 		).toHaveCount(1);
+	}
+);
+
+test(
+	'A buyer can edit every type of product option from the pending orders page',
+	{tag: ['@COMMERCE-12746', '@LPD-106905']},
+	async ({
+		apiHelpers,
+		commerceAdminProductPage,
+		commerceMiniCartPage,
+		page,
+		pendingOrdersPage,
+	}) => {
+		test.setTimeout(300000);
+
+		const productName = `OptionsProduct${getRandomInt()}`;
+
+		const {catalog, channel, site} = await miniumSetUp(apiHelpers);
+
+		const {account, buyerUser} = await createAccountWithBuyerUser(
+			apiHelpers,
+			site.id
+		);
+
+		const {product, productOptions} = await createProductWithOptions(
+			apiHelpers,
+			commerceAdminProductPage,
+			{
+				catalogId: catalog.id,
+				name: productName,
+				optionSpecs: [
+					{
+						fieldType: 'select',
+						name: 'Color',
+						required: true,
+						skuContributor: true,
+						values: [
+							{key: 'value1', name: 'Value1'},
+							{key: 'value2', name: 'Value2'},
+						],
+					},
+					{
+						fieldType: 'radio',
+						name: 'Material',
+						required: true,
+						skuContributor: true,
+						values: [
+							{key: 'value3', name: 'Value3'},
+							{key: 'value4', name: 'Value4'},
+						],
+					},
+					{
+						fieldType: 'checkbox_multiple',
+						name: 'Extras',
+						values: [
+							{key: 'value5', name: 'Value5'},
+							{key: 'value6', name: 'Value6'},
+						],
+					},
+					{fieldType: 'checkbox', name: 'Gift Wrap'},
+					{fieldType: 'date', name: 'Delivery Date'},
+					{fieldType: 'numeric', name: 'Floors'},
+					{fieldType: 'text', name: 'Engraving'},
+				],
+				productConfiguration: {allowBackOrder: true},
+			}
+		);
+
+		const optionKeyOf = (optionName: string) =>
+			productOptions.find(
+				(productOption) => productOption.name['en_US'] === optionName
+			).key;
+
+		const skuForOptionValues = (optionValueKeys: string[]) =>
+			findSkuByOptionValueKeys(product, optionValueKeys);
+
+		const orderedSku = skuForOptionValues(['value1', 'value3']);
+		const editedSku = skuForOptionValues(['value2', 'value4']);
+
+		await apiHelpers.headlessCommerceAdminPricing.postBasePriceEntries(
+			catalog.id,
+			[
+				{price: 10, skuId: orderedSku.id},
+				{price: 20, skuId: editedSku.id},
+			]
+		);
+
+		const cart = await apiHelpers.headlessCommerceDeliveryCart.postCart(
+			{
+				accountId: account.id,
+				cartItems: [
+					{
+						options:
+							`[{key: ${optionKeyOf('Extras')}, value: ['value5', 'value6']}, ` +
+							`{key: ${optionKeyOf('Gift Wrap')}, value: '${optionKeyOf('Gift Wrap')}'}, ` +
+							`{key: ${optionKeyOf('Delivery Date')}, value: '2023-01-02'}, ` +
+							`{key: ${optionKeyOf('Floors')}, value: '10'}, ` +
+							`{key: ${optionKeyOf('Engraving')}, value: 'Text Content'}]`,
+						quantity: 1,
+						skuId: orderedSku.id,
+					},
+				],
+			},
+			channel.id
+		);
+
+		await performLogout(page);
+		await performLoginViaApi({page, screenName: buyerUser.alternateName});
+
+		await pendingOrdersPage.gotoOrder(site.friendlyUrlPath, cart.id);
+
+		await test.step('The order item carries the options it was created with', async () => {
+			await commerceMiniCartPage.miniCartButton.click();
+
+			await expect(commerceMiniCartPage.miniCartTotalPrice).toHaveText(
+				'$ 10.00'
+			);
+
+			await commerceMiniCartPage.miniCartButtonClose.click();
+		});
+
+		await test.step('Every option type can be edited from the pending order', async () => {
+			await (
+				await pendingOrdersPage.orderItemsTableRowLink(productName)
+			).click();
+
+			await pendingOrdersPage.editMenuItem.click();
+
+			const editPanel = commerceMiniCartPage.miniCartEditItemPanel;
+
+			await expect(editPanel).toBeVisible();
+
+			await commerceMiniCartPage.selectEditItemOption('Value2', 'Color');
+
+			await expect(commerceMiniCartPage.miniCartSaveButton).toBeEnabled();
+
+			await editPanel.getByRole('radio', {name: 'Value4'}).check();
+
+			await expect(commerceMiniCartPage.miniCartSaveButton).toBeEnabled();
+
+			for (const optionValueName of ['Value5', 'Value6']) {
+				await editPanel
+					.getByRole('checkbox', {name: optionValueName})
+					.uncheck();
+			}
+
+			await editPanel.getByLabel('Gift Wrap', {exact: true}).uncheck();
+
+			await editPanel
+				.getByLabel('Delivery Date', {exact: true})
+				.fill('2023-01-01');
+			await editPanel.getByLabel('Floors', {exact: true}).fill('20');
+			await editPanel
+				.getByLabel('Engraving', {exact: true})
+				.fill('Text Content Edit');
+
+			await commerceMiniCartPage.miniCartSaveButton.click();
+
+			await expect(commerceMiniCartPage.miniCartSaveButton).toBeHidden();
+		});
+
+		await test.step('The edits resolve a different SKU and reprice the order', async () => {
+			await commerceMiniCartPage.miniCartButton.click();
+
+			await expect(commerceMiniCartPage.miniCartTotalPrice).toHaveText(
+				'$ 20.00'
+			);
+
+			await page.reload({waitUntil: 'networkidle'});
+
+			let orderItemCells: Record<string, string>;
+
+			await expect(async () => {
+				orderItemCells = await getTableRowCells(
+					pendingOrdersPage.orderItemsTable,
+					productName
+				);
+
+				expect(orderItemCells).toMatchObject({
+					'LIST PRICE': '$ 20.00',
+					'QUANTITY': '1',
+					'SKU': editedSku.sku,
+					'TOTAL': '$ 20.00',
+				});
+			}).toPass({timeout: 30000});
+
+			const orderItemOptions = orderItemCells.OPTIONS;
+
+			for (const optionValue of [
+				'2023-01-01',
+				'20',
+				'Text Content Edit',
+				'Value2',
+				'Value4',
+			]) {
+				expect(orderItemOptions).toContain(optionValue);
+			}
+
+			for (const optionValue of ['Value5', 'Value6']) {
+				expect(orderItemOptions).not.toContain(optionValue);
+			}
+		});
+
+		await performLoginViaApi({page, screenName: 'test'});
+	}
+);
+
+test(
+	'A user can search pending orders by order ID',
+	{tag: ['@COMMERCE-6375', '@LPD-107065']},
+	async ({
+		apiHelpers,
+		commerceAdminChannelsPage,
+		page,
+		pendingOrdersPage,
+		site,
+	}) => {
+		const layout = await apiHelpers.headlessDelivery.createSitePage({
+			pageDefinition: getPageDefinition([
+				getWidgetDefinition({
+					id: getRandomString(),
+					widgetName:
+						'com_liferay_commerce_order_content_web_internal_portlet_CommerceOpenOrderContentPortlet',
+				}),
+			]),
+			siteId: site.id,
+			title: getRandomString(),
+		});
+
+		const channel =
+			await apiHelpers.headlessCommerceAdminChannel.postChannel({
+				siteGroupId: site.id,
+			});
+
+		await commerceAdminChannelsPage.changeCommerceChannelSiteType(
+			channel.name,
+			'B2B'
+		);
+
+		const account = await apiHelpers.headlessAdminUser.postAccount({
+			name: getRandomString(),
+			type: 'business',
+		});
+
+		const order1 = await apiHelpers.headlessCommerceAdminOrder.postOrder({
+			accountId: account.id,
+			channelId: channel.id,
+			orderStatus: '2',
+		});
+		const order2 = await apiHelpers.headlessCommerceAdminOrder.postOrder({
+			accountId: account.id,
+			channelId: channel.id,
+			orderStatus: '2',
+		});
+
+		await page.goto(`/web/${site.name}${layout.friendlyUrlPath}`);
+
+		await expect(pendingOrdersPage.orderRowLink(order1.id)).toBeVisible();
+		await expect(pendingOrdersPage.orderRowLink(order2.id)).toBeVisible();
+
+		await pendingOrdersPage.searchByValue(String(order2.id));
+
+		await expect(pendingOrdersPage.orderRowLink(order1.id)).toBeHidden();
+		await expect(pendingOrdersPage.orderRowLink(order2.id)).toBeVisible();
+	}
+);
+
+test(
+	'A display template selected for the Pending Orders widget renders its pending orders',
+	{tag: ['@COMMERCE-6665', '@LPD-107065']},
+	async ({
+		apiHelpers,
+		commerceAdminChannelsPage,
+		page,
+		pendingOrdersPage,
+		site,
+		templatesPage,
+		widgetPagePage,
+	}) => {
+		const {account, buyerUser} = await createAccountWithBuyerUser(
+			apiHelpers,
+			site.id
+		);
+
+		const channel =
+			await apiHelpers.headlessCommerceAdminChannel.postChannel({
+				siteGroupId: site.id,
+			});
+
+		await commerceAdminChannelsPage.changeCommerceChannelSiteType(
+			channel.name,
+			'B2B'
+		);
+
+		const order = await apiHelpers.headlessCommerceAdminOrder.postOrder({
+			accountId: account.id,
+			channelId: channel.id,
+			orderStatus: '2',
+		});
+
+		const displayTemplateName = `Pending Orders ${getRandomString()}`;
+
+		await templatesPage.gotoWidgetTemplates(site.friendlyUrlPath);
+
+		await templatesPage.createWidgetTemplate(
+			displayTemplateName,
+			'Open Carts Template'
+		);
+		await templatesPage.editTemplate(displayTemplateName);
+		await templatesPage.importInformationTemplate(
+			__dirname,
+			'pending_orders_template.ftl'
+		);
+		await templatesPage.saveTemplate(displayTemplateName);
+
+		const layout = await apiHelpers.jsonWebServicesLayout.addLayout({
+			groupId: site.id,
+			title: getRandomString(),
+		});
+
+		await page.goto(`/web${site.friendlyUrlPath}${layout.friendlyURL}`, {
+			waitUntil: 'networkidle',
+		});
+
+		await widgetPagePage.addPortlet('Open Carts');
+
+		await pendingOrdersPage.goToConfiguration();
+		await pendingOrdersPage.selectDisplayTemplate(displayTemplateName);
+
+		await performLogout(page);
+		await performLoginViaApi({page, screenName: buyerUser.alternateName});
+
+		await page.goto(`/web${site.friendlyUrlPath}${layout.friendlyURL}`);
+
+		await expect(
+			page.getByText(`Pending Order ${order.id}`, {exact: true})
+		).toBeVisible();
 	}
 );

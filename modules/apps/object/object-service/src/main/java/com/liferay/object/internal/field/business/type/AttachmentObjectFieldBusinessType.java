@@ -5,6 +5,7 @@
 
 package com.liferay.object.internal.field.business.type;
 
+import com.liferay.document.library.helper.DLURLHelper;
 import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.model.DLFileEntryMetadata;
 import com.liferay.document.library.kernel.model.DLFolder;
@@ -12,7 +13,6 @@ import com.liferay.document.library.kernel.processor.PDFProcessorUtil;
 import com.liferay.document.library.kernel.service.DLAppService;
 import com.liferay.document.library.kernel.service.DLFileEntryLocalService;
 import com.liferay.document.library.kernel.service.DLFileEntryMetadataLocalService;
-import com.liferay.document.library.util.DLURLHelper;
 import com.liferay.dynamic.data.mapping.model.DDMField;
 import com.liferay.dynamic.data.mapping.model.DDMFieldAttribute;
 import com.liferay.dynamic.data.mapping.service.DDMFieldLocalService;
@@ -36,6 +36,8 @@ import com.liferay.object.scope.ObjectScopeProvider;
 import com.liferay.object.scope.ObjectScopeProviderRegistry;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectEntryService;
+import com.liferay.petra.function.UnsafeFunction;
+import com.liferay.petra.function.UnsafeSupplierValue;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONObject;
@@ -107,6 +109,123 @@ public class AttachmentObjectFieldBusinessType
 	}
 
 	@Override
+	public Serializable getDTOValue(
+			DTOConverterContext dtoConverterContext,
+			ObjectDefinition objectDefinition, ObjectEntry objectEntry,
+			ObjectField objectField, Serializable serializable)
+		throws Exception {
+
+		if (serializable instanceof FileEntry) {
+			return serializable;
+		}
+
+		final long fileEntryId;
+
+		if (serializable instanceof Long) {
+			fileEntryId = GetterUtil.getLong(serializable);
+		}
+		else if (serializable instanceof Map) {
+			fileEntryId = MapUtil.getLong(
+				(Map<String, Serializable>)serializable, "id");
+		}
+		else {
+			fileEntryId = 0;
+		}
+
+		if (fileEntryId == 0) {
+			return null;
+		}
+
+		UnsafeSupplierValue<DLFileEntry, Exception>
+			dlFileEntryUnsafeSupplierValue = new UnsafeSupplierValue<>(
+				() -> _dLFileEntryLocalService.fetchDLFileEntry(fileEntryId));
+
+		UnsafeSupplierValue<LiferayFileEntry, Exception>
+			liferayFileEntryUnsafeSupplierValue = new UnsafeSupplierValue<>(
+				() -> _toValue(
+					LiferayFileEntry::new, dlFileEntryUnsafeSupplierValue));
+
+		return new FileEntry() {
+			{
+				setAlternativeText(
+					() -> _toValue(
+						liferayFileEntry -> {
+							FileVersion fileVersion =
+								liferayFileEntry.getFileVersion();
+
+							return fileVersion.getDescription();
+						},
+						liferayFileEntryUnsafeSupplierValue));
+				setExtension(
+					() -> _toValue(
+						DLFileEntry::getExtension,
+						dlFileEntryUnsafeSupplierValue));
+				setExternalReferenceCode(
+					() -> _toValue(
+						DLFileEntry::getExternalReferenceCode,
+						dlFileEntryUnsafeSupplierValue));
+				setFileBase64(
+					() -> _toValue(
+						dlFileEntry -> _getFileBase64(dlFileEntry, objectField),
+						dlFileEntryUnsafeSupplierValue));
+				setFileURL(
+					() -> _toValue(
+						dlFileEntry -> _getFileURL(dlFileEntry, objectField),
+						dlFileEntryUnsafeSupplierValue));
+				setFolder(
+					() -> _toValue(
+						dlFileEntry -> _getFolder(dlFileEntry, objectField),
+						dlFileEntryUnsafeSupplierValue));
+				setId(() -> fileEntryId);
+				setLink(
+					() -> _toValue(
+						dlFileEntry -> LinkUtil.toLink(
+							_dlAppService, dlFileEntry, _dlURLHelper,
+							objectEntry.getGroupId(),
+							objectDefinition.getExternalReferenceCode(),
+							objectEntry, _objectEntryService, objectField,
+							GuestOrUserUtil.getPermissionChecker(), _portal),
+						dlFileEntryUnsafeSupplierValue));
+				setMetadata(
+					() -> _toValue(
+						liferayFileEntry -> _getMetadata(
+							liferayFileEntry.getFileVersion(),
+							dtoConverterContext.getLocale(), objectField),
+						liferayFileEntryUnsafeSupplierValue));
+				setMimeType(
+					() -> _toValue(
+						DLFileEntry::getMimeType,
+						dlFileEntryUnsafeSupplierValue));
+				setName(
+					() -> _toValue(
+						DLFileEntry::getFileName,
+						dlFileEntryUnsafeSupplierValue));
+				setPreviewURL(
+					() -> _toValue(
+						liferayFileEntry -> _getPreviewURL(
+							liferayFileEntry, objectField),
+						liferayFileEntryUnsafeSupplierValue));
+				setScope(
+					() -> _toValue(
+						dlFileEntry -> _getScope(
+							dlFileEntry, objectDefinition, objectEntry),
+						dlFileEntryUnsafeSupplierValue));
+				setSize(
+					() -> _toValue(
+						dlFileEntry -> LanguageUtil.formatStorageSize(
+							dlFileEntry.getSize(),
+							dtoConverterContext.getLocale()),
+						dlFileEntryUnsafeSupplierValue));
+				setThumbnailURL(
+					() -> _toValue(
+						dlFileEntry -> _getThumbnailURL(
+							dlFileEntry, objectField),
+						dlFileEntryUnsafeSupplierValue));
+			}
+		};
+	}
+
+	@Override
 	public String getDescription(Locale locale) {
 		return _language.get(
 			locale, "upload-files-or-select-from-documents-and-media");
@@ -118,83 +237,10 @@ public class AttachmentObjectFieldBusinessType
 		throws PortalException {
 
 		if (objectField.isLocalized()) {
-			return getLocalizedValues(objectField, userId, values);
+			return getLocalizedValues(null, objectField, userId, values);
 		}
 
 		return super.getDisplayContextValue(objectField, userId, values);
-	}
-
-	@Override
-	public Serializable getDTOValue(
-			DTOConverterContext dtoConverterContext,
-			ObjectDefinition objectDefinition, ObjectEntry objectEntry,
-			ObjectField objectField, Serializable serializable)
-		throws Exception {
-
-		if (serializable instanceof FileEntry) {
-			return serializable;
-		}
-
-		long fileEntryId = 0;
-
-		if (serializable instanceof Long) {
-			fileEntryId = GetterUtil.getLong(serializable);
-		}
-		else if (serializable instanceof Map) {
-			fileEntryId = MapUtil.getLong(
-				(Map<String, Serializable>)serializable, "id");
-		}
-
-		if (fileEntryId == 0) {
-			return null;
-		}
-
-		DLFileEntry dlFileEntry = _dLFileEntryLocalService.fetchDLFileEntry(
-			fileEntryId);
-
-		if (dlFileEntry == null) {
-			return new FileEntry();
-		}
-
-		LiferayFileEntry liferayFileEntry = new LiferayFileEntry(dlFileEntry);
-
-		FileVersion fileVersion = liferayFileEntry.getFileVersion();
-
-		return new FileEntry() {
-			{
-				setAlternativeText(fileVersion::getDescription);
-				setExtension(dlFileEntry::getExtension);
-				setExternalReferenceCode(dlFileEntry::getExternalReferenceCode);
-				setFileBase64(() -> _getFileBase64(dlFileEntry, objectField));
-				setFileURL(() -> _getFileURL(dlFileEntry, objectField));
-				setFolder(() -> _getFolder(dlFileEntry, objectField));
-				setId(dlFileEntry::getFileEntryId);
-				setLink(
-					() -> LinkUtil.toLink(
-						_dlAppService, dlFileEntry, _dlURLHelper,
-						objectEntry.getGroupId(),
-						objectDefinition.getExternalReferenceCode(),
-						objectEntry, _objectEntryService, objectField,
-						GuestOrUserUtil.getPermissionChecker(), _portal));
-				setMetadata(
-					() -> _getMetadata(
-						fileVersion, dtoConverterContext.getLocale(),
-						objectField));
-				setMimeType(dlFileEntry::getMimeType);
-				setName(dlFileEntry::getFileName);
-				setPreviewURL(
-					() -> _getPreviewURL(liferayFileEntry, objectField));
-				setScope(
-					() -> _getScope(
-						dlFileEntry, objectDefinition, objectEntry));
-				setSize(
-					() -> LanguageUtil.formatStorageSize(
-						dlFileEntry.getSize(),
-						dtoConverterContext.getLocale()));
-				setThumbnailURL(
-					() -> _getThumbnailURL(dlFileEntry, objectField));
-			}
-		};
 	}
 
 	@Override
@@ -204,11 +250,12 @@ public class AttachmentObjectFieldBusinessType
 
 	@Override
 	public Map<String, Object> getLocalizedValues(
-			ObjectField objectField, Long userId, Map<String, Object> values)
+			Long groupId, ObjectField objectField, Long userId,
+			Map<String, Object> values)
 		throws PortalException {
 
 		Map<String, Object> localizedValues = super.getLocalizedValues(
-			objectField, userId, values);
+			groupId, objectField, userId, values);
 
 		if (localizedValues == null) {
 			return null;
@@ -480,6 +527,14 @@ public class AttachmentObjectFieldBusinessType
 	}
 
 	private Object _getFileEntryId(Object value) throws PortalException {
+		if (value instanceof FileEntry fileEntry) {
+			long fileEntryId = GetterUtil.getLong(fileEntry.getId());
+
+			if (fileEntryId > 0) {
+				return fileEntryId;
+			}
+		}
+
 		long fileEntryId = GetterUtil.getLong(value);
 
 		if (fileEntryId > 0) {
@@ -706,6 +761,20 @@ public class AttachmentObjectFieldBusinessType
 			});
 	}
 
+	private <S, T> T _toValue(
+			UnsafeFunction<S, T, Exception> unsafeFunction,
+			UnsafeSupplierValue<S, Exception> unsafeSupplierValue)
+		throws Exception {
+
+		S value = unsafeSupplierValue.getValue();
+
+		if (value == null) {
+			return null;
+		}
+
+		return unsafeFunction.apply(value);
+	}
+
 	private static final long _RESOLUTION_MEDIUM_MAX = 1024;
 
 	private static final long _RESOLUTION_MEDIUM_MIN = 768;
@@ -718,13 +787,13 @@ public class AttachmentObjectFieldBusinessType
 		AttachmentObjectFieldBusinessType.class);
 
 	@Reference
+	private DLFileEntryLocalService _dLFileEntryLocalService;
+
+	@Reference
 	private DDMFieldLocalService _ddmFieldLocalService;
 
 	@Reference
 	private DLAppService _dlAppService;
-
-	@Reference
-	private DLFileEntryLocalService _dLFileEntryLocalService;
 
 	@Reference
 	private DLFileEntryMetadataLocalService _dlFileEntryMetadataLocalService;

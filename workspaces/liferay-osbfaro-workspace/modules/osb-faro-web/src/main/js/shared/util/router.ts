@@ -1,6 +1,6 @@
 import Constants, {DataSourceTypes, EntityTypes} from '../util/constants';
 import {compile} from 'shared/util/path-to-regexp';
-import {invert, isEmpty, isString, memoize} from 'lodash';
+import {invert, isString, memoize} from 'lodash';
 import {matchPath} from 'react-router-dom';
 
 function createURL(href: string): URL {
@@ -43,7 +43,6 @@ export const PAGES = 'pages';
 export const SEGMENTS = 'segments';
 export const SETTINGS = 'settings';
 export const TOUCHPOINTS = 'pages';
-export const UI_KIT = 'ui-kit';
 export const USERS = 'users';
 
 /* Filter Key Constants */
@@ -80,78 +79,28 @@ export const Routes = buildRoutes({
 					CHANNEL: {
 						path: '/:channelId?',
 						routes: {
+
+							/**
+							 * Every asset type renders the same dashboard, so
+							 * one route serves them all. `:assetType` is the
+							 * slug each type used to have its own branch for
+							 * (`blogs`, `web-content`, ...), which keeps every
+							 * URL byte for byte what it was.
+							 */
+
 							ASSETS: {
 								path: '/assets',
 								routes: {
-									ASSETS_BLOGS: {
-										path: '/blogs',
+									ASSETS_DASHBOARD: {
+										path: '/:assetType',
 										routes: {
-											ASSETS_BLOGS_ACCOUNTS:
+											ASSETS_DASHBOARD_ACCOUNTS:
 												'/:assetId/accounts/:touchpoint/:title?/:type?',
-											ASSETS_BLOGS_KNOWN_INDIVIDUALS:
+											ASSETS_DASHBOARD_KNOWN_INDIVIDUALS:
 												'/:assetId/known-individuals/:touchpoint/:title?/:type?',
-											ASSETS_BLOGS_OVERVIEW:
+											ASSETS_DASHBOARD_OVERVIEW:
 												'/:assetId/page/:touchpoint/:title?/:type?',
-											ASSETS_BLOGS_ROUTES:
-												'/:assetId/:tabId/:touchpoint/:title?/:type?',
-										},
-									},
-									ASSETS_CUSTOM: {
-										path: '/custom',
-										routes: {
-											ASSETS_CUSTOM_DASHBOARD:
-												'/:id/page/:touchpoint/:title?/:type?',
-										},
-									},
-									ASSETS_DOCUMENTS_AND_MEDIA: {
-										path: '/documents-and-media',
-										routes: {
-											ASSETS_DOCUMENTS_AND_MEDIA_ACCOUNTS:
-												'/:assetId/accounts/:touchpoint/:title?/:type?',
-											ASSETS_DOCUMENTS_AND_MEDIA_KNOWN_INDIVIDUALS:
-												'/:assetId/known-individuals/:touchpoint/:title?/:type?',
-											ASSETS_DOCUMENTS_AND_MEDIA_OVERVIEW:
-												'/:assetId/page/:touchpoint/:title?/:type?',
-											ASSETS_DOCUMENTS_AND_MEDIA_ROUTES:
-												'/:assetId/:tabId/:touchpoint/:title?/:type?',
-										},
-									},
-									ASSETS_FORMS: {
-										path: '/forms',
-										routes: {
-											ASSETS_FORMS_ACCOUNTS:
-												'/:assetId/accounts/:touchpoint/:title?/:type?',
-											ASSETS_FORMS_KNOWN_INDIVIDUALS:
-												'/:assetId/known-individuals/:touchpoint/:title?/:type?',
-											ASSETS_FORMS_OVERVIEW:
-												'/:assetId/page/:touchpoint/:title?/:type?',
-											ASSETS_FORMS_ROUTES:
-												'/:assetId/:tabId/:touchpoint/:title?/:type?',
-										},
-									},
-									ASSETS_OBJECT_ENTRY: {
-										path: '/object-entry',
-										routes: {
-											ASSETS_OBJECT_ENTRY_ACCOUNTS:
-												'/:assetId/accounts/:touchpoint/:title?/:type?',
-											ASSETS_OBJECT_ENTRY_KNOWN_INDIVIDUALS:
-												'/:assetId/known-individuals/:touchpoint/:title?/:type?',
-											ASSETS_OBJECT_ENTRY_OVERVIEW:
-												'/:assetId/page/:touchpoint/:title?/:type?',
-											ASSETS_OBJECT_ENTRY_ROUTES:
-												'/:assetId/:tabId/:touchpoint/:title?/:type?',
-										},
-									},
-									ASSETS_WEB_CONTENT: {
-										path: '/web-content',
-										routes: {
-											ASSETS_WEB_CONTENT_ACCOUNTS:
-												'/:assetId/accounts/:touchpoint/:title?/:type?',
-											ASSETS_WEB_CONTENT_KNOWN_INDIVIDUALS:
-												'/:assetId/known-individuals/:touchpoint/:title?/:type?',
-											ASSETS_WEB_CONTENT_OVERVIEW:
-												'/:assetId/page/:touchpoint/:title?/:type?',
-											ASSETS_WEB_CONTENT_ROUTES:
+											ASSETS_DASHBOARD_ROUTES:
 												'/:assetId/:tabId/:touchpoint/:title?/:type?',
 										},
 									},
@@ -299,7 +248,6 @@ export const Routes = buildRoutes({
 									TESTS_OVERVIEW: '/overview/:id',
 								},
 							},
-							UI_KIT: '/ui-kit/:name?',
 						},
 					},
 					SETTINGS: {
@@ -452,34 +400,6 @@ const PROVIDER_ROUTE_TO_TYPE_MAP = {
 
 const TYPE_TO_ROUTE_MAP = {
 	...invert(ROUTE_TO_TYPE_MAP),
-};
-
-export const assetTypePaths = {
-	blog: Routes.ASSETS_BLOGS_OVERVIEW,
-	custom: Routes.ASSETS_CUSTOM_DASHBOARD,
-	document: Routes.ASSETS_DOCUMENTS_AND_MEDIA_OVERVIEW,
-	form: Routes.ASSETS_FORMS_OVERVIEW,
-	journal: Routes.ASSETS_WEB_CONTENT_OVERVIEW,
-};
-
-export const toAssetOverviewRoute = (
-	assetType: keyof typeof assetTypePaths,
-	routeParams: {[key: string]: any},
-	query: {[key: string]: any}
-) => {
-	let route = '';
-
-	if (assetType === 'blog') {
-		route = toRoute(assetTypePaths[assetType], {
-			...routeParams,
-			assetType: 'blogs',
-		});
-	}
-	else {
-		route = toRoute(assetTypePaths[assetType], routeParams);
-	}
-
-	return !isEmpty(query) ? setUriQueryValues(query, route) : route;
 };
 
 export function getType(routeName: keyof typeof ROUTE_TO_TYPE_MAP) {

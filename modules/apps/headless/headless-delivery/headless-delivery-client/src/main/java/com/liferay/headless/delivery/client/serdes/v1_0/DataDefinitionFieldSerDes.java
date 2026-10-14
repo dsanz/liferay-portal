@@ -10,6 +10,7 @@ import com.liferay.headless.delivery.client.json.BaseJSONParser;
 
 import jakarta.annotation.Generated;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -160,7 +161,9 @@ public class DataDefinitionFieldSerDes {
 				 i++) {
 
 				sb.append(
-					dataDefinitionField.getNestedDataDefinitionFields()[i]);
+					String.valueOf(
+						dataDefinitionField.getNestedDataDefinitionFields()
+							[i]));
 
 				if ((i + 1) < dataDefinitionField.
 						getNestedDataDefinitionFields().length) {
@@ -625,6 +628,12 @@ public class DataDefinitionFieldSerDes {
 			return "null";
 		}
 
+		if (value instanceof Collection) {
+			Collection<?> collection = (Collection<?>)value;
+
+			return _toJSON(collection.toArray());
+		}
+
 		if (value instanceof Map) {
 			return _toJSON((Map)value);
 		}
@@ -657,4 +666,4 @@ public class DataDefinitionFieldSerDes {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:1639369626
+// LIFERAY-REST-BUILDER-HASH:690703936

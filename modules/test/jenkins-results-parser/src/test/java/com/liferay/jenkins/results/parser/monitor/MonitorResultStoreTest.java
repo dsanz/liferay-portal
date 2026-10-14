@@ -72,7 +72,7 @@ public class MonitorResultStoreTest
 		try {
 			monitorResults.add(_newMonitorResult());
 
-			Assert.fail("Expected UnsupportedOperationException");
+			Assert.fail();
 		}
 		catch (UnsupportedOperationException unsupportedOperationException) {
 		}
@@ -85,7 +85,7 @@ public class MonitorResultStoreTest
 		try {
 			new MonitorResultStore(0);
 
-			Assert.fail("Expected IllegalArgumentException");
+			Assert.fail();
 		}
 		catch (IllegalArgumentException illegalArgumentException) {
 		}

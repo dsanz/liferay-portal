@@ -1,6 +1,6 @@
 .page-toolbar-root {
 	&.navbar {
-		border-color: $mainLighten74;
+		border-color: var(--gray-300);
 		border-style: solid;
 		border-width: 0 0 1px;
 		height: 4rem;

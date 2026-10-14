@@ -15,6 +15,7 @@ import jakarta.annotation.Generated;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -256,6 +257,20 @@ public class WorkflowTaskSerDes {
 			sb.append("\"");
 		}
 
+		if (workflowTask.getWorkflowDefinitionTitle() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"workflowDefinitionTitle\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(workflowTask.getWorkflowDefinitionTitle()));
+
+			sb.append("\"");
+		}
+
 		if (workflowTask.getWorkflowDefinitionVersion() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -453,6 +468,15 @@ public class WorkflowTaskSerDes {
 				String.valueOf(workflowTask.getWorkflowDefinitionName()));
 		}
 
+		if (workflowTask.getWorkflowDefinitionTitle() == null) {
+			map.put("workflowDefinitionTitle", null);
+		}
+		else {
+			map.put(
+				"workflowDefinitionTitle",
+				String.valueOf(workflowTask.getWorkflowDefinitionTitle()));
+		}
+
 		if (workflowTask.getWorkflowDefinitionVersion() == null) {
 			map.put("workflowDefinitionVersion", null);
 		}
@@ -546,6 +570,11 @@ public class WorkflowTaskSerDes {
 			}
 			else if (Objects.equals(
 						jsonParserFieldName, "workflowDefinitionName")) {
+
+				return false;
+			}
+			else if (Objects.equals(
+						jsonParserFieldName, "workflowDefinitionTitle")) {
 
 				return false;
 			}
@@ -678,6 +707,14 @@ public class WorkflowTaskSerDes {
 				}
 			}
 			else if (Objects.equals(
+						jsonParserFieldName, "workflowDefinitionTitle")) {
+
+				if (jsonParserFieldValue != null) {
+					workflowTask.setWorkflowDefinitionTitle(
+						(String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(
 						jsonParserFieldName, "workflowDefinitionVersion")) {
 
 				if (jsonParserFieldValue != null) {
@@ -758,6 +795,12 @@ public class WorkflowTaskSerDes {
 			return "null";
 		}
 
+		if (value instanceof Collection) {
+			Collection<?> collection = (Collection<?>)value;
+
+			return _toJSON(collection.toArray());
+		}
+
 		if (value instanceof Map) {
 			return _toJSON((Map)value);
 		}
@@ -790,4 +833,4 @@ public class WorkflowTaskSerDes {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:979929558
+// LIFERAY-REST-BUILDER-HASH:-50972930

@@ -7,6 +7,7 @@ package com.liferay.document.library.internal.trash;
 
 import com.liferay.asset.kernel.AssetRendererFactoryRegistryUtil;
 import com.liferay.asset.kernel.model.AssetRendererFactory;
+import com.liferay.document.library.helper.DLURLHelper;
 import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.model.DLFolder;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
@@ -14,7 +15,6 @@ import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.document.library.kernel.service.DLFileEntryLocalService;
 import com.liferay.document.library.kernel.service.DLFolderLocalService;
 import com.liferay.document.library.kernel.util.DLUtil;
-import com.liferay.document.library.util.DLURLHelper;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -165,6 +165,15 @@ public class DLFolderTrashHandler extends BaseDLTrashHandler {
 	}
 
 	@Override
+	public TrashRenderer getTrashRenderer(long classPK) throws PortalException {
+		AssetRendererFactory<?> assetRendererFactory =
+			AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(
+				DLFolder.class.getName());
+
+		return (TrashRenderer)assetRendererFactory.getAssetRenderer(classPK);
+	}
+
+	@Override
 	public TrashedModel getTrashedModel(long classPK) {
 		try {
 			return getDLFolder(classPK);
@@ -176,15 +185,6 @@ public class DLFolderTrashHandler extends BaseDLTrashHandler {
 
 			return null;
 		}
-	}
-
-	@Override
-	public TrashRenderer getTrashRenderer(long classPK) throws PortalException {
-		AssetRendererFactory<?> assetRendererFactory =
-			AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(
-				DLFolder.class.getName());
-
-		return (TrashRenderer)assetRendererFactory.getAssetRenderer(classPK);
 	}
 
 	@Override

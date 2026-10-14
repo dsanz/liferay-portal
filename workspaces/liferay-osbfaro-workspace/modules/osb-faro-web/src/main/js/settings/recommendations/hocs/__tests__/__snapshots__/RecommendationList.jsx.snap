@@ -6,7 +6,7 @@ exports[`RecommendationList should render 1`] = `
     class="card card-root recommendations-list-root page-display"
   >
     <div
-      class="toolbar-root"
+      class="search-toolbar-root"
     >
       <nav
         class="navbar navbar-root management-bar management-bar-light navbar-expand"
@@ -128,12 +128,9 @@ exports[`RecommendationList should render 1`] = `
                     >
                       <svg
                         class="lexicon-icon lexicon-icon-order_arrow_descending icon-root"
+                        data-file="order_arrow_descending.svg"
                         role="presentation"
-                      >
-                        <use
-                          href="#order_arrow_descending"
-                        />
-                      </svg>
+                      />
                     </button>
                   </div>
                 </a>
@@ -373,7 +370,7 @@ exports[`RecommendationList should render 1`] = `
                 Every 30 days
               </td>
               <td>
-                Jul 8th, 2018
+                Jul 8, 2018
               </td>
               <td>
                 <div
@@ -439,7 +436,7 @@ exports[`RecommendationList should render 1`] = `
                 Every 30 days
               </td>
               <td>
-                Jul 8th, 2018
+                Jul 8, 2018
               </td>
               <td>
                 <div
@@ -505,7 +502,7 @@ exports[`RecommendationList should render 1`] = `
                 Every 30 days
               </td>
               <td>
-                Jul 8th, 2018
+                Jul 8, 2018
               </td>
               <td>
                 <div
@@ -571,7 +568,7 @@ exports[`RecommendationList should render 1`] = `
                 Every 30 days
               </td>
               <td>
-                Jul 8th, 2018
+                Jul 8, 2018
               </td>
               <td>
                 <div
@@ -637,7 +634,7 @@ exports[`RecommendationList should render 1`] = `
                 Every 30 days
               </td>
               <td>
-                Jul 8th, 2018
+                Jul 8, 2018
               </td>
               <td>
                 <div
@@ -703,7 +700,7 @@ exports[`RecommendationList should render 1`] = `
                 Every 30 days
               </td>
               <td>
-                Jul 8th, 2018
+                Jul 8, 2018
               </td>
               <td>
                 <div
@@ -769,7 +766,7 @@ exports[`RecommendationList should render 1`] = `
                 Every 30 days
               </td>
               <td>
-                Jul 8th, 2018
+                Jul 8, 2018
               </td>
               <td>
                 <div
@@ -835,7 +832,7 @@ exports[`RecommendationList should render 1`] = `
                 Every 30 days
               </td>
               <td>
-                Jul 8th, 2018
+                Jul 8, 2018
               </td>
               <td>
                 <div
@@ -901,7 +898,7 @@ exports[`RecommendationList should render 1`] = `
                 Every 30 days
               </td>
               <td>
-                Jul 8th, 2018
+                Jul 8, 2018
               </td>
               <td>
                 <div
@@ -967,7 +964,7 @@ exports[`RecommendationList should render 1`] = `
                 Every 30 days
               </td>
               <td>
-                Jul 8th, 2018
+                Jul 8, 2018
               </td>
               <td>
                 <div

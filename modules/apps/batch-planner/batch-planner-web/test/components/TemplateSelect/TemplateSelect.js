@@ -47,11 +47,13 @@ jest.mock('frontend-js-components-web', () => {
 
 describe('TemplateSelect', () => {
 	beforeEach(() => {
-		fetchMock.mock(getPlanInfoURL, mockGetPlan);
+		fetchMock.mockGlobal();
+
+		fetchMock.route(getPlanInfoURL, mockGetPlan);
 	});
 
 	afterEach(() => {
-		fetchMock.restore();
+		fetchMock.hardReset();
 
 		jest.resetAllMocks();
 	});
@@ -81,7 +83,7 @@ describe('TemplateSelect', () => {
 
 			expectedEvent.template = {...initialTemplate};
 
-			expect(mockTemplateSelected).toBeCalledWith(expectedEvent);
+			expect(mockTemplateSelected).toHaveBeenCalledWith(expectedEvent);
 		});
 	});
 
@@ -133,7 +135,7 @@ describe('TemplateSelect', () => {
 
 			expectedEvent.template = {...initialTemplate};
 
-			expect(mockTempalteSelected).toBeCalledWith(expectedEvent);
+			expect(mockTempalteSelected).toHaveBeenCalledWith(expectedEvent);
 		});
 	});
 });

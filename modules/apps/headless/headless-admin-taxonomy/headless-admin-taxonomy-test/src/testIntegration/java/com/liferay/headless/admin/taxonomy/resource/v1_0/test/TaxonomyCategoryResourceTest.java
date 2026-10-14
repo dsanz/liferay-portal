@@ -633,6 +633,7 @@ public class TaxonomyCategoryResourceTest
 
 		super.testPutSiteTaxonomyCategoryByExternalReferenceCode();
 
+		_testPutSiteTaxonomyCategoryByExternalReferenceCodeDeletesTaxonomyCategoryProperty();
 		_testPutSiteTaxonomyCategoryByExternalReferenceCodeUpdatesParentToDefault();
 		_testPutSiteTaxonomyCategoryByExternalReferenceCodeUpdatesTaxonomyCategoryProperty();
 		_testPutSiteTaxonomyCategoryByExternalReferenceCodeWithParentTaxonomyCategory();
@@ -1141,6 +1142,20 @@ public class TaxonomyCategoryResourceTest
 	private void _testGetAssetLibraryTaxonomyCategoriesPage(int depotEntryType)
 		throws Exception {
 
+		DepotEntry depotEntry1 = _depotEntryLocalService.addDepotEntry(
+			Collections.singletonMap(
+				LocaleUtil.getDefault(), RandomTestUtil.randomString()),
+			null, depotEntryType,
+			ServiceContextTestUtil.getServiceContext(
+				testGroup.getGroupId(), TestPropsValues.getUserId()));
+
+		Page<TaxonomyCategory> page =
+			taxonomyCategoryResource.getAssetLibraryTaxonomyCategoriesPage(
+				depotEntry1.getDepotEntryId(), null, null, null,
+				Pagination.of(1, 10), null);
+
+		long totalCount = page.getTotalCount();
+
 		AssetVocabulary assetVocabulary1 =
 			_assetVocabularyLocalService.addVocabulary(
 				TestPropsValues.getUserId(), testGroup.getGroupId(),
@@ -1167,19 +1182,11 @@ public class TaxonomyCategoryResourceTest
 			ServiceContextTestUtil.getServiceContext(
 				testGroup.getGroupId(), TestPropsValues.getUserId()));
 
-		DepotEntry depotEntry1 = _depotEntryLocalService.addDepotEntry(
-			Collections.singletonMap(
-				LocaleUtil.getDefault(), RandomTestUtil.randomString()),
-			null, depotEntryType,
-			ServiceContextTestUtil.getServiceContext(
-				testGroup.getGroupId(), TestPropsValues.getUserId()));
+		page = taxonomyCategoryResource.getAssetLibraryTaxonomyCategoriesPage(
+			depotEntry1.getDepotEntryId(), null, null, null,
+			Pagination.of(1, 10), null);
 
-		Page<TaxonomyCategory> page =
-			taxonomyCategoryResource.getAssetLibraryTaxonomyCategoriesPage(
-				depotEntry1.getDepotEntryId(), null, null, null,
-				Pagination.of(1, 10), null);
-
-		Assert.assertEquals(2, page.getTotalCount());
+		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
 		_assetVocabularyGroupRelLocalService.
 			deleteAssetVocabularyGroupRelsByVocabularyId(
@@ -1198,11 +1205,21 @@ public class TaxonomyCategoryResourceTest
 
 		page = taxonomyCategoryResource.getAssetLibraryTaxonomyCategoriesPage(
 			depotEntry1.getDepotEntryId(), null, null, null,
-			Pagination.of(1, 10), null);
+			Pagination.of(1, (int)totalCount + 2), null);
 
-		Assert.assertEquals(1, page.getTotalCount());
+		Assert.assertEquals(totalCount + 1, page.getTotalCount());
 
-		List<TaxonomyCategory> items = (List<TaxonomyCategory>)page.getItems();
+		List<TaxonomyCategory> items = ListUtil.filter(
+			(List<TaxonomyCategory>)page.getItems(),
+			item ->
+				Objects.equals(
+					item.getTaxonomyVocabularyId(),
+					assetVocabulary1.getVocabularyId()) ||
+				Objects.equals(
+					item.getTaxonomyVocabularyId(),
+					assetVocabulary2.getVocabularyId()));
+
+		Assert.assertEquals(items.toString(), 1, items.size());
 
 		TaxonomyCategory taxonomyCategory = items.get(0);
 
@@ -2237,6 +2254,52 @@ public class TaxonomyCategoryResourceTest
 		_testPostTaxonomyCategoryBatch(
 			createStrategy, parameter, parameterValue, parentTaxonomyCategory,
 			parentTaxonomyVocabulary, taxonomyCategory);
+	}
+
+	private void _testPutSiteTaxonomyCategoryByExternalReferenceCodeDeletesTaxonomyCategoryProperty()
+		throws Exception {
+
+		TaxonomyCategory taxonomyCategory =
+			testPutSiteTaxonomyCategoryByExternalReferenceCode_addTaxonomyCategory();
+
+		String propertyKey = RandomTestUtil.randomString();
+		String propertyValue = RandomTestUtil.randomString();
+
+		_assetCategoryPropertyLocalService.addCategoryProperty(
+			TestPropsValues.getUserId(),
+			GetterUtil.getLong(taxonomyCategory.getId()), propertyKey,
+			propertyValue);
+
+		String deletedPropertyKey = RandomTestUtil.randomString();
+
+		_assetCategoryPropertyLocalService.addCategoryProperty(
+			TestPropsValues.getUserId(),
+			GetterUtil.getLong(taxonomyCategory.getId()), deletedPropertyKey,
+			RandomTestUtil.randomString());
+
+		taxonomyCategory.setTaxonomyCategoryProperties(
+			new TaxonomyCategoryProperty[] {
+				new TaxonomyCategoryProperty() {
+					{
+						key = propertyKey;
+						value = propertyValue;
+					}
+				}
+			});
+
+		TaxonomyCategory putTaxonomyCategory =
+			taxonomyCategoryResource.
+				putSiteTaxonomyCategoryByExternalReferenceCode(
+					taxonomyCategory.getSiteId(),
+					taxonomyCategory.getExternalReferenceCode(),
+					taxonomyCategory);
+
+		Map<String, String> map = _toMap(
+			putTaxonomyCategory.getTaxonomyCategoryProperties());
+
+		Assert.assertNull(map.get(deletedPropertyKey));
+		Assert.assertEquals(propertyValue, map.get(propertyKey));
+		Assert.assertEquals(map.toString(), 1, map.size());
 	}
 
 	private void _testPutSiteTaxonomyCategoryByExternalReferenceCodeUpdatesParentToDefault()

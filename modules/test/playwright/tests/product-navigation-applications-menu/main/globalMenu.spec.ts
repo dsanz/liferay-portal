@@ -56,29 +56,45 @@ test(
 );
 
 test(
-	'It shows "View All" when total amount of sites of "recently visited" and "my sites" exceeds 7',
+	'It shows "View All" when total amount of sites of "recently visited" and "my sites" exceeds 3',
 	{tag: '@LPD-66980'},
 	async ({apiHelpers, globalMenuPage, page}) => {
 		const sites: Array<Site> = [];
 
 		try {
-			await test.step(`Assert "View All" link visibility after creating 6 more sites`, async () => {
-				for (let index = 1; index < 7; index++) {
-					sites.push(
-						await apiHelpers.headlessAdminSite.postSite({
-							name: getRandomString(),
-						})
-					);
+			await test.step('Assert the Sites area starts with Liferay and Global', async () => {
+				await globalMenuPage.goToHome();
+				await globalMenuPage.openGlobalMenu();
 
-					if (index >= 5) {
-						await globalMenuPage.goToHome();
-						await globalMenuPage.openGlobalMenu();
+				await expect(
+					globalMenuPage.sitesList.getByRole('menuitem')
+				).toHaveText(['Liferay DXP Site', 'Global']);
+			});
 
-						await expect(globalMenuPage.viewAllLink).toBeVisible({
-							visible: index + 1 >= 7,
-						});
-					}
-				}
+			await test.step('Assert "View All" link is hidden with Liferay, Global and 1 new site', async () => {
+				sites.push(
+					await apiHelpers.headlessAdminSite.postSite({
+						name: getRandomString(),
+					})
+				);
+
+				await globalMenuPage.goToHome();
+				await globalMenuPage.openGlobalMenu();
+
+				await expect(globalMenuPage.viewAllLink).toBeHidden();
+			});
+
+			await test.step('Assert "View All" link is visible with Liferay, Global and 2 new sites', async () => {
+				sites.push(
+					await apiHelpers.headlessAdminSite.postSite({
+						name: getRandomString(),
+					})
+				);
+
+				await globalMenuPage.goToHome();
+				await globalMenuPage.openGlobalMenu();
+
+				await expect(globalMenuPage.viewAllLink).toBeVisible();
 			});
 
 			const randomSite = sites[Math.floor(Math.random() * sites.length)];

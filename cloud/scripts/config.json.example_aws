@@ -1,12 +1,33 @@
 {
+	"account_id": "your-aws-account-id",
+	"deployment_name": "liferay-aws-test",
 	"options": {
 		"auto_approve": false,
 		"parallelism": 10,
 		"provider": "aws",
-		"version": "2.0.0"
+		"version": "3.0.0"
 	},
-	"variables": {
-		"deployment_name": "liferay-aws-test",
-		"region": "us-east-1"
+	"platformComponents": {
+		"values": {
+			"gitops": {
+				"repository": {
+					"url": "https://github.com/example/liferay-gitops.git"
+				}
+			}
+		}
+	},
+	"region": "us-east-1",
+	"terraform": {
+		"platform": {
+			"keda_config": {
+				"enabled": true
+			},
+			"observability_config": {
+				"enabled": true
+			}
+		}
+	},
+	"tfstate": {
+		"bucket_name": "your-tfstate-bucket"
 	}
 }

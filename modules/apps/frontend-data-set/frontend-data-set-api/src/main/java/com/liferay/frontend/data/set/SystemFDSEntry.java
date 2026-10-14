@@ -50,6 +50,10 @@ public interface SystemFDSEntry {
 		return false;
 	}
 
+	public default boolean getSearchSuggestionsEnabled() {
+		return false;
+	}
+
 	public default boolean getShowSearch() {
 		return true;
 	}

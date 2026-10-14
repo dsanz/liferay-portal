@@ -120,4 +120,4 @@ public class DepotEntryGroupRelModelArgumentsResolver
 		new ConcurrentHashMap<>();
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-31487478
+// LIFERAY-SERVICE-BUILDER-HASH:1932069566

@@ -250,13 +250,15 @@ journalEditArticleDisplayContext.setViewAttributes();
 									/>
 								</c:if>
 
-								<clay:button
-									data-actionname="<%= Constants.PUBLISH %>"
-									displayType="primary"
-									id='<%= liferayPortletResponse.getNamespace() + "publishButton" %>'
-									label="<%= journalEditArticleDisplayContext.getPublishButtonLabel() %>"
-									type="submit"
-								/>
+								<c:if test='<%= !(FeatureFlagManagerUtil.isEnabled("LPD-11228") && !JournalUtil.isEditDefaultValues(article)) %>'>
+									<clay:button
+										data-actionname="<%= Constants.PUBLISH %>"
+										displayType="primary"
+										id='<%= liferayPortletResponse.getNamespace() + "publishButton" %>'
+										label="<%= journalEditArticleDisplayContext.getPublishButtonLabel() %>"
+										type="submit"
+									/>
+								</c:if>
 
 								<c:if test="<%= !JournalUtil.isEditDefaultValues(article) %>">
 									<react:component
@@ -352,10 +354,10 @@ journalEditArticleDisplayContext.setViewAttributes();
 							</div>
 
 							<div id="<portlet:namespace />descriptionMapAsXMLWrapper">
-								<label for="<portlet:namespace />descriptionMapAsXML" id="<portlet:namespace />Aria"><liferay-ui:message key="description" /></label>
-
 								<c:choose>
 									<c:when test='<%= !FeatureFlagManagerUtil.isEnabled("LPD-11235") %>'>
+										<label for="<portlet:namespace />descriptionMapAsXML" id="<portlet:namespace />Aria"><liferay-ui:message key="description" /></label>
+
 										<liferay-editor:input-localized
 											autofillFromDefault="<%= true %>"
 											availableLocales="<%= journalEditArticleDisplayContext.getAvailableLocales() %>"
@@ -419,6 +421,7 @@ journalEditArticleDisplayContext.setViewAttributes();
 											ignoreRequestValue="<%= journalEditArticleDisplayContext.isChangeStructure() %>"
 											languagesDropdownVisible="<%= false %>"
 											name="descriptionMapAsXML"
+											placeholder="description"
 											selectedLanguageId="<%= journalEditArticleDisplayContext.getSelectedLanguageId() %>"
 											type="editor"
 											xml="<%= (article != null) ? article.getDescriptionMapAsXML() : StringPool.BLANK %>"

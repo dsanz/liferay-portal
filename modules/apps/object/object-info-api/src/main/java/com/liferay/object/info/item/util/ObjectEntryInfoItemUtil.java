@@ -72,6 +72,8 @@ public class ObjectEntryInfoItemUtil {
 				false, null, null, null, null, themeDisplay.getLocale(), null,
 				themeDisplay.getUser());
 
+		dtoConverterContext.setAttribute("addActions", Boolean.FALSE);
+
 		int version = serviceBuilderObjectEntry.getVersion();
 
 		if ((serviceBuilderObjectEntry.getHeadObjectEntryId() > 0) &&
@@ -82,13 +84,15 @@ public class ObjectEntryInfoItemUtil {
 					serviceBuilderObjectEntry.getHeadObjectEntryId());
 		}
 
-		ObjectEntryVersion objectEntryVersion =
-			ObjectEntryVersionLocalServiceUtil.fetchObjectEntryVersion(
-				serviceBuilderObjectEntry.getObjectEntryId(), version);
+		if (objectDefinition.isEnableObjectEntryVersioning()) {
+			ObjectEntryVersion objectEntryVersion =
+				ObjectEntryVersionLocalServiceUtil.fetchObjectEntryVersion(
+					serviceBuilderObjectEntry.getObjectEntryId(), version);
 
-		if (objectEntryVersion != null) {
-			dtoConverterContext.setAttribute(
-				"objectEntryVersion", objectEntryVersion);
+			if (objectEntryVersion != null) {
+				dtoConverterContext.setAttribute(
+					"objectEntryVersion", objectEntryVersion);
+			}
 		}
 
 		try {

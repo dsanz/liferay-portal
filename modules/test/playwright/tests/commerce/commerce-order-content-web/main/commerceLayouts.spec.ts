@@ -1046,6 +1046,12 @@ test(
 			await apiHelpers.headlessCommerceAdminChannel.getTaxCategories()
 		).items[0];
 
+		await commerceAdminChannelsPage.goto();
+
+		await (
+			await commerceAdminChannelsPage.channelsTableRowLink(channel.name)
+		).click();
+
 		await commerceAdminChannelDetailsPage.addFixedTaxRate(
 			'7.5',
 			taxCategory.name.en_US
@@ -3355,6 +3361,8 @@ test(
 			.accountSelectorButton('Account Selector')
 			.click();
 		await commerceLayoutsPage.createNewOrderButton.click();
+
+		await page.waitForURL(/\/order\/\d+/);
 
 		await globalMenuPage.goToSite(site.name);
 

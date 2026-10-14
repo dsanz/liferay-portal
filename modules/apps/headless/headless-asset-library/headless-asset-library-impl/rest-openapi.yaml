@@ -290,7 +290,14 @@ components:
                     type: array
                 defaultLanguageId:
                     type: string
+                googleMapsAPIKey:
+                    type: string
                 logoColor:
+                    type: string
+                mapProviderKey:
+                    description:
+                        Sets the maps API provider to use when displaying geolocalized assets.
+                    enum: [GoogleMaps, OpenStreetMap]
                     type: string
                 mimeTypeLimits:
                     items:
@@ -379,7 +386,7 @@ components:
                     type: array
 info:
     description:
-        "A Java client JAR is available for use with the group ID 'com.liferay', artifact ID 'com.liferay.headless.asset.library.client', and version '1.0.19'."
+        "A Java client JAR is available for use with the group ID 'com.liferay', artifact ID 'com.liferay.headless.asset.library.client', and version '1.0.20'."
     license:
         name: Apache 2.0
         url: http://www.apache.org/licenses/LICENSE-2.0.html

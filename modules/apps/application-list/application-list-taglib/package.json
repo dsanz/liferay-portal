@@ -7,6 +7,7 @@
 		"@clayui/empty-state": "^3.166.0",
 		"@clayui/form": "^3.166.0",
 		"@clayui/icon": "^3.166.0",
+		"@clayui/label": "^3.166.0",
 		"@clayui/nav": "^3.166.0",
 		"@clayui/shared": "^3.166.0",
 		"@clayui/sticker": "^3.166.0",
@@ -24,5 +25,5 @@
 		"format": "node-scripts format",
 		"test": "node-scripts test"
 	},
-	"version": "8.0.21"
+	"version": "8.0.23"
 }

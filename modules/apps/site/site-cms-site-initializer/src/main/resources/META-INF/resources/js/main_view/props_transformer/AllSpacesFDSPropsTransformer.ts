@@ -23,6 +23,7 @@ import manageMembersAction, {
 import SpaceRenderer from './cell_renderers/SpaceRenderer';
 import addOnClickToCreationMenuItems from './utils/addOnClickToCreationMenuItems';
 import {executeAsyncItemAction} from './utils/executeAsyncItemAction';
+import styleDeleteAction from './utils/styleDeleteAction';
 import transformFDSBulkActions from './utils/transformFDSBulkActions';
 
 const ACTIONS = {};
@@ -57,6 +58,7 @@ export default function AllSpacesFDSPropsTransformer({
 					component: ({itemData, value}) =>
 						SpaceRenderer({
 							href: additionalProps.baseSpaceURL + itemData.id,
+							itemData,
 							logoColor: itemData.settings.logoColor,
 							size: 'sm',
 							value,
@@ -88,7 +90,7 @@ export default function AllSpacesFDSPropsTransformer({
 				};
 			}
 
-			return action;
+			return styleDeleteAction(action);
 		}),
 		onActionDropdownItemClick: ({
 			action,
@@ -255,5 +257,7 @@ export default function AllSpacesFDSPropsTransformer({
 				});
 			}
 		},
+		searchAsYouType: true,
+		searchSuggestionsEnabled: true,
 	};
 }

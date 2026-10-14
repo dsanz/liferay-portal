@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
@@ -27,6 +28,8 @@ import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
@@ -744,6 +747,52 @@ public class WorkflowTask implements Serializable {
 	@JsonIgnore
 	private Supplier<String> _workflowDefinitionNameSupplier;
 
+	@io.swagger.v3.oas.annotations.media.Schema(
+		description = "The localized title of the task's workflow definition."
+	)
+	public String getWorkflowDefinitionTitle() {
+		if (_workflowDefinitionTitleSupplier != null) {
+			workflowDefinitionTitle = _workflowDefinitionTitleSupplier.get();
+
+			_workflowDefinitionTitleSupplier = null;
+		}
+
+		return workflowDefinitionTitle;
+	}
+
+	public void setWorkflowDefinitionTitle(String workflowDefinitionTitle) {
+		this.workflowDefinitionTitle = workflowDefinitionTitle;
+
+		_workflowDefinitionTitleSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setWorkflowDefinitionTitle(
+		UnsafeSupplier<String, Exception>
+			workflowDefinitionTitleUnsafeSupplier) {
+
+		_workflowDefinitionTitleSupplier = () -> {
+			try {
+				return workflowDefinitionTitleUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField(
+		description = "The localized title of the task's workflow definition."
+	)
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	protected String workflowDefinitionTitle;
+
+	@JsonIgnore
+	private Supplier<String> _workflowDefinitionTitleSupplier;
+
 	@io.swagger.v3.oas.annotations.media.Schema
 	public String getWorkflowDefinitionVersion() {
 		if (_workflowDefinitionVersionSupplier != null) {
@@ -1130,6 +1179,22 @@ public class WorkflowTask implements Serializable {
 			sb.append("\"");
 		}
 
+		String workflowDefinitionTitle = getWorkflowDefinitionTitle();
+
+		if (workflowDefinitionTitle != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"workflowDefinitionTitle\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(workflowDefinitionTitle));
+
+			sb.append("\"");
+		}
+
 		String workflowDefinitionVersion = getWorkflowDefinitionVersion();
 
 		if (workflowDefinitionVersion != null) {
@@ -1273,6 +1338,27 @@ public class WorkflowTask implements Serializable {
 		return sb.toString();
 	}
 
+	private static String _toJSON(Object value) {
+		if (value instanceof Collection) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONArray((Collection<?>)value));
+		}
+		else if (value instanceof Map) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONObject((Map<?, ?>)value));
+		}
+		else if (value instanceof Object[]) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONArray(
+					Arrays.asList((Object[])value)));
+		}
+		else if (value instanceof String) {
+			return StringBundler.concat("\"", _escape(value), "\"");
+		}
+
+		return String.valueOf(value);
+	}
+
 	private static final String[][] _JSON_ESCAPE_STRINGS = {
 		{"\\", "\"", "\b", "\f", "\n", "\r", "\t"},
 		{"\\\\", "\\\"", "\\b", "\\f", "\\n", "\\r", "\\t"}
@@ -1281,4 +1367,4 @@ public class WorkflowTask implements Serializable {
 	private Map<String, Serializable> _extendedProperties;
 
 }
-// LIFERAY-REST-BUILDER-HASH:1620557767
+// LIFERAY-REST-BUILDER-HASH:840321123

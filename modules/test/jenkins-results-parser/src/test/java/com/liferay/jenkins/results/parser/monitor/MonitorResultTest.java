@@ -5,6 +5,8 @@
 
 package com.liferay.jenkins.results.parser.monitor;
 
+import com.liferay.jenkins.results.parser.RandomTestUtil;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
@@ -18,6 +20,23 @@ import org.junit.Test;
 public class MonitorResultTest extends com.liferay.jenkins.results.parser.Test {
 
 	@Test
+	public void testGetDurationMillis() {
+		MonitorResult monitorResult = new MonitorResult(
+			250, RandomTestUtil.randomString(), null, MonitorResult.Status.OK,
+			RandomTestUtil.randomLong());
+
+		testEquals(250L, monitorResult.getDurationMillis());
+
+		monitorResult = new MonitorResult(
+			RandomTestUtil.randomString(), null, MonitorResult.Status.OK,
+			RandomTestUtil.randomLong());
+
+		testEquals(
+			MonitorResult.DURATION_MILLIS_UNMEASURED,
+			monitorResult.getDurationMillis());
+	}
+
+	@Test
 	public void testGetMetricsIsUnmodifiable() {
 		Map<String, String> metrics = Collections.singletonMap("disk", "88");
 
@@ -29,7 +48,7 @@ public class MonitorResultTest extends com.liferay.jenkins.results.parser.Test {
 		try {
 			returnedMetrics.put("cpu", "50");
 
-			Assert.fail("Expected UnsupportedOperationException");
+			Assert.fail();
 		}
 		catch (UnsupportedOperationException unsupportedOperationException) {
 		}

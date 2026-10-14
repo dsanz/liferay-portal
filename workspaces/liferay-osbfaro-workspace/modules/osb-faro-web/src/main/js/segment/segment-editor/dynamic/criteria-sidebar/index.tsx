@@ -4,17 +4,18 @@ import CriteriaSidebarCollapse from './CriteriaSidebarCollapse';
 import CriteriaSidebarSearchBar from './CriteriaSidebarSearchBar';
 import EventsCriteriaTabs from './EventsCriteriaTabs';
 import Loading from 'shared/components/Loading';
-import React, {useContext, useEffect, useMemo, useState} from 'react';
-import {ClayPaginationWithBasicItems} from '@clayui/pagination';
+import React, {useContext, useEffect, useMemo, useRef, useState} from 'react';
+import SidebarPagination from './SidebarPagination';
+import useCriteriaItemsNavigation from './useCriteriaItemsNavigation';
 import {extractRemoteCriterionEntries} from '../criterion-types/extract';
 import {FieldOwnerTypes, SegmentTypes} from 'shared/util/constants';
-import {getRemoteCriterionTypeByPropertyKey} from '../criterion-types/registry';
+import {getPaginatedSection} from './paginatedSections';
 import {List} from 'immutable';
 import {Option, Picker} from '@clayui/core';
-import {PaginationBar} from '@clayui/pagination-bar';
 import {Property, PropertyGroup, PropertySubgroup} from 'shared/util/records';
 import {ReferencedObjectsContext} from '../context/referencedObjects';
 import {translateQueryToCriteria} from '../utils/odata';
+import {usePaginatedProperties} from './usePaginatedProperties';
 
 const REMOTE_PAGE_SIZE = 12;
 
@@ -23,8 +24,9 @@ const EVENTS_PROPERTY_KEY = 'web';
 const PROPERTY_KEY_TO_GROUP: Record<string, string> = {
 	account: 'attributes',
 	individual: 'attributes',
-	interest: 'page-topics',
+	interest: 'intent-signals',
 	organization: 'attributes',
+	'search-term': 'intent-signals',
 	session: 'attributes',
 	tag: 'asset-categorization',
 	vocabulary: 'asset-categorization',
@@ -35,14 +37,14 @@ const GROUP_ORDER = [
 	'behavioral',
 	'attributes',
 	'asset-categorization',
-	'page-topics',
+	'intent-signals',
 ];
 
 const GROUP_LABELS: Record<string, string> = {
 	'asset-categorization': Liferay.Language.get('asset-categorization'),
 	attributes: Liferay.Language.get('attributes'),
 	behavioral: Liferay.Language.get('behavioral'),
-	'page-topics': Liferay.Language.get('page-topics'),
+	'intent-signals': Liferay.Language.get('intent-signals'),
 };
 
 interface IPickerGroup {
@@ -65,26 +67,39 @@ export default function CriteriaSidebar({
 	propertyGroupsIList,
 	type,
 }: ICriteriaSidebarProps) {
+	const itemsRef = useRef<HTMLDivElement>(null);
+
 	const [searchValue, setSearchValue] = useState('');
 	const [selectedPropertyKey, setSelectedPropertyKey] = useState<
 		string | null
 	>(() => propertyGroupsIList.first()?.propertyKey ?? null);
 
-	const [remoteQuery, setRemoteQuery] = useState<{
-		keywords: string;
-		page: number;
-	}>({keywords: '', page: 1});
-	const [remoteItems, setRemoteItems] = useState<List<Property>>(List());
-	const [remoteLoading, setRemoteLoading] = useState(false);
-
-	const [remoteTotalCount, setRemoteTotalCount] = useState(0);
-
 	const {addProperty} = useContext(ReferencedObjectsContext);
 
+	const navigation = useCriteriaItemsNavigation(itemsRef);
+
 	const selectedRemoteCriterionType =
-		getRemoteCriterionTypeByPropertyKey(selectedPropertyKey);
+		getPaginatedSection(selectedPropertyKey);
 	const isRemoteSection = !!selectedRemoteCriterionType;
-	const remoteKeywords = isRemoteSection ? searchValue : '';
+
+	const {
+		items: remoteItems,
+		loading: remoteLoading,
+		page: remotePage,
+		setPage: setRemotePage,
+		totalPages: remoteTotalPages,
+	} = usePaginatedProperties({
+		channelId,
+		enabled: type === SegmentTypes.Batch,
+		groupId,
+		keywords: searchValue,
+		pageSize: REMOTE_PAGE_SIZE,
+		source: selectedRemoteCriterionType,
+	});
+
+	useEffect(() => {
+		remoteItems.forEach((property) => property && addProperty?.(property));
+	}, [remoteItems]);
 
 	useEffect(() => {
 		if (type !== SegmentTypes.Batch || !criteriaString || !addProperty) {
@@ -98,62 +113,11 @@ export default function CriteriaSidebar({
 		});
 	}, []);
 
-	useEffect(() => {
-		setRemoteQuery((q) =>
-			q.keywords === remoteKeywords
-				? q
-				: {keywords: remoteKeywords, page: 1}
-		);
-	}, [remoteKeywords]);
-
-	useEffect(() => {
-		setRemoteItems(List());
-		setRemoteTotalCount(0);
-		setRemoteQuery((q) => (q.page === 1 ? q : {...q, page: 1}));
-	}, [selectedPropertyKey]);
-
-	useEffect(() => {
-		if (type !== SegmentTypes.Batch || !selectedRemoteCriterionType) {
-			return;
-		}
-
-		setRemoteLoading(true);
-
-		selectedRemoteCriterionType
-			.api({
-				channelId,
-				groupId,
-				keywords: remoteQuery.keywords,
-				page: remoteQuery.page,
-				pageSize: REMOTE_PAGE_SIZE,
-			})
-			.then((result) => {
-				const properties: List<Property> = List(
-					(result.items ?? []).map(
-						selectedRemoteCriterionType.createProperty
-					)
-				);
-
-				setRemoteItems(properties);
-				setRemoteTotalCount(result.totalCount ?? 0);
-
-				if (addProperty) {
-					properties.forEach(
-						(property) => property && addProperty(property)
-					);
-				}
-			})
-			.finally(() => setRemoteLoading(false));
-	}, [channelId, groupId, type, selectedRemoteCriterionType, remoteQuery]);
-
 	const effectivePropertyGroupsIList = useMemo(
 		() =>
 			propertyGroupsIList
 				.map((group) => {
-					if (
-						!group ||
-						!getRemoteCriterionTypeByPropertyKey(group.propertyKey)
-					) {
+					if (!group || !getPaginatedSection(group.propertyKey)) {
 						return group as PropertyGroup;
 					}
 
@@ -222,7 +186,9 @@ export default function CriteriaSidebar({
 		if (isEventsSection) {
 			return (
 				<EventsCriteriaTabs
+					channelId={channelId}
 					defaultEvents={defaultEvents}
+					groupId={groupId}
 					searchValue={searchValue}
 				/>
 			);
@@ -260,12 +226,13 @@ export default function CriteriaSidebar({
 	return (
 		<div className="criteria-sidebar-root">
 			<div className="sidebar-title">
-				{Liferay.Language.get('segment-criteria')}
+				{Liferay.Language.get('conditions-library')}
 			</div>
 
 			{type !== SegmentTypes.RealTime && (
 				<div className="sidebar-header">
 					<Picker
+						aria-label={Liferay.Language.get('condition-type')}
 						items={pickerItems}
 						onSelectionChange={(key) => {
 							setSelectedPropertyKey(key as string);
@@ -295,20 +262,21 @@ export default function CriteriaSidebar({
 				/>
 			</div>
 
-			<div className="sidebar-collapse">{renderCriteria()}</div>
+			<div
+				className="sidebar-collapse"
+				onFocus={navigation.handleFocus}
+				onKeyDown={navigation.handleKeyDown}
+				ref={itemsRef}
+			>
+				{renderCriteria()}
+			</div>
 
-			{isRemoteSection && remoteTotalCount > 0 && (
-				<PaginationBar className="justify-content-center sidebar-pagination">
-					<ClayPaginationWithBasicItems
-						active={remoteQuery.page}
-						onActiveChange={(page) =>
-							setRemoteQuery((q) => ({...q, page}))
-						}
-						totalPages={Math.ceil(
-							remoteTotalCount / REMOTE_PAGE_SIZE
-						)}
-					/>
-				</PaginationBar>
+			{isRemoteSection && (
+				<SidebarPagination
+					activePage={remotePage}
+					onPageChange={setRemotePage}
+					totalPages={remoteTotalPages}
+				/>
 			)}
 		</div>
 	);

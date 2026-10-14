@@ -35,7 +35,9 @@ public abstract class BasePersistentResource implements PersistentResource {
 
 	@Override
 	public void download(String artifactName, File destinationDir) {
-		Artifact artifact = _artifacts.get(artifactName);
+		Map<String, Artifact> artifacts = _getArtifacts();
+
+		Artifact artifact = artifacts.get(artifactName);
 
 		if (artifact == null) {
 			throw new RuntimeException(artifactName + " does not exist");
@@ -61,7 +63,9 @@ public abstract class BasePersistentResource implements PersistentResource {
 
 	@Override
 	public List<Artifact> getArtifacts() {
-		return new ArrayList<>(_artifacts.values());
+		Map<String, Artifact> artifacts = _getArtifacts();
+
+		return new ArrayList<>(artifacts.values());
 	}
 
 	@Override
@@ -132,22 +136,8 @@ public abstract class BasePersistentResource implements PersistentResource {
 						ioException.getMessage());
 			}
 
-			for (Artifact artifact : getArtifacts()) {
-				if (!artifact.isAvailable()) {
-					continue;
-				}
-
-				try {
-					CloudBucketUtil.touchS3File(artifact.getS3ObjectPath());
-				}
-				catch (IOException ioException) {
-					allSucceeded = false;
-
-					System.out.println(
-						"WARNING: Unable to touch " + getType() +
-							" S3 artifact " + artifact.getName() + ": " +
-								ioException.getMessage());
-				}
+			if (!_touchArtifacts()) {
+				allSucceeded = false;
 			}
 
 			_attempts++;
@@ -218,10 +208,6 @@ public abstract class BasePersistentResource implements PersistentResource {
 
 	protected BasePersistentResource(BuildDatabase buildDatabase) {
 		_buildDatabase = buildDatabase;
-
-		for (String artifactName : getArtifactNames()) {
-			_artifacts.put(artifactName, new Artifact(artifactName, this));
-		}
 	}
 
 	protected abstract Set<String> getArtifactNames();
@@ -399,6 +385,8 @@ public abstract class BasePersistentResource implements PersistentResource {
 		catch (IOException ioException) {
 			throw new RuntimeException(ioException);
 		}
+
+		_touchArtifacts();
 	}
 
 	protected void setControllerBuildURL(String controllerBuildURL) {
@@ -425,9 +413,46 @@ public abstract class BasePersistentResource implements PersistentResource {
 
 	protected abstract void update();
 
+	private synchronized Map<String, Artifact> _getArtifacts() {
+		if (_artifacts != null) {
+			return _artifacts;
+		}
+
+		_artifacts = new HashMap<>();
+
+		for (String artifactName : getArtifactNames()) {
+			_artifacts.put(artifactName, new Artifact(artifactName, this));
+		}
+
+		return _artifacts;
+	}
+
 	private String _getDataS3ObjectPath() {
 		return JenkinsResultsParserUtil.combine(
 			getBaseS3ObjectPath(), "/data.json.gz");
+	}
+
+	private boolean _touchArtifacts() {
+		boolean allSucceeded = true;
+
+		for (Artifact artifact : getArtifacts()) {
+			if (!artifact.isAvailable()) {
+				continue;
+			}
+
+			try {
+				CloudBucketUtil.touchS3File(artifact.getS3ObjectPath());
+			}
+			catch (IOException ioException) {
+				allSucceeded = false;
+
+				System.out.println(
+					"WARNING: Unable to touch " + getType() + " S3 artifact " +
+						artifact.getName() + ": " + ioException.getMessage());
+			}
+		}
+
+		return allSucceeded;
 	}
 
 	private static final int _MAX_TOUCH_ATTEMPTS = 2;
@@ -437,7 +462,7 @@ public abstract class BasePersistentResource implements PersistentResource {
 	private static final Pattern _buildURLPattern = Pattern.compile(
 		"https?://.+/job/(?<jobName>[^/]+)/(?<buildNumber>\\d+)");
 
-	private final Map<String, Artifact> _artifacts = new HashMap<>();
+	private Map<String, Artifact> _artifacts;
 	private volatile int _attempts;
 	private Boolean _buildCachingEnabled;
 	private final BuildDatabase _buildDatabase;

@@ -20,6 +20,7 @@ create index IX_1AFBDE08 on AnnouncementsEntry (uuid_[$COLUMN_LENGTH:75$]);
 create index IX_EF1F022A on AnnouncementsFlag (companyId);
 create index IX_ED8CE4E8 on AnnouncementsFlag (entryId, userId, value);
 
+create index IX_5CC0F74 on AssetCategory (companyId);
 create unique index IX_A497FDE5 on AssetCategory (groupId, externalReferenceCode[$COLUMN_LENGTH:75$], ctCollectionId);
 create index IX_F67BECAD on AssetCategory (groupId, parentCategoryId);
 create unique index IX_AF94405C on AssetCategory (groupId, uuid_[$COLUMN_LENGTH:75$], ctCollectionId);
@@ -45,15 +46,18 @@ create index IX_FEC4A201 on AssetEntry (layoutUuid[$COLUMN_LENGTH:75$]);
 create index IX_2E4E3885 on AssetEntry (publishDate);
 create index IX_9029E15A on AssetEntry (visible);
 
+create index IX_94A69238 on AssetTag (companyId);
 create unique index IX_ACC6A5A1 on AssetTag (groupId, externalReferenceCode[$COLUMN_LENGTH:75$], ctCollectionId);
 create index IX_D63322F9 on AssetTag (groupId, name[$COLUMN_LENGTH:75$]);
 create unique index IX_B421E018 on AssetTag (groupId, uuid_[$COLUMN_LENGTH:75$], ctCollectionId);
 create index IX_C43137AF on AssetTag (name[$COLUMN_LENGTH:75$]);
 create index IX_562A3FC4 on AssetTag (uuid_[$COLUMN_LENGTH:75$]);
 
-create index IX_7C87D905 on AssetTagGroupRel (groupId, tagId);
-create index IX_EE11675B on AssetTagGroupRel (tagId);
-create unique index IX_5A27ECFE on AssetTagGroupRel (uuid_[$COLUMN_LENGTH:75$], groupId, ctCollectionId);
+create index IX_CF48A52C on AssetTagGroupRel (groupId, depotEntryType);
+create index IX_5536A571 on AssetTagGroupRel (groupId, tagId, depotEntryType);
+create unique index IX_405D152 on AssetTagGroupRel (groupId, uuid_[$COLUMN_LENGTH:75$], ctCollectionId);
+create index IX_E6F4C7C7 on AssetTagGroupRel (tagId, depotEntryType);
+create index IX_4540F14A on AssetTagGroupRel (uuid_[$COLUMN_LENGTH:75$]);
 
 create index IX_B22D908C on AssetVocabulary (companyId);
 create unique index IX_9181CBCD on AssetVocabulary (groupId, externalReferenceCode[$COLUMN_LENGTH:75$], ctCollectionId);

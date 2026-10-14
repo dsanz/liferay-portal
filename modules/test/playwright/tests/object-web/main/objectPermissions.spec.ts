@@ -530,6 +530,80 @@ test('Can only update Picklist permissions when PERMISSIONS permission is grante
 	});
 });
 
+test(
+	'Can publish an object definition with the Publish Object Definition permission',
+	{tag: '@LPD-109321'},
+	async ({
+		apiHelpers,
+		editObjectDetailsPage,
+		page,
+		viewObjectDefinitionsPage,
+	}) => {
+		const objectDefinition =
+			await apiHelpers.objectAdmin.postRandomObjectDefinition({
+				status: {code: 2},
+			});
+
+		apiHelpers.data.push({
+			id: objectDefinition.id,
+			type: 'objectDefinition',
+		});
+
+		const objectDefinitionLabel = objectDefinition.label['en_US'];
+
+		await test.step('Switch to a user with the Publish Object Definition permission', async () => {
+			const user = await createUserWithPermissions(apiHelpers, [
+				{
+					actionIds: ['ACCESS_IN_CONTROL_PANEL', 'VIEW'],
+					resourceName:
+						'com_liferay_object_web_internal_object_definitions_portlet_ObjectDefinitionsPortlet',
+				},
+				{
+					actionIds: ['PUBLISH_OBJECT_DEFINITION'],
+					resourceName: 'com.liferay.object',
+				},
+				{
+					actionIds: ['UPDATE', 'VIEW'],
+					resourceName: 'com.liferay.object.model.ObjectDefinition',
+				},
+			]);
+
+			await performUserSwitch(page, user.alternateName);
+		});
+
+		await test.step('Publish the object definition', async () => {
+			await editObjectDetailsPage.goto(objectDefinitionLabel);
+
+			await editObjectDetailsPage.waitForDetailsFormLoaded();
+
+			await expect(editObjectDetailsPage.publishButton).toBeEnabled();
+
+			await editObjectDetailsPage.publishButton.click();
+
+			await waitForAlert(
+				page,
+				'Success:The object was published successfully.'
+			);
+
+			await expect(editObjectDetailsPage.publishButton).toBeHidden();
+		});
+
+		await test.step('Verify the object definition is listed as Approved', async () => {
+			await viewObjectDefinitionsPage.goto();
+
+			await viewObjectDefinitionsPage.searchObjectDefinition(
+				objectDefinitionLabel
+			);
+
+			await expect(
+				page
+					.getByRole('row', {name: objectDefinitionLabel})
+					.getByText('Approved', {exact: true})
+			).toBeVisible();
+		});
+	}
+);
+
 test('Can restrict site-scoped object portlet to the site where the role permission is granted', async ({
 	apiHelpers,
 	page,
@@ -629,3 +703,156 @@ test('Can restrict site-scoped object portlet to the site where the role permiss
 		await expect(viewObjectEntriesPage.noPermissionMessage).toBeVisible();
 	});
 });
+
+test(
+	'Can update an object definition with the Update permission',
+	{tag: '@LPD-109321'},
+	async ({apiHelpers, editObjectDetailsPage, page}) => {
+		const objectFields = generateObjectFields({
+			objectFieldBusinessTypes: ['Text'],
+		});
+
+		const objectDefinition =
+			await apiHelpers.objectAdmin.postRandomObjectDefinition({
+				objectFields,
+				panelCategoryKey: 'site_administration.content',
+				scope: 'site',
+				status: {code: 2},
+			});
+
+		apiHelpers.data.push({
+			id: objectDefinition.id,
+			type: 'objectDefinition',
+		});
+
+		const objectFieldLabel = objectFields[0].label!['en_US'];
+		const objectDefinitionLabel = 'UpdatedLabel' + getRandomInt();
+		const objectDefinitionPluralLabel = 'UpdatedPlural' + getRandomInt();
+
+		await test.step('Switch to a user with the Update permission', async () => {
+			const user = await createUserWithPermissions(apiHelpers, [
+				{
+					actionIds: ['ACCESS_IN_CONTROL_PANEL', 'VIEW'],
+					resourceName:
+						'com_liferay_object_web_internal_object_definitions_portlet_ObjectDefinitionsPortlet',
+				},
+				{
+					actionIds: ['UPDATE', 'VIEW'],
+					resourceName: 'com.liferay.object.model.ObjectDefinition',
+				},
+			]);
+
+			await performUserSwitch(page, user.alternateName);
+		});
+
+		await test.step('Update the object definition details', async () => {
+			await editObjectDetailsPage.goto(objectDefinition.label['en_US']);
+
+			await editObjectDetailsPage.waitForDetailsFormLoaded();
+
+			await editObjectDetailsPage.labelInput.fill(objectDefinitionLabel);
+
+			await editObjectDetailsPage.pluralLabelInput.fill(
+				objectDefinitionPluralLabel
+			);
+
+			await editObjectDetailsPage.selectEntryTitleField(objectFieldLabel);
+
+			await editObjectDetailsPage.selectScope('Company');
+
+			await editObjectDetailsPage.selectPanelLink('Object');
+
+			const {reload} =
+				await editObjectDetailsPage.saveObjectDefinitionReturningReload();
+
+			await waitForAlert(
+				page,
+				'Success:The object was saved successfully.'
+			);
+
+			await reload;
+		});
+
+		await test.step('Verify the saved values', async () => {
+			await editObjectDetailsPage.goto(objectDefinitionLabel);
+
+			await editObjectDetailsPage.waitForDetailsFormLoaded();
+
+			await expect(editObjectDetailsPage.labelInput).toHaveValue(
+				objectDefinitionLabel
+			);
+
+			await expect(editObjectDetailsPage.pluralLabelInput).toHaveValue(
+				objectDefinitionPluralLabel
+			);
+
+			await expect(
+				editObjectDetailsPage.entryTitleFieldCombobox
+			).toHaveText(objectFieldLabel);
+
+			await expect(editObjectDetailsPage.scopeCombobox).toHaveText(
+				'Company',
+				{ignoreCase: true}
+			);
+
+			await expect(editObjectDetailsPage.panelLinkCombobox).toHaveText(
+				'Object',
+				{ignoreCase: true}
+			);
+		});
+	}
+);
+
+test(
+	'Cannot update an object definition without the Update permission',
+	{tag: '@LPD-109321'},
+	async ({apiHelpers, editObjectDetailsPage, page}) => {
+		const objectDefinition =
+			await apiHelpers.objectAdmin.postRandomObjectDefinition({
+				status: {code: 2},
+			});
+
+		apiHelpers.data.push({
+			id: objectDefinition.id,
+			type: 'objectDefinition',
+		});
+
+		await test.step('Switch to a user without the Update permission', async () => {
+			const user = await createUserWithPermissions(apiHelpers, [
+				{
+					actionIds: ['ACCESS_IN_CONTROL_PANEL', 'VIEW'],
+					resourceName:
+						'com_liferay_object_web_internal_object_definitions_portlet_ObjectDefinitionsPortlet',
+				},
+				{
+					actionIds: ['VIEW'],
+					resourceName: 'com.liferay.object.model.ObjectDefinition',
+				},
+			]);
+
+			await performUserSwitch(page, user.alternateName);
+		});
+
+		await test.step('Verify the details form is disabled', async () => {
+			await editObjectDetailsPage.goto(objectDefinition.label['en_US']);
+
+			await expect(editObjectDetailsPage.labelInput).toHaveValue(
+				objectDefinition.label['en_US']
+			);
+
+			await expect(editObjectDetailsPage.nameInput).toBeDisabled();
+
+			await expect(editObjectDetailsPage.labelInput).toBeDisabled();
+
+			await expect(editObjectDetailsPage.pluralLabelInput).toBeDisabled();
+
+			await expect(editObjectDetailsPage.scopeCombobox).toBeDisabled();
+
+			await expect(
+				editObjectDetailsPage.panelLinkCombobox
+			).toBeDisabled();
+
+			await expect(editObjectDetailsPage.saveButton).toBeDisabled();
+		});
+	}
+);

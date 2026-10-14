@@ -37,6 +37,12 @@ buildIBMS3StoreUnitTest {
 	filter {
 		String line ->
 
+		line.replace "s3Store,", "ibmS3Store,"
+	}
+
+	filter {
+		String line ->
+
 		line.replace "s3Store.", "ibmS3Store."
 	}
 
@@ -91,9 +97,9 @@ dependencies {
 	compileInclude group: "software.amazon.awssdk", name: "url-connection-client", version: "2.39.6"
 	compileInclude group: "software.amazon.awssdk", name: "utils", version: "2.39.6"
 	compileInclude group: "software.amazon.eventstream", name: "eventstream", version: "1.0.1"
-	compileOnly group: "com.fasterxml.jackson.core", name: "jackson-annotations", version: "2.18.9"
-	compileOnly group: "com.fasterxml.jackson.core", name: "jackson-core", version: "2.18.9"
-	compileOnly group: "com.fasterxml.jackson.core", name: "jackson-databind", version: "2.18.9"
+	compileOnly group: "com.fasterxml.jackson.core", name: "jackson-annotations", version: "2.18.11"
+	compileOnly group: "com.fasterxml.jackson.core", name: "jackson-core", version: "2.18.11"
+	compileOnly group: "com.fasterxml.jackson.core", name: "jackson-databind", version: "2.18.11"
 	compileOnly group: "com.fasterxml.jackson.dataformat", name: "jackson-dataformat-cbor", version: "2.18.2"
 	compileOnly group: "com.liferay", name: "biz.aQute.bnd.annotation", version: "4.2.0.LIFERAY-PATCHED-2"
 	compileOnly group: "com.liferay.portal", name: "com.liferay.portal.impl", version: "default"
@@ -106,6 +112,7 @@ dependencies {
 	compileOnly group: "org.osgi", name: "org.osgi.service.component", version: "1.4.0"
 	compileOnly group: "org.osgi", name: "org.osgi.service.component.annotations", version: "1.4.0"
 	compileOnly group: "org.reactivestreams", name: "reactive-streams", version: "1.0.4"
+	compileOnly project(":apps:portal-security:portal-security-key-api")
 	compileOnly project(":apps:static:osgi:osgi-util")
 	compileOnly project(":apps:static:portal-configuration:portal-configuration-metatype-api")
 	compileOnly project(":core:petra:petra-concurrent")

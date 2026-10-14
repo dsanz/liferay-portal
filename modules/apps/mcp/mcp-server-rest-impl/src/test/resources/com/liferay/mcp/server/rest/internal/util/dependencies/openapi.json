@@ -82,6 +82,10 @@
 					},
 					"string": {
 						"type": "string"
+					},
+					"writeOnly": {
+						"type": "string",
+						"writeOnly": true
 					}
 				},
 				"required": [
@@ -131,6 +135,76 @@
 				"properties": {
 					"name": {
 						"type": "string"
+					},
+					"next": {
+						"$ref": "#/components/schemas/LevelE"
+					}
+				},
+				"type": "object"
+			},
+			"LevelE": {
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"next": {
+						"$ref": "#/components/schemas/LevelF"
+					}
+				},
+				"type": "object"
+			},
+			"LevelF": {
+				"properties": {
+					"name": {
+						"type": "string"
+					}
+				},
+				"type": "object"
+			},
+			"Localized": {
+				"properties": {
+					"child": {
+						"$ref": "#/components/schemas/LocalizedChild"
+					},
+					"name": {
+						"type": "string"
+					},
+					"name_i18n": {
+						"additionalProperties": {
+							"type": "string"
+						},
+						"type": "object"
+					},
+					"tags": {
+						"items": {
+							"properties": {
+								"name": {
+									"type": "string"
+								},
+								"name_i18n": {
+									"type": "object"
+								}
+							},
+							"type": "object"
+						},
+						"type": "array"
+					},
+					"title": {
+						"type": "string"
+					}
+				},
+				"type": "object"
+			},
+			"LocalizedChild": {
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"name_i18n": {
+						"additionalProperties": {
+							"type": "string"
+						},
+						"type": "object"
 					}
 				},
 				"type": "object"
@@ -237,6 +311,17 @@
 					{
 						"description": "This is the description",
 						"in": "query",
+						"name": "aggregationTerms",
+						"schema": {
+							"items": {
+								"type": "string"
+							},
+							"type": "array"
+						}
+					},
+					{
+						"description": "This is the description",
+						"in": "query",
 						"name": "filter",
 						"schema": {
 							"type": "string"
@@ -256,6 +341,14 @@
 						"name": "pageSize",
 						"schema": {
 							"type": "integer"
+						}
+					},
+					{
+						"description": "This is the description",
+						"in": "query",
+						"name": "sort",
+						"schema": {
+							"type": "string"
 						}
 					}
 				],
@@ -297,6 +390,7 @@
 						"description": "This is the description",
 						"in": "query",
 						"name": "active",
+						"required": true,
 						"schema": {
 							"type": "boolean"
 						}
@@ -368,6 +462,14 @@
 							}
 						}
 					}
+				},
+				"responses": {
+					"default": {
+						"content": {
+							"application/json": {
+							}
+						}
+					}
 				}
 			},
 			"put": {
@@ -390,6 +492,11 @@
 							}
 						}
 					}
+				},
+				"responses": {
+					"204": {
+						"description": "no content"
+					}
 				}
 			}
 		},
@@ -401,6 +508,60 @@
 						"application/json": {
 							"schema": {
 								"$ref": "#/components/schemas/LevelA"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/LevelA"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/v1.0/localized": {
+			"get": {
+				"operationId": "getLocalized",
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Localized"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/v1.0/localized-page": {
+			"get": {
+				"operationId": "getLocalizedPage",
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"properties": {
+										"items": {
+											"items": {
+												"$ref": "#/components/schemas/Localized"
+											},
+											"type": "array"
+										},
+										"page": {
+											"type": "integer"
+										}
+									},
+									"type": "object"
+								}
 							}
 						}
 					}

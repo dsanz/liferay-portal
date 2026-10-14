@@ -168,7 +168,7 @@ public class PreupgradeVerifyDatabaseStateTest
 
 	@Test
 	public void testVerifyPreupgradeMissingColumnName() throws Exception {
-		_alterColumnName("UserTracker", "companyId", "companyId_backup LONG");
+		alterColumnName("UserTracker", "companyId", "companyId_backup LONG");
 
 		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
 				PreupgradeVerifyDatabaseState.class.getName(),
@@ -187,7 +187,7 @@ public class PreupgradeVerifyDatabaseStateTest
 				exception.getMessage());
 		}
 		finally {
-			_alterColumnName(
+			alterColumnName(
 				"UserTracker", "companyId_backup", "companyId LONG");
 		}
 	}
@@ -382,9 +382,7 @@ public class PreupgradeVerifyDatabaseStateTest
 					verifyMessages.add(entry.getMessage());
 				}
 
-				Assert.assertEquals(
-					verifyMessages.toString(), expectedMessages,
-					verifyMessages);
+				Assert.assertEquals(expectedMessages, verifyMessages);
 			}
 			finally {
 				db.runSQL("DROP_TABLE_IF_EXISTS(" + tableName + ")");
@@ -490,9 +488,7 @@ public class PreupgradeVerifyDatabaseStateTest
 					verifyMessages.add(entry.getMessage());
 				}
 
-				Assert.assertEquals(
-					verifyMessages.toString(), expectedMessages,
-					verifyMessages);
+				Assert.assertEquals(expectedMessages, verifyMessages);
 			}
 			finally {
 				serviceComponent.setData(originalData);
@@ -505,7 +501,7 @@ public class PreupgradeVerifyDatabaseStateTest
 
 	@Test
 	public void testVerifyPreupgradeWrongColumnType() throws Exception {
-		_alterColumnType("Address", "city", "VARCHAR(100)");
+		alterColumnType("Address", "city", "VARCHAR(100)");
 
 		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
 				PreupgradeVerifyDatabaseState.class.getName(),
@@ -527,36 +523,13 @@ public class PreupgradeVerifyDatabaseStateTest
 					getNormalizedName("Address"), _getPartitionSuffix()));
 		}
 		finally {
-			_alterColumnType("Address", "city", "VARCHAR(75)");
+			alterColumnType("Address", "city", "VARCHAR(75)");
 		}
 	}
 
 	@Override
 	protected VerifyProcess getVerifyProcess() {
 		return new PreupgradeVerifyDatabaseState();
-	}
-
-	private void _alterColumnName(
-			String tableName, String oldColumnName, String newColumnDefinition)
-		throws Exception {
-
-		DB db = DBManagerUtil.getDB();
-
-		try (Connection connection = DataAccess.getConnection()) {
-			db.alterColumnName(
-				connection, tableName, oldColumnName, newColumnDefinition);
-		}
-	}
-
-	private void _alterColumnType(
-			String tableName, String columnName, String columnType)
-		throws Exception {
-
-		DB db = DBManagerUtil.getDB();
-
-		try (Connection connection = DataAccess.getConnection()) {
-			db.alterColumnType(connection, tableName, columnName, columnType);
-		}
 	}
 
 	private String _getPartitionSuffix() {

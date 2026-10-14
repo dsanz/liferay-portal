@@ -9,11 +9,13 @@ import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.layout.page.template.constants.LayoutPageTemplateCollectionTypeConstants;
 import com.liferay.layout.page.template.model.LayoutPageTemplateCollection;
 import com.liferay.layout.page.template.service.LayoutPageTemplateCollectionLocalService;
+import com.liferay.layout.page.template.test.util.LayoutPageTemplateTestUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.IndexWriterHelper;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.test.TestInfo;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
@@ -99,16 +101,55 @@ public class LayoutPageTemplateCollectionIndexerReindexTest {
 		_assertNoFieldValues(name);
 	}
 
+	@Test
+	@TestInfo("LPD-108334")
+	public void testReindexLayoutPageTemplateCollectionId() throws Exception {
+		LayoutPageTemplateCollection parentLayoutPageTemplateCollection =
+			LayoutPageTemplateTestUtil.addLayoutPageTemplateCollection(
+				TestPropsValues.getGroupId(),
+				LayoutPageTemplateCollectionTypeConstants.DISPLAY_PAGE);
+
+		LayoutPageTemplateCollection layoutPageTemplateCollection =
+			LayoutPageTemplateTestUtil.addLayoutPageTemplateCollection(
+				TestPropsValues.getGroupId(),
+				parentLayoutPageTemplateCollection.
+					getLayoutPageTemplateCollectionId(),
+				LayoutPageTemplateCollectionTypeConstants.DISPLAY_PAGE);
+
+		_assertFieldValue(
+			Field.FOLDER_ID,
+			String.valueOf(
+				parentLayoutPageTemplateCollection.
+					getLayoutPageTemplateCollectionId()),
+			layoutPageTemplateCollection.getName());
+
+		_layoutPageTemplateCollectionLocalService.
+			moveLayoutPageTemplateCollection(
+				layoutPageTemplateCollection.
+					getLayoutPageTemplateCollectionId(),
+				0);
+
+		_assertFieldValue(
+			Field.FOLDER_ID, "0", layoutPageTemplateCollection.getName());
+
+		_layoutPageTemplateCollectionLocalService.
+			deleteLayoutPageTemplateCollection(layoutPageTemplateCollection);
+
+		_layoutPageTemplateCollectionLocalService.
+			deleteLayoutPageTemplateCollection(
+				parentLayoutPageTemplateCollection);
+	}
+
 	@Rule
 	public SearchTestRule searchTestRule = new SearchTestRule();
+
+	@Inject
+	protected IndexWriterHelper indexWriterHelper;
 
 	@Inject(
 		filter = "indexer.class.name=com.liferay.layout.page.template.model.LayoutPageTemplateCollection"
 	)
 	protected Indexer<LayoutPageTemplateCollection> indexer;
-
-	@Inject
-	protected IndexWriterHelper indexWriterHelper;
 
 	@Inject
 	protected UIDFactory uidFactory;
@@ -162,9 +203,9 @@ public class LayoutPageTemplateCollectionIndexerReindexTest {
 		_layoutPageTemplateCollectionLocalService;
 
 	@Inject
-	private Searcher _searcher;
+	private SearchRequestBuilderFactory _searchRequestBuilderFactory;
 
 	@Inject
-	private SearchRequestBuilderFactory _searchRequestBuilderFactory;
+	private Searcher _searcher;
 
 }

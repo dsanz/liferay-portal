@@ -27,7 +27,7 @@ dependencies {
 	compileInclude group: "org.apache.httpcomponents", name: "httpcore", version: "4.4.14"
 	compileInclude group: "org.apache.neethi", name: "neethi", version: "3.2.3"
 	compileInclude group: "org.apache.woden", name: "woden-api", version: "1.0M9"
-	compileInclude group: "org.apache.ws.xmlschema", name: "xmlschema-core", version: "2.2.1"
+	compileInclude group: "org.apache.ws.xmlschema", name: "xmlschema-core", version: "2.3.3"
 	compileInclude group: "org.apache.xmlbeans", name: "xmlbeans", version: "3.1.0"
 	compileInclude group: "wsdl4j", name: "wsdl4j", version: "1.6.3"
 	compileOnly group: "com.liferay.portal", name: "com.liferay.portal.kernel", version: "default"
@@ -35,6 +35,7 @@ dependencies {
 	compileOnly group: "jakarta.annotation", name: "jakarta.annotation-api", version: "2.1.1"
 	compileOnly group: "jakarta.servlet", name: "jakarta.servlet-api", version: "6.0.0"
 	compileOnly group: "jakarta.xml.bind", name: "jakarta.xml.bind-api", version: "4.0.2"
+	compileOnly group: "org.osgi", name: "org.osgi.service.component", version: "1.4.0"
 	compileOnly group: "org.osgi", name: "org.osgi.service.component.annotations", version: "1.4.0"
 	compileOnly project(":apps:document-library:document-library-repository-external-api")
 	compileOnly project(":core:petra:petra-function")

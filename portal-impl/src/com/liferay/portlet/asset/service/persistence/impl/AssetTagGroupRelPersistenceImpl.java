@@ -490,70 +490,271 @@ public class AssetTagGroupRelPersistenceImpl
 			FinderCacheUtil.getFinderCache(), new Object[] {tagId});
 	}
 
-	private UniquePersistenceFinder
+	private CollectionPersistenceFinder
 		<AssetTagGroupRel, NoSuchTagGroupRelException>
-			_uniquePersistenceFinderByG_T;
+			_collectionPersistenceFinderByG_D;
 
 	/**
-	 * Returns the asset tag group rel where groupId = &#63; and tagId = &#63; or throws a <code>NoSuchTagGroupRelException</code> if it could not be found.
+	 * Returns an ordered range of all the asset tag group rels where groupId = &#63; and depotEntryType = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AssetTagGroupRelModelImpl</code>.
+	 * </p>
 	 *
 	 * @param groupId the group ID
-	 * @param tagId the tag ID
-	 * @return the matching asset tag group rel
-	 * @throws NoSuchTagGroupRelException if a matching asset tag group rel could not be found
+	 * @param depotEntryType the depot entry type
+	 * @param start the lower bound of the range of asset tag group rels
+	 * @param end the upper bound of the range of asset tag group rels (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the ordered range of matching asset tag group rels
 	 */
 	@Override
-	public AssetTagGroupRel findByG_T(long groupId, long tagId)
-		throws NoSuchTagGroupRelException {
+	public List<AssetTagGroupRel> findByG_D(
+		long groupId, int depotEntryType, int start, int end,
+		OrderByComparator<AssetTagGroupRel> orderByComparator,
+		boolean useFinderCache) {
 
-		return _uniquePersistenceFinderByG_T.find(
-			FinderCacheUtil.getFinderCache(), new Object[] {groupId, tagId});
+		return _collectionPersistenceFinderByG_D.find(
+			FinderCacheUtil.getFinderCache(),
+			new Object[] {groupId, depotEntryType}, start, end,
+			orderByComparator, useFinderCache);
 	}
 
 	/**
-	 * Returns the asset tag group rel where groupId = &#63; and tagId = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
+	 * Returns the first asset tag group rel in the ordered set where groupId = &#63; and depotEntryType = &#63;.
 	 *
 	 * @param groupId the group ID
-	 * @param tagId the tag ID
-	 * @param useFinderCache whether to use the finder cache
-	 * @return the matching asset tag group rel, or <code>null</code> if a matching asset tag group rel could not be found
+	 * @param depotEntryType the depot entry type
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching asset tag group rel
+	 * @throws NoSuchTagGroupRelException if a matching asset tag group rel could not be found
 	 */
 	@Override
-	public AssetTagGroupRel fetchByG_T(
-		long groupId, long tagId, boolean useFinderCache) {
+	public AssetTagGroupRel findByG_D_First(
+			long groupId, int depotEntryType,
+			OrderByComparator<AssetTagGroupRel> orderByComparator)
+		throws NoSuchTagGroupRelException {
 
-		return _uniquePersistenceFinderByG_T.fetch(
-			FinderCacheUtil.getFinderCache(), new Object[] {groupId, tagId},
+		return _collectionPersistenceFinderByG_D.findFirst(
+			FinderCacheUtil.getFinderCache(),
+			new Object[] {groupId, depotEntryType}, orderByComparator);
+	}
+
+	/**
+	 * Returns the first asset tag group rel in the ordered set where groupId = &#63; and depotEntryType = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param depotEntryType the depot entry type
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching asset tag group rel, or <code>null</code> if a matching asset tag group rel could not be found
+	 */
+	@Override
+	public AssetTagGroupRel fetchByG_D_First(
+		long groupId, int depotEntryType,
+		OrderByComparator<AssetTagGroupRel> orderByComparator) {
+
+		return _collectionPersistenceFinderByG_D.fetchFirst(
+			FinderCacheUtil.getFinderCache(),
+			new Object[] {groupId, depotEntryType}, orderByComparator);
+	}
+
+	/**
+	 * Removes all the asset tag group rels where groupId = &#63; and depotEntryType = &#63; from the database.
+	 *
+	 * @param groupId the group ID
+	 * @param depotEntryType the depot entry type
+	 */
+	@Override
+	public void removeByG_D(long groupId, int depotEntryType) {
+		_collectionPersistenceFinderByG_D.remove(
+			FinderCacheUtil.getFinderCache(),
+			new Object[] {groupId, depotEntryType});
+	}
+
+	/**
+	 * Returns the number of asset tag group rels where groupId = &#63; and depotEntryType = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param depotEntryType the depot entry type
+	 * @return the number of matching asset tag group rels
+	 */
+	@Override
+	public int countByG_D(long groupId, int depotEntryType) {
+		return _collectionPersistenceFinderByG_D.count(
+			FinderCacheUtil.getFinderCache(),
+			new Object[] {groupId, depotEntryType});
+	}
+
+	private CollectionPersistenceFinder
+		<AssetTagGroupRel, NoSuchTagGroupRelException>
+			_collectionPersistenceFinderByT_D;
+
+	/**
+	 * Returns an ordered range of all the asset tag group rels where tagId = &#63; and depotEntryType = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>AssetTagGroupRelModelImpl</code>.
+	 * </p>
+	 *
+	 * @param tagId the tag ID
+	 * @param depotEntryType the depot entry type
+	 * @param start the lower bound of the range of asset tag group rels
+	 * @param end the upper bound of the range of asset tag group rels (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the ordered range of matching asset tag group rels
+	 */
+	@Override
+	public List<AssetTagGroupRel> findByT_D(
+		long tagId, int depotEntryType, int start, int end,
+		OrderByComparator<AssetTagGroupRel> orderByComparator,
+		boolean useFinderCache) {
+
+		return _collectionPersistenceFinderByT_D.find(
+			FinderCacheUtil.getFinderCache(),
+			new Object[] {tagId, depotEntryType}, start, end, orderByComparator,
 			useFinderCache);
 	}
 
 	/**
-	 * Removes the asset tag group rel where groupId = &#63; and tagId = &#63; from the database.
+	 * Returns the first asset tag group rel in the ordered set where tagId = &#63; and depotEntryType = &#63;.
+	 *
+	 * @param tagId the tag ID
+	 * @param depotEntryType the depot entry type
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching asset tag group rel
+	 * @throws NoSuchTagGroupRelException if a matching asset tag group rel could not be found
+	 */
+	@Override
+	public AssetTagGroupRel findByT_D_First(
+			long tagId, int depotEntryType,
+			OrderByComparator<AssetTagGroupRel> orderByComparator)
+		throws NoSuchTagGroupRelException {
+
+		return _collectionPersistenceFinderByT_D.findFirst(
+			FinderCacheUtil.getFinderCache(),
+			new Object[] {tagId, depotEntryType}, orderByComparator);
+	}
+
+	/**
+	 * Returns the first asset tag group rel in the ordered set where tagId = &#63; and depotEntryType = &#63;.
+	 *
+	 * @param tagId the tag ID
+	 * @param depotEntryType the depot entry type
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching asset tag group rel, or <code>null</code> if a matching asset tag group rel could not be found
+	 */
+	@Override
+	public AssetTagGroupRel fetchByT_D_First(
+		long tagId, int depotEntryType,
+		OrderByComparator<AssetTagGroupRel> orderByComparator) {
+
+		return _collectionPersistenceFinderByT_D.fetchFirst(
+			FinderCacheUtil.getFinderCache(),
+			new Object[] {tagId, depotEntryType}, orderByComparator);
+	}
+
+	/**
+	 * Removes all the asset tag group rels where tagId = &#63; and depotEntryType = &#63; from the database.
+	 *
+	 * @param tagId the tag ID
+	 * @param depotEntryType the depot entry type
+	 */
+	@Override
+	public void removeByT_D(long tagId, int depotEntryType) {
+		_collectionPersistenceFinderByT_D.remove(
+			FinderCacheUtil.getFinderCache(),
+			new Object[] {tagId, depotEntryType});
+	}
+
+	/**
+	 * Returns the number of asset tag group rels where tagId = &#63; and depotEntryType = &#63;.
+	 *
+	 * @param tagId the tag ID
+	 * @param depotEntryType the depot entry type
+	 * @return the number of matching asset tag group rels
+	 */
+	@Override
+	public int countByT_D(long tagId, int depotEntryType) {
+		return _collectionPersistenceFinderByT_D.count(
+			FinderCacheUtil.getFinderCache(),
+			new Object[] {tagId, depotEntryType});
+	}
+
+	private UniquePersistenceFinder
+		<AssetTagGroupRel, NoSuchTagGroupRelException>
+			_uniquePersistenceFinderByG_T_D;
+
+	/**
+	 * Returns the asset tag group rel where groupId = &#63; and tagId = &#63; and depotEntryType = &#63; or throws a <code>NoSuchTagGroupRelException</code> if it could not be found.
 	 *
 	 * @param groupId the group ID
 	 * @param tagId the tag ID
+	 * @param depotEntryType the depot entry type
+	 * @return the matching asset tag group rel
+	 * @throws NoSuchTagGroupRelException if a matching asset tag group rel could not be found
+	 */
+	@Override
+	public AssetTagGroupRel findByG_T_D(
+			long groupId, long tagId, int depotEntryType)
+		throws NoSuchTagGroupRelException {
+
+		return _uniquePersistenceFinderByG_T_D.find(
+			FinderCacheUtil.getFinderCache(),
+			new Object[] {groupId, tagId, depotEntryType});
+	}
+
+	/**
+	 * Returns the asset tag group rel where groupId = &#63; and tagId = &#63; and depotEntryType = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
+	 *
+	 * @param groupId the group ID
+	 * @param tagId the tag ID
+	 * @param depotEntryType the depot entry type
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the matching asset tag group rel, or <code>null</code> if a matching asset tag group rel could not be found
+	 */
+	@Override
+	public AssetTagGroupRel fetchByG_T_D(
+		long groupId, long tagId, int depotEntryType, boolean useFinderCache) {
+
+		return _uniquePersistenceFinderByG_T_D.fetch(
+			FinderCacheUtil.getFinderCache(),
+			new Object[] {groupId, tagId, depotEntryType}, useFinderCache);
+	}
+
+	/**
+	 * Removes the asset tag group rel where groupId = &#63; and tagId = &#63; and depotEntryType = &#63; from the database.
+	 *
+	 * @param groupId the group ID
+	 * @param tagId the tag ID
+	 * @param depotEntryType the depot entry type
 	 * @return the asset tag group rel that was removed
 	 */
 	@Override
-	public AssetTagGroupRel removeByG_T(long groupId, long tagId)
+	public AssetTagGroupRel removeByG_T_D(
+			long groupId, long tagId, int depotEntryType)
 		throws NoSuchTagGroupRelException {
 
-		AssetTagGroupRel assetTagGroupRel = findByG_T(groupId, tagId);
+		AssetTagGroupRel assetTagGroupRel = findByG_T_D(
+			groupId, tagId, depotEntryType);
 
 		return remove(assetTagGroupRel);
 	}
 
 	/**
-	 * Returns the number of asset tag group rels where groupId = &#63; and tagId = &#63;.
+	 * Returns the number of asset tag group rels where groupId = &#63; and tagId = &#63; and depotEntryType = &#63;.
 	 *
 	 * @param groupId the group ID
 	 * @param tagId the tag ID
+	 * @param depotEntryType the depot entry type
 	 * @return the number of matching asset tag group rels
 	 */
 	@Override
-	public int countByG_T(long groupId, long tagId) {
-		return _uniquePersistenceFinderByG_T.count(
-			FinderCacheUtil.getFinderCache(), new Object[] {groupId, tagId});
+	public int countByG_T_D(long groupId, long tagId, int depotEntryType) {
+		return _uniquePersistenceFinderByG_T_D.count(
+			FinderCacheUtil.getFinderCache(),
+			new Object[] {groupId, tagId, depotEntryType});
 	}
 
 	public AssetTagGroupRelPersistenceImpl() {
@@ -804,6 +1005,7 @@ public class AssetTagGroupRelPersistenceImpl
 		ctStrictColumnNames.add("groupId");
 		ctStrictColumnNames.add("companyId");
 		ctMergeColumnNames.add("tagId");
+		ctMergeColumnNames.add("depotEntryType");
 
 		_ctColumnNamesMap.put(
 			CTColumnResolutionType.CONTROL, ctControlColumnNames);
@@ -945,20 +1147,88 @@ public class AssetTagGroupRelPersistenceImpl
 				"assetTagGroupRel.", "tagId", FinderColumn.Type.LONG, "=", true,
 				true, AssetTagGroupRel::getTagId));
 
-		_uniquePersistenceFinderByG_T = new UniquePersistenceFinder<>(
+		_collectionPersistenceFinderByG_D = new CollectionPersistenceFinder<>(
+			this,
+			new FinderPath(
+				FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByG_D",
+				new String[] {
+					Long.class.getName(), Integer.class.getName(),
+					Integer.class.getName(), Integer.class.getName(),
+					OrderByComparator.class.getName()
+				},
+				new String[] {"groupId", "depotEntryType"}, true),
+			new FinderPath(
+				FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByG_D",
+				new String[] {Long.class.getName(), Integer.class.getName()},
+				new String[] {"groupId", "depotEntryType"}, true),
+			new FinderPath(
+				FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByG_D",
+				new String[] {Long.class.getName(), Integer.class.getName()},
+				new String[] {"groupId", "depotEntryType"}, false),
+			_SQL_SELECT_ASSETTAGGROUPREL_WHERE,
+			_SQL_COUNT_ASSETTAGGROUPREL_WHERE,
+			AssetTagGroupRelModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			"", null,
+			new FinderColumn<>(
+				"assetTagGroupRel.", "groupId", FinderColumn.Type.LONG, "=",
+				true, true, AssetTagGroupRel::getGroupId),
+			new FinderColumn<>(
+				"assetTagGroupRel.", "depotEntryType",
+				FinderColumn.Type.INTEGER, "=", true, true,
+				AssetTagGroupRel::getDepotEntryType));
+
+		_collectionPersistenceFinderByT_D = new CollectionPersistenceFinder<>(
+			this,
+			new FinderPath(
+				FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByT_D",
+				new String[] {
+					Long.class.getName(), Integer.class.getName(),
+					Integer.class.getName(), Integer.class.getName(),
+					OrderByComparator.class.getName()
+				},
+				new String[] {"tagId", "depotEntryType"}, true),
+			new FinderPath(
+				FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByT_D",
+				new String[] {Long.class.getName(), Integer.class.getName()},
+				new String[] {"tagId", "depotEntryType"}, true),
+			new FinderPath(
+				FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByT_D",
+				new String[] {Long.class.getName(), Integer.class.getName()},
+				new String[] {"tagId", "depotEntryType"}, false),
+			_SQL_SELECT_ASSETTAGGROUPREL_WHERE,
+			_SQL_COUNT_ASSETTAGGROUPREL_WHERE,
+			AssetTagGroupRelModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			"", null,
+			new FinderColumn<>(
+				"assetTagGroupRel.", "tagId", FinderColumn.Type.LONG, "=", true,
+				true, AssetTagGroupRel::getTagId),
+			new FinderColumn<>(
+				"assetTagGroupRel.", "depotEntryType",
+				FinderColumn.Type.INTEGER, "=", true, true,
+				AssetTagGroupRel::getDepotEntryType));
+
+		_uniquePersistenceFinderByG_T_D = new UniquePersistenceFinder<>(
 			this,
 			createUniqueFinderPath(
-				FINDER_CLASS_NAME_ENTITY, "fetchByG_T",
-				new String[] {Long.class.getName(), Long.class.getName()},
-				new String[] {"groupId", "tagId"}, 0, 0, false,
-				AssetTagGroupRel::getGroupId, AssetTagGroupRel::getTagId),
+				FINDER_CLASS_NAME_ENTITY, "fetchByG_T_D",
+				new String[] {
+					Long.class.getName(), Long.class.getName(),
+					Integer.class.getName()
+				},
+				new String[] {"groupId", "tagId", "depotEntryType"}, 0, 0,
+				false, AssetTagGroupRel::getGroupId, AssetTagGroupRel::getTagId,
+				AssetTagGroupRel::getDepotEntryType),
 			_SQL_SELECT_ASSETTAGGROUPREL_WHERE, "",
 			new FinderColumn<>(
 				"assetTagGroupRel.", "groupId", FinderColumn.Type.LONG, "=",
 				true, true, AssetTagGroupRel::getGroupId),
 			new FinderColumn<>(
 				"assetTagGroupRel.", "tagId", FinderColumn.Type.LONG, "=", true,
-				true, AssetTagGroupRel::getTagId));
+				true, AssetTagGroupRel::getTagId),
+			new FinderColumn<>(
+				"assetTagGroupRel.", "depotEntryType",
+				FinderColumn.Type.INTEGER, "=", true, true,
+				AssetTagGroupRel::getDepotEntryType));
 
 		AssetTagGroupRelUtil.setPersistence(this);
 	}
@@ -990,4 +1260,4 @@ public class AssetTagGroupRelPersistenceImpl
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:2115172177
+// LIFERAY-SERVICE-BUILDER-HASH:-376902628

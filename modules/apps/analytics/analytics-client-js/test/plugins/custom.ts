@@ -75,6 +75,7 @@ describe('Custom Asset Plugin', () => {
 	let Analytics: AnalyticsClient;
 
 	beforeEach(() => {
+		fetchMock.mockGlobal();
 
 		// Force attaching DOM Content Loaded event
 
@@ -83,7 +84,7 @@ describe('Custom Asset Plugin', () => {
 			writable: false,
 		});
 
-		fetchMock.mock('*', () => 200);
+		fetchMock.route('*', () => 200);
 
 		Analytics = AnalyticsClient.create(INITIAL_ANALYTICS_CONFIG);
 	});
@@ -92,7 +93,7 @@ describe('Custom Asset Plugin', () => {
 		Analytics.reset();
 		AnalyticsClient.dispose();
 
-		fetchMock.restore();
+		fetchMock.hardReset();
 	});
 
 	describe('assetViewed event', () => {

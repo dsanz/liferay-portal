@@ -1,7 +1,7 @@
 import * as data from 'test/data';
 import AttributeConjunctionDisplay from '../AttributeConjunctionDisplay';
 import React from 'react';
-import {DataTypes} from 'event-analysis/utils/types';
+import {DataTypes} from 'shared/types/DataTypes';
 import {encodeAttributeId} from 'segment/segment-editor/dynamic/inputs/components/attribute-conjunction-input/utils';
 import {
 	FunctionalOperators,
@@ -93,6 +93,23 @@ describe('AttributeConjunctionDisplay', () => {
 		);
 
 		expect(getByText('articleId')).toBeTruthy();
+	});
+
+	it('renders a between date range with the custom date format', () => {
+		const {getByText} = render(
+			<DefaultComponent
+				conjunctionCriterion={{
+					operatorName: FunctionalOperators.Between,
+					propertyName: 'attribute/4',
+					value: {
+						end: '2026-07-20T23:30:00.000Z',
+						start: '2026-06-10T14:30:00.000Z'
+					}
+				}}
+			/>
+		);
+
+		expect(getByText('Jun 10, 2026 - Jul 20, 2026')).toBeInTheDocument();
 	});
 
 	it.each`

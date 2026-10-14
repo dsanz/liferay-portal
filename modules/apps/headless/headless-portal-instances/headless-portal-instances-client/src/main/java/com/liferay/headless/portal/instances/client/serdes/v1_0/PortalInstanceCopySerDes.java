@@ -10,6 +10,7 @@ import com.liferay.headless.portal.instances.client.json.BaseJSONParser;
 
 import jakarta.annotation.Generated;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -66,6 +67,20 @@ public class PortalInstanceCopySerDes {
 			sb.append("\"");
 
 			sb.append(_escape(portalInstanceCopy.getName()));
+
+			sb.append("\"");
+		}
+
+		if (portalInstanceCopy.getSourcePortalInstanceId() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"sourcePortalInstanceId\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(portalInstanceCopy.getSourcePortalInstanceId()));
 
 			sb.append("\"");
 		}
@@ -135,6 +150,15 @@ public class PortalInstanceCopySerDes {
 			map.put("name", String.valueOf(portalInstanceCopy.getName()));
 		}
 
+		if (portalInstanceCopy.getSourcePortalInstanceId() == null) {
+			map.put("sourcePortalInstanceId", null);
+		}
+		else {
+			map.put(
+				"sourcePortalInstanceId",
+				String.valueOf(portalInstanceCopy.getSourcePortalInstanceId()));
+		}
+
 		if (portalInstanceCopy.getVirtualHost() == null) {
 			map.put("virtualHost", null);
 		}
@@ -175,6 +199,11 @@ public class PortalInstanceCopySerDes {
 			else if (Objects.equals(jsonParserFieldName, "name")) {
 				return false;
 			}
+			else if (Objects.equals(
+						jsonParserFieldName, "sourcePortalInstanceId")) {
+
+				return false;
+			}
 			else if (Objects.equals(jsonParserFieldName, "virtualHost")) {
 				return false;
 			}
@@ -199,6 +228,14 @@ public class PortalInstanceCopySerDes {
 			else if (Objects.equals(jsonParserFieldName, "name")) {
 				if (jsonParserFieldValue != null) {
 					portalInstanceCopy.setName((String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(
+						jsonParserFieldName, "sourcePortalInstanceId")) {
+
+				if (jsonParserFieldValue != null) {
+					portalInstanceCopy.setSourcePortalInstanceId(
+						(String)jsonParserFieldValue);
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "virtualHost")) {
@@ -261,6 +298,12 @@ public class PortalInstanceCopySerDes {
 			return "null";
 		}
 
+		if (value instanceof Collection) {
+			Collection<?> collection = (Collection<?>)value;
+
+			return _toJSON(collection.toArray());
+		}
+
 		if (value instanceof Map) {
 			return _toJSON((Map)value);
 		}
@@ -293,4 +336,4 @@ public class PortalInstanceCopySerDes {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:-305157922
+// LIFERAY-REST-BUILDER-HASH:-889002932

@@ -1,15 +1,15 @@
 import ClayButton from '@clayui/button';
 import ClayDropdown from '@clayui/drop-down';
-import ClayIcon from '@clayui/icon';
+import ClayIcon from 'shared/components/Icon';
 import getCN from 'classnames';
 import InfoCardPopover from '../InfoCardPopover';
 import Overlay from 'shared/components/Overlay';
 import React, {useRef} from 'react';
 import {Attribute, Event} from 'event-analysis/utils/types';
-import {DATA_TYPE_ICONS_MAP, isAttribute} from 'event-analysis/utils/utils';
+import {DATA_TYPE_ICONS_MAP} from 'shared/types/DataTypes';
+import {isAttribute} from 'event-analysis/utils/utils';
 
 interface IListItemProps {
-	active?: boolean;
 	disabled?: boolean;
 	editable?: boolean;
 	item: Attribute | Event;
@@ -20,7 +20,6 @@ interface IListItemProps {
 }
 
 const ListItem: React.FC<IListItemProps> = ({
-	active,
 	disabled,
 	editable = true,
 	item,
@@ -35,7 +34,7 @@ const ListItem: React.FC<IListItemProps> = ({
 
 	return (
 		<Overlay
-			alignment="leftCenter"
+			alignment="rightCenter"
 			hideDelay={200}
 			ref={_overlayRef}
 			showDelay={200}
@@ -43,7 +42,6 @@ const ListItem: React.FC<IListItemProps> = ({
 		>
 			<ClayDropdown.Item
 				className={getCN('d-flex justify-content-between', {
-					active,
 					disabled,
 				})}
 				key={id}

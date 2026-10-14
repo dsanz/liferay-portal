@@ -8,7 +8,8 @@ package com.liferay.portal.security.audit.wiring.internal.servlet.filter;
 import com.liferay.petra.lang.CentralizedThreadLocal;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
-import com.liferay.portal.kernel.audit.AuditRequestThreadLocal;
+import com.liferay.portal.kernel.audit.AuditRequestContext;
+import com.liferay.portal.kernel.audit.AuditRequestContextThreadLocal;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogContext;
@@ -29,7 +30,6 @@ import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
-import com.liferay.portal.security.audit.configuration.AuditConfigurationUtil;
 import com.liferay.portal.security.audit.wiring.internal.configuration.AuditLogContextConfiguration;
 
 import jakarta.servlet.Filter;
@@ -55,6 +55,7 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(
 	configurationPid = "com.liferay.portal.security.audit.wiring.internal.configuration.AuditLogContextConfiguration",
+	enabled = false,
 	property = {
 		"after-filter=Session Max Allowed Filter", "servlet-context-name=",
 		"servlet-filter-name=Audit Filter", "url-pattern=/*",
@@ -70,24 +71,29 @@ public class AuditFilter extends BaseFilter implements TryFilter {
 			HttpServletResponse httpServletResponse)
 		throws Exception {
 
-		AuditRequestThreadLocal auditRequestThreadLocal =
-			AuditRequestThreadLocal.getAuditThreadLocal();
+		AuditRequestContext auditRequestContext =
+			AuditRequestContextThreadLocal.getAuditRequestContext();
 
-		auditRequestThreadLocal.setClientHost(
-			httpServletRequest.getRemoteHost());
+		auditRequestContext.setClientHost(httpServletRequest.getRemoteHost());
 
 		String remoteAddr = httpServletRequest.getRemoteAddr();
 
-		auditRequestThreadLocal.setClientIP(remoteAddr);
+		auditRequestContext.setClientIP(remoteAddr);
 
-		auditRequestThreadLocal.setQueryString(
-			httpServletRequest.getQueryString());
+		auditRequestContext.setQueryString(httpServletRequest.getQueryString());
 
 		String userEmailAddress = StringPool.BLANK;
 
-		HttpSession httpSession = httpServletRequest.getSession();
+		HttpSession httpSession = httpServletRequest.getSession(false);
 
-		Long userId = (Long)httpSession.getAttribute(WebKeys.USER_ID);
+		String auditSessionId = null;
+		Long userId = null;
+
+		if (httpSession != null) {
+			auditSessionId = (String)httpSession.getAttribute(
+				WebKeys.AUDIT_SESSION_ID);
+			userId = (Long)httpSession.getAttribute(WebKeys.USER_ID);
+		}
 
 		String userLogin = StringPool.BLANK;
 
@@ -97,27 +103,23 @@ public class AuditFilter extends BaseFilter implements TryFilter {
 			if (user != null) {
 				userEmailAddress = user.getEmailAddress();
 
-				auditRequestThreadLocal.setRealUserEmailAddress(
-					userEmailAddress);
+				auditRequestContext.setRealUserEmailAddress(userEmailAddress);
 
-				auditRequestThreadLocal.setRealUserId(userId);
+				auditRequestContext.setRealUserId(userId);
 
 				userLogin = _getUserLogin(user);
 
-				auditRequestThreadLocal.setRealUserLogin(userLogin);
+				auditRequestContext.setRealUserLogin(userLogin);
 			}
 		}
 
 		StringBuffer sb = httpServletRequest.getRequestURL();
 
-		auditRequestThreadLocal.setRequestURL(sb.toString());
+		auditRequestContext.setRequestURL(sb.toString());
 
-		auditRequestThreadLocal.setServerName(
-			httpServletRequest.getServerName());
-		auditRequestThreadLocal.setServerPort(
-			httpServletRequest.getServerPort());
-		auditRequestThreadLocal.setSessionID(
-			(String)httpSession.getAttribute(WebKeys.AUDIT_SESSION_ID));
+		auditRequestContext.setServerName(httpServletRequest.getServerName());
+		auditRequestContext.setServerPort(httpServletRequest.getServerPort());
+		auditRequestContext.setSessionID(auditSessionId);
 
 		long companyId = CompanyThreadLocal.getCompanyId();
 
@@ -128,10 +130,10 @@ public class AuditFilter extends BaseFilter implements TryFilter {
 			if (!_isValidXRequestId(xRequestId)) {
 				xRequestId = PortalUUIDUtil.generate();
 
-				auditRequestThreadLocal.setRequestIdGenerated(true);
+				auditRequestContext.setRequestIdGenerated(true);
 			}
 
-			auditRequestThreadLocal.setRequestId(xRequestId);
+			auditRequestContext.setRequestId(xRequestId);
 		}
 
 		if (!_auditLogContextConfiguration.enabled()) {
@@ -152,24 +154,6 @@ public class AuditFilter extends BaseFilter implements TryFilter {
 			userEmailAddress, userId, userLogin, xRequestId);
 
 		return null;
-	}
-
-	@Override
-	public boolean isFilterEnabled(
-		HttpServletRequest httpServletRequest,
-		HttpServletResponse httpServletResponse) {
-
-		long companyId = CompanyThreadLocal.getCompanyId();
-
-		if (companyId == CompanyConstants.SYSTEM) {
-			if (_log.isDebugEnabled()) {
-				_log.debug("Skip filter for company ID 0");
-			}
-
-			return false;
-		}
-
-		return AuditConfigurationUtil.isEnabled(companyId);
 	}
 
 	@Activate

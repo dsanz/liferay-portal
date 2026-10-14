@@ -372,6 +372,10 @@ public class SitemapManagerTest {
 							"includeWebContent", false
 						).build())) {
 
+			_sitemapManager.regenerateSitemap(
+				SitemapConstants.ASSET_TYPE_KEY_PAGES,
+				TestPropsValues.getCompanyId(), _group.getGroupId());
+
 			String xml = _sitemapManager.getSitemap(
 				_layoutClassNameId, null, _group.getGroupId(), 1, true,
 				_themeDisplay);
@@ -527,9 +531,9 @@ public class SitemapManagerTest {
 
 			_addJournalArticleAssetDisplayPageEntry(_addJournalArticle());
 
-			_sitemapManager.getSitemap(
-				_journalArticleClassNameId, null, _group.getGroupId(), false,
-				_themeDisplay);
+			_sitemapManager.regenerateSitemap(
+				SitemapConstants.ASSET_TYPE_KEY_WEB_CONTENT,
+				TestPropsValues.getCompanyId(), _group.getGroupId());
 
 			String xml = StringUtil.read(
 				_sitemapStorageHelper.getSitemapInputStream(
@@ -571,12 +575,12 @@ public class SitemapManagerTest {
 						_addJournalArticle());
 				}
 
-				_sitemapManager.getSitemap(
-					_journalArticleClassNameId, null, _group.getGroupId(), 1,
-					false, _themeDisplay);
-
 				long companyId = TestPropsValues.getCompanyId();
 				long groupId = _group.getGroupId();
+
+				_sitemapManager.regenerateSitemap(
+					SitemapConstants.ASSET_TYPE_KEY_WEB_CONTENT, companyId,
+					groupId);
 
 				Assert.assertTrue(
 					_sitemapStorageHelper.hasSitemapFile(
@@ -1697,7 +1701,9 @@ public class SitemapManagerTest {
 	}
 
 	@Test
-	public void testSitemapIndexByAssetTypeStoresInDLStore() throws Exception {
+	public void testSitemapIndexByAssetTypeServesStoredIndex()
+		throws Exception {
+
 		try (CompanyConfigurationTemporarySwapper
 				companyConfigurationTemporarySwapper =
 					new CompanyConfigurationTemporarySwapper(
@@ -1712,12 +1718,16 @@ public class SitemapManagerTest {
 							SitemapConstants.INDEX_MODE_ASSET_TYPE
 						).build())) {
 
-			_sitemapManager.getSitemap(
-				null, _group.getGroupId(), false, _themeDisplay);
+			_sitemapManager.regenerateSitemap(
+				SitemapConstants.ASSET_TYPE_KEY_PAGES,
+				TestPropsValues.getCompanyId(), _group.getGroupId());
 
-			Assert.assertTrue(
-				_sitemapStorageHelper.hasSitemapFile(
-					TestPropsValues.getCompanyId(), _group.getGroupId()));
+			Assert.assertEquals(
+				_sitemapManager.getSitemap(
+					null, _group.getGroupId(), false, _themeDisplay),
+				StringUtil.read(
+					_sitemapStorageHelper.getSitemapInputStream(
+						TestPropsValues.getCompanyId(), _group.getGroupId())));
 		}
 	}
 
@@ -1757,6 +1767,42 @@ public class SitemapManagerTest {
 				xml, _getLocElement(elements, _buildLayoutSitemapURL(_layout)));
 			Assert.assertNull(
 				xml, _getLocElement(elements, _buildLayoutSitemapURL(layout)));
+		}
+	}
+
+	@Test
+	public void testSitemapIndexExcludesUnpublishedLayout() throws Exception {
+		Layout publishedLayout = LayoutTestUtil.addTypeContentPublishedLayout(
+			_group, RandomTestUtil.randomString(),
+			WorkflowConstants.STATUS_APPROVED);
+		Layout unpublishedLayout = LayoutTestUtil.addTypeContentLayout(_group);
+
+		try (CompanyConfigurationTemporarySwapper
+				companyConfigurationTemporarySwapper =
+					new CompanyConfigurationTemporarySwapper(
+						TestPropsValues.getCompanyId(),
+						_PID_SITEMAP_COMPANY_CONFIGURATION,
+						HashMapDictionaryBuilder.<String, Object>put(
+							"xmlSitemapIndexEnabled", true
+						).build())) {
+
+			String xml = _sitemapManager.getSitemap(
+				_group.getGroupId(), false, _themeDisplay);
+
+			Document document = _saxReader.read(xml);
+
+			Element rootElement = document.getRootElement();
+
+			List<Element> elements = rootElement.elements();
+
+			Assert.assertNotNull(
+				xml,
+				_getLocElement(
+					elements, _buildLayoutSitemapURL(publishedLayout)));
+			Assert.assertNull(
+				xml,
+				_getLocElement(
+					elements, _buildLayoutSitemapURL(unpublishedLayout)));
 		}
 	}
 

@@ -6,6 +6,7 @@
 package com.liferay.audiences.web.internal.portlet.action;
 
 import com.liferay.audiences.constants.AudiencesPortletKeys;
+import com.liferay.audiences.exception.AudiencesEntryGroupERCException;
 import com.liferay.audiences.exception.AudiencesEntryJSONAttributeException;
 import com.liferay.audiences.exception.AudiencesEntryJSONException;
 import com.liferay.audiences.exception.AudiencesEntryNameException;
@@ -58,15 +59,18 @@ public class UpdateAudiencesEntryMVCActionCommand extends BaseMVCActionCommand {
 			actionRequest, "externalReferenceCode");
 		String json = ParamUtil.getString(actionRequest, "json");
 		String name = ParamUtil.getString(actionRequest, "name");
+		String[] groupERCs = ParamUtil.getStringValues(
+			actionRequest, "groupERCs");
 
 		try {
 			if (audiencesEntryId <= 0) {
 				_audiencesEntryService.addAudiencesEntry(
-					externalReferenceCode, json, name);
+					externalReferenceCode, json, name, groupERCs);
 			}
 			else {
 				_audiencesEntryService.updateAudiencesEntry(
-					audiencesEntryId, externalReferenceCode, json, name);
+					audiencesEntryId, externalReferenceCode, json, name,
+					groupERCs);
 			}
 
 			MultiSessionMessages.add(
@@ -93,7 +97,13 @@ public class UpdateAudiencesEntryMVCActionCommand extends BaseMVCActionCommand {
 	private JSONObject _getErrorJSONObject(
 		Exception exception, ThemeDisplay themeDisplay) {
 
-		if (exception instanceof AudiencesEntryJSONAttributeException) {
+		if (exception instanceof AudiencesEntryGroupERCException) {
+			return JSONUtil.put(
+				"groupERCs",
+				_language.get(
+					themeDisplay.getLocale(), "the-site-could-not-be-found"));
+		}
+		else if (exception instanceof AudiencesEntryJSONAttributeException) {
 			return JSONUtil.put(
 				"other",
 				_language.get(

@@ -69,29 +69,39 @@ public class DataMaskRelevantObjectEntryModelListenerTest {
 
 		AssertUtils.assertFailure(
 			ModelListenerException.class,
-			"Invalid \"detectionRegex\": Unclosed character class near index " +
-				"0\n[\n^",
+			"com.liferay.object.exception.ObjectEntryValuesException$" +
+				"InvalidObjectField: Invalid \"detectionRegex\": Unclosed " +
+					"character class near index 0\n[\n^",
 			() -> _addCustomDataMaskObjectEntry(objectDefinition, "[", null));
 		AssertUtils.assertFailure(
 			ModelListenerException.class,
-			"Invalid \"replacementRegex\": Unclosed character class near " +
-				"index 0\n[\n^",
+			"com.liferay.object.exception.ObjectEntryValuesException$" +
+				"InvalidObjectField: Invalid \"replacementRegex\": Unclosed " +
+					"character class near index 0\n[\n^",
 			() -> _addCustomDataMaskObjectEntry(objectDefinition, "\\w+", "["));
 		AssertUtils.assertFailure(
-			ModelListenerException.class, "Unable to create system data masks",
+			ModelListenerException.class,
+			"java.lang.UnsupportedOperationException: Unable to create " +
+				"system data masks",
 			() -> _addSystemDataMaskObjectEntry(objectDefinition));
+
+		ObjectEntry objectEntry = null;
 
 		BatchEngineUnitThreadLocal.setFileName(_DATA_MASK_BATCH_FILE_NAME);
 
 		try {
-			ObjectEntry objectEntry = _addSystemDataMaskObjectEntry(
-				objectDefinition);
+			objectEntry = _addSystemDataMaskObjectEntry(objectDefinition);
 
 			Assert.assertNotNull(
 				_objectEntryLocalService.fetchObjectEntry(
 					objectEntry.getObjectEntryId()));
 		}
 		finally {
+			if (objectEntry != null) {
+				_objectEntryLocalService.deleteObjectEntry(
+					objectEntry.getObjectEntryId());
+			}
+
 			BatchEngineUnitThreadLocal.setFileName(StringPool.BLANK);
 		}
 	}
@@ -112,7 +122,9 @@ public class DataMaskRelevantObjectEntryModelListenerTest {
 		ObjectEntry objectEntry2 = _getDataMaskObjectEntry("Email Address");
 
 		AssertUtils.assertFailure(
-			ModelListenerException.class, "Unable to delete system data masks",
+			ModelListenerException.class,
+			"java.lang.UnsupportedOperationException: Unable to delete " +
+				"system data masks",
 			() -> _objectEntryLocalService.deleteObjectEntry(
 				objectEntry2.getObjectEntryId()));
 		Assert.assertNotNull(
@@ -171,8 +183,9 @@ public class DataMaskRelevantObjectEntryModelListenerTest {
 
 		AssertUtils.assertFailure(
 			ModelListenerException.class,
-			"Invalid \"detectionRegex\": Unclosed character class near index " +
-				"0\n[\n^",
+			"com.liferay.object.exception.ObjectEntryValuesException$" +
+				"InvalidObjectField: Invalid \"detectionRegex\": Unclosed " +
+					"character class near index 0\n[\n^",
 			() -> _objectEntryLocalService.updateObjectEntry(
 				TestPropsValues.getUserId(),
 				finalObjectEntry1.getObjectEntryId(), 0,
@@ -184,7 +197,9 @@ public class DataMaskRelevantObjectEntryModelListenerTest {
 				ServiceContextTestUtil.getServiceContext()));
 
 		AssertUtils.assertFailure(
-			ModelListenerException.class, "Unable to update system data masks",
+			ModelListenerException.class,
+			"java.lang.UnsupportedOperationException: Unable to update " +
+				"system data masks",
 			() -> _updateDataMaskObjectEntry(
 				_getDataMaskObjectEntry("Email Address"),
 				RandomTestUtil.randomString()));
@@ -194,7 +209,8 @@ public class DataMaskRelevantObjectEntryModelListenerTest {
 		try {
 			AssertUtils.assertFailure(
 				ModelListenerException.class,
-				"Unable to update system data masks",
+				"java.lang.UnsupportedOperationException: Unable to update " +
+					"system data masks",
 				() -> _updateDataMaskObjectEntry(
 					_getDataMaskObjectEntry("Email Address"),
 					RandomTestUtil.randomString()));
@@ -210,6 +226,9 @@ public class DataMaskRelevantObjectEntryModelListenerTest {
 
 		Assert.assertEquals("[EMAIL_ADDRESS]", values.get("replacementValue"));
 
+		String originalReplacementValue = (String)values.get(
+			"replacementValue");
+
 		BatchEngineUnitThreadLocal.setFileName(_DATA_MASK_BATCH_FILE_NAME);
 
 		try {
@@ -224,6 +243,9 @@ public class DataMaskRelevantObjectEntryModelListenerTest {
 				replacementValue, values.get("replacementValue"));
 		}
 		finally {
+			_updateDataMaskObjectEntry(
+				emailAddressDataMaskObjectEntry, originalReplacementValue);
+
 			BatchEngineUnitThreadLocal.setFileName(StringPool.BLANK);
 		}
 
@@ -235,7 +257,8 @@ public class DataMaskRelevantObjectEntryModelListenerTest {
 
 		AssertUtils.assertFailure(
 			ModelListenerException.class,
-			"Unable to convert data mask to system data mask",
+			"java.lang.UnsupportedOperationException: Unable to convert data " +
+				"mask to system data mask",
 			() -> _objectEntryLocalService.updateObjectEntry(
 				TestPropsValues.getUserId(),
 				finalObjectEntry2.getObjectEntryId(), 0,

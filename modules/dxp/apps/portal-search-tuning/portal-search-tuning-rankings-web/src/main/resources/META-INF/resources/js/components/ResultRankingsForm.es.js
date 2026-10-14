@@ -861,7 +861,7 @@ class ResultRankingsForm extends Component {
 					</ClayLayout.Sheet>
 
 					<ClayLayout.Sheet className="form-section-body">
-						<div className="results-title sheet-text">
+						<div className="results-title sheet-text text-dark">
 							{Liferay.Language.get('results')}
 						</div>
 

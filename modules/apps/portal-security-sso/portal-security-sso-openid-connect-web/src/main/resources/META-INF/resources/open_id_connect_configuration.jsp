@@ -193,36 +193,42 @@ String matcherField = openIdConnectProviderConfigurationDisplayContext.getMatche
 	<aui:option label="screen-name" selected='<%= Objects.equals(matcherField, "screenName") %>' value="screenName" />
 </aui:select>
 
-<aui:script use="liferay-auto-fields">
-	new Liferay.AutoFields({
+<c:if test='<%= FeatureFlagManagerUtil.isEnabled(themeDisplay.getCompanyId(), "LPD-108193") %>'>
+	<aui:input helpMessage="allow-upstream-token-forwarding-help" label="allow-upstream-token-forwarding" name="allowUpstreamTokenForwarding" type="checkbox" value="<%= openIdConnectProviderConfigurationDisplayContext.isAllowUpstreamTokenForwarding() %>" />
+</c:if>
+
+<aui:script type="module">
+	import {autoFields} from '<%= FrontendESMUtil.buildURL(themeDisplay, "frontend-js-web", "auto_fields") %>';
+
+	autoFields({
 		contentBox:
 			'#<portlet:namespace />customAuthorizationRequestParametersContentBox',
 		fieldIndexes:
 			'<portlet:namespace />customAuthorizationRequestParametersIndexes',
 		namespace: '<portlet:namespace />',
-	}).render();
+	});
 
-	new Liferay.AutoFields({
+	autoFields({
 		contentBox: '#<portlet:namespace />customClaimsContentBox',
 		fieldIndexes: '<portlet:namespace />customClaimsIndexes',
 		namespace: '<portlet:namespace />',
-	}).render();
+	});
 
-	new Liferay.AutoFields({
+	autoFields({
 		contentBox: '#<portlet:namespace />customTokenRequestParametersContentBox',
 		fieldIndexes: '<portlet:namespace />customTokenRequestParametersIndexes',
 		namespace: '<portlet:namespace />',
-	}).render();
+	});
 
-	new Liferay.AutoFields({
+	autoFields({
 		contentBox: '#<portlet:namespace />idTokenSigningAlgValuesContentBox',
 		fieldIndexes: '<portlet:namespace />idTokenSigningAlgValuesIndexes',
 		namespace: '<portlet:namespace />',
-	}).render();
+	});
 
-	new Liferay.AutoFields({
+	autoFields({
 		contentBox: '#<portlet:namespace />subjectTypesContentBox',
 		fieldIndexes: '<portlet:namespace />subjectTypesIndexes ',
 		namespace: '<portlet:namespace />',
-	}).render();
+	});
 </aui:script>

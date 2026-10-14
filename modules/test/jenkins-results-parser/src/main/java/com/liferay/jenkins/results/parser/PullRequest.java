@@ -700,20 +700,6 @@ public class PullRequest {
 		return headJSONObject.getString("sha");
 	}
 
-	public JSONArray getSenderSHAStatusesJSONArray() {
-		JSONArray statusesJSONArray = null;
-
-		try {
-			statusesJSONArray = JenkinsResultsParserUtil.toJSONArray(
-				_jsonObject.getString("statuses_url"));
-		}
-		catch (IOException ioException) {
-			throw new RuntimeException(ioException);
-		}
-
-		return statusesJSONArray;
-	}
-
 	public JSONObject getSenderSHAStatusJSONObject() {
 		JSONObject statusJSONObject = null;
 
@@ -729,6 +715,20 @@ public class PullRequest {
 		}
 
 		return statusJSONObject;
+	}
+
+	public JSONArray getSenderSHAStatusesJSONArray() {
+		JSONArray statusesJSONArray = null;
+
+		try {
+			statusesJSONArray = JenkinsResultsParserUtil.toJSONArray(
+				_jsonObject.getString("statuses_url"));
+		}
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
+		}
+
+		return statusesJSONArray;
 	}
 
 	public String getSenderUsername() {
@@ -752,6 +752,11 @@ public class PullRequest {
 
 	public String getTitle() {
 		return _jsonObject.getString("title");
+	}
+
+	public String getURL() {
+		return getURL(
+			getReceiverUsername(), getGitRepositoryName(), getNumber());
 	}
 
 	public String getUpstreamBranchSHA() {
@@ -780,11 +785,6 @@ public class PullRequest {
 		JSONObject baseJSONObject = _jsonObject.getJSONObject("base");
 
 		return baseJSONObject.getString("ref");
-	}
-
-	public String getURL() {
-		return getURL(
-			getReceiverUsername(), getGitRepositoryName(), getNumber());
 	}
 
 	public boolean hasLabel(String labelName) {
@@ -816,7 +816,8 @@ public class PullRequest {
 
 		String requiredCompletedTestSuiteNames =
 			JenkinsResultsParserUtil.getProperty(
-				buildProperties, propertyName, getGitRepositoryName());
+				buildProperties, propertyName, getGitRepositoryName(),
+				getRefName());
 
 		if (JenkinsResultsParserUtil.isNullOrEmpty(
 				requiredCompletedTestSuiteNames)) {
@@ -856,7 +857,8 @@ public class PullRequest {
 
 		String requiredPassingTestSuiteNames =
 			JenkinsResultsParserUtil.getProperty(
-				buildProperties, propertyName, getGitRepositoryName());
+				buildProperties, propertyName, getGitRepositoryName(),
+				getRefName());
 
 		if (JenkinsResultsParserUtil.isNullOrEmpty(
 				requiredPassingTestSuiteNames)) {
@@ -919,17 +921,17 @@ public class PullRequest {
 			throw new RuntimeException(ioException);
 		}
 
-		String githubPullRequestUpdateEnabled =
+		String gitHubPullRequestUpdateEnabled =
 			JenkinsResultsParserUtil.getProperty(
 				buildProperties, "github.pull.request.update.enabled");
 
 		if (JenkinsResultsParserUtil.isNullOrEmpty(
-				githubPullRequestUpdateEnabled)) {
+				gitHubPullRequestUpdateEnabled)) {
 
 			return true;
 		}
 
-		return Boolean.parseBoolean(githubPullRequestUpdateEnabled);
+		return Boolean.parseBoolean(gitHubPullRequestUpdateEnabled);
 	}
 
 	public boolean isValidCIMergeFile() {

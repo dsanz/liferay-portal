@@ -171,6 +171,7 @@ create table AssetTagGroupRel (
 	groupId LONG,
 	companyId LONG,
 	tagId LONG,
+	depotEntryType INTEGER,
 	primary key (assetTagGroupRelId, ctCollectionId)
 );
 

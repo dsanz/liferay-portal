@@ -1,20 +1,24 @@
 import BreakdownTable from './event-analysis-breakdown';
-import Card from 'shared/components/Card';
-import CardTabs, {CardTabSizes} from 'shared/components/CardTabs';
-import Checkbox from 'shared/components/Checkbox';
-import EventAnalysisBuilder from './event-analysis-builder';
+import Canvas from 'shared/components/canvas/Canvas';
+import ClayButton from '@clayui/button';
+import getCN from 'classnames';
 import React from 'react';
 import {CalculationTypes, Event} from 'event-analysis/utils/types';
+import {ClayCheckbox} from '@clayui/form';
 import {DropdownRangeKey} from 'shared/components/dropdown-range-key/DropdownRangeKey';
 import {RangeSelectors} from 'shared/types';
-import {ReportContainer} from 'shared/components/download-report/DownloadPDFReport';
+
+const CALCULATION_TYPES = [
+	{label: Liferay.Language.get('total'), value: CalculationTypes.Total},
+	{label: Liferay.Language.get('unique'), value: CalculationTypes.Unique},
+	{label: Liferay.Language.get('average'), value: CalculationTypes.Average},
+];
 
 interface IEventAnalysisEditorProps extends React.HTMLAttributes<HTMLElement> {
 	channelId: string;
 	compareToPrevious: boolean;
-	event: Event;
+	event: Event | null;
 	onCompareToPreviousChange: (compareToPrevious: boolean) => void;
-	onEventChange: (event: Event | null) => void;
 	onRangeSelectorsChange: (rangeSelectors: RangeSelectors) => void;
 	onTypeChange: (type: CalculationTypes) => void;
 	type: CalculationTypes;
@@ -26,46 +30,36 @@ const EventAnalysisEditor: React.FC<IEventAnalysisEditorProps> = ({
 	compareToPrevious,
 	event,
 	onCompareToPreviousChange,
-	onEventChange,
 	onRangeSelectorsChange,
 	onTypeChange,
 	rangeSelectors,
 	type,
 }) => (
-	<Card
-		className="event-analysis-editor-root"
-		reportContainer={ReportContainer.EventAnalysisPage}
-	>
-		<EventAnalysisBuilder event={event} onEventChange={onEventChange} />
+	<Canvas className="event-analysis-editor-root">
+		<Canvas.Header title={Liferay.Language.get('analysis-insights')}>
+			<Canvas.Actions>
+				<ClayButton.Group className="type-selector">
+					{CALCULATION_TYPES.map(({label, value}) => (
+						<ClayButton
+							aria-pressed={type === value}
+							className={getCN({active: type === value})}
+							displayType="secondary"
+							key={value}
+							onClick={() => onTypeChange(value)}
+							size="sm"
+						>
+							{label}
+						</ClayButton>
+					))}
+				</ClayButton.Group>
 
-		<div className="options-container d-flex flex-column-reverse flex-md-row justify-content-between">
-			<CardTabs
-				activeTabId={type}
-				className="type-selector"
-				size={CardTabSizes.Small}
-				tabs={[
-					{
-						onClick: () => onTypeChange(CalculationTypes.Total),
-						tabId: CalculationTypes.Total,
-						title: Liferay.Language.get('total'),
-					},
-					{
-						onClick: () => onTypeChange(CalculationTypes.Unique),
-						tabId: CalculationTypes.Unique,
-						title: Liferay.Language.get('unique'),
-					},
-					{
-						onClick: () => onTypeChange(CalculationTypes.Average),
-						tabId: CalculationTypes.Average,
-						title: Liferay.Language.get('average'),
-					},
-				]}
-			/>
+				<span className="align-self-stretch border-left" />
 
-			<div className="d-flex align-items-center mb-3 mb-md-0">
-				<Checkbox
+				<ClayCheckbox
 					checked={compareToPrevious}
-					className="compare-to-previous-checkbox mb-0 mr-4"
+					containerProps={{
+						className: 'compare-to-previous-checkbox mb-0',
+					}}
 					label={Liferay.Language.get('compare-to-previous')}
 					onChange={(event) =>
 						onCompareToPreviousChange(event.currentTarget.checked)
@@ -73,21 +67,33 @@ const EventAnalysisEditor: React.FC<IEventAnalysisEditorProps> = ({
 				/>
 
 				<DropdownRangeKey
+					bordered
 					legacy={false}
 					onRangeSelectorChange={onRangeSelectorsChange}
 					rangeSelectors={rangeSelectors}
 				/>
-			</div>
-		</div>
+			</Canvas.Actions>
+		</Canvas.Header>
 
-		<BreakdownTable
-			channelId={channelId}
-			compareToPrevious={compareToPrevious}
-			event={event}
-			rangeSelectors={rangeSelectors}
-			type={type}
-		/>
-	</Card>
+		<Canvas.Body>
+			{event ? (
+				<BreakdownTable
+					channelId={channelId}
+					compareToPrevious={compareToPrevious}
+					event={event}
+					rangeSelectors={rangeSelectors}
+					type={type}
+				/>
+			) : (
+				<Canvas.EmptyState
+					description={Liferay.Language.get(
+						'to-create-a-new-analysis-select-an-event-then-add-filters-and-breakdowns-for-more-detail'
+					)}
+					title={Liferay.Language.get('no-conditions-yet')}
+				/>
+			)}
+		</Canvas.Body>
+	</Canvas>
 );
 
 export default EventAnalysisEditor;

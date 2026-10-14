@@ -121,7 +121,7 @@ public class CronScheduleTest extends com.liferay.jenkins.results.parser.Test {
 		try {
 			new CronSchedule(spec);
 
-			Assert.fail("Expected IllegalArgumentException");
+			Assert.fail();
 		}
 		catch (IllegalArgumentException illegalArgumentException) {
 		}

@@ -564,6 +564,11 @@ public class AssetTagLocalServiceWrapper
 		return _assetTagLocalService.getAssetTagsCount();
 	}
 
+	@Override
+	public int getCompanyTagsCount(long companyId) {
+		return _assetTagLocalService.getCompanyTagsCount(companyId);
+	}
+
 	/**
 	 * Returns the asset tags of the asset entry.
 	 *
@@ -1021,4 +1026,4 @@ public class AssetTagLocalServiceWrapper
 	private AssetTagLocalService _assetTagLocalService;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:690280147
+// LIFERAY-SERVICE-BUILDER-HASH:280545498

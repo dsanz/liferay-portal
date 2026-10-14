@@ -6,41 +6,39 @@
 package com.liferay.headless.portal.instances.resource.v1_0.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
-import com.liferay.counter.kernel.service.CounterLocalServiceUtil;
+import com.liferay.headless.batch.engine.client.http.HttpInvoker;
+import com.liferay.headless.batch.engine.client.resource.v1_0.ImportTaskResource;
 import com.liferay.headless.portal.instances.client.dto.v1_0.Admin;
 import com.liferay.headless.portal.instances.client.dto.v1_0.PortalInstance;
-import com.liferay.headless.portal.instances.client.dto.v1_0.PortalInstanceCopy;
-import com.liferay.headless.portal.instances.client.dto.v1_0.PortalInstanceExport;
-import com.liferay.headless.portal.instances.client.dto.v1_0.PortalInstanceImport;
+import com.liferay.headless.portal.instances.client.http.HttpInvoker.HttpResponse;
 import com.liferay.headless.portal.instances.client.pagination.Page;
 import com.liferay.headless.portal.instances.client.problem.Problem;
 import com.liferay.headless.portal.instances.client.resource.v1_0.PortalInstanceResource;
 import com.liferay.petra.function.UnsafeRunnable;
 import com.liferay.petra.lang.SafeCloseable;
-import com.liferay.petra.string.StringBundler;
-import com.liferay.petra.string.StringPool;
-import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClassDefinition;
-import com.liferay.portal.db.partition.util.DBPartitionUtil;
-import com.liferay.portal.kernel.dao.db.DB;
-import com.liferay.portal.kernel.dao.db.DBManagerUtil;
-import com.liferay.portal.kernel.dao.db.DBType;
-import com.liferay.portal.kernel.dao.jdbc.DataAccess;
+import com.liferay.portal.instances.constants.PortalInstancesNotificationConstants;
+import com.liferay.portal.instances.constants.PortalInstancesPortletKeys;
 import com.liferay.portal.kernel.instance.PortalInstancePool;
+import com.liferay.portal.kernel.json.JSONArray;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
+import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.model.Company;
-import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.model.UserNotificationEvent;
+import com.liferay.portal.kernel.model.VirtualHost;
+import com.liferay.portal.kernel.security.auth.Authenticator;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.service.CompanyLocalService;
-import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.service.UserNotificationEventLocalService;
+import com.liferay.portal.kernel.service.VirtualHostLocalService;
 import com.liferay.portal.kernel.test.util.CompanyTestUtil;
 import com.liferay.portal.kernel.test.util.PrefsPropsTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
-import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
@@ -51,24 +49,17 @@ import com.liferay.portal.test.log.LogCapture;
 import com.liferay.portal.test.log.LoggerTestUtil;
 import com.liferay.portal.test.rule.Inject;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-
-import java.util.ArrayList;
-import java.util.Dictionary;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import org.osgi.service.cm.Configuration;
-import org.osgi.service.cm.ConfigurationAdmin;
 
 /**
  * @author István András Dézsi
@@ -107,6 +98,15 @@ public class PortalInstanceResourceTest
 
 			User user = UserTestUtil.getAdminUser(company.getCompanyId());
 
+			importTaskResource = ImportTaskResource.builder(
+			).authentication(
+				user.getEmailAddress(), PropsValues.DEFAULT_ADMIN_PASSWORD
+			).endpoint(
+				company.getVirtualHostname(),
+				PortalUtil.getPortalServerPort(false), "http"
+			).locale(
+				LocaleUtil.getDefault()
+			).build();
 			portalInstanceResource = PortalInstanceResource.builder(
 			).authentication(
 				user.getEmailAddress(), PropsValues.DEFAULT_ADMIN_PASSWORD
@@ -163,64 +163,15 @@ public class PortalInstanceResourceTest
 	@Override
 	@Test
 	public void testPostPortalInstance() throws Exception {
+		_testPostPortalInstanceBatchWithSeveralPortalInstances();
+		_testPostPortalInstanceBatchWithSiteInitializerKeyNonexistent();
+		_testPostPortalInstanceWithSiteInitializerKeyNonexistent();
 		_testPostPortalInstanceWithoutAdmin();
 		_testPostPortalInstanceWithAdmin();
 		_testPostPortalInstanceWithAdminAndCompanyStrangers();
+		_testPostPortalInstanceWithAdminCredentials();
+		_testPostPortalInstanceWithAdminWithoutRequiredFields();
 		_testPostPortalInstanceWithoutOmniadminPermission();
-	}
-
-	@Override
-	@Test
-	public void testPostPortalInstanceCopy() throws Exception {
-		DB db = DBManagerUtil.getDB();
-
-		Assume.assumeTrue(db.isSupportsDBPartition());
-
-		if (!PropsValues.DATABASE_PARTITION_ENABLED) {
-			_testPostPortalInstanceCopyWithDBPartitionDisabled();
-
-			return;
-		}
-
-		_testPostPortalInstanceCopyDefaultCompany();
-		_testPostPortalInstanceCopyMissingRequiredFields();
-		_testPostPortalInstanceCopySuccess();
-		_testPostPortalInstanceCopySuccessWithDestinationCompanyId();
-		_testPostPortalInstanceCopyWithNonexistentPortalInstance();
-		_testPostPortalInstanceCopyWithNonpositiveDestinationCompanyId();
-		_testPostPortalInstanceCopyWithoutOmniadminPermission();
-	}
-
-	@Override
-	@Test
-	public void testPostPortalInstanceExport() throws Exception {
-		DB db = DBManagerUtil.getDB();
-
-		Assume.assumeTrue(db.isSupportsDBPartition());
-
-		_testPostPortalInstanceExport();
-		_testPostPortalInstanceExportWithNonexistentPortalInstance();
-		_testPostPortalInstanceExportWithoutOmniadminPermission();
-	}
-
-	@Override
-	@Test
-	public void testPostPortalInstanceImport() throws Exception {
-		DB db = DBManagerUtil.getDB();
-
-		Assume.assumeTrue(db.isSupportsDBPartition());
-
-		if (!PropsValues.DATABASE_PARTITION_ENABLED) {
-			_testPostPortalInstanceImportWithDBPartitionDisabled();
-
-			return;
-		}
-
-		_testPostPortalInstanceImportExistingDBPartition();
-		_testPostPortalInstanceImportInvalidSchemaName();
-		_testPostPortalInstanceImportNonexistentDBPartition();
-		_testPostPortalInstanceImportSuccess();
-		_testPostPortalInstanceImportWithoutOmniadminPermission();
 	}
 
 	@Override
@@ -276,6 +227,7 @@ public class PortalInstanceResourceTest
 		if (Validator.isNull(portalInstance.getActive()) ||
 			Validator.isNull(portalInstance.getCompanyId()) ||
 			Validator.isNull(portalInstance.getDomain()) ||
+			Validator.isNull(portalInstance.getMaxUsers()) ||
 			Validator.isNull(portalInstance.getPortalInstanceId()) ||
 			Validator.isNull(portalInstance.getVirtualHost())) {
 
@@ -288,7 +240,8 @@ public class PortalInstanceResourceTest
 	@Override
 	protected String[] getAdditionalAssertFieldNames() {
 		return new String[] {
-			"active", "companyId", "domain", "portalInstanceId", "virtualHost"
+			"active", "companyId", "domain", "maxUsers", "portalInstanceId",
+			"virtualHost"
 		};
 	}
 
@@ -306,10 +259,45 @@ public class PortalInstanceResourceTest
 				active = true;
 				companyId = RandomTestUtil.randomLong();
 				domain = randomDomain;
+				maxUsers = RandomTestUtil.randomInt(100, 1000);
 				portalInstanceId = randomPortalInstanceId;
 				virtualHost = randomDomain;
 			}
 		};
+	}
+
+	@Override
+	protected void testBatchEngineDeleteImportTask_deletePortalInstance(
+			int expectedStatusCode, String externalReferenceCode, String id,
+			String... parameters)
+		throws Exception {
+
+		HttpInvoker.HttpResponse httpResponse =
+			importTaskResource.deleteImportTaskHttpResponse(
+				"com.liferay.headless.portal.instances.dto.v1_0.PortalInstance",
+				null, null, null, null,
+				JSONUtil.putAll(
+					JSONUtil.put(
+						"externalReferenceCode", () -> externalReferenceCode
+					).put(
+						"portalInstanceId", () -> id
+					)));
+
+		Assert.assertEquals(expectedStatusCode, httpResponse.getStatusCode());
+
+		if (expectedStatusCode == 200) {
+			waitForFinish(
+				"COMPLETED",
+				JSONFactoryUtil.createJSONObject(httpResponse.getContent()));
+		}
+	}
+
+	@Override
+	protected PortalInstance testDeletePortalInstance_addPortalInstance()
+		throws Exception {
+
+		return portalInstanceResource.postPortalInstance(
+			randomPortalInstance());
 	}
 
 	@Override
@@ -318,14 +306,6 @@ public class PortalInstanceResourceTest
 		throws Exception {
 
 		return portalInstanceResource.postPortalInstance(portalInstance);
-	}
-
-	@Override
-	protected PortalInstance testPostPortalInstanceImport_addPortalInstance(
-			PortalInstance portalInstance)
-		throws Exception {
-
-		return portalInstance;
 	}
 
 	private static void _deletePortalInstance(PortalInstance portalInstance)
@@ -349,19 +329,23 @@ public class PortalInstanceResourceTest
 				setActive(company::isActive);
 				setCompanyId(company::getCompanyId);
 				setDomain(company::getMx);
+				setMaxUsers(company::getMaxUsers);
 				setPortalInstanceId(company::getWebId);
 				setVirtualHost(company::getVirtualHostname);
 			}
 		};
 	}
 
-	private void _assertPostPortalInstanceCopyBadRequest(
-			PortalInstanceCopy portalInstanceCopy)
+	private void _assertPostPortalInstanceProblemTitle(
+			JSONObject adminJSONObject, String title)
 		throws Exception {
 
+		PortalInstance randomPortalInstance = randomPortalInstance();
+
+		randomPortalInstance.setAdmin(Admin.toDTO(adminJSONObject.toString()));
+
 		try {
-			portalInstanceResource.postPortalInstanceCopy(
-				_portalInstance.getPortalInstanceId(), portalInstanceCopy);
+			portalInstanceResource.postPortalInstance(randomPortalInstance);
 
 			Assert.fail();
 		}
@@ -369,39 +353,7 @@ public class PortalInstanceResourceTest
 			Problem problem = problemException.getProblem();
 
 			Assert.assertEquals("BAD_REQUEST", problem.getStatus());
-		}
-	}
-
-	private void _assertPostPortalInstanceCopySuccess(
-			PortalInstanceCopy portalInstanceCopy, Long expectedCompanyId)
-		throws Exception {
-
-		PortalInstance copiedPortalInstance =
-			portalInstanceResource.postPortalInstanceCopy(
-				_portalInstance.getPortalInstanceId(), portalInstanceCopy);
-
-		try {
-			assertValid(copiedPortalInstance);
-
-			Assert.assertNotEquals(
-				_portalInstance.getCompanyId(),
-				copiedPortalInstance.getCompanyId());
-			Assert.assertEquals(
-				portalInstanceCopy.getWebId(),
-				copiedPortalInstance.getPortalInstanceId());
-			Assert.assertEquals(
-				portalInstanceCopy.getVirtualHost(),
-				copiedPortalInstance.getVirtualHost());
-
-			if (expectedCompanyId != null) {
-				Assert.assertEquals(
-					expectedCompanyId, copiedPortalInstance.getCompanyId());
-			}
-		}
-		finally {
-			if (copiedPortalInstance != null) {
-				_deletePortalInstance(copiedPortalInstance);
-			}
+			Assert.assertEquals(title, problem.getTitle());
 		}
 	}
 
@@ -458,21 +410,6 @@ public class PortalInstanceResourceTest
 		return copyPortalInstance;
 	}
 
-	private Configuration _createScopedConfiguration(
-			Dictionary<String, Object> properties)
-		throws Exception {
-
-		Configuration configuration =
-			_configurationAdmin.createFactoryConfiguration(
-				"com.liferay.headless.portal.instances.internal.test." +
-					RandomTestUtil.randomString(),
-				StringPool.QUESTION);
-
-		configuration.update(properties);
-
-		return configuration;
-	}
-
 	private PortalInstanceResource _createUserPortalInstanceResource()
 		throws Exception {
 
@@ -489,47 +426,50 @@ public class PortalInstanceResourceTest
 		).build();
 	}
 
-	private void _dropExportedSchema(long companyId) throws Exception {
-		DB db = DBManagerUtil.getDB();
-
-		String sql =
-			"drop schema if exists " +
-				DBPartitionUtil.getExportedPartitionName(companyId);
-
-		if (db.getDBType() == DBType.POSTGRESQL) {
-			sql = sql + " cascade";
-		}
-
-		try (Connection connection = DataAccess.getConnection();
-
-			PreparedStatement preparedStatement = connection.prepareStatement(
-				sql)) {
-
-			preparedStatement.executeUpdate();
-		}
-	}
-
-	private List<String> _getExportedConfigurationIds(long companyId)
+	private UserNotificationEvent _fetchUserNotificationEvent(
+			String portalInstanceId, String status)
 		throws Exception {
 
-		List<String> configurationIds = new ArrayList<>();
+		List<UserNotificationEvent> userNotificationEvents = null;
 
-		try (Connection connection = DataAccess.getConnection();
+		try (SafeCloseable safeCloseable =
+				CompanyThreadLocal.setCompanyIdWithSafeCloseable(
+					PortalInstancePool.getDefaultCompanyId())) {
 
-			PreparedStatement preparedStatement = connection.prepareStatement(
-				StringBundler.concat(
-					"select configurationId from ",
-					DBPartitionUtil.getExportedPartitionName(companyId),
-					".Configuration_"));
+			User user = UserTestUtil.getAdminUser(
+				PortalInstancePool.getDefaultCompanyId());
 
-			ResultSet resultSet = preparedStatement.executeQuery()) {
+			userNotificationEvents =
+				_userNotificationEventLocalService.getUserNotificationEvents(
+					user.getUserId());
+		}
 
-			while (resultSet.next()) {
-				configurationIds.add(resultSet.getString("configurationId"));
+		for (UserNotificationEvent userNotificationEvent :
+				userNotificationEvents) {
+
+			if (!Objects.equals(
+					userNotificationEvent.getType(),
+					PortalInstancesPortletKeys.PORTAL_INSTANCES)) {
+
+				continue;
+			}
+
+			JSONObject payloadJSONObject = JSONFactoryUtil.createJSONObject(
+				userNotificationEvent.getPayload());
+
+			if (Objects.equals(
+					payloadJSONObject.getString("operationType"),
+					PortalInstancesNotificationConstants.OPERATION_TYPE_ADD) &&
+				Objects.equals(
+					payloadJSONObject.getString("portalInstanceId"),
+					portalInstanceId) &&
+				Objects.equals(payloadJSONObject.getString("status"), status)) {
+
+				return userNotificationEvent;
 			}
 		}
 
-		return configurationIds;
+		return null;
 	}
 
 	private void _testDeletePortalInstanceExisting() throws Exception {
@@ -578,20 +518,6 @@ public class PortalInstanceResourceTest
 				_portalInstance.getPortalInstanceId()));
 	}
 
-	private void _testGetPortalInstancesPageWithoutOmniadminPermission()
-		throws Exception {
-
-		PortalInstanceResource userPortalInstanceResource =
-			_createUserPortalInstanceResource();
-
-		// PrincipalExceptionMapper converts a denied GET request to a
-		// 404 to avoid disclosing the portal instance's existence
-
-		_assertProblemExceptionProblemStatus(
-			"NOT_FOUND",
-			() -> userPortalInstanceResource.getPortalInstancesPage(null));
-	}
-
 	private void _testGetPortalInstanceWithoutOmniadminPermission()
 		throws Exception {
 
@@ -605,6 +531,20 @@ public class PortalInstanceResourceTest
 			"NOT_FOUND",
 			() -> userPortalInstanceResource.getPortalInstance(
 				_portalInstance.getPortalInstanceId()));
+	}
+
+	private void _testGetPortalInstancesPageWithoutOmniadminPermission()
+		throws Exception {
+
+		PortalInstanceResource userPortalInstanceResource =
+			_createUserPortalInstanceResource();
+
+		// PrincipalExceptionMapper converts a denied GET request to a
+		// 404 to avoid disclosing the portal instance's existence
+
+		_assertProblemExceptionProblemStatus(
+			"NOT_FOUND",
+			() -> userPortalInstanceResource.getPortalInstancesPage(null));
 	}
 
 	private void _testPatchPortalInstace(
@@ -704,519 +644,130 @@ public class PortalInstanceResourceTest
 				_portalInstance.getPortalInstanceId(), randomPortalInstance()));
 	}
 
-	private void _testPostPortalInstanceCopyDefaultCompany() throws Exception {
-		Company defaultCompany = _companyLocalService.getCompany(
-			PortalInstancePool.getDefaultCompanyId());
-
-		PortalInstanceCopy portalInstanceCopy = new PortalInstanceCopy();
-
-		portalInstanceCopy.setName(RandomTestUtil.randomString());
-		portalInstanceCopy.setVirtualHost(RandomTestUtil.randomString());
-		portalInstanceCopy.setWebId(RandomTestUtil.randomString());
-
-		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
-				_CLASS_NAME_PORTAL_INSTANCE_RESOURCE_IMPL,
-				LoggerTestUtil.ERROR)) {
-
-			portalInstanceResource.postPortalInstanceCopy(
-				defaultCompany.getWebId(), portalInstanceCopy);
-
-			Assert.fail();
-		}
-		catch (Problem.ProblemException problemException) {
-			Problem problem = problemException.getProblem();
-
-			Assert.assertEquals("BAD_REQUEST", problem.getStatus());
-			Assert.assertEquals(
-				"Company ID " + defaultCompany.getCompanyId() +
-					" is the default company ID",
-				problem.getTitle());
-		}
-	}
-
-	private void _testPostPortalInstanceCopyMissingRequiredFields()
+	private void _testPostPortalInstanceBatchWithSeveralPortalInstances()
 		throws Exception {
 
-		PortalInstanceCopy portalInstanceCopy = new PortalInstanceCopy();
-
-		portalInstanceCopy.setVirtualHost(RandomTestUtil.randomString());
-		portalInstanceCopy.setWebId(RandomTestUtil.randomString());
-
-		_assertPostPortalInstanceCopyBadRequest(portalInstanceCopy);
-
-		portalInstanceCopy = new PortalInstanceCopy();
-
-		portalInstanceCopy.setName(RandomTestUtil.randomString());
-		portalInstanceCopy.setWebId(RandomTestUtil.randomString());
-
-		_assertPostPortalInstanceCopyBadRequest(portalInstanceCopy);
-
-		portalInstanceCopy = new PortalInstanceCopy();
-
-		portalInstanceCopy.setName(RandomTestUtil.randomString());
-		portalInstanceCopy.setVirtualHost(RandomTestUtil.randomString());
-
-		_assertPostPortalInstanceCopyBadRequest(portalInstanceCopy);
-	}
-
-	private void _testPostPortalInstanceCopySuccess() throws Exception {
-		String randomId = StringUtil.toLowerCase(RandomTestUtil.randomString());
-
-		PortalInstanceCopy portalInstanceCopy = new PortalInstanceCopy();
-
-		portalInstanceCopy.setName(randomId);
-		portalInstanceCopy.setVirtualHost(
-			randomId + "." +
-				StringUtil.toLowerCase(RandomTestUtil.randomString(3)));
-		portalInstanceCopy.setWebId(randomId);
-
-		_assertPostPortalInstanceCopySuccess(portalInstanceCopy, null);
-	}
-
-	private void _testPostPortalInstanceCopySuccessWithDestinationCompanyId()
-		throws Exception {
-
-		long destinationCompanyId = CounterLocalServiceUtil.increment(
-			Company.class.getName());
-
-		String randomId = StringUtil.toLowerCase(RandomTestUtil.randomString());
-
-		PortalInstanceCopy portalInstanceCopy = new PortalInstanceCopy();
-
-		portalInstanceCopy.setDestinationCompanyId(destinationCompanyId);
-		portalInstanceCopy.setName(randomId);
-		portalInstanceCopy.setVirtualHost(
-			randomId + "." +
-				StringUtil.toLowerCase(RandomTestUtil.randomString(3)));
-		portalInstanceCopy.setWebId(randomId);
-
-		_assertPostPortalInstanceCopySuccess(
-			portalInstanceCopy, destinationCompanyId);
-	}
-
-	private void _testPostPortalInstanceCopyWithDBPartitionDisabled()
-		throws Exception {
-
-		PortalInstanceCopy portalInstanceCopy = new PortalInstanceCopy();
-
-		portalInstanceCopy.setName(RandomTestUtil.randomString());
-		portalInstanceCopy.setVirtualHost(RandomTestUtil.randomString());
-		portalInstanceCopy.setWebId(RandomTestUtil.randomString());
-
-		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
-				_CLASS_NAME_PORTAL_INSTANCE_RESOURCE_IMPL,
-				LoggerTestUtil.ERROR)) {
-
-			portalInstanceResource.postPortalInstanceCopy(
-				_portalInstance.getPortalInstanceId(), portalInstanceCopy);
-
-			Assert.fail();
-		}
-		catch (Problem.ProblemException problemException) {
-			Problem problem = problemException.getProblem();
-
-			Assert.assertEquals("BAD_REQUEST", problem.getStatus());
-			Assert.assertEquals(
-				"Database partitioning must be enabled", problem.getTitle());
-		}
-	}
-
-	private void _testPostPortalInstanceCopyWithNonexistentPortalInstance()
-		throws Exception {
-
-		PortalInstanceCopy portalInstanceCopy = new PortalInstanceCopy();
-
-		portalInstanceCopy.setName(RandomTestUtil.randomString());
-		portalInstanceCopy.setVirtualHost(RandomTestUtil.randomString());
-		portalInstanceCopy.setWebId(RandomTestUtil.randomString());
-
-		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
-				"com.liferay.portal.vulcan.internal.jaxrs.exception.mapper." +
-					"WebApplicationExceptionMapper",
-				LoggerTestUtil.ERROR)) {
-
-			portalInstanceResource.postPortalInstanceCopy(
-				RandomTestUtil.randomString(), portalInstanceCopy);
-
-			Assert.fail();
-		}
-		catch (Problem.ProblemException problemException) {
-			Problem problem = problemException.getProblem();
-
-			Assert.assertEquals("NOT_FOUND", problem.getStatus());
-			Assert.assertNull(problem.getTitle());
-		}
-	}
-
-	private void _testPostPortalInstanceCopyWithNonpositiveDestinationCompanyId()
-		throws Exception {
-
-		String randomId = StringUtil.toLowerCase(RandomTestUtil.randomString());
-
-		PortalInstanceCopy portalInstanceCopy = new PortalInstanceCopy();
-
-		portalInstanceCopy.setDestinationCompanyId(0L);
-		portalInstanceCopy.setName(randomId);
-		portalInstanceCopy.setVirtualHost(
-			randomId + "." +
-				StringUtil.toLowerCase(RandomTestUtil.randomString(3)));
-		portalInstanceCopy.setWebId(randomId);
-
-		_assertPostPortalInstanceCopySuccess(portalInstanceCopy, null);
-	}
-
-	private void _testPostPortalInstanceCopyWithoutOmniadminPermission()
-		throws Exception {
-
-		PortalInstanceResource userPortalInstanceResource =
-			_createUserPortalInstanceResource();
-
-		PortalInstanceCopy portalInstanceCopy = new PortalInstanceCopy();
-
-		portalInstanceCopy.setName(RandomTestUtil.randomString());
-		portalInstanceCopy.setVirtualHost(RandomTestUtil.randomString());
-		portalInstanceCopy.setWebId(RandomTestUtil.randomString());
-
-		_assertProblemExceptionProblemStatus(
-			"FORBIDDEN",
-			() -> userPortalInstanceResource.postPortalInstanceCopy(
-				_portalInstance.getPortalInstanceId(), portalInstanceCopy));
-	}
-
-	private void _testPostPortalInstanceExport() throws Exception {
-		long companyId = _portalInstance.getCompanyId();
-
-		if (PropsValues.DATABASE_PARTITION_ENABLED) {
-			try {
-				PortalInstanceExport portalInstanceExport =
-					portalInstanceResource.postPortalInstanceExport(
-						_portalInstance.getPortalInstanceId());
-
-				Assert.assertEquals(
-					DBPartitionUtil.getExportedPartitionName(companyId),
-					portalInstanceExport.getExportedPartitionName());
-				Assert.assertEquals(
-					Long.valueOf(companyId),
-					portalInstanceExport.getSourceCompanyId());
-			}
-			finally {
-				_dropExportedSchema(companyId);
-			}
-
-			return;
-		}
-
-		List<Configuration> configurations = new ArrayList<>();
+		List<PortalInstance> portalInstances = Arrays.asList(
+			randomPortalInstance(), randomPortalInstance());
 
 		try {
-			Configuration company1Configuration = _createScopedConfiguration(
-				HashMapDictionaryBuilder.<String, Object>put(
-					ExtendedObjectClassDefinition.Scope.COMPANY.
-						getPropertyKey(),
-					companyId
-				).build());
+			JSONArray jsonArray = JSONFactoryUtil.createJSONArray();
 
-			configurations.add(company1Configuration);
+			for (PortalInstance portalInstance : portalInstances) {
+				jsonArray.put(
+					JSONFactoryUtil.createJSONObject(
+						portalInstance.toString()));
+			}
 
-			Configuration company2Configuration = _createScopedConfiguration(
-				HashMapDictionaryBuilder.<String, Object>put(
-					ExtendedObjectClassDefinition.Scope.COMPANY.
-						getPropertyKey(),
-					RandomTestUtil.randomLong()
-				).build());
+			HttpResponse httpResponse =
+				portalInstanceResource.postPortalInstanceBatchHttpResponse(
+					null, jsonArray);
 
-			configurations.add(company2Configuration);
+			Assert.assertEquals(202, httpResponse.getStatusCode());
 
-			Group group = _groupLocalService.getCompanyGroup(companyId);
+			waitForFinish(
+				"COMPLETED",
+				JSONFactoryUtil.createJSONObject(httpResponse.getContent()));
 
-			Configuration groupConfiguration = _createScopedConfiguration(
-				HashMapDictionaryBuilder.<String, Object>put(
-					ExtendedObjectClassDefinition.Scope.COMPANY.
-						getPropertyKey(),
-					companyId
-				).put(
-					ExtendedObjectClassDefinition.Scope.GROUP.getPropertyKey(),
-					group.getGroupId()
-				).build());
+			for (PortalInstance portalInstance : portalInstances) {
+				PortalInstance getPortalInstance =
+					portalInstanceResource.getPortalInstance(
+						portalInstance.getPortalInstanceId());
 
-			configurations.add(groupConfiguration);
+				assertEquals(portalInstance, getPortalInstance);
+				assertValid(getPortalInstance);
+			}
 
-			Configuration nonexistentGroupConfiguration =
-				_createScopedConfiguration(
-					HashMapDictionaryBuilder.<String, Object>put(
-						ExtendedObjectClassDefinition.Scope.COMPANY.
-							getPropertyKey(),
-						companyId
-					).put(
-						ExtendedObjectClassDefinition.Scope.GROUP.
-							getPropertyKey(),
-						RandomTestUtil.randomLong()
-					).build());
+			jsonArray = JSONFactoryUtil.createJSONArray();
 
-			configurations.add(nonexistentGroupConfiguration);
+			for (PortalInstance portalInstance : portalInstances) {
+				jsonArray.put(
+					JSONUtil.put(
+						"portalInstanceId",
+						portalInstance.getPortalInstanceId()));
+			}
 
-			Configuration portletInstanceConfiguration =
-				_createScopedConfiguration(
-					HashMapDictionaryBuilder.<String, Object>put(
-						ExtendedObjectClassDefinition.Scope.PORTLET_INSTANCE.
-							getPropertyKey(),
-						RandomTestUtil.randomString()
-					).build());
+			httpResponse =
+				portalInstanceResource.deletePortalInstanceBatchHttpResponse(
+					null, jsonArray);
 
-			configurations.add(portletInstanceConfiguration);
+			Assert.assertEquals(202, httpResponse.getStatusCode());
 
-			PortalInstanceExport portalInstanceExport =
-				portalInstanceResource.postPortalInstanceExport(
-					_portalInstance.getPortalInstanceId());
+			waitForFinish(
+				"COMPLETED",
+				JSONFactoryUtil.createJSONObject(httpResponse.getContent()));
 
-			Assert.assertEquals(
-				DBPartitionUtil.getExportedPartitionName(companyId),
-				portalInstanceExport.getExportedPartitionName());
-			Assert.assertEquals(
-				Long.valueOf(companyId),
-				portalInstanceExport.getSourceCompanyId());
-
-			List<String> configurationIds = _getExportedConfigurationIds(
-				companyId);
-
-			Assert.assertTrue(
-				configurationIds.contains(company1Configuration.getPid()));
-			Assert.assertTrue(
-				configurationIds.contains(groupConfiguration.getPid()));
-			Assert.assertTrue(
-				configurationIds.contains(
-					portletInstanceConfiguration.getPid()));
-			Assert.assertFalse(
-				configurationIds.contains(company2Configuration.getPid()));
-			Assert.assertFalse(
-				configurationIds.contains(
-					nonexistentGroupConfiguration.getPid()));
+			for (PortalInstance portalInstance : portalInstances) {
+				assertHttpResponseStatusCode(
+					404,
+					portalInstanceResource.getPortalInstanceHttpResponse(
+						portalInstance.getPortalInstanceId()));
+			}
 		}
 		finally {
-			_dropExportedSchema(companyId);
+			for (PortalInstance portalInstance : portalInstances) {
+				VirtualHost virtualHost =
+					_virtualHostLocalService.fetchVirtualHost(
+						portalInstance.getVirtualHost());
 
-			for (Configuration configuration : configurations) {
-				configuration.delete();
+				if (virtualHost != null) {
+					_deletePortalInstance(
+						_toPortalInstance(
+							_companyLocalService.getCompany(
+								virtualHost.getCompanyId())));
+				}
 			}
 		}
 	}
 
-	private void _testPostPortalInstanceExportWithNonexistentPortalInstance()
+	private void _testPostPortalInstanceBatchWithSiteInitializerKeyNonexistent()
 		throws Exception {
+
+		PortalInstance randomPortalInstance = randomPortalInstance();
+
+		randomPortalInstance.setSiteInitializerKey(
+			RandomTestUtil.randomString());
 
 		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
-				_CLASS_NAME_PORTAL_INSTANCE_RESOURCE_IMPL,
+				"com.liferay.batch.engine.internal." +
+					"BatchEngineImportTaskExecutorImpl",
 				LoggerTestUtil.ERROR)) {
 
-			portalInstanceResource.postPortalInstanceExport(
-				RandomTestUtil.randomString());
+			HttpResponse httpResponse =
+				portalInstanceResource.postPortalInstanceBatchHttpResponse(
+					null,
+					JSONUtil.put(
+						JSONFactoryUtil.createJSONObject(
+							randomPortalInstance.toString())));
 
-			Assert.fail();
-		}
-		catch (Problem.ProblemException problemException) {
-			Problem problem = problemException.getProblem();
+			Assert.assertEquals(202, httpResponse.getStatusCode());
 
-			Assert.assertEquals("NOT_FOUND", problem.getStatus());
-			Assert.assertNull(problem.getTitle());
-		}
-	}
-
-	private void _testPostPortalInstanceExportWithoutOmniadminPermission()
-		throws Exception {
-
-		PortalInstanceResource userPortalInstanceResource =
-			_createUserPortalInstanceResource();
-
-		_assertProblemExceptionProblemStatus(
-			"FORBIDDEN",
-			() -> userPortalInstanceResource.postPortalInstanceExport(
-				_portalInstance.getPortalInstanceId()));
-	}
-
-	private void _testPostPortalInstanceImportExistingDBPartition()
-		throws Exception {
-
-		Company company = CompanyTestUtil.addCompany();
-
-		long companyId = company.getCompanyId();
-
-		_companyLocalService.exportCompany(companyId);
-
-		String randomId = StringUtil.toLowerCase(RandomTestUtil.randomString());
-
-		PortalInstanceImport portalInstanceImport = new PortalInstanceImport();
-
-		portalInstanceImport.setSchemaName(
-			DBPartitionUtil.getExportedPartitionName(companyId));
-		portalInstanceImport.setVirtualHost(
-			randomId + "." +
-				StringUtil.toLowerCase(RandomTestUtil.randomString(3)));
-		portalInstanceImport.setWebId(randomId);
-
-		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
-				_CLASS_NAME_PORTAL_INSTANCE_RESOURCE_IMPL,
-				LoggerTestUtil.ERROR)) {
-
-			portalInstanceResource.postPortalInstanceImport(
-				portalInstanceImport);
-
-			Assert.fail();
-		}
-		catch (Problem.ProblemException problemException) {
-			Problem problem = problemException.getProblem();
-
-			Assert.assertEquals("BAD_REQUEST", problem.getStatus());
-			Assert.assertEquals(
-				"Database partition " +
-					DBPartitionUtil.getPartitionName(companyId) +
-						" already exists",
-				problem.getTitle());
-		}
-		finally {
-			_companyLocalService.deleteCompany(company);
-
-			_dropExportedSchema(companyId);
-		}
-	}
-
-	private void _testPostPortalInstanceImportInvalidSchemaName()
-		throws Exception {
-
-		PortalInstanceImport portalInstanceImport = new PortalInstanceImport();
-
-		portalInstanceImport.setSchemaName(RandomTestUtil.randomString());
-
-		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
-				_CLASS_NAME_PORTAL_INSTANCE_RESOURCE_IMPL,
-				LoggerTestUtil.ERROR)) {
-
-			portalInstanceResource.postPortalInstanceImport(
-				portalInstanceImport);
-
-			Assert.fail();
-		}
-		catch (Problem.ProblemException problemException) {
-			Problem problem = problemException.getProblem();
-
-			Assert.assertEquals("BAD_REQUEST", problem.getStatus());
-		}
-	}
-
-	private void _testPostPortalInstanceImportNonexistentDBPartition()
-		throws Exception {
-
-		String schemaName = DBPartitionUtil.getExportedPartitionName(
-			RandomTestUtil.randomLong());
-
-		PortalInstanceImport portalInstanceImport = new PortalInstanceImport();
-
-		portalInstanceImport.setSchemaName(schemaName);
-
-		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
-				_CLASS_NAME_PORTAL_INSTANCE_RESOURCE_IMPL,
-				LoggerTestUtil.ERROR)) {
-
-			portalInstanceResource.postPortalInstanceImport(
-				portalInstanceImport);
-
-			Assert.fail();
-		}
-		catch (Problem.ProblemException problemException) {
-			Problem problem = problemException.getProblem();
-
-			Assert.assertEquals("BAD_REQUEST", problem.getStatus());
-			Assert.assertEquals(
-				"Unable to insert the database partition " + schemaName +
-					" because it does not exist",
-				problem.getTitle());
-		}
-	}
-
-	private void _testPostPortalInstanceImportSuccess() throws Exception {
-		Company company = CompanyTestUtil.addCompany();
-
-		long companyId = company.getCompanyId();
-
-		try {
-			_companyLocalService.exportCompany(company.getCompanyId());
-		}
-		finally {
-			_companyLocalService.deleteCompany(company);
+			waitForFinish(
+				"FAILED",
+				JSONFactoryUtil.createJSONObject(httpResponse.getContent()));
 		}
 
-		String randomId = StringUtil.toLowerCase(RandomTestUtil.randomString());
+		Assert.assertNull(
+			_virtualHostLocalService.fetchVirtualHost(
+				randomPortalInstance.getVirtualHost()));
+		Assert.assertNull(
+			_fetchUserNotificationEvent(
+				randomPortalInstance.getPortalInstanceId(),
+				PortalInstancesNotificationConstants.STATUS_SUCCESS));
 
-		String virtualHost =
-			randomId + "." +
-				StringUtil.toLowerCase(RandomTestUtil.randomString(3));
+		UserNotificationEvent userNotificationEvent =
+			_fetchUserNotificationEvent(
+				randomPortalInstance.getPortalInstanceId(),
+				PortalInstancesNotificationConstants.STATUS_FAILED);
 
-		PortalInstanceImport portalInstanceImport = new PortalInstanceImport();
+		Assert.assertNotNull(userNotificationEvent);
 
-		portalInstanceImport.setSchemaName(
-			DBPartitionUtil.getExportedPartitionName(companyId));
-		portalInstanceImport.setVirtualHost(virtualHost);
-		portalInstanceImport.setWebId(randomId);
+		JSONObject payloadJSONObject = JSONFactoryUtil.createJSONObject(
+			userNotificationEvent.getPayload());
 
-		PortalInstance portalInstance =
-			portalInstanceResource.postPortalInstanceImport(
-				portalInstanceImport);
-
-		try {
-			assertValid(portalInstance);
-
-			Assert.assertNotEquals(
-				_portalInstance.getCompanyId(), portalInstance.getCompanyId());
-			Assert.assertEquals(randomId, portalInstance.getPortalInstanceId());
-			Assert.assertEquals(virtualHost, portalInstance.getVirtualHost());
-		}
-		finally {
-			_deletePortalInstance(portalInstance);
-
-			_dropExportedSchema(companyId);
-		}
-	}
-
-	private void _testPostPortalInstanceImportWithDBPartitionDisabled()
-		throws Exception {
-
-		PortalInstanceImport portalInstanceImport = new PortalInstanceImport();
-
-		portalInstanceImport.setSchemaName(
-			DBPartitionUtil.getExportedPartitionName(
-				RandomTestUtil.randomLong()));
-
-		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
-				_CLASS_NAME_PORTAL_INSTANCE_RESOURCE_IMPL,
-				LoggerTestUtil.ERROR)) {
-
-			portalInstanceResource.postPortalInstanceImport(
-				portalInstanceImport);
-
-			Assert.fail();
-		}
-		catch (Problem.ProblemException problemException) {
-			Problem problem = problemException.getProblem();
-
-			Assert.assertEquals("BAD_REQUEST", problem.getStatus());
-			Assert.assertEquals(
-				"Database partitioning must be enabled", problem.getTitle());
-		}
-	}
-
-	private void _testPostPortalInstanceImportWithoutOmniadminPermission()
-		throws Exception {
-
-		PortalInstanceResource userPortalInstanceResource =
-			_createUserPortalInstanceResource();
-
-		PortalInstanceImport portalInstanceImport = new PortalInstanceImport();
-
-		portalInstanceImport.setSchemaName(RandomTestUtil.randomString());
-
-		_assertProblemExceptionProblemStatus(
-			"FORBIDDEN",
-			() -> userPortalInstanceResource.postPortalInstanceImport(
-				portalInstanceImport));
+		Assert.assertEquals(
+			"please-select-a-valid-virtual-instance-initializer",
+			payloadJSONObject.getString("errorMessageKey"));
 	}
 
 	private void _testPostPortalInstanceWithAdmin() throws Exception {
@@ -1273,6 +824,115 @@ public class PortalInstanceResourceTest
 		}
 	}
 
+	private void _testPostPortalInstanceWithAdminCredentials()
+		throws Exception {
+
+		PortalInstance randomPortalInstance = randomPortalInstance();
+
+		String givenName = RandomTestUtil.randomString();
+
+		String emailAddress = StringUtil.toLowerCase(
+			givenName + "@liferay.com");
+
+		String middleName = RandomTestUtil.randomString();
+		String password = RandomTestUtil.randomString();
+		String screenName = StringUtil.toLowerCase(
+			RandomTestUtil.randomString());
+
+		randomPortalInstance.setAdmin(
+			Admin.toDTO(
+				JSONUtil.put(
+					"emailAddress", emailAddress
+				).put(
+					"familyName", RandomTestUtil.randomString()
+				).put(
+					"givenName", givenName
+				).put(
+					"middleName", middleName
+				).put(
+					"password", password
+				).put(
+					"screenName", screenName
+				).toString()));
+
+		PortalInstance postPortalInstance =
+			testPostPortalInstance_addPortalInstance(randomPortalInstance);
+
+		try (SafeCloseable safeCloseable =
+				CompanyThreadLocal.setCompanyIdWithSafeCloseable(
+					postPortalInstance.getCompanyId())) {
+
+			User user = _userLocalService.getUserByEmailAddress(
+				postPortalInstance.getCompanyId(), emailAddress);
+
+			Assert.assertEquals(middleName, user.getMiddleName());
+			Assert.assertEquals(screenName, user.getScreenName());
+
+			Assert.assertEquals(
+				Authenticator.SUCCESS,
+				_userLocalService.authenticateByEmailAddress(
+					postPortalInstance.getCompanyId(), emailAddress, password,
+					new HashMap<>(), new HashMap<>(), new HashMap<>()));
+		}
+		finally {
+			_deletePortalInstance(postPortalInstance);
+		}
+	}
+
+	private void _testPostPortalInstanceWithAdminWithoutRequiredFields()
+		throws Exception {
+
+		_assertPostPortalInstanceProblemTitle(
+			JSONUtil.put(
+				"emailAddress", RandomTestUtil.randomString() + "@liferay.com"
+			).put(
+				"familyName", RandomTestUtil.randomString()
+			),
+			"Contact must have a first name");
+		_assertPostPortalInstanceProblemTitle(
+			JSONUtil.put(
+				"emailAddress", RandomTestUtil.randomString() + "@liferay.com"
+			).put(
+				"givenName", RandomTestUtil.randomString()
+			),
+			"Contact must have a last name");
+		_assertPostPortalInstanceProblemTitle(
+			JSONUtil.put(
+				"familyName", RandomTestUtil.randomString()
+			).put(
+				"givenName", RandomTestUtil.randomString()
+			),
+			"Email address must not be null");
+	}
+
+	private void _testPostPortalInstanceWithSiteInitializerKeyNonexistent()
+		throws Exception {
+
+		PortalInstance randomPortalInstance = randomPortalInstance();
+
+		String siteInitializerKey = RandomTestUtil.randomString();
+
+		randomPortalInstance.setSiteInitializerKey(siteInitializerKey);
+
+		try {
+			portalInstanceResource.postPortalInstance(randomPortalInstance);
+
+			Assert.fail();
+		}
+		catch (Problem.ProblemException problemException) {
+			Problem problem = problemException.getProblem();
+
+			Assert.assertEquals("BAD_REQUEST", problem.getStatus());
+			Assert.assertEquals(
+				"Site initializer " + siteInitializerKey + " does not exist",
+				problem.getTitle());
+		}
+
+		Assert.assertNull(
+			_virtualHostLocalService.fetchVirtualHost(
+				randomPortalInstance.getVirtualHost()));
+	}
+
 	private void _testPostPortalInstanceWithoutAdmin() throws Exception {
 		PortalInstance randomPortalInstance = randomPortalInstance();
 
@@ -1326,10 +986,6 @@ public class PortalInstanceResourceTest
 				_portalInstance.getPortalInstanceId()));
 	}
 
-	private static final String _CLASS_NAME_PORTAL_INSTANCE_RESOURCE_IMPL =
-		"com.liferay.headless.portal.instances.internal.resource.v1_0." +
-			"PortalInstanceResourceImpl";
-
 	private static Company _company;
 
 	@Inject
@@ -1338,12 +994,13 @@ public class PortalInstanceResourceTest
 	private static PortalInstance _portalInstance;
 
 	@Inject
-	private ConfigurationAdmin _configurationAdmin;
-
-	@Inject
-	private GroupLocalService _groupLocalService;
-
-	@Inject
 	private UserLocalService _userLocalService;
+
+	@Inject
+	private UserNotificationEventLocalService
+		_userNotificationEventLocalService;
+
+	@Inject
+	private VirtualHostLocalService _virtualHostLocalService;
 
 }

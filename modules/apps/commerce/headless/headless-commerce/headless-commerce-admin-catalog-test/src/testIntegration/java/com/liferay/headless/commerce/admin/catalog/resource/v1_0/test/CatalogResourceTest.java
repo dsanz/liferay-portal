@@ -17,20 +17,33 @@ import com.liferay.commerce.product.model.CProduct;
 import com.liferay.commerce.product.model.CommerceCatalog;
 import com.liferay.commerce.product.service.CommerceCatalogLocalService;
 import com.liferay.commerce.product.test.util.CPTestUtil;
+import com.liferay.exportimport.kernel.lar.PortletDataContextFactoryUtil;
 import com.liferay.exportimport.test.util.LazyReferencingTestUtil;
+import com.liferay.exportimport.vulcan.batch.engine.ExportImportVulcanBatchEngineTaskItemDelegate;
 import com.liferay.headless.commerce.admin.catalog.client.dto.v1_0.Catalog;
+import com.liferay.headless.commerce.admin.catalog.client.dto.v1_0.Creator;
+import com.liferay.headless.commerce.admin.catalog.client.pagination.Page;
 import com.liferay.headless.commerce.admin.catalog.client.pagination.Pagination;
 import com.liferay.headless.commerce.admin.catalog.client.problem.Problem;
+import com.liferay.headless.commerce.admin.catalog.client.resource.v1_0.CatalogResource;
+import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.rule.Inject;
+
+import java.io.Serializable;
+
+import java.util.List;
+import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -63,6 +76,14 @@ public class CatalogResourceTest extends BaseCatalogResourceTestCase {
 
 		_commerceCurrency = CommerceCurrencyTestUtil.addCommerceCurrency(
 			testGroup.getCompanyId());
+	}
+
+	@Override
+	@Test
+	public void testGetCatalogsPage() throws Exception {
+		super.testGetCatalogsPage();
+
+		_testGetCatalogsPageWithExportImportDescriptorFilter();
 	}
 
 	@Override
@@ -227,6 +248,7 @@ public class CatalogResourceTest extends BaseCatalogResourceTestCase {
 		super.testPostCatalog();
 
 		_testPostCatalogWithAccountExternalReferenceCode();
+		_testPostCatalogWithCreator();
 		_testPostCatalogWithLazyReferencingDisabled();
 		_testPostCatalogWithLazyReferencingEnabled();
 	}
@@ -275,6 +297,13 @@ public class CatalogResourceTest extends BaseCatalogResourceTestCase {
 	}
 
 	@Override
+	protected Catalog testGetCatalogPermissionsPage_addCatalog()
+		throws Exception {
+
+		return catalogResource.postCatalog(randomCatalog());
+	}
+
+	@Override
 	protected Catalog testGetCatalogsPage_addCatalog(Catalog catalog)
 		throws Exception {
 
@@ -306,7 +335,21 @@ public class CatalogResourceTest extends BaseCatalogResourceTestCase {
 	}
 
 	@Override
+	protected Catalog testPostCatalog_addPermissionsCatalog(Catalog catalog)
+		throws Exception {
+
+		return permissionsCatalogResource.postCatalog(catalog);
+	}
+
+	@Override
 	protected Catalog testPutCatalogByExternalReferenceCode_addCatalog()
+		throws Exception {
+
+		return catalogResource.postCatalog(randomCatalog());
+	}
+
+	@Override
+	protected Catalog testPutCatalogPermissionsPage_addCatalog()
 		throws Exception {
 
 		return catalogResource.postCatalog(randomCatalog());
@@ -325,6 +368,51 @@ public class CatalogResourceTest extends BaseCatalogResourceTestCase {
 		catalog.setCurrencyId((Long)null);
 
 		return catalog;
+	}
+
+	private void _testGetCatalogsPageWithExportImportDescriptorFilter()
+		throws Exception {
+
+		ExportImportVulcanBatchEngineTaskItemDelegate.ExportImportDescriptor<?>
+			exportImportDescriptor =
+				_exportImportVulcanBatchEngineTaskItemDelegate.
+					getExportImportDescriptor();
+
+		Map<String, Serializable> parameters =
+			exportImportDescriptor.getParameters(
+				PortletDataContextFactoryUtil.createPreparePortletDataContext(
+					testCompany.getCompanyId(), testCompany.getGroupId(), null,
+					null));
+
+		String filterString = (String)parameters.get("filter");
+
+		List<CommerceCatalog> commerceCatalogs =
+			_commerceCatalogLocalService.getCommerceCatalogs(
+				testCompany.getCompanyId(), true);
+
+		CommerceCatalog commerceCatalog = commerceCatalogs.get(0);
+
+		Assert.assertEquals(
+			"externalReferenceCode ne '" +
+				commerceCatalog.getExternalReferenceCode() + "'",
+			filterString);
+
+		Catalog postCatalog = catalogResource.postCatalog(randomCatalog());
+
+		Page<Catalog> page = catalogResource.getCatalogsPage(
+			null, filterString, Pagination.of(1, 100), null);
+
+		List<String> externalReferenceCodes = TransformUtil.transform(
+			page.getItems(), Catalog::getExternalReferenceCode);
+
+		Assert.assertFalse(
+			externalReferenceCodes.contains(
+				commerceCatalog.getExternalReferenceCode()));
+		Assert.assertTrue(
+			externalReferenceCodes.contains(
+				postCatalog.getExternalReferenceCode()));
+
+		catalogResource.deleteCatalog(postCatalog.getId());
 	}
 
 	private void _testPatchCatalogWithAccountExternalReferenceCode()
@@ -386,6 +474,31 @@ public class CatalogResourceTest extends BaseCatalogResourceTestCase {
 		Assert.assertEquals(
 			accountEntry.getExternalReferenceCode(),
 			postCatalog.getAccountExternalReferenceCode());
+	}
+
+	private void _testPostCatalogWithCreator() throws Exception {
+		String password = RandomTestUtil.randomString();
+		User user = UserTestUtil.addOmniadminUser();
+
+		_userLocalService.updatePassword(
+			user.getUserId(), password, password, false, true);
+
+		CatalogResource catalogResource = CatalogResource.builder(
+		).authentication(
+			user.getEmailAddress(), password
+		).locale(
+			LocaleUtil.getDefault()
+		).parameters(
+			"nestedFields", "creator"
+		).build();
+
+		Catalog postCatalog = catalogResource.postCatalog(randomCatalog());
+
+		Creator creator = postCatalog.getCreator();
+
+		Assert.assertEquals(
+			user.getExternalReferenceCode(),
+			creator.getExternalReferenceCode());
 	}
 
 	private void _testPostCatalogWithLazyReferencingDisabled()
@@ -456,7 +569,17 @@ public class CatalogResourceTest extends BaseCatalogResourceTestCase {
 	@Inject
 	private CommerceCurrencyLocalService _commerceCurrencyLocalService;
 
+	@Inject(
+		filter = "component.name=com.liferay.headless.commerce.admin.catalog.internal.resource.v1_0.CatalogResourceImpl",
+		type = Inject.NoType.class
+	)
+	private ExportImportVulcanBatchEngineTaskItemDelegate<?>
+		_exportImportVulcanBatchEngineTaskItemDelegate;
+
 	private ServiceContext _serviceContext;
 	private User _user;
+
+	@Inject
+	private UserLocalService _userLocalService;
 
 }

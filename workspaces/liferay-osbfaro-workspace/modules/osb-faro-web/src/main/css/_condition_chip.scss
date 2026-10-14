@@ -1,0 +1,107 @@
+.condition-chip {
+	background-color: $white;
+	border: 1px solid $mainLighten74;
+
+	&:focus {
+		outline: 0;
+	}
+
+	.condition-chip-content {
+		min-width: 0;
+	}
+
+	.condition-chip-remove {
+		color: $secondary;
+
+		&:focus,
+		&:hover {
+			color: $dark;
+		}
+	}
+
+	.condition-chip-text {
+		min-width: 0;
+	}
+
+	.drag-handle {
+		color: $mainLighten52;
+	}
+
+	.condition-chip-remove,
+	.drag-handle {
+		&:focus-visible {
+			box-shadow: 0 0 0 2px $primaryLighten23;
+		}
+	}
+
+	&.condition-chip-draggable,
+	&.condition-chip-draggable .drag-handle {
+		cursor: grab;
+	}
+
+	&:focus-within,
+	&:hover {
+		background-color: $primaryLighten45;
+		border-color: $primaryLighten23;
+		box-shadow: 0 0 0 1px $primaryLighten23;
+
+		.condition-sticker {
+			background-color: transparent;
+			color: $dark;
+		}
+	}
+
+	&.condition-chip-placeholder,
+	&.condition-chip-preview {
+		border-color: $cadmin-secondary-l2;
+		box-shadow: none;
+
+		.condition-chip-content,
+		.drag-handle {
+			opacity: 0.4;
+		}
+
+		.condition-chip-remove {
+			visibility: hidden;
+		}
+
+		.condition-sticker {
+			background-color: transparent;
+			color: inherit;
+		}
+	}
+
+	&.condition-chip-placeholder {
+		background-color: $white;
+	}
+
+	&.condition-chip-preview {
+		background-color: $lightBackground;
+	}
+}
+
+.sticker.condition-sticker {
+	background-color: $primaryLighten45;
+}
+
+.sortable-condition-chip {
+	position: relative;
+
+	&.hover-bottom::after,
+	&.hover-top::before {
+		background-color: $primary;
+		content: '';
+		height: 2px;
+		left: 0;
+		position: absolute;
+		right: 0;
+	}
+
+	&.hover-bottom::after {
+		bottom: -5px;
+	}
+
+	&.hover-top::before {
+		top: -5px;
+	}
+}

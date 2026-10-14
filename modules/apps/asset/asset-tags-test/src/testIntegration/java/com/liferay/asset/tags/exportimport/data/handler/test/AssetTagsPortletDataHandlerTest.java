@@ -227,7 +227,8 @@ public class AssetTagsPortletDataHandlerTest
 			Group depotGroup = depotEntry.getGroup();
 
 			_assetTagGroupRelLocalService.setAssetTagGroupRels(
-				assetTag.getTagId(), new long[] {depotGroup.getGroupId()});
+				assetTag.getTagId(), new long[] {depotGroup.getGroupId()},
+				DepotConstants.TYPE_SPACE);
 
 			File larFile = _exportLayout();
 

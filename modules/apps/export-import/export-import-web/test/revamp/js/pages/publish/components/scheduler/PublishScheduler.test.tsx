@@ -5,19 +5,25 @@
 
 // eslint-disable-next-line @liferay/portal/no-cross-module-deep-import
 import {checkAccessibility} from '@liferay/layout-js-components-web/test/__lib__/index';
-import {render, screen, within} from '@testing-library/react';
+import {
+	cleanup,
+	fireEvent,
+	render,
+	screen,
+	within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import '@testing-library/jest-dom';
 
 import PublishScheduler from '../../../../../../../src/main/resources/META-INF/resources/revamp/js/pages/publish/components/scheduler/PublishScheduler';
-import {toWallClockDateTime} from '../../../../../../../src/main/resources/META-INF/resources/revamp/js/pages/publish/components/scheduler/cron';
 import {
 	IntervalUnit,
 	ScheduleValues,
 } from '../../../../../../../src/main/resources/META-INF/resources/revamp/js/pages/publish/components/scheduler/types';
 import {getInitialScheduleValues} from '../../../../../../../src/main/resources/META-INF/resources/revamp/js/pages/publish/components/scheduler/utils';
+import {toWallClockDateTime} from '../../../../../../../src/main/resources/META-INF/resources/revamp/js/utils/dateTime';
 
 const user = userEvent.setup({delay: null});
 
@@ -47,6 +53,10 @@ function renderPublishScheduler(
 }
 
 describe('PublishScheduler', () => {
+	afterEach(() => {
+		jest.useRealTimers();
+	});
+
 	it('shows the summary once the start date is set', () => {
 		renderPublishScheduler({
 			enabled: true,
@@ -58,6 +68,54 @@ describe('PublishScheduler', () => {
 				'the-process-runs-once-on-x-at-x-and-does-not-repeat'
 			)
 		).toBeInTheDocument();
+	});
+
+	it('shows each summary sentence on its own', () => {
+		renderPublishScheduler({
+			enabled: true,
+			startDateTime: START_DATE_TIME,
+			unit: IntervalUnit.Day,
+		});
+
+		expect(
+			screen.getByText('the-process-is-active-from-x-at-x-and-never-ends')
+		).toBeInTheDocument();
+
+		expect(
+			screen.getByText('the-process-repeats-every-day-at-x')
+		).toBeInTheDocument();
+	});
+
+	it('fills a start date picked for today with the next full hour', () => {
+		jest.useFakeTimers().setSystemTime(Date.UTC(2026, 0, 15, 10, 30));
+
+		const onChange = jest.fn();
+
+		renderPublishScheduler({enabled: true}, onChange);
+
+		fireEvent.change(screen.getByLabelText(/start-date/), {
+			target: {value: '01/15/2026 --:-- --'},
+		});
+
+		expect(onChange).toHaveBeenCalledWith(
+			expect.objectContaining({startDateTime: '2026-01-15 11:00'})
+		);
+	});
+
+	it('fills a start date picked for today with the end of the day once no full hour is left', () => {
+		jest.useFakeTimers().setSystemTime(Date.UTC(2026, 0, 15, 23, 30));
+
+		const onChange = jest.fn();
+
+		renderPublishScheduler({enabled: true}, onChange);
+
+		fireEvent.change(screen.getByLabelText(/start-date/), {
+			target: {value: '01/15/2026 --:-- --'},
+		});
+
+		expect(onChange).toHaveBeenCalledWith(
+			expect.objectContaining({startDateTime: '2026-01-15 23:59'})
+		);
 	});
 
 	it('hides the summary while there is no start date', () => {
@@ -191,10 +249,182 @@ describe('PublishScheduler', () => {
 		);
 	});
 
+	it('shows the repeat at field only for a repeating unit', () => {
+		renderPublishScheduler({enabled: true, unit: IntervalUnit.Never});
+
+		expect(
+			screen.queryByRole('group', {name: 'repeat-at'})
+		).not.toBeInTheDocument();
+
+		cleanup();
+		renderPublishScheduler({enabled: true, unit: IntervalUnit.Custom});
+
+		expect(
+			screen.queryByRole('group', {name: 'repeat-at'})
+		).not.toBeInTheDocument();
+
+		cleanup();
+		renderPublishScheduler({enabled: true, unit: IntervalUnit.Week});
+
+		expect(
+			screen.getByRole('group', {name: 'repeat-at'})
+		).toBeInTheDocument();
+	});
+
+	it('shows the end date field for every unit except never', () => {
+		renderPublishScheduler({enabled: true, unit: IntervalUnit.Never});
+
+		expect(screen.queryByLabelText('end-date')).not.toBeInTheDocument();
+		expect(
+			screen.queryByRole('checkbox', {name: 'never-end'})
+		).not.toBeInTheDocument();
+
+		cleanup();
+		renderPublishScheduler({enabled: true, unit: IntervalUnit.Custom});
+
+		expect(screen.getByLabelText('end-date')).toBeInTheDocument();
+
+		cleanup();
+		renderPublishScheduler({enabled: true, unit: IntervalUnit.Week});
+
+		expect(screen.getByLabelText('end-date')).toBeInTheDocument();
+		expect(
+			screen.getByRole('checkbox', {name: 'never-end'})
+		).toBeInTheDocument();
+	});
+
+	it('mirrors the start date time in the repeat at field while synced', () => {
+		renderPublishScheduler({
+			enabled: true,
+			startDateTime: '2026-09-08 09:15',
+			unit: IntervalUnit.Week,
+		});
+
+		expect(
+			screen.getByRole('checkbox', {name: 'sync-with-start-date-time'})
+		).toBeChecked();
+		expect(screen.getByLabelText('hours')).toHaveValue('09');
+		expect(screen.getByLabelText('minutes')).toHaveValue('15');
+		expect(screen.getByLabelText('hours')).toBeDisabled();
+	});
+
+	it('unchecks the sync and seeds the current start date time when unchecked', async () => {
+		const onChange = jest.fn();
+
+		renderPublishScheduler(
+			{
+				enabled: true,
+				startDateTime: '2026-09-08 09:15',
+				unit: IntervalUnit.Week,
+			},
+			onChange
+		);
+
+		await user.click(
+			screen.getByRole('checkbox', {name: 'sync-with-start-date-time'})
+		);
+
+		expect(onChange).toHaveBeenCalledWith(
+			expect.objectContaining({
+				repeatOnTime: '09:15',
+				repeatOnTimeSynced: false,
+			})
+		);
+	});
+
+	it('leaves the repeat at field unset while a synced start date time is still being typed', () => {
+		renderPublishScheduler({
+			enabled: true,
+			startDateTime: '09/08/2026 03:30 P',
+			unit: IntervalUnit.Week,
+		});
+
+		expect(screen.getByLabelText('hours')).toHaveValue('--');
+		expect(screen.getByLabelText('minutes')).toHaveValue('--');
+	});
+
+	it('seeds no repeat at time when the sync is unchecked while the start date time is still being typed', async () => {
+		const onChange = jest.fn();
+
+		renderPublishScheduler(
+			{
+				enabled: true,
+				startDateTime: '09/08/2026 03:30 P',
+				unit: IntervalUnit.Week,
+			},
+			onChange
+		);
+
+		await user.click(
+			screen.getByRole('checkbox', {name: 'sync-with-start-date-time'})
+		);
+
+		expect(onChange).toHaveBeenCalledWith(
+			expect.objectContaining({
+				repeatOnTime: '',
+				repeatOnTimeSynced: false,
+			})
+		);
+	});
+
+	it('resyncs to the start date time when the checkbox is checked again', async () => {
+		const onChange = jest.fn();
+
+		renderPublishScheduler(
+			{
+				enabled: true,
+				repeatOnTime: '10:00',
+				repeatOnTimeSynced: false,
+				startDateTime: '2026-09-08 09:15',
+				unit: IntervalUnit.Week,
+			},
+			onChange
+		);
+
+		expect(screen.getByLabelText('hours')).toHaveValue('10');
+		expect(screen.getByLabelText('minutes')).toHaveValue('00');
+		expect(screen.getByLabelText('hours')).toBeEnabled();
+
+		await user.click(
+			screen.getByRole('checkbox', {name: 'sync-with-start-date-time'})
+		);
+
+		expect(onChange).toHaveBeenCalledWith(
+			expect.objectContaining({repeatOnTimeSynced: true})
+		);
+	});
+
+	it('edits the repeat at time independently while unsynced', async () => {
+		const onChange = jest.fn();
+
+		renderPublishScheduler(
+			{
+				enabled: true,
+				repeatOnTime: '',
+				repeatOnTimeSynced: false,
+				startDateTime: '2026-09-08 09:15',
+				unit: IntervalUnit.Week,
+			},
+			onChange
+		);
+
+		fireEvent.keyDown(screen.getByLabelText('hours'), {key: '5'});
+		fireEvent.keyDown(screen.getByLabelText('minutes'), {key: '3'});
+		fireEvent.keyDown(screen.getByLabelText('minutes'), {key: '0'});
+		fireEvent.keyDown(screen.getByLabelText('am-pm'), {key: 'ArrowUp'});
+
+		expect(onChange).toHaveBeenCalledWith(
+			expect.objectContaining({repeatOnTime: '17:30'})
+		);
+	});
+
 	it('has no accessibility violations', async () => {
 		const {container} = renderPublishScheduler({
 			enabled: true,
+			neverEnd: false,
+			repeatOnTimeSynced: false,
 			startDateTime: START_DATE_TIME,
+			unit: IntervalUnit.Week,
 		});
 
 		await checkAccessibility({context: container});

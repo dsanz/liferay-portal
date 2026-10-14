@@ -6,6 +6,7 @@
 package com.liferay.asset.display.page.internal.portlet;
 
 import com.liferay.asset.display.page.portlet.BaseAssetDisplayPageFriendlyURLResolver;
+import com.liferay.design.library.util.DesignLibraryUtil;
 import com.liferay.info.item.ClassPKInfoItemIdentifier;
 import com.liferay.info.item.ERCInfoItemIdentifier;
 import com.liferay.info.item.InfoItemIdentifier;
@@ -103,9 +104,10 @@ public class CustomAssetDisplayPageFriendlyURLResolver
 
 	@Override
 	protected Layout getLayoutDisplayPageObjectProviderLayout(
-		long groupId, String friendlyURL,
-		LayoutDisplayPageObjectProvider<?> layoutDisplayPageObjectProvider,
-		LayoutDisplayPageProvider<?> layoutDisplayPageProvider) {
+			long groupId, String friendlyURL,
+			LayoutDisplayPageObjectProvider<?> layoutDisplayPageObjectProvider,
+			LayoutDisplayPageProvider<?> layoutDisplayPageProvider)
+		throws PortalException {
 
 		String[] parts = _getPathParts(friendlyURL);
 
@@ -113,7 +115,9 @@ public class CustomAssetDisplayPageFriendlyURLResolver
 			return null;
 		}
 
-		return _fetchLayoutByFriendlyURL(groupId, StringPool.SLASH + parts[0]);
+		return getVirtualLayout(
+			groupId,
+			_fetchLayoutByFriendlyURL(groupId, StringPool.SLASH + parts[0]));
 	}
 
 	@Override
@@ -145,7 +149,8 @@ public class CustomAssetDisplayPageFriendlyURLResolver
 		}
 
 		for (long connectedGroupId :
-				getConnectedDesignLibraryGroupIds(groupId)) {
+				DesignLibraryUtil.fetchConnectedDesignLibraryGroupIds(
+					groupId)) {
 
 			layout = layoutLocalService.fetchLayoutByFriendlyURL(
 				connectedGroupId, false, friendlyURL);

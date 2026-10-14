@@ -1686,8 +1686,9 @@ public class LayoutsImporterTest {
 
 		return _styleBookEntryLocalService.addStyleBookEntry(
 			null, TestPropsValues.getUserId(), serviceContext.getScopeGroupId(),
-			false, StringPool.BLANK, RandomTestUtil.randomString(),
-			styleBookEntryKey, RandomTestUtil.randomString(), serviceContext);
+			false, StringPool.BLANK, StringPool.BLANK,
+			RandomTestUtil.randomString(), styleBookEntryKey,
+			RandomTestUtil.randomString(), serviceContext);
 	}
 
 	private void _assertExportedFileItemSelector(
@@ -2567,17 +2568,17 @@ public class LayoutsImporterTest {
 		_layoutPageTemplateStructureService;
 
 	@Inject
-	private LayoutsExporter _layoutsExporter;
-
-	@Inject
-	private LayoutsImporter _layoutsImporter;
-
-	@Inject
 	private LayoutStructureProvider _layoutStructureProvider;
 
 	@Inject
 	private LayoutUtilityPageEntryLocalService
 		_layoutUtilityPageEntryLocalService;
+
+	@Inject
+	private LayoutsExporter _layoutsExporter;
+
+	@Inject
+	private LayoutsImporter _layoutsImporter;
 
 	@Inject
 	private Portal _portal;

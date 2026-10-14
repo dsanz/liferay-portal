@@ -11,6 +11,7 @@ import com.liferay.headless.admin.content.client.json.BaseJSONParser;
 
 import jakarta.annotation.Generated;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -54,7 +55,7 @@ public class PageDefinitionSerDes {
 
 			sb.append("\"pageElement\": ");
 
-			sb.append(pageDefinition.getPageElement());
+			sb.append(String.valueOf(pageDefinition.getPageElement()));
 		}
 
 		if (pageDefinition.getPageRules() != null) {
@@ -67,7 +68,7 @@ public class PageDefinitionSerDes {
 			sb.append("[");
 
 			for (int i = 0; i < pageDefinition.getPageRules().length; i++) {
-				sb.append(pageDefinition.getPageRules()[i]);
+				sb.append(String.valueOf(pageDefinition.getPageRules()[i]));
 
 				if ((i + 1) < pageDefinition.getPageRules().length) {
 					sb.append(", ");
@@ -84,7 +85,7 @@ public class PageDefinitionSerDes {
 
 			sb.append("\"settings\": ");
 
-			sb.append(pageDefinition.getSettings());
+			sb.append(String.valueOf(pageDefinition.getSettings()));
 		}
 
 		if (pageDefinition.getVersion() != null) {
@@ -267,6 +268,12 @@ public class PageDefinitionSerDes {
 			return "null";
 		}
 
+		if (value instanceof Collection) {
+			Collection<?> collection = (Collection<?>)value;
+
+			return _toJSON(collection.toArray());
+		}
+
 		if (value instanceof Map) {
 			return _toJSON((Map)value);
 		}
@@ -299,4 +306,4 @@ public class PageDefinitionSerDes {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:-1259839700
+// LIFERAY-REST-BUILDER-HASH:1872483311

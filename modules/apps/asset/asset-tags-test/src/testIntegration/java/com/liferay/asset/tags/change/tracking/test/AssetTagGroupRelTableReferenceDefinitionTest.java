@@ -10,6 +10,7 @@ import com.liferay.asset.kernel.model.AssetTag;
 import com.liferay.asset.kernel.service.AssetTagGroupRelLocalService;
 import com.liferay.asset.kernel.service.AssetTagLocalService;
 import com.liferay.change.tracking.test.util.BaseTableReferenceDefinitionTestCase;
+import com.liferay.depot.constants.DepotConstants;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.change.tracking.CTModel;
@@ -57,7 +58,8 @@ public class AssetTagGroupRelTableReferenceDefinitionTest
 	@Override
 	protected CTModel<?> addCTModel() throws Exception {
 		return _assetTagGroupRelLocalService.addAssetTagGroupRel(
-			_group.getGroupId(), _assetTag.getGroupId());
+			_group.getGroupId(), _assetTag.getTagId(),
+			DepotConstants.TYPE_SPACE);
 	}
 
 	private AssetTag _assetTag;

@@ -156,6 +156,17 @@ public class ValidationBuild extends BaseBuild {
 	}
 
 	@Override
+	public Job getJob() {
+		TopLevelBuild topLevelBuild = getTopLevelBuild();
+
+		if (topLevelBuild != null) {
+			return topLevelBuild.getJob();
+		}
+
+		return super.getJob();
+	}
+
+	@Override
 	public JSONObject getTestReportJSONObject(boolean checkCache) {
 		String urlSuffix = "testReport/api/json";
 

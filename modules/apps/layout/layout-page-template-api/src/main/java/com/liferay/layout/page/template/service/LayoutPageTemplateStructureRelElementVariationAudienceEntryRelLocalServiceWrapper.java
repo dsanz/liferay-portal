@@ -101,6 +101,16 @@ public class
 			createPersistedModel(primaryKeyObj);
 	}
 
+	@Override
+	public void
+		deleteGroupLayoutPageTemplateStructureRelElementVariationAudienceEntryRels(
+			long groupId, String audienceEntryERC) {
+
+		_layoutPageTemplateStructureRelElementVariationAudienceEntryRelLocalService.
+			deleteGroupLayoutPageTemplateStructureRelElementVariationAudienceEntryRels(
+				groupId, audienceEntryERC);
+	}
+
 	/**
 	 * Deletes the layout page template structure rel element variation audience entry rel from the database. Also notifies the appropriate model listeners.
 	 *
@@ -343,6 +353,16 @@ public class
 	}
 
 	@Override
+	public int
+		getGroupLayoutPageTemplateStructureRelElementVariationAudienceEntryRelsCount(
+			long groupId, String audienceEntryERC) {
+
+		return _layoutPageTemplateStructureRelElementVariationAudienceEntryRelLocalService.
+			getGroupLayoutPageTemplateStructureRelElementVariationAudienceEntryRelsCount(
+				groupId, audienceEntryERC);
+	}
+
+	@Override
 	public com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery
 		getIndexableActionableDynamicQuery() {
 
@@ -433,6 +453,17 @@ public class
 				groupId, layoutPageTemplateStructureRelElementVariationERC);
 	}
 
+	@Override
+	public java.util.List
+		<LayoutPageTemplateStructureRelElementVariationAudienceEntryRel>
+			getLayoutPageTemplateStructureRelElementVariationAudienceEntryRelsByAudienceEntryERC(
+				long companyId, String audienceEntryERC) {
+
+		return _layoutPageTemplateStructureRelElementVariationAudienceEntryRelLocalService.
+			getLayoutPageTemplateStructureRelElementVariationAudienceEntryRelsByAudienceEntryERC(
+				companyId, audienceEntryERC);
+	}
+
 	/**
 	 * Returns all the layout page template structure rel element variation audience entry rels matching the UUID and company.
 	 *
@@ -486,6 +517,16 @@ public class
 
 		return _layoutPageTemplateStructureRelElementVariationAudienceEntryRelLocalService.
 			getLayoutPageTemplateStructureRelElementVariationAudienceEntryRelsCount();
+	}
+
+	@Override
+	public int
+		getLayoutPageTemplateStructureRelElementVariationAudienceEntryRelsCountByAudienceEntryERC(
+			long companyId, String audienceEntryERC) {
+
+		return _layoutPageTemplateStructureRelElementVariationAudienceEntryRelLocalService.
+			getLayoutPageTemplateStructureRelElementVariationAudienceEntryRelsCountByAudienceEntryERC(
+				companyId, audienceEntryERC);
 	}
 
 	/**
@@ -589,4 +630,4 @@ public class
 			_layoutPageTemplateStructureRelElementVariationAudienceEntryRelLocalService;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-1938393786
+// LIFERAY-SERVICE-BUILDER-HASH:1643673747

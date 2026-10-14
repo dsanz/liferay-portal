@@ -8,6 +8,7 @@ import {
 	ObjectField,
 	ObjectRelationship,
 } from '../../../../src/main/resources/META-INF/resources/js/common/types/ObjectDefinition';
+import {NonRepeatableGroup} from '../../../../src/main/resources/META-INF/resources/js/structure_builder/types/Structure';
 import buildObjectDefinition from '../../../../src/main/resources/META-INF/resources/js/structure_builder/utils/buildObjectDefinition';
 import buildObjectRelationships from '../../../../src/main/resources/META-INF/resources/js/structure_builder/utils/buildObjectRelationships';
 import buildStructure from '../../../../src/main/resources/META-INF/resources/js/structure_builder/utils/buildStructure';
@@ -239,6 +240,26 @@ function getChildFieldNames(structure: ReturnType<typeof buildStructure>) {
 }
 
 describe('buildStructure', () => {
+	it('Restores the title object field name of the definition', () => {
+		let structure = buildStructure({
+			mainObjectDefinition: createObjectDefinition(),
+			objectDefinitions: {},
+			systemFieldNames: {},
+		});
+
+		expect(structure.titleFieldName).toBe('title');
+
+		structure = buildStructure({
+			mainObjectDefinition: createObjectDefinition({
+				titleObjectFieldName: 'name',
+			}),
+			objectDefinitions: {},
+			systemFieldNames: {},
+		});
+
+		expect(structure.titleFieldName).toBe('name');
+	});
+
 	it('Maps object field business types to structure field types', () => {
 		const objectDefinition = buildObjectDefinition({
 			children: getChildren(SAMPLE_STRUCTURE_FIELDS),
@@ -251,6 +272,7 @@ describe('buildStructure', () => {
 		const structure = buildStructure({
 			mainObjectDefinition: objectDefinition,
 			objectDefinitions: {},
+			systemFieldNames: {},
 		});
 
 		const childrenMap = new Map(
@@ -279,6 +301,7 @@ describe('buildStructure', () => {
 		const structure = buildStructure({
 			mainObjectDefinition: objectDefinition,
 			objectDefinitions: {},
+			systemFieldNames: {},
 		});
 
 		const emailField = Array.from(structure.children.values()).find(
@@ -340,6 +363,7 @@ describe('buildStructure', () => {
 		const structure = buildStructure({
 			mainObjectDefinition: objectDefinition,
 			objectDefinitions: {},
+			systemFieldNames: {},
 		});
 
 		const fieldNames = getChildFieldNames(structure);
@@ -377,6 +401,7 @@ describe('buildStructure', () => {
 		const structure = buildStructure({
 			mainObjectDefinition: objectDefinition,
 			objectDefinitions: {},
+			systemFieldNames: {},
 		});
 
 		const fieldNames = getChildFieldNames(structure);
@@ -405,6 +430,7 @@ describe('buildStructure', () => {
 		const structure = buildStructure({
 			mainObjectDefinition: objectDefinition,
 			objectDefinitions: {SELF_ERC: objectDefinition},
+			systemFieldNames: {},
 		});
 
 		const relatedContents = Array.from(structure.children.values()).filter(
@@ -440,6 +466,7 @@ describe('buildStructure', () => {
 		const structure = buildStructure({
 			mainObjectDefinition: objectDefinition,
 			objectDefinitions: {SELF_ERC: objectDefinition},
+			systemFieldNames: {},
 		});
 
 		expect(
@@ -471,6 +498,7 @@ describe('buildStructure', () => {
 		const structure = buildStructure({
 			mainObjectDefinition: objectDefinition,
 			objectDefinitions: {SELF_GROUP_ERC: objectDefinition},
+			systemFieldNames: {},
 		});
 
 		const children = Array.from(structure.children.values());
@@ -479,9 +507,7 @@ describe('buildStructure', () => {
 			children.filter((child) => child.type === 'related-content')
 		).toEqual([]);
 
-		expect(
-			children.filter((child) => child.type === 'repeatable-group')
-		).toEqual([
+		expect(children.filter((child) => child.type === 'group')).toEqual([
 			expect.objectContaining({
 				erc: 'SELF_GROUP_ERC',
 				relationshipERC: 'self-group',
@@ -525,6 +551,7 @@ describe('buildStructure', () => {
 		const structure = buildStructure({
 			mainObjectDefinition: objectDefinition,
 			objectDefinitions: {},
+			systemFieldNames: {},
 		});
 
 		const fieldNames = getChildFieldNames(structure);
@@ -534,5 +561,170 @@ describe('buildStructure', () => {
 		expect(fieldNames).toContain('customField');
 		expect(fieldNames).not.toContain('content');
 		expect(fieldNames).not.toContain('videoURL');
+	});
+
+	it('Locks the contributed system fields of a definition', () => {
+		const objectDefinition = createObjectDefinition({
+			externalReferenceCode: 'CONTRIBUTED_ERC',
+			objectFields: [
+				createObjectField({
+					externalReferenceCode: 'CODE',
+					name: 'code',
+					system: true,
+				}),
+				createObjectField({
+					externalReferenceCode: 'CUSTOM',
+					name: 'customField',
+					system: false,
+				}),
+				createObjectField({
+					externalReferenceCode: 'NAME',
+					name: 'name',
+					system: true,
+				}),
+			],
+		});
+
+		const structure = buildStructure({
+			mainObjectDefinition: objectDefinition,
+			objectDefinitions: {},
+			systemFieldNames: {CONTRIBUTED_ERC: ['code', 'name']},
+		});
+
+		const lockedByName = new Map(
+			Array.from(structure.children.values()).map((child) => [
+				child.name,
+				(child as Field).locked,
+			])
+		);
+
+		expect(lockedByName.get('code')).toBe(true);
+		expect(lockedByName.get('customField')).toBe(false);
+		expect(lockedByName.get('name')).toBe(true);
+
+		const structureWithoutContribution = buildStructure({
+			mainObjectDefinition: objectDefinition,
+			objectDefinitions: {},
+			systemFieldNames: {},
+		});
+
+		expect(getChildFieldNames(structureWithoutContribution)).toEqual([
+			'customField',
+		]);
+	});
+});
+
+describe('buildStructure object layout', () => {
+	it('Restores the groups from the layout', () => {
+		const textField: Field = {
+			erc: 'textFieldERC',
+			indexableConfig: {indexed: true, indexedAsKeyword: true},
+			label: {en_US: 'Text'},
+			localized: false,
+			locked: false,
+			name: 'textField',
+			parent: getUuid(),
+			required: true,
+			settings: {},
+			type: 'text',
+			uuid: getUuid(),
+		};
+
+		const groupUuid = getUuid();
+
+		const objectDefinition = buildObjectDefinition({
+			children: new Map([
+				[
+					groupUuid,
+					{
+						children: new Map([
+							[textField.uuid, {...textField, parent: groupUuid}],
+						]),
+						isRepeatable: false,
+						label: {en_US: 'Group'},
+						parent: getUuid(),
+						type: 'group',
+						uuid: groupUuid,
+					},
+				],
+			]),
+			erc: 'structureERC',
+			label: {en_US: 'Structure'},
+			name: 'myStructure',
+			spaces: [],
+			status: 'draft',
+		});
+
+		const structure = buildStructure({
+			mainObjectDefinition: objectDefinition,
+			objectDefinitions: {},
+			systemFieldNames: {},
+		});
+
+		const [group] = Array.from(structure.children.values());
+
+		expect(group.type).toBe('group');
+		expect(group.label).toEqual({en_US: 'Group'});
+		expect(
+			Array.from((group as NonRepeatableGroup).children.values()).map(
+				({name}) => name
+			)
+		).toEqual([textField.name]);
+	});
+
+	it('Restores a group whose label matches the structure', () => {
+		const textField: Field = {
+			erc: 'textFieldERC',
+			indexableConfig: {indexed: true, indexedAsKeyword: true},
+			label: {en_US: 'Text'},
+			localized: false,
+			locked: false,
+			name: 'textField',
+			parent: getUuid(),
+			required: true,
+			settings: {},
+			type: 'text',
+			uuid: getUuid(),
+		};
+
+		const groupUuid = getUuid();
+
+		const objectDefinition = buildObjectDefinition({
+			children: new Map([
+				[
+					groupUuid,
+					{
+						children: new Map([
+							[textField.uuid, {...textField, parent: groupUuid}],
+						]),
+						isRepeatable: false,
+						label: {en_US: 'Structure'},
+						parent: getUuid(),
+						type: 'group',
+						uuid: groupUuid,
+					},
+				],
+			]),
+			erc: 'structureERC',
+			label: {en_US: 'Structure'},
+			name: 'myStructure',
+			spaces: [],
+			status: 'draft',
+		});
+
+		const structure = buildStructure({
+			mainObjectDefinition: objectDefinition,
+			objectDefinitions: {},
+			systemFieldNames: {},
+		});
+
+		const [group] = Array.from(structure.children.values());
+
+		expect(group.type).toBe('group');
+		expect(
+			Array.from((group as NonRepeatableGroup).children.values()).map(
+				({name}) => name
+			)
+		).toEqual([textField.name]);
 	});
 });

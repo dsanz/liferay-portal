@@ -56,3 +56,9 @@ if (!global.crypto) {
 		value: require('crypto'),
 	});
 }
+
+// JSDom does not support `ReadableStream` natively
+
+if (!global.ReadableStream) {
+	global.ReadableStream = require('stream/web').ReadableStream;
+}

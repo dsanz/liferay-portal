@@ -12,6 +12,8 @@ import AccountUserSessionQuery, {
 } from 'shared/queries/AccountUserSessionQuery';
 import ActivityChartEmptyState from 'shared/components/ActivityChartEmptyState';
 import ActivityStreamCard from 'shared/components/ActivityStreamCard';
+import ClayIcon from 'shared/components/Icon';
+import ClayLink from '@clayui/link';
 import ActivityStreamNoResults from 'shared/components/ActivityStreamNoResults';
 import formatAccountSessions from '../utils/formatAccountSessions';
 import NoResultsDisplay from 'shared/components/NoResultsDisplay';
@@ -22,12 +24,17 @@ import {fetchPolicyDefinition} from 'shared/util/graphql';
 import {getSafeRangeSelectors} from 'shared/util/util';
 import {getSessionsDateRange} from 'shared/util/activityDateRange';
 import {Interval, RangeSelectors} from 'shared/types';
-import {mapEventMetricToActivityHistory} from 'shared/util/activities';
+import {
+	mapEventMetricToActivityHistory,
+	buildCampaignUrls,
+	buildTouchIndividualUrls,
+	mergeCampaignDays,
+} from 'shared/util/activities';
 import {mapListResultsToProps} from 'shared/util/mappers';
 import {SessionEntityTypes} from 'shared/util/constants';
-import {sub} from 'shared/util/lang';
 import {toThousands} from 'shared/util/numbers';
 import {useParams} from 'react-router-dom';
+import {useCampaignTouchesByDay} from 'shared/hooks/useCampaignTouchesByDay';
 import {useQuery} from '@apollo/client';
 import {useSelectedPoint} from 'shared/hooks/useSelectedPoint';
 import {useStatefulPagination} from 'shared/hooks/useStatefulPagination';
@@ -119,6 +126,20 @@ const AccountActivityStreamCard: React.FC<IActivityStreamCardProps> = ({
 		},
 	});
 
+	const campaignTouches = useCampaignTouchesByDay({
+		accountId,
+		channelId,
+		entityId: '',
+		entityType: SessionEntityTypes.Individual,
+		keywords,
+		...getSessionsDateRange({
+			activityHistory,
+			interval,
+			rangeSelectors,
+			selectedPoint,
+		}),
+	});
+
 	const sessionsResponse = useQuery<
 		AccountUserSessionData,
 		AccountUserSessionVariables
@@ -146,14 +167,26 @@ const AccountActivityStreamCard: React.FC<IActivityStreamCardProps> = ({
 			mapListResultsToProps(
 				sessionsResponse,
 				({eventsByUserSessions}) => ({
-					items: formatAccountSessions(
-						eventsByUserSessions?.userSessions ?? [],
+					items: mergeCampaignDays(
+						formatAccountSessions(
+							eventsByUserSessions?.userSessions ?? [],
+							{
+								accountId,
+								accountName,
+								channelId,
+								groupId,
+								rangeSelectors,
+								timeZoneId,
+							}
+						),
+						campaignTouches.days,
 						{
-							accountId,
-							accountName,
-							channelId,
-							groupId,
-							rangeSelectors,
+							isFirstPage: page === 1,
+							isLastPage:
+								page * delta >=
+								(eventsByUserSessions?.totalPageGroupsMetric
+									?.value ?? 0),
+							timeZoneId,
 						}
 					),
 					total:
@@ -164,12 +197,35 @@ const AccountActivityStreamCard: React.FC<IActivityStreamCardProps> = ({
 			sessionsResponse.data,
 			sessionsResponse.error,
 			sessionsResponse.loading,
+			campaignTouches.days,
 			accountId,
+			delta,
+			page,
 			accountName,
 			channelId,
 			groupId,
 			rangeSelectors,
+			timeZoneId,
 		]
+	);
+
+	const {
+		onCampaignDeltaChange: handleCampaignDeltaChange,
+		onCampaignPageChange: handleCampaignPageChange,
+	} = campaignTouches;
+
+	const individualUrls = useMemo(
+		() =>
+			buildTouchIndividualUrls(campaignTouches.days, {
+				channelId,
+				groupId,
+			}),
+		[campaignTouches.days, channelId, groupId]
+	);
+
+	const campaignUrls = useMemo(
+		() => buildCampaignUrls(campaignTouches.days, {channelId, groupId}),
+		[campaignTouches.days, channelId, groupId]
 	);
 
 	const handleQuerySubmit = (value: string) => {
@@ -199,9 +255,15 @@ const AccountActivityStreamCard: React.FC<IActivityStreamCardProps> = ({
 	return (
 		<ActivityStreamCard
 			activityHistory={activityHistory}
+			campaignDays={campaignTouches.days}
+			campaignUrls={campaignUrls}
 			chartError={error}
 			chartLoading={loading}
-			chartTooltipRenderRows={({totalEvents, totalSessions}) => [
+			chartTooltipRenderRows={({
+				totalCampaignResponses,
+				totalEvents,
+				totalSessions,
+			}) => [
 				{
 					label: Liferay.Language.get('events'),
 					value: toThousands(totalEvents),
@@ -209,6 +271,10 @@ const AccountActivityStreamCard: React.FC<IActivityStreamCardProps> = ({
 				{
 					label: Liferay.Language.get('sessions'),
 					value: toThousands(totalSessions ?? 0),
+				},
+				{
+					label: Liferay.Language.get('campaign-responses'),
+					value: toThousands(totalCampaignResponses ?? 0),
 				},
 			]}
 			chartView={chartView}
@@ -224,9 +290,8 @@ const AccountActivityStreamCard: React.FC<IActivityStreamCardProps> = ({
 					)}
 				/>
 			}
-			footerLabel={sub(Liferay.Language.get('account-s-events-x'), [
-				dateRangeLabel,
-			])}
+			footerLabel={dateRangeLabel}
+			individualUrls={individualUrls}
 			interval={interval}
 			noResultsRenderer={
 				<ActivityStreamNoResults
@@ -234,16 +299,47 @@ const AccountActivityStreamCard: React.FC<IActivityStreamCardProps> = ({
 					loading={sessionsMappedResults.loading}
 					noData={
 						<NoResultsDisplay
-							description={Liferay.Language.get(
-								'check-back-later-to-see-if-data-has-been-received-from-your-data-sources,-or-try-a-different-date-range'
-							)}
+							description={
+								<>
+									<span>
+										{Liferay.Language.get(
+											'check-back-later-to-verify-if-data-has-been-received-from-your-data-sources,-or-you-can-try-a-different-date-range'
+										)}
+									</span>
+
+									<ClayLink
+										className="d-block mb-3"
+										decoration="underline"
+										href={
+											URLConstants.AccountsDocumentationLink
+										}
+										key="DOCUMENTATION"
+										target="_blank"
+									>
+										{Liferay.Language.get(
+											'learn-more-about-accounts'
+										)}
+
+										<span className="inline-item inline-item-after">
+											<ClayIcon
+												fontSize={8}
+												symbol="shortcut"
+											/>
+										</span>
+									</ClayLink>
+								</>
+							}
 							spacer
-							title={Liferay.Language.get('no-data-was-found')}
+							title={Liferay.Language.get(
+								'there-is-no-activity-on-the-selected-period'
+							)}
 						/>
 					}
 					onClearSearch={handleClearSearch}
 				/>
 			}
+			onCampaignDeltaChange={handleCampaignDeltaChange}
+			onCampaignPageChange={handleCampaignPageChange}
 			onChartReload={refetch}
 			onClearDateSelection={() => handleChangeSelection(null)}
 			onDeltaChange={onDeltaChange}

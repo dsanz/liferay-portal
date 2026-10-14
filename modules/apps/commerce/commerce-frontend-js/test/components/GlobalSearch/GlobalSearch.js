@@ -41,9 +41,15 @@ describe('Global Search', () => {
 		let renderedComponent;
 
 		beforeEach(() => {
-			fetchMock.mock(accountsEndpointRegexp, (url) => getAccounts(url));
-			fetchMock.mock(cartsEndpointRegexp, (url) => getOrders(url));
-			fetchMock.mock(productsEndpointRegexp, (url) => getProducts(url));
+			fetchMock.mockGlobal();
+
+			fetchMock.route(accountsEndpointRegexp, ({url}) =>
+				getAccounts(url)
+			);
+			fetchMock.route(cartsEndpointRegexp, ({url}) => getOrders(url));
+			fetchMock.route(productsEndpointRegexp, ({url}) =>
+				getProducts(url)
+			);
 
 			renderedComponent = render(
 				<GlobalSearch
@@ -61,7 +67,7 @@ describe('Global Search', () => {
 		});
 
 		afterEach(() => {
-			fetchMock.restore();
+			fetchMock.hardReset();
 		});
 
 		describe('When input is empty', () => {

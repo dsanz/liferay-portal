@@ -52,6 +52,7 @@ import com.liferay.commerce.product.util.comparator.CPDefinitionModifiedDateComp
 import com.liferay.commerce.service.CPDefinitionInventoryLocalService;
 import com.liferay.commerce.test.util.CommerceTestUtil;
 import com.liferay.friendly.url.service.FriendlyURLEntryLocalService;
+import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.test.util.CompanyConfigurationTemporarySwapper;
@@ -76,8 +77,10 @@ import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.CalendarFactoryUtil;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.workflow.WorkflowTask;
@@ -93,6 +96,9 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 import org.frutilla.FrutillaRule;
 
@@ -453,7 +459,9 @@ public class CPDefinitionLocalServiceTest {
 		CPDefinition cpDefinition = CPTestUtil.addCPDefinitionFromCatalog(
 			_commerceCatalog.getGroupId(), SimpleCPTypeConstants.NAME,
 			displayDate, expirationDate, false, false,
-			WorkflowConstants.STATUS_EXPIRED);
+			WorkflowConstants.STATUS_EXPIRED,
+			ServiceContextTestUtil.getServiceContext(
+				_commerceCatalog.getGroupId()));
 
 		Assert.assertEquals(
 			WorkflowConstants.STATUS_EXPIRED, cpDefinition.getStatus());
@@ -471,48 +479,40 @@ public class CPDefinitionLocalServiceTest {
 
 	@Test
 	public void testAddFutureExpiredCPDefinition() throws Exception {
+		_testAddFutureExpiredCPDefinition();
+		_testAddFutureExpiredCPDefinitionWithStatusExpired();
+	}
+
+	@Test
+	public void testCloneCPDefinitionOptionRelExternalReferenceCodes()
+		throws Exception {
+
 		frutillaRule.scenario(
-			"Add product definition"
+			"Duplicate a product that carries options"
 		).given(
-			"I add a product definition"
+			"A product with one option and two option values"
 		).when(
-			"expirationDate is in a future date"
-		).and(
-			"neverExpire is false"
+			"The product is duplicated"
 		).then(
-			"product definition should save expirationDate and have a status " +
-				"of approved"
+			"The duplicated option and option values carry their own " +
+				"external reference codes"
 		);
 
-		long time = System.currentTimeMillis();
+		CPInstance cpInstance = CPTestUtil.addCPInstanceWithRandomSku(
+			_commerceCatalog.getGroupId());
 
-		Date displayDate = new Date(time);
-		Date expirationDate = new Date(time + Time.YEAR);
+		CPDefinitionOptionRel cpDefinitionOptionRel =
+			CPTestUtil.addCPDefinitionOptionRel(
+				_commerceCatalog.getGroupId(), cpInstance.getCPDefinitionId(),
+				true, 2);
 
-		User user = TestPropsValues.getUser();
+		CPDefinition duplicateCPDefinition =
+			_cpDefinitionLocalService.cloneCPDefinition(
+				TestPropsValues.getUserId(), cpInstance.getCPDefinitionId(),
+				_commerceCatalog.getGroupId(), _serviceContext);
 
-		Calendar expirationCalendar = CalendarFactoryUtil.getCalendar(
-			user.getTimeZone());
-
-		expirationCalendar.setTime(expirationDate);
-
-		CPDefinition cpDefinition = CPTestUtil.addCPDefinitionFromCatalog(
-			_commerceCatalog.getGroupId(), SimpleCPTypeConstants.NAME,
-			displayDate, expirationDate, false, false,
-			WorkflowConstants.STATUS_APPROVED);
-
-		Assert.assertEquals(
-			WorkflowConstants.STATUS_APPROVED, cpDefinition.getStatus());
-
-		Assert.assertEquals(
-			_portal.getDate(
-				expirationCalendar.get(Calendar.MONTH),
-				expirationCalendar.get(Calendar.DATE),
-				expirationCalendar.get(Calendar.YEAR),
-				expirationCalendar.get(Calendar.HOUR_OF_DAY),
-				expirationCalendar.get(Calendar.MINUTE), user.getTimeZone(),
-				null),
-			cpDefinition.getExpirationDate());
+		_assertUniqueExternalReferenceCodes(
+			cpDefinitionOptionRel, duplicateCPDefinition);
 	}
 
 	@Test
@@ -576,8 +576,17 @@ public class CPDefinitionLocalServiceTest {
 	public void testCopyCPDefinition() throws Exception {
 		_testCopyCPDefinition();
 		_testCopyCPDefinitionDoesNotCopyDraftCPDefinition();
-		_testCopyCPDefinitionSetsExistingDraftToIncomplete();
+		_testCopyCPDefinitionOptionRelExternalReferenceCodes();
+		_testCopyCPDefinitionReturnsExistingDraftCPDefinition();
 		_testCopyCPDefinitionWithSKUCombinations();
+		_testCopyCPDefinitionWithVersioningDisabled();
+	}
+
+	@Test
+	public void testDeleteCPDefinition() throws Exception {
+		_testDeleteCPDefinitionWithClonedCPDefinitions();
+		_testDeleteCPDefinitionWithExistingDraftCPDefinition();
+		_testDeleteCPDefinitionWithVersioningEnabled();
 	}
 
 	@Test
@@ -725,7 +734,9 @@ public class CPDefinitionLocalServiceTest {
 		CPDefinition cpDefinition1 = CPTestUtil.addCPDefinitionFromCatalog(
 			_commerceCatalog.getGroupId(), SimpleCPTypeConstants.NAME,
 			new Date(time - Time.MONTH), date, false, false,
-			WorkflowConstants.STATUS_APPROVED);
+			WorkflowConstants.STATUS_APPROVED,
+			ServiceContextTestUtil.getServiceContext(
+				_commerceCatalog.getGroupId()));
 
 		cpDefinition1.setExpirationDate(new Date(time - Time.DAY));
 
@@ -735,7 +746,9 @@ public class CPDefinitionLocalServiceTest {
 		CPTestUtil.addCPDefinitionFromCatalog(
 			_commerceCatalog.getGroupId(), SimpleCPTypeConstants.NAME,
 			new Date(time - Time.MONTH), date, false, false,
-			WorkflowConstants.STATUS_APPROVED);
+			WorkflowConstants.STATUS_APPROVED,
+			ServiceContextTestUtil.getServiceContext(
+				_commerceCatalog.getGroupId()));
 
 		List<CPDefinition> cpDefinitions =
 			_cpDefinitionLocalService.findByExpirationDate(
@@ -782,8 +795,9 @@ public class CPDefinitionLocalServiceTest {
 			"A NoSuchCProductException is thrown while lazy referencing is " +
 				"disabled"
 		).and(
-			"An empty stub paired with a product carrying the given external " +
-				"reference code is returned while lazy referencing is enabled"
+			"An empty stub with the given name, paired with a product " +
+				"carrying the given external reference code, is returned " +
+					"while lazy referencing is enabled"
 		).and(
 			"The same product definition is resolved on subsequent requests"
 		).and(
@@ -793,12 +807,13 @@ public class CPDefinitionLocalServiceTest {
 		);
 
 		String externalReferenceCode = RandomTestUtil.randomString();
+		Map<Locale, String> nameMap = RandomTestUtil.randomLocaleStringMap();
 
 		try {
 			_cpDefinitionLocalService.getOrAddEmptyCPDefinition(
-				externalReferenceCode, SimpleCPTypeConstants.NAME,
-				TestPropsValues.getCompanyId(), TestPropsValues.getUserId(),
-				_commerceCatalog.getGroupId());
+				externalReferenceCode, TestPropsValues.getCompanyId(),
+				TestPropsValues.getUserId(), _commerceCatalog.getGroupId(),
+				nameMap, SimpleCPTypeConstants.NAME);
 
 			Assert.fail();
 		}
@@ -812,19 +827,23 @@ public class CPDefinitionLocalServiceTest {
 				LazyReferencingThreadLocal.setEnabledWithSafeCloseable(true)) {
 
 			cpDefinition = _cpDefinitionLocalService.getOrAddEmptyCPDefinition(
-				externalReferenceCode, SimpleCPTypeConstants.NAME,
-				TestPropsValues.getCompanyId(), TestPropsValues.getUserId(),
-				_commerceCatalog.getGroupId());
+				externalReferenceCode, TestPropsValues.getCompanyId(),
+				TestPropsValues.getUserId(), _commerceCatalog.getGroupId(),
+				nameMap, SimpleCPTypeConstants.NAME);
 
-			Assert.assertEquals(
-				WorkflowConstants.STATUS_EMPTY, cpDefinition.getStatus());
 			Assert.assertEquals(
 				externalReferenceCode,
 				cpDefinition.getCProductExternalReferenceCode());
 			Assert.assertEquals(
+				nameMap,
+				_cpDefinitionLocalService.getCPDefinitionNameMap(
+					cpDefinition.getCPDefinitionId()));
+			Assert.assertEquals(
 				SimpleCPTypeConstants.NAME, cpDefinition.getProductTypeName());
-			Assert.assertEquals(1, cpDefinition.getVersion());
 			Assert.assertFalse(cpDefinition.isPublished());
+			Assert.assertEquals(
+				WorkflowConstants.STATUS_EMPTY, cpDefinition.getStatus());
+			Assert.assertEquals(1, cpDefinition.getVersion());
 
 			CProduct cProduct = _cProductLocalService.getCProduct(
 				cpDefinition.getCProductId());
@@ -837,9 +856,9 @@ public class CPDefinitionLocalServiceTest {
 
 			CPDefinition resolvedCPDefinition =
 				_cpDefinitionLocalService.getOrAddEmptyCPDefinition(
-					externalReferenceCode, SimpleCPTypeConstants.NAME,
-					TestPropsValues.getCompanyId(), TestPropsValues.getUserId(),
-					_commerceCatalog.getGroupId());
+					externalReferenceCode, TestPropsValues.getCompanyId(),
+					TestPropsValues.getUserId(), _commerceCatalog.getGroupId(),
+					nameMap, SimpleCPTypeConstants.NAME);
 
 			Assert.assertEquals(
 				cpDefinition.getCPDefinitionId(),
@@ -866,6 +885,8 @@ public class CPDefinitionLocalServiceTest {
 		long cpTaxCategoryId = cpDefinition.getCPTaxCategoryId();
 
 		Date displayDate = cpDefinition.getDisplayDate();
+		Map<Locale, String> updatedNameMap =
+			RandomTestUtil.randomLocaleStringMap(LocaleUtil.US);
 
 		cpDefinition = _cpDefinitionLocalService.updateCPDefinition(
 			cpDefinitionId, cpTaxCategoryId, false, false, null, 0,
@@ -873,10 +894,8 @@ public class CPDefinitionLocalServiceTest {
 			displayDate.getHours(), displayDate.getMinutes(),
 			displayDate.getMonth(), displayDate.getYear(), 0, 0, 0, 0, 0, true,
 			0, false, Collections.emptyMap(), Collections.emptyMap(),
-			Collections.emptyMap(),
-			RandomTestUtil.randomLocaleStringMap(LocaleUtil.US), true, true,
-			false, false, 0, Collections.emptyMap(), false, false,
-			Collections.emptyMap(), 0, 0,
+			Collections.emptyMap(), updatedNameMap, true, true, false, false, 0,
+			Collections.emptyMap(), false, false, Collections.emptyMap(), 0, 0,
 			ServiceContextTestUtil.getServiceContext(
 				_commerceCatalog.getGroupId()));
 
@@ -884,6 +903,16 @@ public class CPDefinitionLocalServiceTest {
 		Assert.assertNotEquals(
 			WorkflowConstants.STATUS_EMPTY, cpDefinition.getStatus());
 		Assert.assertEquals(1, cpDefinition.getVersion());
+
+		Assert.assertEquals(
+			updatedNameMap,
+			_cpDefinitionLocalService.getCPDefinitionNameMap(cpDefinitionId));
+	}
+
+	@Test
+	public void testUpdateCPDefinition() throws Exception {
+		_testUpdateCPDefinitionWithExistingDraftCPDefinition();
+		_testUpdateCPDefinitionWithVersioningEnabled();
 	}
 
 	@Test
@@ -913,268 +942,6 @@ public class CPDefinitionLocalServiceTest {
 		CProduct cProduct = cpDefinition.getCProduct();
 
 		Assert.assertEquals("ERC", cProduct.getExternalReferenceCode());
-	}
-
-	@Test
-	public void testUpdateCPDefinitionWithVersioningEnabled() throws Exception {
-		frutillaRule.scenario(
-			"Update product definition with versioning enabled"
-		).given(
-			"I add a product definition"
-		).when(
-			"the product versioning is enabled"
-		).and(
-			"the product is updated"
-		).then(
-			"the product should have a new version with the product change"
-		);
-
-		CPDefinition cpDefinition1 = CPTestUtil.addCPDefinitionFromCatalog(
-			_commerceCatalog.getGroupId(), SimpleCPTypeConstants.NAME, false,
-			false);
-
-		Date displayDate = cpDefinition1.getDisplayDate();
-		Date expirationDate = cpDefinition1.getExpirationDate();
-
-		cpDefinition1 = _cpDefinitionLocalService.updateCPDefinition(
-			cpDefinition1.getCPDefinitionId(),
-			cpDefinition1.getCPTaxCategoryId(),
-			cpDefinition1.isAccountGroupFilterEnabled(),
-			cpDefinition1.isChannelFilterEnabled(),
-			cpDefinition1.getDDMStructureKey(), cpDefinition1.getDepth(),
-			cpDefinition1.getDescriptionMap(), displayDate.getDate(),
-			displayDate.getHours(), displayDate.getMinutes(),
-			displayDate.getMonth(), displayDate.getYear(),
-			expirationDate.getDate(), expirationDate.getHours(),
-			expirationDate.getMinutes(), expirationDate.getMonth(),
-			expirationDate.getYear(), true, cpDefinition1.getHeight(),
-			cpDefinition1.isIgnoreSKUCombinations(),
-			cpDefinition1.getMetaDescriptionMap(),
-			cpDefinition1.getMetaKeywordsMap(), cpDefinition1.getMetaTitleMap(),
-			cpDefinition1.getNameMap(), true, cpDefinition1.isPublished(), true,
-			true, cpDefinition1.getShippingExtraPrice(),
-			cpDefinition1.getShortDescriptionMap(), cpDefinition1.isTaxExempt(),
-			cpDefinition1.isTelcoOrElectronics(),
-			cpDefinition1.getUrlTitleMap(), cpDefinition1.getWeight(),
-			cpDefinition1.getWidth(),
-			ServiceContextTestUtil.getServiceContext());
-
-		cpDefinition1 = _cpDefinitionLocalService.updateCPDefinition(
-			cpDefinition1.getCPDefinitionId(),
-			cpDefinition1.getCPTaxCategoryId(),
-			cpDefinition1.isAccountGroupFilterEnabled(),
-			cpDefinition1.isChannelFilterEnabled(),
-			cpDefinition1.getDDMStructureKey(), cpDefinition1.getDepth(),
-			cpDefinition1.getDescriptionMap(), displayDate.getDate(),
-			displayDate.getHours(), displayDate.getMinutes(),
-			displayDate.getMonth(), displayDate.getYear(),
-			expirationDate.getDate(), expirationDate.getHours(),
-			expirationDate.getMinutes(), expirationDate.getMonth(),
-			expirationDate.getYear(), true, cpDefinition1.getHeight(),
-			cpDefinition1.isIgnoreSKUCombinations(),
-			cpDefinition1.getMetaDescriptionMap(),
-			cpDefinition1.getMetaKeywordsMap(), cpDefinition1.getMetaTitleMap(),
-			cpDefinition1.getNameMap(), true, cpDefinition1.isPublished(), true,
-			true, cpDefinition1.getShippingExtraPrice(),
-			cpDefinition1.getShortDescriptionMap(), cpDefinition1.isTaxExempt(),
-			cpDefinition1.isTelcoOrElectronics(),
-			cpDefinition1.getUrlTitleMap(), cpDefinition1.getWeight(),
-			cpDefinition1.getWidth(),
-			ServiceContextTestUtil.getServiceContext());
-
-		Assert.assertTrue(cpDefinition1.isPublished());
-
-		CProduct cProduct = cpDefinition1.getCProduct();
-
-		Assert.assertEquals(1, cProduct.getLatestVersion());
-
-		Assert.assertEquals(
-			cpDefinition1.getCPDefinitionId(),
-			cProduct.getPublishedCPDefinitionId());
-
-		WorkflowDefinitionLink workflowDefinitionLink = null;
-
-		try (CompanyConfigurationTemporarySwapper
-				companyConfigurationTemporarySwapper =
-					new CompanyConfigurationTemporarySwapper(
-						TestPropsValues.getCompanyId(),
-						CProductVersionConfiguration.class.getName(),
-						HashMapDictionaryBuilder.<String, Object>put(
-							"enabled", true
-						).put(
-							"versionThreshold", 2
-						).build())) {
-
-			CPDefinition cpDefinition2 =
-				_cpDefinitionLocalService.updateCPDefinition(
-					cpDefinition1.getCPDefinitionId(),
-					cpDefinition1.getCPTaxCategoryId(),
-					cpDefinition1.isAccountGroupFilterEnabled(),
-					cpDefinition1.isChannelFilterEnabled(),
-					cpDefinition1.getDDMStructureKey(),
-					cpDefinition1.getDepth(), cpDefinition1.getDescriptionMap(),
-					displayDate.getDate(), displayDate.getHours(),
-					displayDate.getMinutes(), displayDate.getMonth(),
-					displayDate.getYear(), expirationDate.getDate(),
-					expirationDate.getHours(), expirationDate.getMinutes(),
-					expirationDate.getMonth(), expirationDate.getYear(), true,
-					cpDefinition1.getHeight(),
-					cpDefinition1.isIgnoreSKUCombinations(),
-					cpDefinition1.getMetaDescriptionMap(),
-					cpDefinition1.getMetaKeywordsMap(),
-					cpDefinition1.getMetaTitleMap(), cpDefinition1.getNameMap(),
-					true, cpDefinition1.isPublished(), true, true,
-					cpDefinition1.getShippingExtraPrice(),
-					cpDefinition1.getShortDescriptionMap(),
-					cpDefinition1.isTaxExempt(),
-					cpDefinition1.isTelcoOrElectronics(),
-					cpDefinition1.getUrlTitleMap(), cpDefinition1.getWeight(),
-					cpDefinition1.getWidth(),
-					ServiceContextTestUtil.getServiceContext());
-
-			Assert.assertNotEquals(
-				cpDefinition1.getCPDefinitionId(),
-				cpDefinition2.getCPDefinitionId());
-
-			cpDefinition1 = _cpDefinitionLocalService.getCPDefinition(
-				cpDefinition1.getCPDefinitionId());
-
-			Assert.assertFalse(cpDefinition1.isPublished());
-
-			Assert.assertTrue(cpDefinition2.isPublished());
-
-			cProduct = cpDefinition2.getCProduct();
-
-			Assert.assertEquals(2, cProduct.getLatestVersion());
-			Assert.assertEquals(
-				cpDefinition2.getCPDefinitionId(),
-				cProduct.getPublishedCPDefinitionId());
-
-			workflowDefinitionLink =
-				_workflowDefinitionLinkLocalService.addWorkflowDefinitionLink(
-					null, TestPropsValues.getUserId(),
-					TestPropsValues.getCompanyId(),
-					_commerceCatalog.getGroupId(), CPDefinition.class.getName(),
-					0, 0, "Single Approver", 1);
-
-			CPDefinition cpDefinition3 =
-				_cpDefinitionLocalService.updateCPDefinition(
-					cpDefinition2.getCPDefinitionId(),
-					cpDefinition2.getCPTaxCategoryId(),
-					cpDefinition2.isAccountGroupFilterEnabled(),
-					cpDefinition2.isChannelFilterEnabled(),
-					cpDefinition2.getDDMStructureKey(),
-					cpDefinition2.getDepth(), cpDefinition2.getDescriptionMap(),
-					displayDate.getDate(), displayDate.getHours(),
-					displayDate.getMinutes(), displayDate.getMonth(),
-					displayDate.getYear(), expirationDate.getDate(),
-					expirationDate.getHours(), expirationDate.getMinutes(),
-					expirationDate.getMonth(), expirationDate.getYear(), true,
-					cpDefinition2.getHeight(),
-					cpDefinition2.isIgnoreSKUCombinations(),
-					cpDefinition2.getMetaDescriptionMap(),
-					cpDefinition2.getMetaKeywordsMap(),
-					cpDefinition2.getMetaTitleMap(), cpDefinition2.getNameMap(),
-					true, cpDefinition2.isPublished(), true, true,
-					cpDefinition2.getShippingExtraPrice(),
-					cpDefinition2.getShortDescriptionMap(),
-					cpDefinition2.isTaxExempt(),
-					cpDefinition2.isTelcoOrElectronics(),
-					cpDefinition2.getUrlTitleMap(), cpDefinition2.getWeight(),
-					cpDefinition2.getWidth(),
-					ServiceContextTestUtil.getServiceContext());
-
-			Assert.assertNotEquals(
-				cpDefinition2.getCPDefinitionId(),
-				cpDefinition3.getCPDefinitionId());
-
-			Assert.assertNotNull(
-				_cpDefinitionLocalService.fetchCPDefinition(
-					cpDefinition1.getCPDefinitionId()));
-
-			cpDefinition2 = _cpDefinitionLocalService.getCPDefinition(
-				cpDefinition2.getCPDefinitionId());
-
-			Assert.assertTrue(cpDefinition2.isPublished());
-			Assert.assertEquals(
-				cpDefinition2.getCPDefinitionId(),
-				cProduct.getPublishedCPDefinitionId());
-
-			Assert.assertTrue(cpDefinition3.isPublished());
-			Assert.assertEquals(
-				WorkflowConstants.STATUS_PENDING, cpDefinition3.getStatus());
-
-			cProduct = cpDefinition3.getCProduct();
-
-			Assert.assertEquals(3, cProduct.getLatestVersion());
-
-			List<WorkflowTask> workflowTasks =
-				_workflowTaskManager.getWorkflowTasksByUserRoles(
-					TestPropsValues.getCompanyId(), TestPropsValues.getUserId(),
-					false, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
-
-			WorkflowTask workflowTask = workflowTasks.get(0);
-
-			_workflowTaskManager.assignWorkflowTaskToUser(
-				TestPropsValues.getCompanyId(), TestPropsValues.getUserId(),
-				workflowTask.getWorkflowTaskId(), TestPropsValues.getUserId(),
-				StringPool.BLANK, null, null);
-
-			_workflowTaskManager.completeWorkflowTask(
-				TestPropsValues.getCompanyId(), TestPropsValues.getUserId(),
-				workflowTask.getWorkflowTaskId(), Constants.APPROVE,
-				StringPool.BLANK, null);
-
-			Assert.assertNull(
-				_cpDefinitionLocalService.fetchCPDefinition(
-					cpDefinition1.getCPDefinitionId()));
-
-			Assert.assertNotNull(
-				_friendlyURLEntryLocalService.fetchMainFriendlyURLEntry(
-					_classNameLocalService.getClassNameId(CProduct.class),
-					cProduct.getCProductId()));
-
-			cpDefinition2 = _cpDefinitionLocalService.getCPDefinition(
-				cpDefinition2.getCPDefinitionId());
-
-			Assert.assertFalse(cpDefinition2.isPublished());
-
-			cpDefinition3 = _cpDefinitionLocalService.getCPDefinition(
-				cpDefinition3.getCPDefinitionId());
-
-			Assert.assertTrue(cpDefinition3.isPublished());
-			Assert.assertEquals(
-				WorkflowConstants.STATUS_APPROVED, cpDefinition3.getStatus());
-
-			cProduct = cpDefinition3.getCProduct();
-
-			Assert.assertEquals(3, cProduct.getLatestVersion());
-			Assert.assertEquals(
-				cpDefinition3.getCPDefinitionId(),
-				cProduct.getPublishedCPDefinitionId());
-
-			_cpDefinitionLocalService.deleteCPDefinition(
-				cpDefinition2.getCPDefinitionId());
-
-			Assert.assertNotNull(
-				_friendlyURLEntryLocalService.fetchMainFriendlyURLEntry(
-					_classNameLocalService.getClassNameId(CProduct.class),
-					cProduct.getCProductId()));
-
-			_cpDefinitionLocalService.deleteCPDefinition(
-				cpDefinition3.getCPDefinitionId());
-
-			Assert.assertNull(
-				_friendlyURLEntryLocalService.fetchMainFriendlyURLEntry(
-					_classNameLocalService.getClassNameId(CProduct.class),
-					cProduct.getCProductId()));
-		}
-		finally {
-			if (workflowDefinitionLink != null) {
-				_workflowDefinitionLinkLocalService.
-					deleteWorkflowDefinitionLink(workflowDefinitionLink);
-			}
-		}
 	}
 
 	@Test
@@ -1256,72 +1023,87 @@ public class CPDefinitionLocalServiceTest {
 	}
 
 	@Test
-	public void testUpdateExpiredCPDefinitionWithStatusExpired()
-		throws Exception {
-
-		frutillaRule.scenario(
-			"Add product definition"
-		).given(
-			"I add a product definition"
-		).when(
-			"expirationDate is in the past"
-		).and(
-			"neverExpire is false"
-		).then(
-			"product definition should not update expirationDate and have a " +
-				"status of expired"
-		);
-
-		long time = System.currentTimeMillis();
-
-		Date displayDate = new Date(time - Time.YEAR);
-		Date expirationDate = new Date(time - Time.MONTH);
-
-		User user = TestPropsValues.getUser();
-
-		Calendar expirationCalendar1 = CalendarFactoryUtil.getCalendar(
-			user.getTimeZone());
-
-		expirationCalendar1.setTime(expirationDate);
-
-		CPDefinition cpDefinition = CPTestUtil.addCPDefinitionFromCatalog(
-			_commerceCatalog.getGroupId(), SimpleCPTypeConstants.NAME,
-			displayDate, expirationDate, false, false,
-			WorkflowConstants.STATUS_APPROVED);
-
-		cpDefinition = _cpDefinitionLocalService.updateStatus(
-			user.getUserId(), cpDefinition.getCPDefinitionId(),
-			WorkflowConstants.STATUS_EXPIRED, _serviceContext, null);
-
-		Assert.assertEquals(
-			WorkflowConstants.STATUS_EXPIRED, cpDefinition.getStatus());
-
-		Calendar expirationCalendar2 = CalendarFactoryUtil.getCalendar(
-			user.getTimeZone());
-
-		expirationCalendar2.setTime(cpDefinition.getExpirationDate());
-
-		Assert.assertEquals(
-			_portal.getDate(
-				expirationCalendar1.get(Calendar.MONTH),
-				expirationCalendar1.get(Calendar.DATE),
-				expirationCalendar1.get(Calendar.YEAR),
-				expirationCalendar1.get(Calendar.HOUR_OF_DAY),
-				expirationCalendar1.get(Calendar.MINUTE), user.getTimeZone(),
-				null),
-			_portal.getDate(
-				expirationCalendar2.get(Calendar.MONTH),
-				expirationCalendar2.get(Calendar.DATE),
-				expirationCalendar2.get(Calendar.YEAR),
-				expirationCalendar2.get(Calendar.HOUR_OF_DAY),
-				expirationCalendar2.get(Calendar.MINUTE), user.getTimeZone(),
-				null));
+	public void testUpdateStatus() throws Exception {
+		_testUpdateStatusWithExistingDraftCPDefinition();
+		_testUpdateStatusWithFutureExpirationDate();
+		_testUpdateStatusWithPastExpirationDate();
 	}
 
-	@Test
-	public void testUpdateFutureExpiredCPDefinitionWithStatusExpired()
+	@Rule
+	public final FrutillaRule frutillaRule = new FrutillaRule();
+
+	private void _assertPublished(CPDefinition cpDefinition) throws Exception {
+		cpDefinition = _cpDefinitionLocalService.getCPDefinition(
+			cpDefinition.getCPDefinitionId());
+
+		Assert.assertEquals(
+			WorkflowConstants.STATUS_APPROVED, cpDefinition.getStatus());
+
+		CProduct cProduct = _cProductLocalService.getCProduct(
+			cpDefinition.getCProductId());
+
+		Assert.assertEquals(
+			cpDefinition.getCPDefinitionId(),
+			cProduct.getPublishedCPDefinitionId());
+	}
+
+	private void _assertUniqueExternalReferenceCodes(
+		CPDefinitionOptionRel sourceCPDefinitionOptionRel,
+		CPDefinition targetCPDefinition) {
+
+		List<CPDefinitionOptionRel> cpDefinitionOptionRels =
+			targetCPDefinition.getCPDefinitionOptionRels();
+
+		Assert.assertEquals(
+			cpDefinitionOptionRels.toString(), 1,
+			cpDefinitionOptionRels.size());
+
+		CPDefinitionOptionRel targetCPDefinitionOptionRel =
+			cpDefinitionOptionRels.get(0);
+
+		Assert.assertNotEquals(
+			sourceCPDefinitionOptionRel.getExternalReferenceCode(),
+			targetCPDefinitionOptionRel.getExternalReferenceCode());
+
+		List<CPDefinitionOptionValueRel> sourceCPDefinitionOptionValueRels =
+			sourceCPDefinitionOptionRel.getCPDefinitionOptionValueRels();
+		List<CPDefinitionOptionValueRel> targetCPDefinitionOptionValueRels =
+			targetCPDefinitionOptionRel.getCPDefinitionOptionValueRels();
+
+		Assert.assertEquals(
+			targetCPDefinitionOptionValueRels.toString(),
+			sourceCPDefinitionOptionValueRels.size(),
+			targetCPDefinitionOptionValueRels.size());
+
+		List<String> externalReferenceCodes = TransformUtil.transform(
+			ListUtil.concat(
+				sourceCPDefinitionOptionValueRels,
+				targetCPDefinitionOptionValueRels),
+			CPDefinitionOptionValueRel::getExternalReferenceCode);
+
+		Set<String> externalReferenceCodesSet = SetUtil.fromCollection(
+			externalReferenceCodes);
+
+		Assert.assertEquals(
+			externalReferenceCodes.toString(), externalReferenceCodes.size(),
+			externalReferenceCodesSet.size());
+	}
+
+	private CPDefinition _cloneAndPublishCPDefinition(CPDefinition cpDefinition)
 		throws Exception {
 
+		CPDefinition clonedCPDefinition =
+			_cpDefinitionLocalService.cloneCPDefinition(
+				TestPropsValues.getUserId(), cpDefinition.getCPDefinitionId(),
+				_commerceCatalog.getGroupId(), _serviceContext);
+
+		return _cpDefinitionLocalService.updateStatus(
+			TestPropsValues.getUserId(), clonedCPDefinition.getCPDefinitionId(),
+			WorkflowConstants.STATUS_APPROVED, _serviceContext,
+			Collections.emptyMap());
+	}
+
+	private void _testAddFutureExpiredCPDefinition() throws Exception {
 		frutillaRule.scenario(
 			"Add product definition"
 		).given(
@@ -1331,8 +1113,8 @@ public class CPDefinitionLocalServiceTest {
 		).and(
 			"neverExpire is false"
 		).then(
-			"product definition should update expirationDate to current date " +
-				"and have a status of expired"
+			"product definition should save expirationDate and have a status " +
+				"of approved"
 		);
 
 		long time = System.currentTimeMillis();
@@ -1340,47 +1122,86 @@ public class CPDefinitionLocalServiceTest {
 		Date displayDate = new Date(time);
 		Date expirationDate = new Date(time + Time.YEAR);
 
-		CPDefinition cpDefinition = CPTestUtil.addCPDefinitionFromCatalog(
-			_commerceCatalog.getGroupId(), SimpleCPTypeConstants.NAME,
-			displayDate, expirationDate, false, false,
-			WorkflowConstants.STATUS_APPROVED);
-
 		User user = TestPropsValues.getUser();
-
-		cpDefinition = _cpDefinitionLocalService.updateStatus(
-			user.getUserId(), cpDefinition.getCPDefinitionId(),
-			WorkflowConstants.STATUS_EXPIRED, _serviceContext, null);
-
-		Assert.assertEquals(
-			WorkflowConstants.STATUS_EXPIRED, cpDefinition.getStatus());
-
-		Calendar displayDateCalendar = CalendarFactoryUtil.getCalendar(
-			user.getTimeZone());
-
-		displayDateCalendar.setTime(displayDate);
 
 		Calendar expirationCalendar = CalendarFactoryUtil.getCalendar(
 			user.getTimeZone());
 
-		expirationCalendar.setTime(cpDefinition.getExpirationDate());
+		expirationCalendar.setTime(expirationDate);
+
+		CPDefinition cpDefinition = CPTestUtil.addCPDefinitionFromCatalog(
+			_commerceCatalog.getGroupId(), SimpleCPTypeConstants.NAME,
+			displayDate, expirationDate, false, false,
+			WorkflowConstants.STATUS_APPROVED,
+			ServiceContextTestUtil.getServiceContext(
+				_commerceCatalog.getGroupId()));
 
 		Assert.assertEquals(
-			_portal.getDate(
-				displayDateCalendar.get(Calendar.MONTH),
-				displayDateCalendar.get(Calendar.DATE),
-				displayDateCalendar.get(Calendar.YEAR),
-				displayDateCalendar.get(Calendar.HOUR_OF_DAY), 0,
-				user.getTimeZone(), null),
+			WorkflowConstants.STATUS_APPROVED, cpDefinition.getStatus());
+
+		Assert.assertEquals(
 			_portal.getDate(
 				expirationCalendar.get(Calendar.MONTH),
 				expirationCalendar.get(Calendar.DATE),
 				expirationCalendar.get(Calendar.YEAR),
-				expirationCalendar.get(Calendar.HOUR_OF_DAY), 0,
-				user.getTimeZone(), null));
+				expirationCalendar.get(Calendar.HOUR_OF_DAY),
+				expirationCalendar.get(Calendar.MINUTE), user.getTimeZone(),
+				null),
+			cpDefinition.getExpirationDate());
 	}
 
-	@Rule
-	public final FrutillaRule frutillaRule = new FrutillaRule();
+	private void _testAddFutureExpiredCPDefinitionWithStatusExpired()
+		throws Exception {
+
+		frutillaRule.scenario(
+			"Add product definition"
+		).given(
+			"I add a product definition"
+		).when(
+			"expirationDate is in a future date"
+		).and(
+			"status is expired"
+		).then(
+			"product definition should keep expirationDate and have a status " +
+				"of expired"
+		);
+
+		long time = System.currentTimeMillis();
+
+		Date displayDate = new Date(time);
+		Date expirationDate = new Date(time + Time.YEAR);
+
+		User user = TestPropsValues.getUser();
+
+		Calendar expirationCalendar = CalendarFactoryUtil.getCalendar(
+			user.getTimeZone());
+
+		expirationCalendar.setTime(expirationDate);
+
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(
+				_commerceCatalog.getGroupId());
+
+		serviceContext.setWorkflowAction(WorkflowConstants.ACTION_SAVE_DRAFT);
+
+		CPDefinition cpDefinition = CPTestUtil.addCPDefinitionFromCatalog(
+			_commerceCatalog.getGroupId(), SimpleCPTypeConstants.NAME,
+			displayDate, expirationDate, false, false,
+			WorkflowConstants.STATUS_EXPIRED, serviceContext);
+
+		Assert.assertEquals(
+			WorkflowConstants.STATUS_EXPIRED, cpDefinition.getStatus());
+
+		Assert.assertEquals(
+			_portal.getDate(
+				expirationCalendar.get(Calendar.MONTH),
+				expirationCalendar.get(Calendar.DATE),
+				expirationCalendar.get(Calendar.YEAR),
+				expirationCalendar.get(Calendar.HOUR_OF_DAY),
+				expirationCalendar.get(Calendar.MINUTE), user.getTimeZone(),
+				null),
+			cpDefinition.getExpirationDate());
+	}
 
 	private void _testCopyCPDefinition() throws Exception {
 		frutillaRule.scenario(
@@ -1532,19 +1353,66 @@ public class CPDefinitionLocalServiceTest {
 		}
 	}
 
-	private void _testCopyCPDefinitionSetsExistingDraftToIncomplete()
+	private void _testCopyCPDefinitionOptionRelExternalReferenceCodes()
 		throws Exception {
 
 		frutillaRule.scenario(
-			"Set existing draft to incomplete when a new draft is created"
+			"Version a product that carries options"
+		).given(
+			"A published product with one option and two option values"
+		).when(
+			"A new version of the product is created"
+		).then(
+			"The copied option and option values carry their own external " +
+				"reference codes"
+		);
+
+		CPDefinition cpDefinition1 = CPTestUtil.addCPDefinitionFromCatalog(
+			_commerceCatalog.getGroupId(), SimpleCPTypeConstants.NAME, true,
+			true);
+
+		CPDefinitionOptionRel cpDefinitionOptionRel1 =
+			CPTestUtil.addCPDefinitionOptionRel(
+				_commerceCatalog.getGroupId(),
+				cpDefinition1.getCPDefinitionId(), true, 2);
+
+		try (CompanyConfigurationTemporarySwapper
+				companyConfigurationTemporarySwapper =
+					new CompanyConfigurationTemporarySwapper(
+						TestPropsValues.getCompanyId(),
+						CProductVersionConfiguration.class.getName(),
+						HashMapDictionaryBuilder.<String, Object>put(
+							"enabled", true
+						).put(
+							"versionThreshold", 2
+						).build())) {
+
+			CPDefinition cpDefinition2 =
+				_cpDefinitionLocalService.copyCPDefinition(
+					cpDefinition1.getCPDefinitionId());
+
+			Assert.assertNotEquals(
+				cpDefinition1.getCPDefinitionId(),
+				cpDefinition2.getCPDefinitionId());
+
+			_assertUniqueExternalReferenceCodes(
+				cpDefinitionOptionRel1, cpDefinition2);
+		}
+	}
+
+	private void _testCopyCPDefinitionReturnsExistingDraftCPDefinition()
+		throws Exception {
+
+		frutillaRule.scenario(
+			"Reuse the existing draft instead of creating a second one"
 		).given(
 			"A published product definition with an existing draft"
 		).when(
-			"a new draft is created from the published product definition"
+			"a draft is requested again from the published product definition"
 		).then(
-			"the existing draft is set to incomplete"
+			"the existing draft is returned"
 		).and(
-			"the new draft is created"
+			"the product carries a single draft"
 		);
 
 		CPDefinition cpDefinition1 = CPTestUtil.addCPDefinitionFromCatalog(
@@ -1579,13 +1447,14 @@ public class CPDefinitionLocalServiceTest {
 					cpDefinition1.getGroupId(), WorkflowConstants.STATUS_DRAFT);
 
 			Assert.assertEquals(
-				WorkflowConstants.STATUS_DRAFT, cpDefinition3.getStatus());
-
-			cpDefinition2 = _cpDefinitionLocalService.getCPDefinition(
-				cpDefinition2.getCPDefinitionId());
+				cpDefinition2.getCPDefinitionId(),
+				cpDefinition3.getCPDefinitionId());
 
 			Assert.assertEquals(
-				WorkflowConstants.STATUS_INCOMPLETE, cpDefinition2.getStatus());
+				1,
+				_cpDefinitionLocalService.getCProductCPDefinitionsCount(
+					cpDefinition1.getCProductId(),
+					WorkflowConstants.STATUS_DRAFT));
 		}
 	}
 
@@ -1666,6 +1535,239 @@ public class CPDefinitionLocalServiceTest {
 						cpDefinitionOptionRel.getCPDefinitionId());
 				}
 			}
+		}
+	}
+
+	private void _testCopyCPDefinitionWithVersioningDisabled()
+		throws Exception {
+
+		frutillaRule.scenario(
+			"Do not copy a product definition with versioning disabled"
+		).given(
+			"A published product definition with a draft saved with versioning"
+		).when(
+			"a draft is requested with versioning disabled"
+		).then(
+			"the published product definition is returned"
+		).and(
+			"the existing draft is kept"
+		);
+
+		CPDefinition cpDefinition1 = CPTestUtil.addCPDefinitionFromCatalog(
+			_commerceCatalog.getGroupId(), SimpleCPTypeConstants.NAME, false,
+			false);
+
+		CPDefinition cpDefinition2 = null;
+
+		try (CompanyConfigurationTemporarySwapper
+				companyConfigurationTemporarySwapper =
+					new CompanyConfigurationTemporarySwapper(
+						TestPropsValues.getCompanyId(),
+						CProductVersionConfiguration.class.getName(),
+						HashMapDictionaryBuilder.<String, Object>put(
+							"enabled", true
+						).put(
+							"versionThreshold", 2
+						).build())) {
+
+			cpDefinition2 = _cpDefinitionLocalService.copyCPDefinition(
+				cpDefinition1.getCPDefinitionId(), cpDefinition1.getGroupId(),
+				WorkflowConstants.STATUS_DRAFT);
+		}
+
+		CPDefinition cpDefinition3 = _cpDefinitionLocalService.copyCPDefinition(
+			cpDefinition1.getCPDefinitionId(), cpDefinition1.getGroupId(),
+			WorkflowConstants.STATUS_DRAFT);
+
+		Assert.assertEquals(
+			cpDefinition1.getCPDefinitionId(),
+			cpDefinition3.getCPDefinitionId());
+
+		cpDefinition2 = _cpDefinitionLocalService.getCPDefinition(
+			cpDefinition2.getCPDefinitionId());
+
+		Assert.assertEquals(
+			WorkflowConstants.STATUS_DRAFT, cpDefinition2.getStatus());
+
+		Assert.assertEquals(
+			1,
+			_cpDefinitionLocalService.getCProductCPDefinitionsCount(
+				cpDefinition1.getCProductId(), WorkflowConstants.STATUS_DRAFT));
+	}
+
+	private void _testDeleteCPDefinitionWithClonedCPDefinitions()
+		throws Exception {
+
+		frutillaRule.scenario(
+			"Delete a product and its clone one by one"
+		).given(
+			"A published product, its published clone and the published " +
+				"clone of the clone, with versioning enabled"
+		).when(
+			"the product and then its clone are deleted"
+		).then(
+			"each deletion removes only that product"
+		).and(
+			"the remaining clones stay published"
+		);
+
+		CPDefinition cpDefinition = CPTestUtil.addCPDefinitionFromCatalog(
+			_commerceCatalog.getGroupId(), SimpleCPTypeConstants.NAME, false,
+			false);
+
+		try (CompanyConfigurationTemporarySwapper
+				companyConfigurationTemporarySwapper =
+					new CompanyConfigurationTemporarySwapper(
+						TestPropsValues.getCompanyId(),
+						CProductVersionConfiguration.class.getName(),
+						HashMapDictionaryBuilder.<String, Object>put(
+							"enabled", true
+						).put(
+							"versionThreshold", 2
+						).build())) {
+
+			CPDefinition clonedCPDefinition = _cloneAndPublishCPDefinition(
+				cpDefinition);
+
+			String languageId = LocaleUtil.toLanguageId(
+				LocaleUtil.getDefault());
+
+			Assert.assertEquals(
+				"Copy of " + cpDefinition.getName(languageId),
+				clonedCPDefinition.getName(languageId));
+
+			CPDefinition clonedClonedCPDefinition =
+				_cloneAndPublishCPDefinition(clonedCPDefinition);
+
+			Assert.assertEquals(
+				"Copy of Copy of " + cpDefinition.getName(languageId),
+				clonedClonedCPDefinition.getName(languageId));
+
+			_cpDefinitionLocalService.deleteCPDefinition(
+				cpDefinition.getCPDefinitionId());
+
+			Assert.assertNull(
+				_cProductLocalService.fetchCProduct(
+					cpDefinition.getCProductId()));
+
+			_assertPublished(clonedCPDefinition);
+			_assertPublished(clonedClonedCPDefinition);
+
+			_cpDefinitionLocalService.deleteCPDefinition(
+				clonedCPDefinition.getCPDefinitionId());
+
+			Assert.assertNull(
+				_cProductLocalService.fetchCProduct(
+					clonedCPDefinition.getCProductId()));
+
+			_assertPublished(clonedClonedCPDefinition);
+		}
+	}
+
+	private void _testDeleteCPDefinitionWithExistingDraftCPDefinition()
+		throws Exception {
+
+		frutillaRule.scenario(
+			"Delete the product definitions of a product one by one"
+		).given(
+			"A published product definition with an existing draft"
+		).when(
+			"the published product definition is deleted"
+		).then(
+			"the draft and the product are kept"
+		).and(
+			"the product is removed when the draft is deleted"
+		);
+
+		CPDefinition cpDefinition1 = CPTestUtil.addCPDefinitionFromCatalog(
+			_commerceCatalog.getGroupId(), SimpleCPTypeConstants.NAME, false,
+			false);
+
+		try (CompanyConfigurationTemporarySwapper
+				companyConfigurationTemporarySwapper =
+					new CompanyConfigurationTemporarySwapper(
+						TestPropsValues.getCompanyId(),
+						CProductVersionConfiguration.class.getName(),
+						HashMapDictionaryBuilder.<String, Object>put(
+							"enabled", true
+						).put(
+							"versionThreshold", 2
+						).build())) {
+
+			CPDefinition cpDefinition2 =
+				_cpDefinitionLocalService.copyCPDefinition(
+					cpDefinition1.getCPDefinitionId(),
+					cpDefinition1.getGroupId(), WorkflowConstants.STATUS_DRAFT);
+
+			_cpDefinitionLocalService.deleteCPDefinition(
+				cpDefinition1.getCPDefinitionId());
+
+			Assert.assertNull(
+				_cpDefinitionLocalService.fetchCPDefinition(
+					cpDefinition1.getCPDefinitionId()));
+
+			cpDefinition2 = _cpDefinitionLocalService.getCPDefinition(
+				cpDefinition2.getCPDefinitionId());
+
+			Assert.assertEquals(
+				WorkflowConstants.STATUS_DRAFT, cpDefinition2.getStatus());
+
+			CProduct cProduct = _cProductLocalService.getCProduct(
+				cpDefinition1.getCProductId());
+
+			Assert.assertEquals(0, cProduct.getPublishedCPDefinitionId());
+
+			_cpDefinitionLocalService.deleteCPDefinition(
+				cpDefinition2.getCPDefinitionId());
+
+			Assert.assertNull(
+				_cpDefinitionLocalService.fetchCPDefinition(
+					cpDefinition2.getCPDefinitionId()));
+			Assert.assertNull(
+				_cProductLocalService.fetchCProduct(
+					cpDefinition1.getCProductId()));
+		}
+	}
+
+	private void _testDeleteCPDefinitionWithVersioningEnabled()
+		throws Exception {
+
+		frutillaRule.scenario(
+			"Delete a product definition with versioning enabled"
+		).given(
+			"A published product definition"
+		).when(
+			"the product definition is deleted"
+		).then(
+			"the product definition is removed"
+		).and(
+			"the product is removed"
+		);
+
+		CPDefinition cpDefinition = CPTestUtil.addCPDefinitionFromCatalog(
+			_commerceCatalog.getGroupId(), SimpleCPTypeConstants.NAME, false,
+			false);
+
+		try (CompanyConfigurationTemporarySwapper
+				companyConfigurationTemporarySwapper =
+					new CompanyConfigurationTemporarySwapper(
+						TestPropsValues.getCompanyId(),
+						CProductVersionConfiguration.class.getName(),
+						HashMapDictionaryBuilder.<String, Object>put(
+							"enabled", true
+						).put(
+							"versionThreshold", 2
+						).build())) {
+
+			_cpDefinitionLocalService.deleteCPDefinition(
+				cpDefinition.getCPDefinitionId());
+
+			Assert.assertNull(
+				_cpDefinitionLocalService.fetchCPDefinition(
+					cpDefinition.getCPDefinitionId()));
+			Assert.assertNull(
+				_cProductLocalService.fetchCProduct(
+					cpDefinition.getCProductId()));
 		}
 	}
 
@@ -2166,11 +2268,554 @@ public class CPDefinitionLocalServiceTest {
 		Assert.assertTrue(cpDefinitions.contains(cpDefinition2));
 	}
 
+	private void _testUpdateCPDefinitionWithExistingDraftCPDefinition()
+		throws Exception {
+
+		frutillaRule.scenario(
+			"Save a draft product definition again"
+		).given(
+			"A published product definition with an existing draft"
+		).when(
+			"the draft is saved again"
+		).then(
+			"the draft keeps its own product definition ID"
+		).and(
+			"the product carries a single draft"
+		);
+
+		CPDefinition cpDefinition1 = CPTestUtil.addCPDefinitionFromCatalog(
+			_commerceCatalog.getGroupId(), SimpleCPTypeConstants.NAME, false,
+			false);
+
+		try (CompanyConfigurationTemporarySwapper
+				companyConfigurationTemporarySwapper =
+					new CompanyConfigurationTemporarySwapper(
+						TestPropsValues.getCompanyId(),
+						CProductVersionConfiguration.class.getName(),
+						HashMapDictionaryBuilder.<String, Object>put(
+							"enabled", true
+						).put(
+							"versionThreshold", 2
+						).build())) {
+
+			CPDefinition cpDefinition2 =
+				_cpDefinitionLocalService.copyCPDefinition(
+					cpDefinition1.getCPDefinitionId(),
+					cpDefinition1.getGroupId(), WorkflowConstants.STATUS_DRAFT);
+
+			ServiceContext serviceContext =
+				ServiceContextTestUtil.getServiceContext(
+					_commerceCatalog.getGroupId());
+
+			serviceContext.setWorkflowAction(
+				WorkflowConstants.ACTION_SAVE_DRAFT);
+
+			CPDefinition cpDefinition3 = _updateCPDefinition(
+				cpDefinition2, serviceContext);
+
+			Assert.assertEquals(
+				cpDefinition2.getCPDefinitionId(),
+				cpDefinition3.getCPDefinitionId());
+
+			Assert.assertEquals(
+				WorkflowConstants.STATUS_DRAFT, cpDefinition3.getStatus());
+
+			Assert.assertEquals(
+				1,
+				_cpDefinitionLocalService.getCProductCPDefinitionsCount(
+					cpDefinition1.getCProductId(),
+					WorkflowConstants.STATUS_DRAFT));
+		}
+	}
+
+	private void _testUpdateCPDefinitionWithVersioningEnabled()
+		throws Exception {
+
+		frutillaRule.scenario(
+			"Update product definition with versioning enabled"
+		).given(
+			"I add a product definition"
+		).when(
+			"the product versioning is enabled"
+		).and(
+			"the product is updated"
+		).then(
+			"the product should have a new version with the product change"
+		);
+
+		CPDefinition cpDefinition1 = CPTestUtil.addCPDefinitionFromCatalog(
+			_commerceCatalog.getGroupId(), SimpleCPTypeConstants.NAME, false,
+			false);
+
+		Date displayDate = cpDefinition1.getDisplayDate();
+		Date expirationDate = cpDefinition1.getExpirationDate();
+
+		cpDefinition1 = _cpDefinitionLocalService.updateCPDefinition(
+			cpDefinition1.getCPDefinitionId(),
+			cpDefinition1.getCPTaxCategoryId(),
+			cpDefinition1.isAccountGroupFilterEnabled(),
+			cpDefinition1.isChannelFilterEnabled(),
+			cpDefinition1.getDDMStructureKey(), cpDefinition1.getDepth(),
+			cpDefinition1.getDescriptionMap(), displayDate.getDate(),
+			displayDate.getHours(), displayDate.getMinutes(),
+			displayDate.getMonth(), displayDate.getYear(),
+			expirationDate.getDate(), expirationDate.getHours(),
+			expirationDate.getMinutes(), expirationDate.getMonth(),
+			expirationDate.getYear(), true, cpDefinition1.getHeight(),
+			cpDefinition1.isIgnoreSKUCombinations(),
+			cpDefinition1.getMetaDescriptionMap(),
+			cpDefinition1.getMetaKeywordsMap(), cpDefinition1.getMetaTitleMap(),
+			cpDefinition1.getNameMap(), true, cpDefinition1.isPublished(), true,
+			true, cpDefinition1.getShippingExtraPrice(),
+			cpDefinition1.getShortDescriptionMap(), cpDefinition1.isTaxExempt(),
+			cpDefinition1.isTelcoOrElectronics(),
+			cpDefinition1.getUrlTitleMap(), cpDefinition1.getWeight(),
+			cpDefinition1.getWidth(),
+			ServiceContextTestUtil.getServiceContext());
+
+		cpDefinition1 = _cpDefinitionLocalService.updateCPDefinition(
+			cpDefinition1.getCPDefinitionId(),
+			cpDefinition1.getCPTaxCategoryId(),
+			cpDefinition1.isAccountGroupFilterEnabled(),
+			cpDefinition1.isChannelFilterEnabled(),
+			cpDefinition1.getDDMStructureKey(), cpDefinition1.getDepth(),
+			cpDefinition1.getDescriptionMap(), displayDate.getDate(),
+			displayDate.getHours(), displayDate.getMinutes(),
+			displayDate.getMonth(), displayDate.getYear(),
+			expirationDate.getDate(), expirationDate.getHours(),
+			expirationDate.getMinutes(), expirationDate.getMonth(),
+			expirationDate.getYear(), true, cpDefinition1.getHeight(),
+			cpDefinition1.isIgnoreSKUCombinations(),
+			cpDefinition1.getMetaDescriptionMap(),
+			cpDefinition1.getMetaKeywordsMap(), cpDefinition1.getMetaTitleMap(),
+			cpDefinition1.getNameMap(), true, cpDefinition1.isPublished(), true,
+			true, cpDefinition1.getShippingExtraPrice(),
+			cpDefinition1.getShortDescriptionMap(), cpDefinition1.isTaxExempt(),
+			cpDefinition1.isTelcoOrElectronics(),
+			cpDefinition1.getUrlTitleMap(), cpDefinition1.getWeight(),
+			cpDefinition1.getWidth(),
+			ServiceContextTestUtil.getServiceContext());
+
+		Assert.assertTrue(cpDefinition1.isPublished());
+
+		CProduct cProduct = cpDefinition1.getCProduct();
+
+		Assert.assertEquals(1, cProduct.getLatestVersion());
+
+		Assert.assertEquals(
+			cpDefinition1.getCPDefinitionId(),
+			cProduct.getPublishedCPDefinitionId());
+
+		WorkflowDefinitionLink workflowDefinitionLink = null;
+
+		try (CompanyConfigurationTemporarySwapper
+				companyConfigurationTemporarySwapper =
+					new CompanyConfigurationTemporarySwapper(
+						TestPropsValues.getCompanyId(),
+						CProductVersionConfiguration.class.getName(),
+						HashMapDictionaryBuilder.<String, Object>put(
+							"enabled", true
+						).put(
+							"versionThreshold", 2
+						).build())) {
+
+			CPDefinition cpDefinition2 =
+				_cpDefinitionLocalService.updateCPDefinition(
+					cpDefinition1.getCPDefinitionId(),
+					cpDefinition1.getCPTaxCategoryId(),
+					cpDefinition1.isAccountGroupFilterEnabled(),
+					cpDefinition1.isChannelFilterEnabled(),
+					cpDefinition1.getDDMStructureKey(),
+					cpDefinition1.getDepth(), cpDefinition1.getDescriptionMap(),
+					displayDate.getDate(), displayDate.getHours(),
+					displayDate.getMinutes(), displayDate.getMonth(),
+					displayDate.getYear(), expirationDate.getDate(),
+					expirationDate.getHours(), expirationDate.getMinutes(),
+					expirationDate.getMonth(), expirationDate.getYear(), true,
+					cpDefinition1.getHeight(),
+					cpDefinition1.isIgnoreSKUCombinations(),
+					cpDefinition1.getMetaDescriptionMap(),
+					cpDefinition1.getMetaKeywordsMap(),
+					cpDefinition1.getMetaTitleMap(), cpDefinition1.getNameMap(),
+					true, cpDefinition1.isPublished(), true, true,
+					cpDefinition1.getShippingExtraPrice(),
+					cpDefinition1.getShortDescriptionMap(),
+					cpDefinition1.isTaxExempt(),
+					cpDefinition1.isTelcoOrElectronics(),
+					cpDefinition1.getUrlTitleMap(), cpDefinition1.getWeight(),
+					cpDefinition1.getWidth(),
+					ServiceContextTestUtil.getServiceContext());
+
+			Assert.assertNotEquals(
+				cpDefinition1.getCPDefinitionId(),
+				cpDefinition2.getCPDefinitionId());
+
+			cpDefinition1 = _cpDefinitionLocalService.getCPDefinition(
+				cpDefinition1.getCPDefinitionId());
+
+			Assert.assertFalse(cpDefinition1.isPublished());
+
+			Assert.assertTrue(cpDefinition2.isPublished());
+
+			cProduct = cpDefinition2.getCProduct();
+
+			Assert.assertEquals(2, cProduct.getLatestVersion());
+			Assert.assertEquals(
+				cpDefinition2.getCPDefinitionId(),
+				cProduct.getPublishedCPDefinitionId());
+
+			workflowDefinitionLink =
+				_workflowDefinitionLinkLocalService.addWorkflowDefinitionLink(
+					null, TestPropsValues.getUserId(),
+					TestPropsValues.getCompanyId(),
+					_commerceCatalog.getGroupId(), CPDefinition.class.getName(),
+					0, 0, "Single Approver", 1);
+
+			CPDefinition cpDefinition3 =
+				_cpDefinitionLocalService.updateCPDefinition(
+					cpDefinition2.getCPDefinitionId(),
+					cpDefinition2.getCPTaxCategoryId(),
+					cpDefinition2.isAccountGroupFilterEnabled(),
+					cpDefinition2.isChannelFilterEnabled(),
+					cpDefinition2.getDDMStructureKey(),
+					cpDefinition2.getDepth(), cpDefinition2.getDescriptionMap(),
+					displayDate.getDate(), displayDate.getHours(),
+					displayDate.getMinutes(), displayDate.getMonth(),
+					displayDate.getYear(), expirationDate.getDate(),
+					expirationDate.getHours(), expirationDate.getMinutes(),
+					expirationDate.getMonth(), expirationDate.getYear(), true,
+					cpDefinition2.getHeight(),
+					cpDefinition2.isIgnoreSKUCombinations(),
+					cpDefinition2.getMetaDescriptionMap(),
+					cpDefinition2.getMetaKeywordsMap(),
+					cpDefinition2.getMetaTitleMap(), cpDefinition2.getNameMap(),
+					true, cpDefinition2.isPublished(), true, true,
+					cpDefinition2.getShippingExtraPrice(),
+					cpDefinition2.getShortDescriptionMap(),
+					cpDefinition2.isTaxExempt(),
+					cpDefinition2.isTelcoOrElectronics(),
+					cpDefinition2.getUrlTitleMap(), cpDefinition2.getWeight(),
+					cpDefinition2.getWidth(),
+					ServiceContextTestUtil.getServiceContext());
+
+			Assert.assertNotEquals(
+				cpDefinition2.getCPDefinitionId(),
+				cpDefinition3.getCPDefinitionId());
+
+			Assert.assertNotNull(
+				_cpDefinitionLocalService.fetchCPDefinition(
+					cpDefinition1.getCPDefinitionId()));
+
+			cpDefinition2 = _cpDefinitionLocalService.getCPDefinition(
+				cpDefinition2.getCPDefinitionId());
+
+			Assert.assertTrue(cpDefinition2.isPublished());
+			Assert.assertEquals(
+				cpDefinition2.getCPDefinitionId(),
+				cProduct.getPublishedCPDefinitionId());
+
+			Assert.assertTrue(cpDefinition3.isPublished());
+			Assert.assertEquals(
+				WorkflowConstants.STATUS_PENDING, cpDefinition3.getStatus());
+
+			cProduct = cpDefinition3.getCProduct();
+
+			Assert.assertEquals(3, cProduct.getLatestVersion());
+
+			List<WorkflowTask> workflowTasks =
+				_workflowTaskManager.getWorkflowTasksByUserRoles(
+					TestPropsValues.getCompanyId(), TestPropsValues.getUserId(),
+					false, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
+
+			WorkflowTask workflowTask = workflowTasks.get(0);
+
+			_workflowTaskManager.assignWorkflowTaskToUser(
+				TestPropsValues.getCompanyId(), TestPropsValues.getUserId(),
+				workflowTask.getWorkflowTaskId(), TestPropsValues.getUserId(),
+				StringPool.BLANK, null, null);
+
+			_workflowTaskManager.completeWorkflowTask(
+				TestPropsValues.getCompanyId(), TestPropsValues.getUserId(),
+				workflowTask.getWorkflowTaskId(), Constants.APPROVE,
+				StringPool.BLANK, null);
+
+			Assert.assertNull(
+				_cpDefinitionLocalService.fetchCPDefinition(
+					cpDefinition1.getCPDefinitionId()));
+
+			Assert.assertNotNull(
+				_friendlyURLEntryLocalService.fetchMainFriendlyURLEntry(
+					_classNameLocalService.getClassNameId(CProduct.class),
+					cProduct.getCProductId()));
+
+			cpDefinition2 = _cpDefinitionLocalService.getCPDefinition(
+				cpDefinition2.getCPDefinitionId());
+
+			Assert.assertFalse(cpDefinition2.isPublished());
+
+			cpDefinition3 = _cpDefinitionLocalService.getCPDefinition(
+				cpDefinition3.getCPDefinitionId());
+
+			Assert.assertTrue(cpDefinition3.isPublished());
+			Assert.assertEquals(
+				WorkflowConstants.STATUS_APPROVED, cpDefinition3.getStatus());
+
+			cProduct = cpDefinition3.getCProduct();
+
+			Assert.assertEquals(3, cProduct.getLatestVersion());
+			Assert.assertEquals(
+				cpDefinition3.getCPDefinitionId(),
+				cProduct.getPublishedCPDefinitionId());
+
+			_cpDefinitionLocalService.deleteCPDefinition(
+				cpDefinition2.getCPDefinitionId());
+
+			Assert.assertNotNull(
+				_friendlyURLEntryLocalService.fetchMainFriendlyURLEntry(
+					_classNameLocalService.getClassNameId(CProduct.class),
+					cProduct.getCProductId()));
+
+			_cpDefinitionLocalService.deleteCPDefinition(
+				cpDefinition3.getCPDefinitionId());
+
+			Assert.assertNull(
+				_friendlyURLEntryLocalService.fetchMainFriendlyURLEntry(
+					_classNameLocalService.getClassNameId(CProduct.class),
+					cProduct.getCProductId()));
+		}
+		finally {
+			if (workflowDefinitionLink != null) {
+				_workflowDefinitionLinkLocalService.
+					deleteWorkflowDefinitionLink(workflowDefinitionLink);
+			}
+		}
+	}
+
+	private void _testUpdateStatusWithExistingDraftCPDefinition()
+		throws Exception {
+
+		frutillaRule.scenario(
+			"Set existing draft to incomplete when a published product " +
+				"definition is converted to draft"
+		).given(
+			"A published product definition with an existing draft"
+		).when(
+			"the published product definition is converted to draft"
+		).then(
+			"the existing draft is set to incomplete"
+		).and(
+			"the product carries a single draft"
+		);
+
+		CPDefinition cpDefinition1 = CPTestUtil.addCPDefinitionFromCatalog(
+			_commerceCatalog.getGroupId(), SimpleCPTypeConstants.NAME, false,
+			false);
+
+		Assert.assertEquals(
+			WorkflowConstants.STATUS_APPROVED, cpDefinition1.getStatus());
+
+		try (CompanyConfigurationTemporarySwapper
+				companyConfigurationTemporarySwapper =
+					new CompanyConfigurationTemporarySwapper(
+						TestPropsValues.getCompanyId(),
+						CProductVersionConfiguration.class.getName(),
+						HashMapDictionaryBuilder.<String, Object>put(
+							"enabled", true
+						).put(
+							"versionThreshold", 2
+						).build())) {
+
+			CPDefinition cpDefinition2 =
+				_cpDefinitionLocalService.copyCPDefinition(
+					cpDefinition1.getCPDefinitionId(),
+					cpDefinition1.getGroupId(), WorkflowConstants.STATUS_DRAFT);
+
+			Assert.assertEquals(
+				WorkflowConstants.STATUS_DRAFT, cpDefinition2.getStatus());
+
+			cpDefinition1 = _cpDefinitionLocalService.updateStatus(
+				TestPropsValues.getUserId(), cpDefinition1.getCPDefinitionId(),
+				WorkflowConstants.STATUS_DRAFT,
+				ServiceContextTestUtil.getServiceContext(
+					_commerceCatalog.getGroupId()),
+				Collections.emptyMap());
+
+			Assert.assertEquals(
+				WorkflowConstants.STATUS_DRAFT, cpDefinition1.getStatus());
+
+			cpDefinition2 = _cpDefinitionLocalService.getCPDefinition(
+				cpDefinition2.getCPDefinitionId());
+
+			Assert.assertEquals(
+				WorkflowConstants.STATUS_INCOMPLETE, cpDefinition2.getStatus());
+
+			Assert.assertEquals(
+				1,
+				_cpDefinitionLocalService.getCProductCPDefinitionsCount(
+					cpDefinition1.getCProductId(),
+					WorkflowConstants.STATUS_DRAFT));
+		}
+	}
+
+	private void _testUpdateStatusWithFutureExpirationDate() throws Exception {
+		frutillaRule.scenario(
+			"Add product definition"
+		).given(
+			"I add a product definition"
+		).when(
+			"expirationDate is in a future date"
+		).and(
+			"neverExpire is false"
+		).then(
+			"product definition should update expirationDate to current date " +
+				"and have a status of expired"
+		);
+
+		long time = System.currentTimeMillis();
+
+		Date displayDate = new Date(time);
+		Date expirationDate = new Date(time + Time.YEAR);
+
+		CPDefinition cpDefinition = CPTestUtil.addCPDefinitionFromCatalog(
+			_commerceCatalog.getGroupId(), SimpleCPTypeConstants.NAME,
+			displayDate, expirationDate, false, false,
+			WorkflowConstants.STATUS_APPROVED,
+			ServiceContextTestUtil.getServiceContext(
+				_commerceCatalog.getGroupId()));
+
+		User user = TestPropsValues.getUser();
+
+		cpDefinition = _cpDefinitionLocalService.updateStatus(
+			user.getUserId(), cpDefinition.getCPDefinitionId(),
+			WorkflowConstants.STATUS_EXPIRED, _serviceContext, null);
+
+		Assert.assertEquals(
+			WorkflowConstants.STATUS_EXPIRED, cpDefinition.getStatus());
+
+		Calendar displayDateCalendar = CalendarFactoryUtil.getCalendar(
+			user.getTimeZone());
+
+		displayDateCalendar.setTime(displayDate);
+
+		Calendar expirationCalendar = CalendarFactoryUtil.getCalendar(
+			user.getTimeZone());
+
+		expirationCalendar.setTime(cpDefinition.getExpirationDate());
+
+		Assert.assertEquals(
+			_portal.getDate(
+				displayDateCalendar.get(Calendar.MONTH),
+				displayDateCalendar.get(Calendar.DATE),
+				displayDateCalendar.get(Calendar.YEAR),
+				displayDateCalendar.get(Calendar.HOUR_OF_DAY), 0,
+				user.getTimeZone(), null),
+			_portal.getDate(
+				expirationCalendar.get(Calendar.MONTH),
+				expirationCalendar.get(Calendar.DATE),
+				expirationCalendar.get(Calendar.YEAR),
+				expirationCalendar.get(Calendar.HOUR_OF_DAY), 0,
+				user.getTimeZone(), null));
+	}
+
+	private void _testUpdateStatusWithPastExpirationDate() throws Exception {
+		frutillaRule.scenario(
+			"Add product definition"
+		).given(
+			"I add a product definition"
+		).when(
+			"expirationDate is in the past"
+		).and(
+			"neverExpire is false"
+		).then(
+			"product definition should not update expirationDate and have a " +
+				"status of expired"
+		);
+
+		long time = System.currentTimeMillis();
+
+		Date displayDate = new Date(time - Time.YEAR);
+		Date expirationDate = new Date(time - Time.MONTH);
+
+		User user = TestPropsValues.getUser();
+
+		Calendar expirationCalendar1 = CalendarFactoryUtil.getCalendar(
+			user.getTimeZone());
+
+		expirationCalendar1.setTime(expirationDate);
+
+		CPDefinition cpDefinition = CPTestUtil.addCPDefinitionFromCatalog(
+			_commerceCatalog.getGroupId(), SimpleCPTypeConstants.NAME,
+			displayDate, expirationDate, false, false,
+			WorkflowConstants.STATUS_APPROVED,
+			ServiceContextTestUtil.getServiceContext(
+				_commerceCatalog.getGroupId()));
+
+		cpDefinition = _cpDefinitionLocalService.updateStatus(
+			user.getUserId(), cpDefinition.getCPDefinitionId(),
+			WorkflowConstants.STATUS_EXPIRED, _serviceContext, null);
+
+		Assert.assertEquals(
+			WorkflowConstants.STATUS_EXPIRED, cpDefinition.getStatus());
+
+		Calendar expirationCalendar2 = CalendarFactoryUtil.getCalendar(
+			user.getTimeZone());
+
+		expirationCalendar2.setTime(cpDefinition.getExpirationDate());
+
+		Assert.assertEquals(
+			_portal.getDate(
+				expirationCalendar1.get(Calendar.MONTH),
+				expirationCalendar1.get(Calendar.DATE),
+				expirationCalendar1.get(Calendar.YEAR),
+				expirationCalendar1.get(Calendar.HOUR_OF_DAY),
+				expirationCalendar1.get(Calendar.MINUTE), user.getTimeZone(),
+				null),
+			_portal.getDate(
+				expirationCalendar2.get(Calendar.MONTH),
+				expirationCalendar2.get(Calendar.DATE),
+				expirationCalendar2.get(Calendar.YEAR),
+				expirationCalendar2.get(Calendar.HOUR_OF_DAY),
+				expirationCalendar2.get(Calendar.MINUTE), user.getTimeZone(),
+				null));
+	}
+
+	private CPDefinition _updateCPDefinition(
+			CPDefinition cpDefinition, ServiceContext serviceContext)
+		throws Exception {
+
+		Date displayDate = cpDefinition.getDisplayDate();
+		Date expirationDate = cpDefinition.getExpirationDate();
+
+		return _cpDefinitionLocalService.updateCPDefinition(
+			cpDefinition.getCPDefinitionId(), cpDefinition.getCPTaxCategoryId(),
+			cpDefinition.isAccountGroupFilterEnabled(),
+			cpDefinition.isChannelFilterEnabled(),
+			cpDefinition.getDDMStructureKey(), cpDefinition.getDepth(),
+			cpDefinition.getDescriptionMap(), displayDate.getDate(),
+			displayDate.getHours(), displayDate.getMinutes(),
+			displayDate.getMonth(), displayDate.getYear(),
+			expirationDate.getDate(), expirationDate.getHours(),
+			expirationDate.getMinutes(), expirationDate.getMonth(),
+			expirationDate.getYear(), cpDefinition.isFreeShipping(),
+			cpDefinition.getHeight(), cpDefinition.isIgnoreSKUCombinations(),
+			cpDefinition.getMetaDescriptionMap(),
+			cpDefinition.getMetaKeywordsMap(), cpDefinition.getMetaTitleMap(),
+			cpDefinition.getNameMap(), true, cpDefinition.isPublished(),
+			cpDefinition.isShipSeparately(), cpDefinition.isShippable(),
+			cpDefinition.getShippingExtraPrice(),
+			cpDefinition.getShortDescriptionMap(), cpDefinition.isTaxExempt(),
+			cpDefinition.isTelcoOrElectronics(), cpDefinition.getUrlTitleMap(),
+			cpDefinition.getWeight(), cpDefinition.getWidth(), serviceContext);
+	}
+
 	@Inject
 	private AccountGroupLocalService _accountGroupLocalService;
 
 	@Inject
 	private AccountGroupRelLocalService _accountGroupRelLocalService;
+
+	@Inject
+	private CProductLocalService _cProductLocalService;
 
 	@Inject
 	private ClassNameLocalService _classNameLocalService;
@@ -2233,9 +2878,6 @@ public class CPDefinitionLocalServiceTest {
 
 	@DeleteAfterTestRun
 	private final List<CPOption> _cpOptions = new ArrayList<>();
-
-	@Inject
-	private CProductLocalService _cProductLocalService;
 
 	@Inject
 	private FriendlyURLEntryLocalService _friendlyURLEntryLocalService;

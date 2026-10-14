@@ -104,6 +104,19 @@ public class CPDefinitionLocalServiceWrapper
 	}
 
 	@Override
+	public com.liferay.commerce.product.model.CPDefinitionLocalization
+			addCPDefinitionLocalization(
+				CPDefinition cpDefinition, String languageId,
+				String description, String metaDescription, String metaKeywords,
+				String metaTitle, String name, String shortDescription)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _cpDefinitionLocalService.addCPDefinitionLocalization(
+			cpDefinition, languageId, description, metaDescription,
+			metaKeywords, metaTitle, name, shortDescription);
+	}
+
+	@Override
 	public CPDefinition addOrUpdateCPDefinition(
 			String externalReferenceCode, long userId, long groupId,
 			long cpDefinitionId, long cpTaxCategoryId,
@@ -791,12 +804,14 @@ public class CPDefinitionLocalServiceWrapper
 
 	@Override
 	public CPDefinition getOrAddEmptyCPDefinition(
-			String externalReferenceCode, String productTypeName,
-			long companyId, long userId, long groupId)
+			String externalReferenceCode, long companyId, long userId,
+			long groupId, java.util.Map<java.util.Locale, String> nameMap,
+			String productTypeName)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _cpDefinitionLocalService.getOrAddEmptyCPDefinition(
-			externalReferenceCode, productTypeName, companyId, userId, groupId);
+			externalReferenceCode, companyId, userId, groupId, nameMap,
+			productTypeName);
 	}
 
 	/**
@@ -1162,4 +1177,4 @@ public class CPDefinitionLocalServiceWrapper
 	private CPDefinitionLocalService _cpDefinitionLocalService;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-628781409
+// LIFERAY-SERVICE-BUILDER-HASH:1012378590

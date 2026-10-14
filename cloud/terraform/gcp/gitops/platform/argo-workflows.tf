@@ -4,7 +4,7 @@ resource "helm_release" "argo_workflows" {
 		kubernetes_namespace.argocd,
 	]
 	name="argo-workflows"
-	namespace=var.argo_workflows_namespace
+	namespace=kubernetes_namespace.argo_workflows.metadata[0].name
 	repository="https://argoproj.github.io/argo-helm"
 	upgrade_install=true
 	values=[
@@ -48,6 +48,56 @@ resource "helm_release" "argo_workflows" {
 						}
 					}
 				}
+				extraObjects=[
+					{
+						apiVersion="networking.k8s.io/v1"
+						kind="NetworkPolicy"
+						metadata={
+							labels=local.common_labels
+							name="argo-workflows-metrics-ingress"
+						}
+						spec={
+							ingress=[
+								{
+									from=[
+										{
+											namespaceSelector={
+												matchLabels={
+													"kubernetes.io/metadata.name"=var.observability_config.namespace
+												}
+											}
+										},
+									]
+									ports=[
+										{
+											port="metrics"
+											protocol="TCP"
+										},
+									]
+								},
+							]
+							podSelector={
+								matchLabels={
+									"app.kubernetes.io/instance"="argo-workflows"
+									"app.kubernetes.io/name"="argo-workflows-workflow-controller"
+								}
+							}
+							policyTypes=["Ingress"]
+						}
+					},
+					{
+						apiVersion="networking.k8s.io/v1"
+						kind="NetworkPolicy"
+						metadata={
+							labels=local.common_labels
+							name="default-deny-ingress"
+						}
+						spec={
+							podSelector={}
+							policyTypes=["Ingress"]
+						}
+					},
+				]
 				mainContainer={
 					securityContext={
 						allowPrivilegeEscalation=false

@@ -54,6 +54,11 @@ public class AdvancedSystemFDSEntry implements SystemFDSEntry {
 	}
 
 	@Override
+	public boolean getSearchSuggestionsEnabled() {
+		return true;
+	}
+
+	@Override
 	public boolean getSnapshotsEnabled() {
 		return true;
 	}

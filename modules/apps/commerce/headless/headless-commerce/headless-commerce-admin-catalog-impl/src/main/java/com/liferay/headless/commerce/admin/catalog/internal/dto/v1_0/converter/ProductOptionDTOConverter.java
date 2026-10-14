@@ -30,7 +30,10 @@ import org.osgi.service.component.annotations.Reference;
  * @author Alessio Antonio Rendina
  */
 @Component(
-	property = "dto.class.name=com.liferay.commerce.product.model.CPDefinitionOptionRel",
+	property = {
+		"default=true",
+		"dto.class.name=com.liferay.commerce.product.model.CPDefinitionOptionRel"
+	},
 	service = DTOConverter.class
 )
 public class ProductOptionDTOConverter
@@ -52,7 +55,7 @@ public class ProductOptionDTOConverter
 		CPOption cpOption = _cpOptionLocalService.fetchCPOption(
 			cpDefinitionOptionRel.getCPOptionId());
 
-		return new ProductOption() {
+		ProductOption productOption = new ProductOption() {
 			{
 				setCustomFields(
 					() -> CustomFieldsUtil.toCustomFields(
@@ -90,23 +93,21 @@ public class ProductOptionDTOConverter
 						return cpOption.getCPOptionId();
 					});
 				setPriceType(cpDefinitionOptionRel::getPriceType);
-				setProductOptionValues(
-					() -> {
-						if (!GetterUtil.getBoolean(
-								dtoConverterContext.getAttribute(
-									"showProductOptionValues"))) {
-
-							return null;
-						}
-
-						return _toProductOptionValues(
-							cpDefinitionOptionRel, dtoConverterContext);
-					});
 				setRequired(cpDefinitionOptionRel::isRequired);
 				setSkuContributor(cpDefinitionOptionRel::isSkuContributor);
 				setTypeSettings(cpDefinitionOptionRel::getTypeSettings);
 			}
 		};
+
+		if (GetterUtil.getBoolean(
+				dtoConverterContext.getAttribute("showProductOptionValues"))) {
+
+			productOption.setProductOptionValues(
+				() -> _toProductOptionValues(
+					cpDefinitionOptionRel, dtoConverterContext));
+		}
+
+		return productOption;
 	}
 
 	private ProductOptionValue[] _toProductOptionValues(

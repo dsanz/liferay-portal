@@ -12,14 +12,59 @@ tests:
             licensing.enabled: true
     -   asserts:
             -   equal:
-                    path: spec.offline
-                    value: true
-            -   notExists:
-                    path: spec.offlineActivationBundle
-        it: Requests offline activation and waits for a bundle to be named
+                    path: spec.autoscaling
+                    value:
+                        maxReplicas: 6
+                        minReplicas: 2
+        it: Carries the HPA bounds the operator clamps to the license
+        set:
+            autoscaling.enabled: true
+            autoscaling.hpa.maxReplicas: 6
+            autoscaling.hpa.minReplicas: 2
+            autoscaling.type: hpa
+            licensing.enabled: true
+    -   asserts:
+            -   equal:
+                    path: spec.autoscaling
+                    value:
+                        maxReplicas: 8
+                        minReplicas: 3
+        it: Carries the KEDA bounds the operator clamps to the license
+        set:
+            autoscaling.enabled: true
+            autoscaling.keda.maxReplicaCount: 8
+            autoscaling.keda.minReplicaCount: 3
+            autoscaling.type: keda
+            licensing.enabled: true
+    -   asserts:
+            -   equal:
+                    path: spec.activationCodeSecretRef.name
+                    value: liferay-default-activation
+        it: Keeps the activation code reference the custom resource requires
         set:
             licensing.enabled: true
             licensing.offline: true
+    -   asserts:
+            -   notExists:
+                    path: spec.dxpVersion
+        it: Leaves the DXP version to the operator unless one is named
+        set:
+            licensing.enabled: true
+    -   asserts:
+            -   notExists:
+                    path: spec.desiredReplicas
+        it: Leaves the replica count to the autoscaler when autoscaling is enabled
+        set:
+            autoscaling.enabled: true
+            licensing.enabled: true
+    -   asserts:
+            -   equal:
+                    path: spec.dxpVersion
+                    value: 2026.q3.0
+        it: Names the DXP version the operator reports to the provisioning service
+        set:
+            licensing.dxpVersion: 2026.q3.0
+            licensing.enabled: true
     -   asserts:
             -   equal:
                     path: spec.offline
@@ -34,9 +79,28 @@ tests:
             licensing.offlineActivationBundle: activation-bundle.zip
     -   asserts:
             -   equal:
-                    path: spec.activationCodeSecretRef.name
-                    value: liferay-default-activation
-        it: Keeps the activation code reference the custom resource requires
+                    path: spec.desiredReplicas
+                    value: 2
+            -   notExists:
+                    path: spec.autoscaling
+        it: Requests a fixed replica count unless autoscaling is enabled
+        set:
+            licensing.enabled: true
+            replicaCount: 2
+    -   asserts:
+            -   equal:
+                    path: spec.offline
+                    value: true
+            -   notExists:
+                    path: spec.offlineActivationBundle
+        it: Requests offline activation and waits for a bundle to be named
         set:
             licensing.enabled: true
             licensing.offline: true
+    -   asserts:
+            -   equal:
+                    path: metadata.annotations["argocd.argoproj.io/sync-options"]
+                    value: SkipDryRunOnMissingResource=true
+        it: Tolerates its own custom resource definition arriving late
+        set:
+            licensing.enabled: true

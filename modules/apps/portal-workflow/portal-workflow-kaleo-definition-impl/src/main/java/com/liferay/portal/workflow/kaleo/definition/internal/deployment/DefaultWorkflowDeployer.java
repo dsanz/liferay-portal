@@ -6,14 +6,8 @@
 package com.liferay.portal.workflow.kaleo.definition.internal.deployment;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.security.auth.PrincipalException;
-import com.liferay.portal.kernel.security.permission.ActionKeys;
-import com.liferay.portal.kernel.security.permission.PermissionChecker;
-import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
-import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.service.ServiceContext;
-import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowDefinition;
 import com.liferay.portal.workflow.kaleo.KaleoWorkflowModelConverter;
 import com.liferay.portal.workflow.kaleo.definition.Condition;
@@ -53,8 +47,6 @@ public class DefaultWorkflowDeployer implements WorkflowDeployer {
 			String scope, boolean system, Definition definition,
 			ServiceContext serviceContext)
 		throws PortalException {
-
-		_checkPermissions(serviceContext);
 
 		KaleoDefinition kaleoDefinition = _addOrUpdateKaleoDefinition(
 			externalReferenceCode, title, name, scope, system, definition,
@@ -170,41 +162,30 @@ public class DefaultWorkflowDeployer implements WorkflowDeployer {
 			ServiceContext serviceContext)
 		throws PortalException {
 
-		KaleoDefinition kaleoDefinition =
-			_kaleoDefinitionLocalService.fetchKaleoDefinition(
-				name, serviceContext);
+		KaleoDefinition kaleoDefinition = null;
+
+		if (Validator.isNotNull(externalReferenceCode)) {
+			kaleoDefinition =
+				_kaleoDefinitionLocalService.
+					fetchKaleoDefinitionByExternalReferenceCode(
+						externalReferenceCode, serviceContext.getCompanyId());
+		}
 
 		if (kaleoDefinition == null) {
-			kaleoDefinition = _kaleoDefinitionService.addKaleoDefinition(
+			kaleoDefinition = _kaleoDefinitionLocalService.fetchKaleoDefinition(
+				name, serviceContext);
+		}
+
+		if (kaleoDefinition == null) {
+			return _kaleoDefinitionService.addKaleoDefinition(
 				externalReferenceCode, name, title, definition.getDescription(),
 				definition.getContent(), scope, system, 1, serviceContext);
 		}
-		else {
-			kaleoDefinition = _kaleoDefinitionService.updateKaleoDefinition(
-				externalReferenceCode, kaleoDefinition.getKaleoDefinitionId(),
-				title, definition.getDescription(), definition.getContent(),
-				system, serviceContext);
-		}
 
-		return kaleoDefinition;
-	}
-
-	private void _checkPermissions(ServiceContext serviceContext)
-		throws PrincipalException {
-
-		PermissionChecker permissionChecker =
-			PermissionThreadLocal.getPermissionChecker();
-
-		if ((permissionChecker == null) ||
-			!GetterUtil.getBoolean(
-				serviceContext.getAttribute("checkPermission"), true)) {
-
-			return;
-		}
-
-		_portletResourcePermission.check(
-			permissionChecker, serviceContext.getScopeGroupId(),
-			ActionKeys.ADD_DEFINITION);
+		return _kaleoDefinitionService.updateKaleoDefinition(
+			externalReferenceCode, kaleoDefinition.getKaleoDefinitionId(),
+			title, definition.getDescription(), definition.getContent(), system,
+			serviceContext);
 	}
 
 	@Reference
@@ -231,10 +212,5 @@ public class DefaultWorkflowDeployer implements WorkflowDeployer {
 
 	@Reference
 	private KaleoWorkflowModelConverter _kaleoWorkflowModelConverter;
-
-	@Reference(
-		target = "(resource.name=" + WorkflowConstants.RESOURCE_NAME + ")"
-	)
-	private PortletResourcePermission _portletResourcePermission;
 
 }

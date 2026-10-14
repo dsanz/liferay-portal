@@ -7,6 +7,7 @@ package com.liferay.headless.admin.site.internal.dto.v1_0.converter;
 
 import com.liferay.headless.admin.site.dto.v1_0.DisplayPageTemplateFolder;
 import com.liferay.headless.admin.site.internal.dto.v1_0.util.CreatorUtil;
+import com.liferay.layout.page.template.constants.LayoutPageTemplateCollectionTypeConstants;
 import com.liferay.layout.page.template.model.LayoutPageTemplateCollection;
 import com.liferay.layout.page.template.service.LayoutPageTemplateCollectionService;
 import com.liferay.portal.vulcan.dto.converter.DTOConverter;
@@ -19,7 +20,11 @@ import org.osgi.service.component.annotations.Reference;
  * @author Bárbara Cabrera
  */
 @Component(
-	property = "dto.class.name=com.liferay.portal.kernel.model.LayoutPageTemplateCollection",
+	property = {
+		"default=true",
+		"dto.class.name=com.liferay.layout.page.template.model.LayoutPageTemplateCollection",
+		"dto.class.type=" + LayoutPageTemplateCollectionTypeConstants.DISPLAY_PAGE
+	},
 	service = DTOConverter.class
 )
 public class DisplayPageTemplateFolderDTOConverter
@@ -37,7 +42,19 @@ public class DisplayPageTemplateFolderDTOConverter
 			LayoutPageTemplateCollection layoutPageTemplateCollection)
 		throws Exception {
 
-		return _getDisplayPageTemplateFolder(layoutPageTemplateCollection);
+		DisplayPageTemplateFolder displayPageTemplateFolder =
+			_getDisplayPageTemplateFolder(layoutPageTemplateCollection);
+
+		displayPageTemplateFolder.setActions(
+			() -> {
+				if (dtoConverterContext == null) {
+					return null;
+				}
+
+				return dtoConverterContext.getActions();
+			});
+
+		return displayPageTemplateFolder;
 	}
 
 	private DisplayPageTemplateFolder _getDisplayPageTemplateFolder(

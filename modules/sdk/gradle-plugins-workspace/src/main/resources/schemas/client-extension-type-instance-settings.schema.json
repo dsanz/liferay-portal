@@ -2851,6 +2851,32 @@
 		},
 		{
 			"properties": {
+				"authServerHostsAllowed": {
+					"description": "Input a list of comma delimited host names that an authorization server well-known URI may point to. Input a blank list or an asterisk to allow any host. A host that resolves to a local network address also requires local network access.",
+					"items": {
+						"type": "string"
+					},
+					"title": "Authorization Server Hosts Allowed",
+					"type": "array"
+				},
+				"authServerLocalNetworkAccessEnabled": {
+					"default": false,
+					"description": "Enable requesting an authorization server well-known URI that resolves to a local network address. Leave this disabled unless the authorization server requires it.",
+					"title": "Authorization Server Local Network Access Enabled",
+					"type": "boolean"
+				},
+				"pid": {
+					"const": "com.liferay.oauth.client.persistence.configuration.OAuthClientCompanyConfiguration",
+					"title": "OAuth 2 Client Configuration"
+				}
+			},
+			"required": [
+				"pid"
+			],
+			"title": "OAuth 2 Client Configuration"
+		},
+		{
+			"properties": {
 				"allowedGrantTypes": {
 					"default": "",
 					"description": "Open registration allows only the \"grant_types\" listed here (for example, \"authorization_code\", \"refresh_token\"), or \"*\" for any grant type. An empty list rejects all open registrations.",
@@ -2978,6 +3004,20 @@
 		},
 		{
 			"properties": {
+				"attachmentFileURLHostsAllowed": {
+					"description": "List the host names that an object entry attachment may be downloaded from through its file URL. Leave the list blank for any host. A host that resolves to a local network address also requires local network access.",
+					"items": {
+						"type": "string"
+					},
+					"title": "Attachment File URL Hosts Allowed",
+					"type": "array"
+				},
+				"attachmentFileURLLocalNetworkAccessEnabled": {
+					"default": false,
+					"description": "Download object entry attachments from a file URL that resolves to a local network address. Leave this disabled unless importing entries from a portal on the internal network requires it, because it lets an attacker use the portal to reach services on the internal network.",
+					"title": "Attachment File URL Local Network Access Enabled",
+					"type": "boolean"
+				},
 				"duration": {
 					"default": 1,
 					"title": "Duration",
@@ -3568,13 +3608,13 @@
 				},
 				"pid": {
 					"const": "com.liferay.portal.search.internal.configuration.SiteActivityAsahConfiguration",
-					"title": "Analytics Cloud Search Site Activity"
+					"title": "Liferay Data Platform Search Site Activity"
 				}
 			},
 			"required": [
 				"pid"
 			],
-			"title": "Analytics Cloud Search Site Activity"
+			"title": "Liferay Data Platform Search Site Activity"
 		},
 		{
 			"properties": {
@@ -3585,13 +3625,13 @@
 				},
 				"pid": {
 					"const": "com.liferay.portal.search.internal.configuration.UserActivityAsahConfiguration",
-					"title": "Analytics Cloud Search User Activity"
+					"title": "Liferay Data Platform Search User Activity"
 				}
 			},
 			"required": [
 				"pid"
 			],
-			"title": "Analytics Cloud Search User Activity"
+			"title": "Liferay Data Platform Search User Activity"
 		},
 		{
 			"properties": {
@@ -3650,6 +3690,11 @@
 				"pid": {
 					"const": "com.liferay.portal.security.audit.configuration.AuditConfiguration",
 					"title": "Audit"
+				},
+				"pseudonymizationEnabled": {
+					"default": true,
+					"title": "Pseudonymization Enabled",
+					"type": "boolean"
 				}
 			},
 			"required": [
@@ -3694,33 +3739,6 @@
 		},
 		{
 			"properties": {
-				"bufferSize": {
-					"default": 2000,
-					"title": "Buffer Size",
-					"type": "number"
-				},
-				"enabled": {
-					"default": true,
-					"title": "Enabled",
-					"type": "boolean"
-				},
-				"flushInterval": {
-					"default": 60000,
-					"title": "Flush Interval in Milliseconds",
-					"type": "number"
-				},
-				"pid": {
-					"const": "com.liferay.portal.security.audit.router.configuration.PersistentAuditMessageProcessorConfiguration",
-					"title": "Persistent Message Audit Message Processor"
-				}
-			},
-			"required": [
-				"pid"
-			],
-			"title": "Persistent Message Audit Message Processor"
-		},
-		{
-			"properties": {
 				"enabled": {
 					"default": false,
 					"title": "Enabled",
@@ -3752,6 +3770,56 @@
 				"pid"
 			],
 			"title": "Basic Authentication Protocol Support"
+		},
+		{
+			"properties": {
+				"pid": {
+					"const": "com.liferay.portal.security.configuration.URLFetchSecurityCompanyConfiguration"
+				},
+				"urlHostsAllowed": {
+					"items": {
+						"type": "string"
+					},
+					"type": "array"
+				},
+				"urlLocalNetworkAccessEnabled": {
+					"default": false,
+					"type": "boolean"
+				}
+			},
+			"required": [
+				"pid"
+			]
+		},
+		{
+			"properties": {
+				"idleTimeout": {
+					"default": 15,
+					"title": "Session Idle Timeout",
+					"type": "number"
+				},
+				"idleTimeoutTimeUnit": {
+					"title": "Time Unit",
+					"type": "string"
+				},
+				"maximumAge": {
+					"default": 30,
+					"title": "Session Maximum Age",
+					"type": "number"
+				},
+				"maximumAgeTimeUnit": {
+					"title": "Time Unit",
+					"type": "string"
+				},
+				"pid": {
+					"const": "com.liferay.portal.security.fips.configuration.FIPSSessionConfiguration",
+					"title": "FIPS Session Configuration"
+				}
+			},
+			"required": [
+				"pid"
+			],
+			"title": "FIPS Session Configuration"
 		},
 		{
 			"properties": {
@@ -4206,6 +4274,12 @@
 		},
 		{
 			"properties": {
+				"allowUpstreamTokenForwarding": {
+					"default": false,
+					"description": "Forward the signed in user's ID token from the OpenID Connect provider to backend client extensions that opt in. The token is sent only over HTTPS to the origin of the client extension.",
+					"title": "Allow Upstream Token Forwarding",
+					"type": "boolean"
+				},
 				"authorizationEndpoint": {
 					"default": "",
 					"description": "Set the authorization endpoint for the OpenID Connect provider.",
@@ -4349,6 +4423,42 @@
 				"scopes"
 			],
 			"title": "OpenID Connect Provider Connection"
+		},
+		{
+			"properties": {
+				"cacheControl": {
+					"default": "public",
+					"description": "Set the cache control policy applied to responses that a guest is allowed to read.",
+					"enum": [
+						"private",
+						"public"
+					],
+					"title": "Cache Control",
+					"type": "string"
+				},
+				"maxAge": {
+					"default": 0,
+					"description": "Set the number of seconds a cached response is considered fresh, up to a maximum of 86400 (24 hours). Revoking guest access or changing content does not clear an already cached response, so choose a value that reflects how quickly the endpoint's guest visibility can change.",
+					"max": 86400,
+					"min": 0,
+					"title": "Max Age",
+					"type": "number"
+				},
+				"path": {
+					"description": "Set the path of the endpoint to cache, relative to /o. The path must start with a slash. An asterisk matches exactly one path segment, such as a path parameter.",
+					"title": "Path",
+					"type": "string"
+				},
+				"pid": {
+					"const": "com.liferay.portal.vulcan.internal.configuration.HeadlessAPICacheCompanyConfiguration",
+					"title": "Headless API Cache"
+				}
+			},
+			"required": [
+				"pid",
+				"path"
+			],
+			"title": "Headless API Cache"
 		},
 		{
 			"properties": {
@@ -4690,13 +4800,13 @@
 				},
 				"pid": {
 					"const": "com.liferay.segments.asah.connector.internal.configuration.SegmentsAsahCompanyConfiguration",
-					"title": "Analytics Cloud Segments"
+					"title": "Liferay Data Platform Segments"
 				}
 			},
 			"required": [
 				"pid"
 			],
-			"title": "Analytics Cloud Segments"
+			"title": "Liferay Data Platform Segments"
 		},
 		{
 			"properties": {
@@ -5013,6 +5123,24 @@
 		},
 		{
 			"properties": {
+				"htmlInlineCodeProtectionEnabled": {
+					"default": false,
+					"description": "When enabled, translation XLIFF exports protect the markup of HTML fields with XLIFF inline code elements, so machine translation services and translation tools can distinguish markup from translatable text and return it unchanged.",
+					"title": "Protect HTML Field Markup with XLIFF Inline Codes",
+					"type": "boolean"
+				},
+				"pid": {
+					"const": "com.liferay.translation.internal.configuration.TranslationCompanyConfiguration",
+					"title": "Translation"
+				}
+			},
+			"required": [
+				"pid"
+			],
+			"title": "Translation"
+		},
+		{
+			"properties": {
 				"accessKey": {
 					"default": "",
 					"title": "Access Key",
@@ -5282,6 +5410,7 @@
 				"com.liferay.multi.factor.authentication.ip.address.internal.configuration.MFAIPAddressConfiguration",
 				"com.liferay.multi.factor.authentication.sample.internal.configuration.MFASampleConfiguration",
 				"com.liferay.multi.factor.authentication.timebased.otp.web.internal.configuration.MFATimeBasedOTPConfiguration",
+				"com.liferay.oauth.client.persistence.configuration.OAuthClientCompanyConfiguration",
 				"com.liferay.oauth2.provider.rest.internal.configuration.OAuth2DynamicRegistrationConfiguration",
 				"com.liferay.oauth2.provider.rest.internal.configuration.OAuth2InAssertionConfiguration",
 				"com.liferay.oauth2.provider.rest.internal.endpoint.authorize.configuration.AuthorizeScreenConfiguration",
@@ -5302,9 +5431,10 @@
 				"com.liferay.portal.search.rest.configuration.SearchSuggestionsCompanyConfiguration",
 				"com.liferay.portal.security.audit.configuration.AuditConfiguration",
 				"com.liferay.portal.security.audit.router.configuration.FileSystemAuditMessageProcessorConfiguration",
-				"com.liferay.portal.security.audit.router.configuration.PersistentAuditMessageProcessorConfiguration",
 				"com.liferay.portal.security.auto.login.internal.basic.auth.header.configuration.BasicAuthHeaderAutoLoginConfiguration",
 				"com.liferay.portal.security.configuration.BasicAuthHeaderSupportConfiguration",
+				"com.liferay.portal.security.configuration.URLFetchSecurityCompanyConfiguration",
+				"com.liferay.portal.security.fips.configuration.FIPSSessionConfiguration",
 				"com.liferay.portal.security.iframe.sanitizer.configuration.IFrameConfiguration",
 				"com.liferay.portal.security.ldap.authenticator.configuration.LDAPAuthConfiguration",
 				"com.liferay.portal.security.ldap.configuration.LDAPServerConfiguration",
@@ -5312,6 +5442,7 @@
 				"com.liferay.portal.security.ldap.exportimport.configuration.LDAPExportConfiguration",
 				"com.liferay.portal.security.ldap.exportimport.configuration.LDAPImportConfiguration",
 				"com.liferay.portal.security.sso.openid.connect.internal.configuration.OpenIdConnectProviderConfiguration",
+				"com.liferay.portal.vulcan.internal.configuration.HeadlessAPICacheCompanyConfiguration",
 				"com.liferay.portal.vulcan.internal.configuration.HeadlessAPICompanyConfiguration",
 				"com.liferay.portal.vulcan.internal.configuration.VulcanCompanyConfiguration",
 				"com.liferay.product.navigation.personal.menu.configuration.PersonalMenuConfiguration",
@@ -5331,6 +5462,7 @@
 				"com.liferay.site.internal.configuration.SitemapCompanyConfiguration",
 				"com.liferay.social.activity.internal.configuration.SocialActivityCompanyConfiguration",
 				"com.liferay.staging.configuration.StagingConfiguration",
+				"com.liferay.translation.internal.configuration.TranslationCompanyConfiguration",
 				"com.liferay.translation.translator.aws.internal.configuration.AWSTranslatorConfiguration",
 				"com.liferay.translation.translator.azure.internal.configuration.AzureTranslatorConfiguration",
 				"com.liferay.translation.translator.deepl.internal.configuration.DeepLTranslatorConfiguration",

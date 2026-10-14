@@ -14,6 +14,8 @@ import com.liferay.document.library.configuration.DLConfiguration;
 import com.liferay.learn.LearnMessageUtil;
 import com.liferay.object.constants.ObjectEntryFolderConstants;
 import com.liferay.object.constants.ObjectFolderConstants;
+import com.liferay.object.model.ObjectDefinition;
+import com.liferay.object.service.ObjectDefinitionLocalServiceUtil;
 import com.liferay.object.service.ObjectDefinitionService;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -27,10 +29,10 @@ import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
-import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.service.RoleLocalService;
+import com.liferay.portal.kernel.service.permission.GroupPermissionUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
@@ -55,7 +57,6 @@ public class ViewDashboardDisplayContext {
 	public ViewDashboardDisplayContext(
 		AnalyticsSettingsManager analyticsSettingsManager,
 		DepotEntryLocalService depotEntryLocalService,
-		ModelResourcePermission<DepotEntry> depotEntryModelResourcePermission,
 		DepotEntryService depotEntryService, DLConfiguration dlConfiguration,
 		GroupLocalService groupLocalService,
 		HttpServletRequest httpServletRequest,
@@ -66,7 +67,6 @@ public class ViewDashboardDisplayContext {
 
 		_analyticsSettingsManager = analyticsSettingsManager;
 		_depotEntryLocalService = depotEntryLocalService;
-		_depotEntryModelResourcePermission = depotEntryModelResourcePermission;
 		_depotEntryService = depotEntryService;
 		_dlConfiguration = dlConfiguration;
 		_groupLocalService = groupLocalService;
@@ -174,6 +174,20 @@ public class ViewDashboardDisplayContext {
 		).put(
 			"cmpEnabled", LicenseManagerUtil.isAppEnabled(App.CMP)
 		).put(
+			"cmpProjectObjectDefinitionId",
+			() -> {
+				ObjectDefinition cmpProjectObjectDefinition =
+					ObjectDefinitionLocalServiceUtil.
+						fetchObjectDefinitionByExternalReferenceCode(
+							"L_CMP_PROJECT", _themeDisplay.getCompanyId());
+
+				if (cmpProjectObjectDefinition == null) {
+					return null;
+				}
+
+				return cmpProjectObjectDefinition.getObjectDefinitionId();
+			}
+		).put(
 			"cmsGroupId", () -> _getCMSGroupId()
 		).put(
 			"collaboratorURLs",
@@ -198,17 +212,9 @@ public class ViewDashboardDisplayContext {
 			PermissionUtil.getDefaultPermissionAdditionalProps(
 				_httpServletRequest, _themeDisplay)
 		).put(
-			"expiringSoonFDSName",
-			CMSSiteInitializerFDSNames.EXPIRING_SOON_SECTION
-		).put(
-			"expiringSoonFilterString",
-			SectionDisplayContextUtil.getExpiringSoonFilterString(
-				_httpServletRequest)
-		).put(
 			"fdsActionDropdownItems",
-			() ->
-				SectionDisplayContextUtil.getNeedsReviewFDSActionDropdownItems(
-					_httpServletRequest)
+			() -> SectionDisplayContextUtil.getFDSActionDropdownItems(
+				_httpServletRequest)
 		).put(
 			"fileMimeTypeCssClasses",
 			() -> {
@@ -240,13 +246,6 @@ public class ViewDashboardDisplayContext {
 			ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_CONTENTS
 		).put(
 			"redirect", _themeDisplay.getURLCurrent()
-		).put(
-			"upcomingReviewsFDSName",
-			CMSSiteInitializerFDSNames.UPCOMING_REVIEWS_SECTION
-		).put(
-			"upcomingReviewsFilterString",
-			SectionDisplayContextUtil.getUpcomingReviewsFilterString(
-				_httpServletRequest)
 		).build();
 	}
 
@@ -260,8 +259,9 @@ public class ViewDashboardDisplayContext {
 					_depotEntryLocalService.fetchGroupDepotEntry(groupId);
 
 				if ((depotEntry != null) &&
-					_depotEntryModelResourcePermission.contains(
-						_themeDisplay.getPermissionChecker(), depotEntry,
+					GroupPermissionUtil.contains(
+						_themeDisplay.getPermissionChecker(),
+						depotEntry.getGroupId(),
 						ActionKeys.VIEW_SITE_ADMINISTRATION)) {
 
 					return String.valueOf(depotEntry.getDepotEntryId());
@@ -296,8 +296,6 @@ public class ViewDashboardDisplayContext {
 
 	private final AnalyticsSettingsManager _analyticsSettingsManager;
 	private final DepotEntryLocalService _depotEntryLocalService;
-	private final ModelResourcePermission<DepotEntry>
-		_depotEntryModelResourcePermission;
 	private final DepotEntryService _depotEntryService;
 	private final DLConfiguration _dlConfiguration;
 	private final GroupLocalService _groupLocalService;

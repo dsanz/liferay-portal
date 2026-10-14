@@ -87,12 +87,12 @@ public class InputDateTag extends BaseValidatorTagSupport {
 		return _autoFocus;
 	}
 
-	public boolean isDisabled() {
-		return _disabled;
-	}
-
 	public boolean isDisableNamespace() {
 		return _disableNamespace;
+	}
+
+	public boolean isDisabled() {
+		return _disabled;
 	}
 
 	public boolean isNullable() {
@@ -135,12 +135,12 @@ public class InputDateTag extends BaseValidatorTagSupport {
 		_dayValue = dayValue;
 	}
 
-	public void setDisabled(boolean disabled) {
-		_disabled = disabled;
-	}
-
 	public void setDisableNamespace(boolean disableNamespace) {
 		_disableNamespace = disableNamespace;
+	}
+
+	public void setDisabled(boolean disabled) {
+		_disabled = disabled;
 	}
 
 	public void setFirstDayOfWeek(int firstDayOfWeek) {
@@ -209,8 +209,8 @@ public class InputDateTag extends BaseValidatorTagSupport {
 		_dateTogglerCheckboxLabel = null;
 		_dayParam = null;
 		_dayValue = 0;
-		_disabled = false;
 		_disableNamespace = false;
+		_disabled = false;
 		_firstDayOfWeek = Calendar.SUNDAY - 2;
 		_firstEnabledDate = null;
 		_formName = "fm";
@@ -292,8 +292,8 @@ public class InputDateTag extends BaseValidatorTagSupport {
 	private String _dateTogglerCheckboxLabel;
 	private String _dayParam;
 	private int _dayValue;
-	private boolean _disabled;
 	private boolean _disableNamespace;
+	private boolean _disabled;
 	private int _firstDayOfWeek = Calendar.SUNDAY - 2;
 	private Date _firstEnabledDate;
 	private String _formName = "fm";

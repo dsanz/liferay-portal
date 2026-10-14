@@ -12,8 +12,8 @@
 	"items": [
 		{
 			"currencyCode": "USD",
-			"externalReferenceCode": "SALESFORCE_CATALOG",
-			"name": "Salesforce"
+			"externalReferenceCode": "LIFERAY_INC_CATALOG",
+			"name": "Liferay, Inc."
 		}
 	]
 }

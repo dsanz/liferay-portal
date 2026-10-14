@@ -53,6 +53,39 @@ import java.util.Set;
  */
 public class ServletResponseUtil {
 
+	public static boolean isBrowserExecutableContentType(String contentType) {
+		if (contentType == null) {
+			return false;
+		}
+
+		String lowerCaseContentType = StringUtil.toLowerCase(contentType);
+
+		if (lowerCaseContentType.startsWith("application/javascript") ||
+			lowerCaseContentType.startsWith("application/xhtml+xml") ||
+			lowerCaseContentType.startsWith("image/svg+xml") ||
+			lowerCaseContentType.startsWith("text/html") ||
+			lowerCaseContentType.startsWith("text/javascript")) {
+
+			return true;
+		}
+
+		return false;
+	}
+
+	public static boolean isBrowserExecutableContentType(
+		String contentType, String fileName) {
+
+		if (isBrowserExecutableContentType(contentType) ||
+			isBrowserExecutableContentType(
+				MimeTypesUtil.getExtensionContentType(
+					FileUtil.getExtension(fileName)))) {
+
+			return true;
+		}
+
+		return false;
+	}
+
 	public static boolean isClientAbortException(IOException ioException) {
 		Class<?> clazz = ioException.getClass();
 

@@ -1,27 +1,71 @@
-import * as API from 'shared/api';
 import ChannelsMenu, {Channel} from '../channels-menu';
-import ClayIcon from '@clayui/icon';
+import ClayIcon from 'shared/components/Icon';
 import getCN from 'classnames';
-import React from 'react';
-import SidebarItem from './SidebarItem';
-import UserDropdown, {Menus} from 'shared/components/user-dropdown';
+import React, {useLayoutEffect} from 'react';
 import {ACCOUNTS, Routes, SEGMENTS, toRoute} from 'shared/util/router';
-import {DEVELOPER_MODE, LANGUAGES} from 'shared/util/constants';
-import {ENABLE_CAMPAIGNS} from 'shared/util/feature-flags';
-import {Link, matchPath} from 'react-router-dom';
+import {Map} from 'immutable';
+import {matchPath} from 'react-router-dom';
+import {useIsMobile} from 'shared/hooks/useIsMobile';
 import {useLDPEnabled} from 'shared/hooks/useLDPEnabled';
-import {User} from 'shared/util/records';
+import {SidePanel, VerticalNav} from '@clayui/core';
+
+interface ISidebarNavItem {
+	icon: string;
+	id: string;
+	label: string;
+	route: string;
+	url: string;
+}
+
+interface ISidebarNavSection {
+	id: string;
+	items: ISidebarNavItem[];
+	label: string;
+}
+
+type SidebarNavEntry = ISidebarNavItem | ISidebarNavSection;
 
 interface ISidebarProps {
 	activePathname: string;
-	channelId: string;
+	channelId?: string;
 	channels: Channel[];
 	className?: string;
 	collapsed: boolean;
-	currentUser: User;
+	collapsedSections: Map<string, boolean>;
+	containerRef: React.RefObject<HTMLElement>;
 	groupId: string;
-	onToggle: () => void;
+	onCollapsedChange: (collapsed: boolean) => void;
+	onSectionToggle: (sectionKey: string, collapsed: boolean) => void;
 }
+
+/**
+ * `VerticalNav` renders a nested level only through the `items` property, and
+ * reuses the root render function for every depth, so one function has to
+ * handle both a section and one of its items.
+ */
+const isSection = (entry: SidebarNavEntry): entry is ISidebarNavSection =>
+	'items' in entry;
+
+const renderNavItem = (entry: SidebarNavEntry) =>
+	isSection(entry) ? (
+		<VerticalNav.Item
+			className="mb-4"
+			items={entry.items}
+			textValue={entry.label}
+		>
+			<span className="font-weight-semi-bold section-title text-2 text-uppercase">
+				{entry.label}
+			</span>
+		</VerticalNav.Item>
+	) : (
+		<VerticalNav.Item href={entry.url} textValue={entry.label}>
+			<span className="mr-2 sticker">
+				<ClayIcon className="icon-root" symbol={entry.icon} />
+			</span>
+
+			<span className="item-label">{entry.label}</span>
+		</VerticalNav.Item>
+	);
 
 const Sidebar: React.FC<ISidebarProps> = ({
 	activePathname,
@@ -29,36 +73,54 @@ const Sidebar: React.FC<ISidebarProps> = ({
 	channels = [],
 	className,
 	collapsed = false,
-	currentUser = new User(),
+	collapsedSections = Map(),
+	containerRef,
 	groupId,
-	onToggle,
+	onCollapsedChange,
+	onSectionToggle,
 }) => {
+	const isMobile = useIsMobile();
+
 	const LDPEnabled = useLDPEnabled({groupId});
 
-	const sidebarSections = [
+	/**
+	 * On mobile the panel overlays the page and traps focus while it is open,
+	 * so it starts closed and closes again after every navigation.
+	 */
+	useLayoutEffect(() => {
+		if (isMobile) {
+			onCollapsedChange(true);
+		}
+	}, [activePathname, isMobile]);
+
+	const sidebarSections: ISidebarNavSection[] = [
 		{
+			id: 'touchpoints',
 			items: [
 				LDPEnabled && {
-					icon: 'polls',
+					icon: 'plant',
+					id: 'lifecycles',
 					label: Liferay.Language.get('lifecycles'),
 					route: Routes.LIFECYCLE,
 					url: toRoute(Routes.LIFECYCLE, {channelId, groupId}),
 				},
-				LDPEnabled &&
-					ENABLE_CAMPAIGNS && {
-						icon: 'megaphone',
-						label: Liferay.Language.get('campaigns'),
-						route: Routes.CAMPAIGNS,
-						url: toRoute(Routes.CAMPAIGNS, {channelId, groupId}),
-					},
+				LDPEnabled && {
+					icon: 'megaphone',
+					id: 'campaigns',
+					label: Liferay.Language.get('campaigns'),
+					route: Routes.CAMPAIGNS,
+					url: toRoute(Routes.CAMPAIGNS, {channelId, groupId}),
+				},
 				{
-					icon: 'ac_page',
+					icon: 'sites',
+					id: 'sites',
 					label: Liferay.Language.get('sites'),
 					route: Routes.SITES,
 					url: toRoute(Routes.SITES, {channelId, groupId}),
 				},
 				{
-					icon: 'ac_assets',
+					icon: 'sheets',
+					id: 'assets',
 					label: Liferay.Language.get('assets'),
 					route: Routes.ASSETS,
 					url: toRoute(Routes.ASSETS, {
@@ -67,7 +129,8 @@ const Sidebar: React.FC<ISidebarProps> = ({
 					}),
 				},
 				{
-					icon: 'ac_event_analysis',
+					icon: 'click',
+					id: 'events',
 					label: Liferay.Language.get('events'),
 					route: Routes.EVENT_ANALYSIS,
 					url: toRoute(Routes.EVENT_ANALYSIS, {
@@ -75,13 +138,15 @@ const Sidebar: React.FC<ISidebarProps> = ({
 						groupId,
 					}),
 				},
-			].filter(Boolean) as [],
+			].filter(Boolean) as ISidebarNavItem[],
 			label: Liferay.Language.get('touchpoints'),
 		},
 		{
+			id: 'people',
 			items: [
 				{
-					icon: 'ac_segment',
+					icon: 'box-squared',
+					id: 'segments',
 					label: Liferay.Language.get('segments'),
 					route: `${Routes.CONTACTS}/${SEGMENTS}`,
 					url: toRoute(Routes.CONTACTS_LIST_ENTITY, {
@@ -91,7 +156,8 @@ const Sidebar: React.FC<ISidebarProps> = ({
 					}),
 				},
 				LDPEnabled && {
-					icon: 'ac_account',
+					icon: 'briefcase',
+					id: 'accounts',
 					label: Liferay.Language.get('accounts'),
 					route: `${Routes.CONTACTS}/${ACCOUNTS}`,
 					url: toRoute(Routes.CONTACTS_LIST_ENTITY, {
@@ -101,7 +167,8 @@ const Sidebar: React.FC<ISidebarProps> = ({
 					}),
 				},
 				{
-					icon: 'ac_individual',
+					icon: 'users',
+					id: 'individuals',
 					label: Liferay.Language.get('individuals'),
 					route: Routes.CONTACTS_INDIVIDUALS,
 					url: toRoute(Routes.CONTACTS_INDIVIDUALS, {
@@ -109,13 +176,15 @@ const Sidebar: React.FC<ISidebarProps> = ({
 						groupId,
 					}),
 				},
-			].filter(Boolean) as [],
+			].filter(Boolean) as ISidebarNavItem[],
 			label: Liferay.Language.get('people'),
 		},
 		{
+			id: 'optimize',
 			items: [
 				{
-					icon: 'ac_test',
+					icon: 'test',
+					id: 'tests',
 					label: Liferay.Language.get('tests'),
 					route: Routes.TESTS,
 					url: toRoute(Routes.TESTS, {channelId, groupId}),
@@ -125,165 +194,84 @@ const Sidebar: React.FC<ISidebarProps> = ({
 		},
 	];
 
-	const getUserMenus = (): Menus => {
-		const {emailAddress, languageId} = currentUser;
+	const isActive = ({route}: ISidebarNavItem) =>
+		Boolean(matchPath({end: false, path: route}, activePathname));
 
-		return {
-			base: [
-				{
-					items: [
-						{
-							childMenuId: 'language',
-							divider: true,
-							label: Liferay.Language.get('language'),
-						},
-						{
-							label: Liferay.Language.get('switch-workspaces'),
-							url: Routes.BASE,
-						},
-						{
-							externalLink: true,
-							label: Liferay.Language.get('sign-out'),
-							url: Routes.LOGOUT,
-						},
-					],
-					subheaderLabel: emailAddress,
-				},
-			],
-			language: [
-				{
-					items: LANGUAGES.map(({id, label}) => {
-						const active = languageId === id;
+	const activeItem = sidebarSections
+		.flatMap(({items}) => items)
+		.find(isActive);
 
-						return {
-							active,
-							label,
-							onClick: active
-								? undefined
-								: () => {
-										API.user
-											.updateLanguage({
-												languageId: id,
-											})
-											.then(() =>
-												window.location.reload()
-											);
-									},
-						};
-					}),
-				},
-			],
-		};
+	const expandedKeys = new Set<React.Key>(
+		sidebarSections
+			.filter(({id}) => !collapsedSections.get(id, false))
+			.map(({id}) => id)
+	);
+
+	/**
+	 * `VerticalNav` reports the whole expanded set, while the stored preference
+	 * is one entry per section. Exactly one section changes per event, so it is
+	 * the one whose state differs from the set that was rendered.
+	 */
+	const handleExpandedChange = (nextExpandedKeys: Set<React.Key>) => {
+		const toggledSection = sidebarSections.find(
+			({id}) => expandedKeys.has(id) !== nextExpandedKeys.has(id)
+		);
+
+		if (toggledSection) {
+			onSectionToggle(
+				toggledSection.id,
+				!nextExpandedKeys.has(toggledSection.id)
+			);
+		}
 	};
 
+	const channelsMenu = (
+		<ChannelsMenu
+			channels={channels}
+			defaultChannelId={channelId}
+			groupId={groupId}
+		/>
+	);
+
 	return (
-		<div className={getCN('sidebar-root', className, {collapsed})}>
-			<div className="sidebar-header">
-				<Link
-					className="sidebar-header-logo"
-					to={toRoute(Routes.SITES, {channelId, groupId})}
+		<SidePanel
+			aria-label={Liferay.Language.get('menu')}
+			className={getCN('shadow-none sidebar-root', className)}
+			closeOnEscape={false}
+			containerRef={containerRef}
+			direction="left"
+			onOpenChange={(open) => onCollapsedChange(!open)}
+			open={!collapsed}
+			panelWidth={280}
+			position="fixed"
+		>
+			{isMobile ? (
+				<SidePanel.Header
+					className="my-4 px-3 py-0"
+					messages={{closeAriaLabel: Liferay.Language.get('close')}}
 				>
-					<ClayIcon
-						className="icon-root icon-size-md logo"
-						symbol={LDPEnabled ? 'ldp_logo' : 'ac_logo'}
-					/>
-				</Link>
+					{channelsMenu}
+				</SidePanel.Header>
+			) : (
+				<div className="my-4 px-3 py-0 sidebar-header">
+					{channelsMenu}
+				</div>
+			)}
 
-				<ChannelsMenu
-					channels={channels}
-					defaultChannelId={channelId}
-					groupId={groupId}
-				/>
-			</div>
-
-			<div className="sidebar-body">
-				{sidebarSections.map(({items, label}, sectionIndex) => (
-					<div className="section" key={sectionIndex}>
-						<div className="h5 section-title">{label}</div>
-
-						<ul className="nav-list">
-							{items.map(
-								({icon, label, route, url}, itemIndex) => (
-									<SidebarItem
-										active={
-											!!matchPath(
-												{
-													end: false,
-													path: route,
-												},
-												activePathname
-											)
-										}
-										href={url}
-										icon={icon}
-										key={itemIndex}
-										label={label}
-									/>
-								)
-							)}
-						</ul>
-					</div>
-				))}
-			</div>
-
-			<div className="sidebar-footer">
-				<div className="divider" />
-
-				<ul className="nav-list">
-					<UserDropdown
-						className="user-dropdown-root"
-						containerElement="li"
-						initialActiveMenu="base"
-						menus={getUserMenus()}
-						userName={currentUser.name}
-					/>
-
-					<SidebarItem
-						active={
-							!!matchPath(
-								{
-									end: false,
-									path: Routes.SETTINGS,
-								},
-								activePathname
-							)
-						}
-						href={toRoute(Routes.SETTINGS_DATA_SOURCE_LIST, {
-							groupId,
-						})}
-						icon="cog"
-						label={Liferay.Language.get('settings')}
-					/>
-
-					{DEVELOPER_MODE && (
-						<SidebarItem
-							active={
-								!!matchPath(
-									{
-										end: false,
-										path: Routes.UI_KIT,
-									},
-									activePathname
-								)
-							}
-							href={toRoute(Routes.UI_KIT, {
-								channelId,
-								groupId,
-							})}
-							icon="code"
-							label="UI Kit"
-						/>
-					)}
-
-					<SidebarItem
-						icon={
-							collapsed ? 'angle-right-small' : 'angle-left-small'
-						}
-						onClick={onToggle}
-					/>
-				</ul>
-			</div>
-		</div>
+			<SidePanel.Body className="p-0">
+				<VerticalNav<SidebarNavEntry>
+					active={activeItem?.id}
+					aria-label={Liferay.Language.get('menu')}
+					displayType="primary"
+					expandedKeys={expandedKeys}
+					items={sidebarSections}
+					onExpandedChange={handleExpandedChange}
+					stacked
+				>
+					{renderNavItem}
+				</VerticalNav>
+			</SidePanel.Body>
+		</SidePanel>
 	);
 };
 

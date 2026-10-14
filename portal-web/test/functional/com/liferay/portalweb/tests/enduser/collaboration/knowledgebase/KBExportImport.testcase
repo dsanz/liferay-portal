@@ -169,12 +169,7 @@ definition {
 			layoutName = "Knowledge Base Display Page",
 			widgetName = "Knowledge Base Display");
 
-		SystemSettings.openSystemSettingsAdmin();
-
-		SystemSettings.gotoConfiguration(
-			configurationCategory = "Knowledge Base",
-			configurationName = "Service",
-			configurationScope = "Site Scope");
+		SystemSettings.openToConfigInSystemSettings(portletId = "com.liferay.knowledge.base.configuration.KBGroupServiceConfiguration");
 
 		FormFields.enableCheckbox(fieldName = "sourceURLEnabled");
 
@@ -202,7 +197,7 @@ definition {
 		Navigator.gotoPage(pageName = "Knowledge Base Display Page");
 
 		KBArticle.viewSourceURLPG(
-			kbArticleSourceURL = "https://github.com/liferay/liferay-docs/blob/master/develop/tutorials/articles/adt/intro.md",
+			kbArticleSourceURL = "https://github.com/liferay/liferay-docs/blob/master/develop/tutorials/articles/adt/intro.markdown",
 			kbArticleTitle = "Knowledge Base Article Parent Title 1 Child 1");
 	}
 

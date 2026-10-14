@@ -1,115 +1,66 @@
-import AttributeBreakdownChip from './AttributeBreakdownChip';
+import AddConditionButton from './AddConditionButton';
 import AttributeBreakdownDropdown from './attribute-breakdown-dropdown';
-import ClayButton from '@clayui/button';
-import ClayIcon from '@clayui/icon';
-import DndProvider from 'shared/components/DndProvider';
+import AttributeConditionsSection from './AttributeConditionsSection';
 import React from 'react';
-import {
-	AddBreakdown,
-	AddBreakdownParams,
-	DeleteBreakdown,
-	EditBreakdown,
-	MoveBreakdown,
-	withAttributesConsumer,
-} from '../context/attributes';
 import {Align} from '@clayui/drop-down';
-import {Attributes, Breakdowns, Filters} from 'event-analysis/utils/types';
-import {HTML5Backend} from 'react-dnd-html5-backend';
+import {getBreakdownDisplay} from 'event-analysis/utils/utils';
+import {SortableChipTypes} from './SortableChipTypes';
+import {useAttributes} from '../context/attributes';
 
 const MAX_ATTRIBUTES = 5;
 
 interface IAttributeBreakdownSectionProps {
-	addBreakdown: AddBreakdown;
-	attributes: Attributes;
-	breakdownOrder: string[];
-	breakdowns: Breakdowns;
-	deleteBreakdown: DeleteBreakdown;
-	editBreakdown: EditBreakdown;
-	eventId: string;
-	filters: Filters;
-	moveBreakdown: MoveBreakdown;
+	eventId?: string;
 }
 
-export const AttributeBreakdownSection: React.FC<
-	IAttributeBreakdownSectionProps
-> = ({
-	addBreakdown,
-	attributes,
-	breakdownOrder,
-	breakdowns,
-	deleteBreakdown,
-	editBreakdown,
+const AttributeBreakdownSection: React.FC<IAttributeBreakdownSectionProps> = ({
 	eventId,
-	moveBreakdown,
 }) => {
-	const disabledIds = breakdownOrder.map(
-		(breakdownId) => breakdowns[breakdownId].attributeId
-	);
+	const {
+		addBreakdown,
+		attributes,
+		breakdownOrder,
+		breakdowns,
+		deleteBreakdown,
+		moveBreakdown,
+	} = useAttributes();
 
-	const uneditableIds = Object.keys(attributes);
-
-	const onAttributeSelect: AddBreakdown | EditBreakdown = (
-		params: AddBreakdownParams
-	) => {
-		addBreakdown(params);
-	};
+	if (!eventId) {
+		return null;
+	}
 
 	return (
-		<div className="attribute-breakdown-section-root d-flex align-items-center">
-			<div className="section-header">
-				{Liferay.Language.get('breakdown')}
-			</div>
-
-			{!!eventId && (
-				<div className="attribute-container d-flex align-items-center justify-content-between">
-					<DndProvider backend={HTML5Backend}>
-						<div className="attribute-list d-flex align-items-center">
-							{breakdownOrder.map((id, i) => (
-								<AttributeBreakdownChip
-									attribute={
-										attributes[breakdowns[id].attributeId]
-									}
-									breakdown={breakdowns[id]}
-									disabledIds={disabledIds}
-									eventId={eventId}
-									index={i}
-									key={id}
-									onCloseClick={deleteBreakdown}
-									onEditSubmit={editBreakdown}
-									onMove={moveBreakdown}
-									uneditableIds={uneditableIds}
-								/>
-							))}
-						</div>
-					</DndProvider>
-
-					{breakdownOrder.length < MAX_ATTRIBUTES && (
-						<AttributeBreakdownDropdown
-							alignmentPosition={Align.LeftTop}
-							disabledIds={disabledIds}
-							eventId={eventId}
-							onAttributeSelect={onAttributeSelect}
-							trigger={
-								<ClayButton
-									aria-label={Liferay.Language.get('add')}
-									borderless
-									className="button-root add-attribute"
-									displayType="secondary"
-									size="sm"
-								>
-									<ClayIcon
-										className="icon-root"
-										symbol="plus"
-									/>
-								</ClayButton>
-							}
-							uneditableIds={uneditableIds}
-						/>
-					)}
-				</div>
-			)}
-		</div>
+		<AttributeConditionsSection
+			action={
+				breakdownOrder.length < MAX_ATTRIBUTES && (
+					<AttributeBreakdownDropdown
+						alignmentPosition={Align.RightTop}
+						disabledIds={breakdownOrder.map(
+							(breakdownId) => breakdowns[breakdownId].attributeId
+						)}
+						eventId={eventId}
+						onAttributeSelect={addBreakdown}
+						trigger={
+							<AddConditionButton
+								label={Liferay.Language.get('add-breakdown')}
+							/>
+						}
+						uneditableIds={Object.keys(attributes)}
+					/>
+				)
+			}
+			className="attribute-breakdown-section-root"
+			conditions={breakdowns}
+			dragType={SortableChipTypes.Breakdown}
+			getDisplay={(attribute, breakdown) =>
+				getBreakdownDisplay(attribute, breakdown.attributeType)
+			}
+			onMove={moveBreakdown}
+			onRemove={deleteBreakdown}
+			order={breakdownOrder}
+			title={Liferay.Language.get('breakdown-by')}
+		/>
 	);
 };
 
-export default withAttributesConsumer(AttributeBreakdownSection);
+export default AttributeBreakdownSection;

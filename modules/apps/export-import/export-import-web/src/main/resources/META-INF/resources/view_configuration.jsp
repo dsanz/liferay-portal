@@ -26,7 +26,7 @@ ExportImportConfiguration exportImportConfiguration = ExportImportConfigurationL
 		<liferay-ui:message key="created-by" />
 	</h2>
 
-	<liferay-ui:message key="<%= exportImportConfiguration.getUserName() %>" />
+	<liferay-ui:message key="<%= HtmlUtil.escape(exportImportConfiguration.getUserName()) %>" />
 </clay:sheet-section>
 
 <clay:sheet-section>

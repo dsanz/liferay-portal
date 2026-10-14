@@ -12,11 +12,14 @@ const NO_ISSUES: AssetStatistics = {
 	expiredCount: 0,
 	expiringSoonCount: 0,
 	inDraftCount: 0,
+	longStandingDraftsCount: 0,
+	overdueWorkflowTasksCount: 0,
 	pendingCount: 0,
 	reviewDateOverdueCount: 0,
 	scheduledCount: 0,
 	totalCount: 0,
 	upcomingReviewCount: 0,
+	workflowTasksCount: 0,
 };
 
 describe('getGovernanceHealth', () => {

@@ -18,9 +18,11 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -119,11 +121,7 @@ public class PortalGitWorkingDirectory extends GitWorkingDirectory {
 					exception);
 			}
 
-			Matcher matcher = _jsUnitFilePathPattern.matcher(standardOut);
-
-			while (matcher.find()) {
-				String filePath = matcher.group("filePath");
-
+			for (String filePath : getJSUnitFilePaths(standardOut)) {
 				_jsUnitFiles.add(new File(portalPrivateDir, filePath));
 			}
 		}
@@ -169,21 +167,6 @@ public class PortalGitWorkingDirectory extends GitWorkingDirectory {
 		return modifiedModuleDirsList;
 	}
 
-	public List<File> getModifiedNonposhiModules() throws IOException {
-		List<File> modifiedFilesList = getModifiedFilesList();
-
-		List<File> modifiedNonposhiFilesList = new ArrayList<>();
-
-		for (File modifiedFile : modifiedFilesList) {
-			if (!JenkinsResultsParserUtil.isPoshiFile(modifiedFile)) {
-				modifiedNonposhiFilesList.add(modifiedFile);
-			}
-		}
-
-		return JenkinsResultsParserUtil.getDirectoriesContainingFiles(
-			getModuleDirsList(null, null), modifiedNonposhiFilesList);
-	}
-
 	public List<File> getModifiedNPMTestModuleDirsList() throws IOException {
 		List<File> modifiedModuleDirsList = getModifiedModuleDirsList();
 
@@ -197,6 +180,21 @@ public class PortalGitWorkingDirectory extends GitWorkingDirectory {
 		}
 
 		return modifiedNPMTestModuleDirsList;
+	}
+
+	public List<File> getModifiedNonposhiModules() throws IOException {
+		List<File> modifiedFilesList = getModifiedFilesList();
+
+		List<File> modifiedNonposhiFilesList = new ArrayList<>();
+
+		for (File modifiedFile : modifiedFilesList) {
+			if (!JenkinsResultsParserUtil.isPoshiFile(modifiedFile)) {
+				modifiedNonposhiFilesList.add(modifiedFile);
+			}
+		}
+
+		return JenkinsResultsParserUtil.getDirectoriesContainingFiles(
+			getModuleDirsList(null, null), modifiedNonposhiFilesList);
 	}
 
 	public List<File> getModifiedPoshiModules() throws IOException {
@@ -599,6 +597,18 @@ public class PortalGitWorkingDirectory extends GitWorkingDirectory {
 
 	}
 
+	protected static List<String> getJSUnitFilePaths(String standardOut) {
+		Set<String> filePaths = new LinkedHashSet<>();
+
+		Matcher matcher = _jsUnitFilePathPattern.matcher(standardOut);
+
+		while (matcher.find()) {
+			filePaths.add(matcher.group("filePath"));
+		}
+
+		return new ArrayList<>(filePaths);
+	}
+
 	protected PortalGitWorkingDirectory(
 			String upstreamBranchName, String workingDirectoryPath)
 		throws IOException {
@@ -723,7 +733,7 @@ public class PortalGitWorkingDirectory extends GitWorkingDirectory {
 	private static final Pattern _esBuildFileNamePattern = Pattern.compile(
 		"@esbuild-(linux-.*?)-.*");
 	private static final Pattern _jsUnitFilePathPattern = Pattern.compile(
-		"(?<filePath>[^:]+):.+");
+		"(?<filePath>[^\\n:]+):.+");
 
 	private Properties _appServerProperties;
 	private List<File> _jsUnitFiles;

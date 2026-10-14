@@ -41,8 +41,6 @@ spec:
                                 value: "false"
                             -   name: projectId
                                 value: {{ $layout.projectId | quote }}
-                            -   name: region
-                                value: {{ .Values.deploymentContext.region | quote }}
                         valueFiles:
                             -   $values/{{ `{{path}}` }}/{{ $layout.projectValuesFilename }}
                 -   ref: values

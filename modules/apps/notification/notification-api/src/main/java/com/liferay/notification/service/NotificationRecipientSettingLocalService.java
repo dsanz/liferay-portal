@@ -7,6 +7,7 @@ package com.liferay.notification.service;
 
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.notification.model.NotificationRecipientSetting;
+import com.liferay.notification.model.NotificationTemplate;
 import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
@@ -87,7 +88,9 @@ public interface NotificationRecipientSettingLocalService
 
 	public List<NotificationRecipientSetting>
 		createNotificationRecipientSettings(
-			long notificationRecipientId, Object[] recipients, User user);
+			long notificationRecipientId,
+			NotificationTemplate notificationTemplate, Object[] recipients,
+			User user);
 
 	/**
 	 * @throws PortalException
@@ -321,4 +324,4 @@ public interface NotificationRecipientSettingLocalService
 		NotificationRecipientSetting notificationRecipientSetting);
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-1171861353
+// LIFERAY-SERVICE-BUILDER-HASH:1149336132

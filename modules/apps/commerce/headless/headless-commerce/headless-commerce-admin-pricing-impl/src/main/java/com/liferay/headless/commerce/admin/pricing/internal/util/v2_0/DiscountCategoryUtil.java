@@ -8,12 +8,18 @@ package com.liferay.headless.commerce.admin.pricing.internal.util.v2_0;
 import com.liferay.asset.kernel.exception.NoSuchCategoryException;
 import com.liferay.asset.kernel.model.AssetCategory;
 import com.liferay.asset.kernel.service.AssetCategoryLocalService;
+import com.liferay.asset.kernel.service.AssetCategoryService;
+import com.liferay.asset.kernel.service.AssetVocabularyService;
 import com.liferay.commerce.discount.model.CommerceDiscount;
 import com.liferay.commerce.discount.model.CommerceDiscountRel;
 import com.liferay.commerce.discount.service.CommerceDiscountRelService;
 import com.liferay.headless.commerce.admin.pricing.dto.v2_0.DiscountCategory;
 import com.liferay.headless.commerce.core.helper.ServiceContextHelper;
+import com.liferay.headless.commerce.core.util.AssetCategoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.lazy.referencing.LazyReferencingThreadLocal;
+import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 /**
@@ -22,39 +28,85 @@ import com.liferay.portal.kernel.util.Validator;
 public class DiscountCategoryUtil {
 
 	public static CommerceDiscountRel addCommerceDiscountRel(
-			long groupId, AssetCategoryLocalService assetCategoryLocalService,
-			CommerceDiscountRelService commerceDiscountRelService,
-			DiscountCategory discountCategory,
+			AssetCategoryLocalService assetCategoryLocalService,
+			AssetCategoryService assetCategoryService,
+			AssetVocabularyService assetVocabularyService,
 			CommerceDiscount commerceDiscount,
+			CommerceDiscountRelService commerceDiscountRelService,
+			DiscountCategory discountCategory, long groupId,
 			ServiceContextHelper serviceContextHelper)
 		throws PortalException {
 
-		AssetCategory assetCategory;
+		ServiceContext serviceContext =
+			serviceContextHelper.getServiceContext();
 
-		if (Validator.isNull(
-				discountCategory.getCategoryExternalReferenceCode())) {
+		AssetCategory assetCategory = _getAssetCategory(
+			assetCategoryLocalService, assetCategoryService,
+			assetVocabularyService, discountCategory, groupId, serviceContext);
 
-			assetCategory = assetCategoryLocalService.getCategory(
-				discountCategory.getCategoryId());
-		}
-		else {
-			assetCategory =
-				assetCategoryLocalService.
-					fetchAssetCategoryByExternalReferenceCode(
-						discountCategory.getCategoryExternalReferenceCode(),
-						groupId);
+		CommerceDiscountRel commerceDiscountRel =
+			commerceDiscountRelService.fetchCommerceDiscountRel(
+				commerceDiscount.getCommerceDiscountId(),
+				AssetCategory.class.getName(), assetCategory.getCategoryId());
 
-			if (assetCategory == null) {
-				throw new NoSuchCategoryException(
-					"Unable to find category with external reference code " +
-						discountCategory.getCategoryExternalReferenceCode());
-			}
+		if (commerceDiscountRel != null) {
+			return commerceDiscountRel;
 		}
 
 		return commerceDiscountRelService.addCommerceDiscountRel(
 			commerceDiscount.getCommerceDiscountId(),
 			AssetCategory.class.getName(), assetCategory.getCategoryId(), null,
-			serviceContextHelper.getServiceContext());
+			serviceContext);
+	}
+
+	private static AssetCategory _getAssetCategory(
+			AssetCategoryLocalService assetCategoryLocalService,
+			AssetCategoryService assetCategoryService,
+			AssetVocabularyService assetVocabularyService,
+			DiscountCategory discountCategory, long groupId,
+			ServiceContext serviceContext)
+		throws PortalException {
+
+		String categoryExternalReferenceCode =
+			discountCategory.getCategoryExternalReferenceCode();
+
+		if (Validator.isNull(categoryExternalReferenceCode)) {
+			return assetCategoryLocalService.getCategory(
+				GetterUtil.getLong(discountCategory.getCategoryId()));
+		}
+
+		AssetCategory assetCategory =
+			assetCategoryLocalService.fetchAssetCategoryByExternalReferenceCode(
+				categoryExternalReferenceCode, groupId);
+
+		if (assetCategory != null) {
+			return assetCategory;
+		}
+
+		long categoryId = GetterUtil.getLong(discountCategory.getCategoryId());
+
+		if (categoryId > 0) {
+			assetCategory = assetCategoryLocalService.fetchAssetCategory(
+				categoryId);
+
+			if ((assetCategory != null) &&
+				(assetCategory.getCompanyId() ==
+					serviceContext.getCompanyId())) {
+
+				return assetCategory;
+			}
+		}
+
+		if (!LazyReferencingThreadLocal.isEnabled()) {
+			throw new NoSuchCategoryException(
+				"Unable to find category with external reference code " +
+					categoryExternalReferenceCode);
+		}
+
+		return AssetCategoryUtil.getOrAddEmptyAssetCategory(
+			assetCategoryLocalService, assetCategoryService,
+			assetVocabularyService, categoryExternalReferenceCode, groupId,
+			discountCategory.getVocabularyExternalReferenceCode());
 	}
 
 }

@@ -1,0 +1,26 @@
+{
+	"dependencies": {
+		"chart.js": "^4.4.7",
+		"react": "18.2.0",
+		"react-chartjs-2": "^5.3.0",
+		"react-dom": "18.2.0"
+	},
+	"devDependencies": {
+		"@vitejs/plugin-react": "^4.7.0",
+		"vite": "^6.4.4"
+	},
+	"exports": {
+		".": {
+			"import": "./build/vite/index.js"
+		}
+	},
+	"name": "clarity-solution-js-import-maps-entry-bar-chart",
+	"private": true,
+	"scripts": {
+		"build": "vite build",
+		"dev": "vite",
+		"preview": "vite preview"
+	},
+	"type": "module",
+	"version": "1.0.0"
+}

@@ -375,7 +375,8 @@ public class SearchResultResourceImpl extends BaseSearchResultResourceImpl {
 					_localization.getLocalizedName(
 						com.liferay.portal.kernel.search.Field.DESCRIPTION,
 						contextAcceptLanguage.getPreferredLanguageId()),
-					com.liferay.portal.kernel.search.Field.MODIFIED_DATE
+					com.liferay.portal.kernel.search.Field.MODIFIED_DATE,
+					com.liferay.portal.kernel.search.Field.TYPE
 				}
 			).from(
 				pagination.getStartPosition()
@@ -409,6 +410,31 @@ public class SearchResultResourceImpl extends BaseSearchResultResourceImpl {
 			Arrays.asList(
 				ParamUtil.getStringValues(contextHttpServletRequest, "fields")),
 			pagination, _searcher.search(searchRequestBuilder.build()));
+	}
+
+	@SuppressWarnings("rawtypes")
+	private void _setDTOFields(
+		boolean embedded, String entryClassName, Long entryClassPK,
+		List<String> fields, SearchResult searchResult, String type) {
+
+		DTOConverter dtoConverter = null;
+
+		if (embedded || _isEmptyOrContains(fields, "itemURL")) {
+			dtoConverter = _dtoConverterRegistry.getDTOConverter(
+				entryClassName, type);
+		}
+
+		if (dtoConverter == null) {
+			return;
+		}
+
+		if (embedded) {
+			_setEmbedded(
+				dtoConverter.getExternalDTOClassName(), entryClassPK,
+				searchResult);
+		}
+
+		_setItemURL(dtoConverter, entryClassPK, fields, searchResult);
 	}
 
 	private void _setDateCreated(
@@ -475,31 +501,6 @@ public class SearchResultResourceImpl extends BaseSearchResultResourceImpl {
 				() -> assetRenderer.getSearchSummary(
 					contextAcceptLanguage.getPreferredLocale()));
 		}
-	}
-
-	@SuppressWarnings("rawtypes")
-	private void _setDTOFields(
-		boolean embedded, String entryClassName, Long entryClassPK,
-		List<String> fields, SearchResult searchResult) {
-
-		DTOConverter dtoConverter = null;
-
-		if (embedded || _isEmptyOrContains(fields, "itemURL")) {
-			dtoConverter = _dtoConverterRegistry.getDTOConverter(
-				entryClassName);
-		}
-
-		if (dtoConverter == null) {
-			return;
-		}
-
-		if (embedded) {
-			_setEmbedded(
-				dtoConverter.getExternalDTOClassName(), entryClassPK,
-				searchResult);
-		}
-
-		_setItemURL(dtoConverter, entryClassPK, fields, searchResult);
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -588,6 +589,21 @@ public class SearchResultResourceImpl extends BaseSearchResultResourceImpl {
 		}
 	}
 
+	private void _setType(
+		Document document, List<String> fields, SearchResult searchResult) {
+
+		if (!_isEmptyOrContains(fields, "type")) {
+			return;
+		}
+
+		String type = document.getString(
+			com.liferay.portal.kernel.search.Field.TYPE);
+
+		if (type != null) {
+			searchResult.setType(() -> type);
+		}
+	}
+
 	private Object _toAggregations(
 		Map<String, AggregationResult> aggregationResultsMap) {
 
@@ -628,6 +644,8 @@ public class SearchResultResourceImpl extends BaseSearchResultResourceImpl {
 			boolean embedded = _isEmbedded();
 			String entryClassName = _getEntryClassName(document);
 			Long entryClassPK = _getEntryClassPK(document);
+			String type = document.getString(
+				com.liferay.portal.kernel.search.Field.TYPE);
 
 			AssetRenderer<?> assetRenderer = null;
 
@@ -656,11 +674,13 @@ public class SearchResultResourceImpl extends BaseSearchResultResourceImpl {
 			searchResult.setEntryClassName(() -> entryClassName);
 
 			_setDTOFields(
-				embedded, entryClassName, entryClassPK, fields, searchResult);
+				embedded, entryClassName, entryClassPK, fields, searchResult,
+				type);
 			_setDateCreated(document, fields, searchResult);
 			_setDateModified(document, fields, searchResult);
 			_setDateReview(document, fields, searchResult);
 			_setScore(fields, searchHit, searchResult);
+			_setType(document, fields, searchResult);
 
 			searchResults.add(searchResult);
 		}
@@ -696,10 +716,10 @@ public class SearchResultResourceImpl extends BaseSearchResultResourceImpl {
 	private Localization _localization;
 
 	@Reference
-	private Searcher _searcher;
+	private SearchRequestBuilderFactory _searchRequestBuilderFactory;
 
 	@Reference
-	private SearchRequestBuilderFactory _searchRequestBuilderFactory;
+	private Searcher _searcher;
 
 	@Reference
 	private VulcanCRUDItemDelegateBuilderRegistry

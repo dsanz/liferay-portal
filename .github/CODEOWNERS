@@ -3,6 +3,7 @@ modules/apps/account/    @liferay-commerce
 modules/apps/adaptive-media/    @liferay-content-management
 modules/apps/address/    @liferay-commerce
 modules/apps/ai-creator/    @liferay-content-management
+modules/apps/ai-hub-cell/    @liferay-ai-hub
 modules/apps/analytics/    @liferay-ac
 modules/apps/announcements/    @liferay-content-management
 modules/apps/application-list/    @liferay-platform-experience
@@ -273,6 +274,7 @@ modules/apps/portal/portal-tika/    @liferay-core-infra
 modules/apps/portal/portal-tika-test/    @liferay-core-infra
 modules/apps/portal/portal-upgrade-impl    @liferay-database-infra
 modules/apps/portal/portal-upgrade-test    @liferay-database-infra
+modules/apps/portal/portal-upgrade-test-util    @liferay-database-infra
 modules/apps/portal/portal-verify-extender    @liferay-database-infra
 modules/apps/portal/portal-verify-test    @liferay-database-infra
 modules/apps/portal/portal-verify-test-util    @liferay-database-infra
@@ -355,8 +357,26 @@ modules/apps/shared-dependencies/
 modules/apps/sharing/    @liferay-content-management
 modules/apps/site/    @liferay-site-management
 modules/apps/site/site-cms-site-initializer/    @liferay-content-management
+modules/apps/site/site-cms-site-initializer-api/    @liferay-content-management
+modules/apps/site/site-cms-site-initializer-test/    @liferay-content-management
+modules/apps/site/site-cms-standalone-site-initializer/    @liferay-content-management
 modules/apps/site/site-demo-data-creator-api/
 modules/apps/site/site-demo-data-creator-impl/
+modules/apps/site/site-dsr-analytics-rest-api/    @liferay-commerce
+modules/apps/site/site-dsr-analytics-rest-client/    @liferay-commerce
+modules/apps/site/site-dsr-analytics-rest-impl/    @liferay-commerce
+modules/apps/site/site-dsr-analytics-rest-test/    @liferay-commerce
+modules/apps/site/site-dsr-site-initializer/    @liferay-commerce
+modules/apps/site/site-dsr-site-initializer-api/    @liferay-commerce
+modules/apps/site/site-dsr-site-initializer-test/    @liferay-commerce
+modules/apps/site/site-dsr-site-initializer-test-util/    @liferay-commerce
+modules/apps/site/site-pim-site-initializer/    @liferay-commerce
+modules/apps/site/site-pim-site-initializer-api/    @liferay-commerce
+modules/apps/site/site-pim-site-initializer-test/    @liferay-commerce
+modules/apps/site/site-pim-site-initializer-test-util/    @liferay-commerce
+modules/apps/site/site-staticexport-api/    @liferay-frontend
+modules/apps/site/site-staticexport-impl/    @liferay-frontend
+modules/apps/site/site-staticexport-test/    @liferay-frontend
 modules/apps/site/site-teams-item-selector-api/    @liferay-commerce
 modules/apps/site/site-teams-item-selector-web/    @liferay-commerce
 modules/apps/site/site-teams-test/    @liferay-commerce
@@ -367,7 +387,9 @@ modules/apps/site/site-welcome-site-initializer/
 modules/apps/site-initializer/
 modules/apps/site-initializer/site-initializer-extender/    @liferay-site-management
 modules/apps/site-navigation/    @liferay-site-management
+modules/apps/site-navigation/site-navigation-language-api/    @liferay-page-management
 modules/apps/site-navigation/site-navigation-language-web    @liferay-page-management
+modules/apps/site-navigation/site-navigation-language-web-test/    @liferay-page-management
 modules/apps/social/    @liferay-content-management
 modules/apps/staging/    @liferay-headless
 modules/apps/static/
@@ -377,6 +399,7 @@ modules/apps/static/portal/portal-change-tracking-test/    @liferay-core-infra
 modules/apps/static/portal/portal-log4j-extender/    @liferay-core-infra
 modules/apps/static/portal/portal-profile-api/    @liferay-core-infra
 modules/apps/static/portal/portal-profile-impl/    @liferay-core-infra
+modules/apps/static/portal/portal-upgrade-api/    @liferay-database-infra
 modules/apps/static/portal-bundle-blacklist/    @liferay-core-infra
 modules/apps/static/portal-component-blacklist/    @liferay-core-infra
 modules/apps/static/portal-file-install/    @liferay-core-infra
@@ -421,6 +444,8 @@ modules/dxp/apps/commerce/    @liferay-commerce
 modules/dxp/apps/commerce-avalara/    @liferay-commerce
 modules/dxp/apps/commerce-demo-pack/    @liferay-commerce
 modules/dxp/apps/commerce-punchout/    @liferay-commerce
+modules/dxp/apps/content-marketing-platform/    @liferay-bpm
+modules/dxp/apps/digital-sales-room/    @liferay-commerce
 modules/dxp/apps/document-library-opener/    @liferay-content-management
 modules/dxp/apps/enterprise-product-notification/
 modules/dxp/apps/frontend-theme/    @liferay-platform-experience
@@ -487,16 +512,23 @@ modules/sdk/gradle-plugins-wsdl-builder/    @liferay-devtools
 modules/sdk/gradle-plugins-xsd-builder/    @liferay-devtools
 modules/sdk/gradle-util/    @liferay-devtools
 modules/sdk/project-templates/    @liferay-devtools
+modules/test/playwright/pages/portal-instances-web    @liferay-database-infra
+modules/test/playwright/tests/ai-hub-site-initializer    @liferay-ai-hub
 modules/test/playwright/tests/batch-planner    @liferay-headless
+modules/test/playwright/tests/data-cleanup    @liferay-database-infra
 modules/test/playwright/tests/dispatch-web    @liferay-headless
 modules/test/playwright/tests/export-import-web    @liferay-headless
 modules/test/playwright/tests/headless-builder-impl    @liferay-headless
 modules/test/playwright/tests/headless-builder-web    @liferay-headless
 modules/test/playwright/tests/layout-set-prototype-web    @liferay-headless
+modules/test/playwright/tests/portal-db-infrastructure    @liferay-database-infra
 modules/test/playwright/tests/portal-impl/portlet    @liferay-frontend
+modules/test/playwright/tests/portal-instances-web    @liferay-database-infra
 modules/test/playwright/tests/portal-tools-rest-builder-test-impl    @liferay-headless
+modules/test/playwright/tests/server-admin-web/database-migration    @liferay-database-infra
 modules/test/playwright/tests/staging-configuration-web    @liferay-headless
 modules/third-party/
+modules/util/css-builder/    @liferay-devtools
 modules/util/lang-sanitizer/    @liferay-release
 modules/util/pmd/    @liferay-core-infra
 modules/util/portal-tools-benchmarks/    @liferay-core-infra
@@ -523,6 +555,8 @@ modules/util/portal-tools-service-builder-test-sequence-test/    @liferay-core-i
 modules/util/portal-tools-service-builder-test-service/    @liferay-core-infra
 modules/util/portal-tools-service-builder-test-test/    @liferay-core-infra
 modules/util/portal-tools-service-builder-test-uad/    @liferay-core-infra
+modules/util/portal-tools-soy-builder/    @liferay-devtools
+modules/util/portal-tools-upgrade-table-builder/    @liferay-database-infra
 modules/util/release-util/    @liferay-devtools
 modules/util/source-formatter/    @liferay-devtools
 portal-impl/src/com/liferay/portal/dao/db/    @liferay-database-infra
@@ -544,6 +578,19 @@ portal-kernel/src/com/liferay/portal/kernel/instance/    @liferay-database-infra
 portal-kernel/src/com/liferay/portal/kernel/upgrade/    @liferay-database-infra
 portal-kernel/src/com/liferay/portal/kernel/verify/    @liferay-database-infra
 portal-kernel/test/unit/com/liferay/portal/kernel/dao/db/    @liferay-database-infra
+portal-kernel/test/unit/com/liferay/portal/kernel/db/    @liferay-database-infra
 portal-kernel/test/unit/com/liferay/portal/kernel/upgrade/    @liferay-database-infra
 util-taglib/    @liferay-frontend
-workspaces/liferay-marketplace-workspace/    @liferay-commerce
+workspaces/liferay-adyen-workspace/    @liferay-commerce
+workspaces/liferay-commerceaichatbot-workspace/    @liferay-commerce
+workspaces/liferay-commerceminium4-workspace/    @liferay-commerce
+workspaces/liferay-customer-workspace/    @liferay-one
+workspaces/liferay-marketplace-workspace/    @liferay-one
+workspaces/liferay-one-workspace/    @liferay-one
+workspaces/liferay-paypal-workspace/    @liferay-commerce
+workspaces/liferay-sample-workspace/    @liferay-devtools
+workspaces/liferay-stripe-workspace/    @liferay-commerce
+workspaces/liferay-testray-workspace    @liferay-release
+workspaces/liferay-testray-workspace/client-extensions/liferay-testray-custom-element    @liferay-release
+workspaces/liferay-testray-workspace/client-extensions/liferay-testray-etc-jira    @liferay-release
+workspaces/liferay-ups-workspace/    @liferay-commerce

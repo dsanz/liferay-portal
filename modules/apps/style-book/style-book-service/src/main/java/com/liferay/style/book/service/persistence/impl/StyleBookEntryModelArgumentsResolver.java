@@ -138,4 +138,4 @@ public class StyleBookEntryModelArgumentsResolver implements ArgumentsResolver {
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:634755652
+// LIFERAY-SERVICE-BUILDER-HASH:522177722

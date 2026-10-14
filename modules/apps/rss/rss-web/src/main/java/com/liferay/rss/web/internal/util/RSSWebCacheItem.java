@@ -7,9 +7,12 @@ package com.liferay.rss.web.internal.util;
 
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.InetAddressUtil;
 import com.liferay.portal.kernel.util.PropsValues;
 import com.liferay.portal.kernel.util.Time;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.webcache.WebCacheException;
 import com.liferay.portal.kernel.webcache.WebCacheItem;
 import com.liferay.rss.web.internal.configuration.RSSWebCacheConfiguration;
@@ -20,9 +23,8 @@ import com.rometools.rome.io.XmlReader;
 import java.io.IOException;
 import java.io.InputStream;
 
+import java.net.InetAddress;
 import java.net.URL;
-
-import java.util.Objects;
 
 /**
  * @author Brian Wing Shun Chan
@@ -71,20 +73,68 @@ public class RSSWebCacheItem implements WebCacheItem {
 		return Time.MINUTE * _rssWebCacheConfiguration.feedTime();
 	}
 
-	private InputStream _readURL() throws IOException {
-		URL url = new URL(_url);
-
-		if (Objects.equals(url.getProtocol(), "file")) {
-			return url.openStream();
+	private URL _getValidatedURL(String urlString) throws IOException {
+		if (!HttpComponentsUtil.hasHTTPProtocol(urlString)) {
+			throw new SecurityException(
+				"Only HTTP or HTTPS URLs are allowed: " + urlString);
 		}
 
-		Http.Options options = new Http.Options();
+		URL url = new URL(urlString);
 
-		options.setLocation(_url);
-		options.setTimeout(PropsValues.RSS_CONNECTION_TIMEOUT);
+		InetAddress inetAddress = InetAddressUtil.getInetAddressByName(
+			url.getHost());
 
-		return HttpUtil.URLtoInputStream(options);
+		if (inetAddress == null) {
+			throw new SecurityException(
+				"Unable to resolve host: " + url.getHost());
+		}
+
+		if (InetAddressUtil.isLocalInetAddress(inetAddress)) {
+			throw new SecurityException(
+				"Local network URLs are not allowed: " + urlString);
+		}
+
+		return url;
 	}
+
+	private InputStream _readURL() throws IOException {
+		String urlString = _url;
+
+		for (int i = 0; i <= _MAX_REDIRECTS; i++) {
+			URL url = _getValidatedURL(urlString);
+
+			Http.Options options = new Http.Options();
+
+			options.setFollowRedirects(false);
+			options.setLocation(urlString);
+			options.setTimeout(PropsValues.RSS_CONNECTION_TIMEOUT);
+
+			InputStream inputStream = HttpUtil.URLtoInputStream(options);
+
+			Http.Response response = options.getResponse();
+
+			String redirect = response.getRedirect();
+			int responseCode = response.getResponseCode();
+
+			if (Validator.isNull(redirect) || (responseCode < 300) ||
+				(responseCode >= 400)) {
+
+				return inputStream;
+			}
+
+			if (inputStream != null) {
+				inputStream.close();
+			}
+
+			urlString = String.valueOf(new URL(url, redirect));
+		}
+
+		throw new IOException(
+			"Unable to exceed maximum number of allowed URL redirects: " +
+				_url);
+	}
+
+	private static final int _MAX_REDIRECTS = 5;
 
 	private final RSSWebCacheConfiguration _rssWebCacheConfiguration;
 	private final String _url;

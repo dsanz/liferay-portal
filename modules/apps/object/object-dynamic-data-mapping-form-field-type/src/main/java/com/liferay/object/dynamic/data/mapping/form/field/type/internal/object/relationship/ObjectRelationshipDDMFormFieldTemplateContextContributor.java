@@ -20,6 +20,7 @@ import com.liferay.object.rest.context.path.RESTContextPathResolverRegistry;
 import com.liferay.object.scope.ObjectScopeProvider;
 import com.liferay.object.scope.ObjectScopeProviderRegistry;
 import com.liferay.object.service.ObjectDefinitionLocalService;
+import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.object.service.ObjectFieldLocalService;
 import com.liferay.object.system.SystemObjectDefinitionManager;
 import com.liferay.object.system.SystemObjectDefinitionManagerRegistry;
@@ -104,6 +105,32 @@ public class ObjectRelationshipDDMFormFieldTemplateContextContributor
 						ddmFormFieldRenderingContext.getLocale()));
 			}
 		).put(
+			"selectedOptionLabel",
+			() -> {
+				if (objectDefinition == null) {
+					return StringPool.BLANK;
+				}
+
+				long primaryKey = GetterUtil.getLong(
+					ddmFormFieldRenderingContext.getValue());
+
+				if (primaryKey == 0) {
+					return StringPool.BLANK;
+				}
+
+				try {
+					return _objectEntryLocalService.getTitleValue(
+						objectDefinition.getObjectDefinitionId(), primaryKey);
+				}
+				catch (PortalException portalException) {
+					if (_log.isDebugEnabled()) {
+						_log.debug(portalException);
+					}
+
+					return StringPool.BLANK;
+				}
+			}
+		).put(
 			"value",
 			() -> {
 				String value = ddmFormFieldRenderingContext.getValue();
@@ -139,20 +166,6 @@ public class ObjectRelationshipDDMFormFieldTemplateContextContributor
 		}
 
 		return valueString;
-	}
-
-	private String _getAdditionalAPIURLParameters(
-		ObjectDefinition objectDefinition) {
-
-		SystemObjectDefinitionManager systemObjectDefinitionManager =
-			_systemObjectDefinitionManagerRegistry.
-				getSystemObjectDefinitionManager(objectDefinition.getName());
-
-		if (systemObjectDefinitionManager == null) {
-			return StringPool.BLANK;
-		}
-
-		return systemObjectDefinitionManager.getAdditionalAPIURLParameters();
 	}
 
 	private String _getAPIURL(
@@ -192,6 +205,20 @@ public class ObjectRelationshipDDMFormFieldTemplateContextContributor
 		}
 
 		return apiURL;
+	}
+
+	private String _getAdditionalAPIURLParameters(
+		ObjectDefinition objectDefinition) {
+
+		SystemObjectDefinitionManager systemObjectDefinitionManager =
+			_systemObjectDefinitionManagerRegistry.
+				getSystemObjectDefinitionManager(objectDefinition.getName());
+
+		if (systemObjectDefinitionManager == null) {
+			return StringPool.BLANK;
+		}
+
+		return systemObjectDefinitionManager.getAdditionalAPIURLParameters();
 	}
 
 	private long _getGroupId(
@@ -301,6 +328,9 @@ public class ObjectRelationshipDDMFormFieldTemplateContextContributor
 
 	@Reference
 	private ObjectDefinitionLocalService _objectDefinitionLocalService;
+
+	@Reference
+	private ObjectEntryLocalService _objectEntryLocalService;
 
 	@Reference
 	private ObjectFieldLocalService _objectFieldLocalService;

@@ -414,29 +414,7 @@ public class TaxonomyCategoryBrief implements Serializable {
 
 			sb.append("\"embeddedTaxonomyCategory\": ");
 
-			if (embeddedTaxonomyCategory instanceof Collection) {
-				sb.append(
-					JSONFactoryUtil.createJSONArray(
-						(Collection<?>)embeddedTaxonomyCategory));
-			}
-			else if (embeddedTaxonomyCategory instanceof Map) {
-				sb.append(
-					JSONFactoryUtil.createJSONObject(
-						(Map<?, ?>)embeddedTaxonomyCategory));
-			}
-			else if (embeddedTaxonomyCategory instanceof Object[]) {
-				sb.append(
-					JSONFactoryUtil.createJSONArray(
-						Arrays.asList((Object[])embeddedTaxonomyCategory)));
-			}
-			else if (embeddedTaxonomyCategory instanceof String) {
-				sb.append("\"");
-				sb.append(_escape((String)embeddedTaxonomyCategory));
-				sb.append("\"");
-			}
-			else {
-				sb.append(embeddedTaxonomyCategory);
-			}
+			sb.append(_toJSON(embeddedTaxonomyCategory));
 		}
 
 		String parentTaxonomyCategoryExternalReferenceCode =
@@ -620,6 +598,27 @@ public class TaxonomyCategoryBrief implements Serializable {
 		return sb.toString();
 	}
 
+	private static String _toJSON(Object value) {
+		if (value instanceof Collection) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONArray((Collection<?>)value));
+		}
+		else if (value instanceof Map) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONObject((Map<?, ?>)value));
+		}
+		else if (value instanceof Object[]) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONArray(
+					Arrays.asList((Object[])value)));
+		}
+		else if (value instanceof String) {
+			return StringBundler.concat("\"", _escape(value), "\"");
+		}
+
+		return String.valueOf(value);
+	}
+
 	private static final String[][] _JSON_ESCAPE_STRINGS = {
 		{"\\", "\"", "\b", "\f", "\n", "\r", "\t"},
 		{"\\\\", "\\\"", "\\b", "\\f", "\\n", "\\r", "\\t"}
@@ -628,4 +627,4 @@ public class TaxonomyCategoryBrief implements Serializable {
 	private Map<String, Serializable> _extendedProperties;
 
 }
-// LIFERAY-REST-BUILDER-HASH:464083293
+// LIFERAY-REST-BUILDER-HASH:1552298603

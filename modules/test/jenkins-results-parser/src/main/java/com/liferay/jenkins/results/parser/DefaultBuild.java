@@ -35,6 +35,17 @@ public class DefaultBuild extends BaseBuild {
 	}
 
 	@Override
+	public Job getJob() {
+		TopLevelBuild topLevelBuild = getTopLevelBuild();
+
+		if (topLevelBuild != null) {
+			return topLevelBuild.getJob();
+		}
+
+		return super.getJob();
+	}
+
+	@Override
 	protected Element getGitHubMessageJobResultsElement() {
 		return null;
 	}

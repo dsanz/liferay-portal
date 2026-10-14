@@ -19,7 +19,6 @@
 			"label": {
 				"en_US": "Data Set"
 			},
-			"modifiable": true,
 			"name": "DataSet",
 			"objectFields": [
 				{
@@ -270,6 +269,23 @@
 				{
 					"DBType": "Boolean",
 					"businessType": "Boolean",
+					"defaultValue": false,
+					"externalReferenceCode": "SEARCH_SUGGESTIONS_ENABLED",
+					"indexed": true,
+					"indexedAsKeyword": false,
+					"label": {
+						"en_US": "Search Suggestions Enabled"
+					},
+					"localized": false,
+					"name": "searchSuggestionsEnabled",
+					"required": false,
+					"state": false,
+					"system": true,
+					"type": "Boolean"
+				},
+				{
+					"DBType": "Boolean",
+					"businessType": "Boolean",
 					"defaultValue": true,
 					"externalReferenceCode": "SHOW_SEARCH",
 					"indexed": true,
@@ -493,12 +509,10 @@
 		{
 			"className": "com.liferay.object.model.ObjectDefinition#V0H2",
 			"enableFormContainer": false,
-			"enableLocalization": true,
 			"externalReferenceCode": "L_DATA_SET_ACTION",
 			"label": {
 				"en_US": "Data Set Action"
 			},
-			"modifiable": true,
 			"name": "DataSetAction",
 			"objectDefinitionSettings": [
 				{
@@ -768,7 +782,6 @@
 			"label": {
 				"en_US": "Data Set Cards Section"
 			},
-			"modifiable": true,
 			"name": "DataSetCardsSection",
 			"objectDefinitionSettings": [
 				{
@@ -855,12 +868,10 @@
 		{
 			"className": "com.liferay.object.model.ObjectDefinition#K8Y5",
 			"enableFormContainer": false,
-			"enableLocalization": true,
 			"externalReferenceCode": "L_DATA_SET_CLIENT_EXTENSION_FILTER",
 			"label": {
 				"en_US": "Data Set Client Extension Filter"
 			},
-			"modifiable": true,
 			"name": "DataSetClientExtensionFilter",
 			"objectDefinitionSettings": [
 				{
@@ -950,12 +961,10 @@
 		{
 			"className": "com.liferay.object.model.ObjectDefinition#U0S3",
 			"enableFormContainer": false,
-			"enableLocalization": true,
 			"externalReferenceCode": "L_DATA_SET_DATE_FILTER",
 			"label": {
 				"en_US": "Data Set Date Filter"
 			},
-			"modifiable": true,
 			"name": "DataSetDateFilter",
 			"objectDefinitionSettings": [
 				{
@@ -1081,7 +1090,6 @@
 			"label": {
 				"en_US": "Data Set List Section"
 			},
-			"modifiable": true,
 			"name": "DataSetListSection",
 			"objectDefinitionSettings": [
 				{
@@ -1168,12 +1176,10 @@
 		{
 			"className": "com.liferay.object.model.ObjectDefinition#C1K2",
 			"enableFormContainer": false,
-			"enableLocalization": true,
 			"externalReferenceCode": "L_DATA_SET_SELECTION_FILTER",
 			"label": {
 				"en_US": "Data Set Selection Filter"
 			},
-			"modifiable": true,
 			"name": "DataSetSelectionFilter",
 			"objectDefinitionSettings": [
 				{
@@ -1423,12 +1429,10 @@
 		{
 			"className": "com.liferay.object.model.ObjectDefinition#D0O2",
 			"enableFormContainer": false,
-			"enableLocalization": true,
 			"externalReferenceCode": "L_DATA_SET_SORT",
 			"label": {
 				"en_US": "Data Set Sort"
 			},
-			"modifiable": true,
 			"name": "DataSetSort",
 			"objectDefinitionSettings": [
 				{
@@ -1534,12 +1538,10 @@
 		{
 			"className": "com.liferay.object.model.ObjectDefinition#M0U6",
 			"enableFormContainer": false,
-			"enableLocalization": true,
 			"externalReferenceCode": "L_DATA_SET_TABLE_SECTION",
 			"label": {
 				"en_US": "Data Set Table Section"
 			},
-			"modifiable": true,
 			"name": "DataSetTableSection",
 			"objectDefinitionSettings": [
 				{
@@ -1680,7 +1682,6 @@
 			"label": {
 				"en_US": "Data Set Snapshot"
 			},
-			"modifiable": true,
 			"name": "DataSetSnapshot",
 			"objectFields": [
 				{
@@ -1767,6 +1768,43 @@
 			"panelCategoryKey": "",
 			"pluralLabel": {
 				"en_US": "Data Set Snapshots"
+			},
+			"portlet": false,
+			"scope": "company",
+			"status": {
+				"code": 0
+			},
+			"system": true,
+			"titleObjectFieldName": "label"
+		},
+		{
+			"className": "com.liferay.object.model.ObjectDefinition#U1P7",
+			"externalReferenceCode": "L_DATA_SET_USER_CONFIGURATION",
+			"label": {
+				"en_US": "Data Set User Configuration"
+			},
+			"name": "DataSetUserConfiguration",
+			"objectFields": [
+				{
+					"DBType": "Clob",
+					"businessType": "LongText",
+					"externalReferenceCode": "CONFIGURATION",
+					"indexed": true,
+					"indexedAsKeyword": false,
+					"label": {
+						"en_US": "Configuration"
+					},
+					"localized": false,
+					"name": "configuration",
+					"required": false,
+					"state": false,
+					"system": true,
+					"type": "Clob"
+				}
+			],
+			"panelCategoryKey": "",
+			"pluralLabel": {
+				"en_US": "Data Set User Configurations"
 			},
 			"portlet": false,
 			"scope": "company",

@@ -16,6 +16,7 @@ describe('Visibility Plugin', () => {
 	let Analytics: AnalyticsClient;
 
 	beforeEach(() => {
+		fetchMock.mockGlobal();
 
 		// Force attaching DOM Content Loaded event
 
@@ -26,7 +27,7 @@ describe('Visibility Plugin', () => {
 
 		mockUserTiming();
 
-		fetchMock.mock('*', () => 200);
+		fetchMock.route('*', () => 200);
 
 		Analytics = AnalyticsClient.create(INITIAL_ANALYTICS_CONFIG);
 	});
@@ -35,7 +36,7 @@ describe('Visibility Plugin', () => {
 		Analytics.reset();
 		AnalyticsClient.dispose();
 
-		fetchMock.restore();
+		fetchMock.hardReset();
 	});
 
 	describe('tabBlurred event', () => {

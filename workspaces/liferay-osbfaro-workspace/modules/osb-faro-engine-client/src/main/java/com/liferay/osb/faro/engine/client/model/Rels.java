@@ -27,6 +27,9 @@ public interface Rels {
 	public static final String ACCOUNT_LIFECYCLE_STAGE_RULES =
 		"account-lifecycle-stage-rules";
 
+	public static final String ACCOUNT_LIFECYCLE_STAGE_TRANSITIONS =
+		"account-lifecycle-stage-transitions";
+
 	public static final String ACCOUNT_LIFECYCLE_STAGES =
 		"account-lifecycle-stages";
 
@@ -290,8 +293,8 @@ public interface Rels {
 	public static final String REPORTS_EXPORT_CSV_COUNT =
 		"reports-export-csv-count";
 
-	public static final String SESSION_ACQUISITION_PARAMETERS =
-		"session-acquisition-parameters";
+	public static final String SESSION_ACQUISITION_PROPERTIES =
+		"session-acquisition-properties";
 
 	public static final String SESSION_VALUES = "session-values";
 

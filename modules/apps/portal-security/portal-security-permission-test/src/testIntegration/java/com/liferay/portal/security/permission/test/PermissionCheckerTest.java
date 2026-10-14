@@ -732,6 +732,19 @@ public class PermissionCheckerTest {
 	}
 
 	@Test
+	public void testHasPermissionWithLiveGroup() throws Exception {
+		_role = RoleTestUtil.addRole(
+			RandomTestUtil.randomString(), RoleConstants.TYPE_REGULAR);
+		_user = UserTestUtil.addUser();
+
+		_userLocalService.setRoleUsers(
+			_role.getRoleId(), new long[] {_user.getUserId()});
+
+		_testHasPermissionWithLiveGroup();
+		_testHasPermissionWithLiveGroupMissing();
+	}
+
+	@Test
 	public void testHasPermissionWithMissingResourcePermissions()
 		throws Exception {
 
@@ -1275,6 +1288,53 @@ public class PermissionCheckerTest {
 			ResourceConstants.SCOPE_INDIVIDUAL, portletName);
 
 		_portletLocalService.destroyRemotePortlet(portlet);
+	}
+
+	private void _testHasPermissionWithLiveGroup() throws Exception {
+		Group group = GroupTestUtil.addGroup();
+
+		_groups.add(group);
+
+		Group liveGroup = GroupTestUtil.addGroup();
+
+		_groups.add(liveGroup);
+
+		_resourcePermissionLocalService.setResourcePermissions(
+			_user.getCompanyId(), Group.class.getName(),
+			ResourceConstants.SCOPE_GROUP,
+			String.valueOf(liveGroup.getGroupId()), _role.getRoleId(),
+			new String[] {ActionKeys.UPDATE});
+
+		group.setLiveGroupId(liveGroup.getGroupId());
+
+		PermissionChecker permissionChecker = _permissionCheckerFactory.create(
+			_user);
+
+		Assert.assertTrue(
+			permissionChecker.hasPermission(
+				group, Group.class.getName(),
+				String.valueOf(group.getGroupId()), ActionKeys.UPDATE));
+	}
+
+	private void _testHasPermissionWithLiveGroupMissing() throws Exception {
+		Group group = GroupTestUtil.addGroup();
+
+		_groups.add(group);
+
+		_resourcePermissionLocalService.setResourcePermissions(
+			_user.getCompanyId(), Group.class.getName(),
+			ResourceConstants.SCOPE_GROUP, String.valueOf(group.getGroupId()),
+			_role.getRoleId(), new String[] {ActionKeys.UPDATE});
+
+		group.setLiveGroupId(RandomTestUtil.randomLong());
+
+		PermissionChecker permissionChecker = _permissionCheckerFactory.create(
+			_user);
+
+		Assert.assertTrue(
+			permissionChecker.hasPermission(
+				group, Group.class.getName(),
+				String.valueOf(group.getGroupId()), ActionKeys.UPDATE));
 	}
 
 	private static final String _ADD_SITE_TEST_1_ACTION = "ADD_SITE_TEST_1";

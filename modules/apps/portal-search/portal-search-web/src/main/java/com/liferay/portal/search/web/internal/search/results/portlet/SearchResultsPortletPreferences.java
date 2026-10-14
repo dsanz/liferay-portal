@@ -22,6 +22,9 @@ public interface SearchResultsPortletPreferences {
 	public static final String PREFERENCE_KEY_HIGHLIGHT_ENABLED =
 		"highlightEnabled";
 
+	public static final String PREFERENCE_KEY_LIMIT_RESULT_COUNT_ACCURACY =
+		"limitResultCountAccuracy";
+
 	public static final String PREFERENCE_KEY_PAGINATION_DELTA =
 		"paginationDelta";
 

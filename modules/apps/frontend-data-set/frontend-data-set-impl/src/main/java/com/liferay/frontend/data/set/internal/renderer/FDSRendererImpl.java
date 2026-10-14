@@ -5,14 +5,12 @@
 
 package com.liferay.frontend.data.set.internal.renderer;
 
-import com.liferay.frontend.data.set.SystemFDSEntry;
 import com.liferay.frontend.data.set.SystemFDSEntryRegistry;
+import com.liferay.frontend.data.set.constants.FDSAdminPortletKeys;
 import com.liferay.frontend.data.set.model.FDSActionDropdownItem;
 import com.liferay.frontend.data.set.model.FDSSortItem;
 import com.liferay.frontend.data.set.renderer.FDSRenderer;
 import com.liferay.frontend.data.set.serializer.FDSSerializer;
-import com.liferay.frontend.data.set.view.FDSView;
-import com.liferay.frontend.data.set.view.FDSViewRegistry;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenu;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
@@ -30,6 +28,9 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.template.react.renderer.ComponentDescriptor;
 import com.liferay.portal.template.react.renderer.ReactRenderer;
+
+import jakarta.portlet.PortletRequest;
+import jakarta.portlet.ResourceURL;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -129,6 +130,9 @@ public class FDSRendererImpl implements FDSRenderer {
 				snapshotsEnabled = fdsSerializer.serializeSnapshotsEnabled(
 					fdsName, httpServletRequest);
 			}
+
+			boolean hasConfiguration = _hasConfiguration(
+				fdsName, fdsSerializer);
 
 			props.putAll(
 				HashMapBuilder.<String, Object>put(
@@ -245,19 +249,44 @@ public class FDSRendererImpl implements FDSRenderer {
 						return paginationJSONObject;
 					}
 				).put(
+					"saveDataSetUserConfigurationURL",
+					() -> {
+						ResourceURL resourceURL =
+							(ResourceURL)_portal.getControlPanelPortletURL(
+								httpServletRequest,
+								FDSAdminPortletKeys.FDS_ADMIN,
+								PortletRequest.RESOURCE_PHASE);
+
+						resourceURL.setResourceID(
+							"/frontend_data_set_admin" +
+								"/save_data_set_user_configuration");
+
+						return resourceURL.toString();
+					}
+				).put(
 					"searchAsYouType",
-					() -> fdsSerializer.serializeSearchAsYouType(
-						fdsName, httpServletRequest)
+					() -> {
+						if (!hasConfiguration) {
+							return null;
+						}
+
+						return fdsSerializer.serializeSearchAsYouType(
+							fdsName, httpServletRequest);
+					}
+				).put(
+					"searchSuggestionsEnabled",
+					() -> {
+						if (!hasConfiguration) {
+							return null;
+						}
+
+						return fdsSerializer.serializeSearchSuggestionsEnabled(
+							fdsName, httpServletRequest);
+					}
 				).put(
 					"showSearch",
 					() -> {
-						List<FDSView> fdsViews = _fdsViewRegistry.getFDSViews(
-							fdsName);
-
-						SystemFDSEntry systemFDSEntry =
-							_systemFDSEntryRegistry.getSystemFDSEntry(fdsName);
-
-						if ((fdsViews == null) && (systemFDSEntry == null)) {
+						if (!hasConfiguration) {
 							return null;
 						}
 
@@ -296,6 +325,10 @@ public class FDSRendererImpl implements FDSRenderer {
 
 						return fdsSortItems;
 					}
+				).put(
+					"userConfiguration",
+					() -> fdsSerializer.serializeUserConfiguration(
+						fdsName, httpServletRequest)
 				).put(
 					"views",
 					() -> {
@@ -357,13 +390,23 @@ public class FDSRendererImpl implements FDSRenderer {
 		return null;
 	}
 
+	private boolean _hasConfiguration(
+		String fdsName, FDSSerializer fdsSerializer) {
+
+		if ((fdsSerializer == _serviceTrackerMap.getService(
+				FDSSerializer.TYPE_CUSTOM)) ||
+			(_systemFDSEntryRegistry.getSystemFDSEntry(fdsName) != null)) {
+
+			return true;
+		}
+
+		return false;
+	}
+
 	private static final Log _log = LogFactoryUtil.getLog(
 		FDSRendererImpl.class);
 
 	private BundleContext _bundleContext;
-
-	@Reference
-	private FDSViewRegistry _fdsViewRegistry;
 
 	@Reference
 	private Portal _portal;

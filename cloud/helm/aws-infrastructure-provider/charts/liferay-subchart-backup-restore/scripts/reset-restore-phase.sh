@@ -9,7 +9,7 @@ function main {
 	liferay_infrastructure_name=$( \
 		kubectl \
 			get \
-			liferayinfrastructure \
+			liferayinfrastructures.liferay.com \
 			--output jsonpath="{.items[0].metadata.name}" 2>/dev/null || echo "")
 
 	if [ -z "${liferay_infrastructure_name}" ]
@@ -21,8 +21,9 @@ function main {
 
 	kubectl \
 		patch \
-		liferayinfrastructure \
+		liferayinfrastructures.liferay.com \
 		"${liferay_infrastructure_name}" \
+		--field-manager=liferay-backup-restore \
 		--patch '{"spec":{"restorePhase":"none"}}' \
 		--type merge
 }

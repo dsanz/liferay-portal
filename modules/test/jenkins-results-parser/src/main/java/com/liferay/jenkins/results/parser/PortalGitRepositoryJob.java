@@ -45,7 +45,26 @@ public abstract class PortalGitRepositoryJob
 	protected PortalGitRepositoryJob(JSONObject jsonObject) {
 		super(jsonObject);
 
-		_initialize(null);
+		_initialize(
+			GitWorkingDirectoryFactory.newPortalGitWorkingDirectory(
+				_getPortalUpstreamBranchName(jsonObject)));
+	}
+
+	private String _getPortalUpstreamBranchName(JSONObject jsonObject) {
+		JSONObject branchJSONObject = jsonObject.optJSONObject("branch");
+
+		if (branchJSONObject != null) {
+			String portalUpstreamBranchName = branchJSONObject.optString(
+				"upstream_branch_name");
+
+			if (!JenkinsResultsParserUtil.isNullOrEmpty(
+					portalUpstreamBranchName)) {
+
+				return portalUpstreamBranchName;
+			}
+		}
+
+		return getUpstreamBranchName();
 	}
 
 	private void _initialize(
@@ -66,7 +85,38 @@ public abstract class PortalGitRepositoryJob
 
 		jobPropertiesFiles.add(
 			new File(gitRepositoryDir, "tools/sdk/build.properties"));
+
 		jobPropertiesFiles.add(new File(gitRepositoryDir, "build.properties"));
+
+		jobPropertiesFiles.add(
+			new File(
+				gitRepositoryDir,
+				JenkinsResultsParserUtil.combine(
+					"build.", Environment.get("HOSTNAME"), ".properties")));
+
+		String upstreamBranchName = getUpstreamBranchName();
+
+		if (upstreamBranchName.endsWith("-private")) {
+			File privatePortalDir = new File(
+				JenkinsResultsParserUtil.getBaseGitRepositoryDir(),
+				"liferay-portal-" + upstreamBranchName);
+
+			jobPropertiesFiles.add(
+				new File(
+					privatePortalDir,
+					JenkinsResultsParserUtil.combine(
+						"test.", Environment.get("HOSTNAME"), ".properties")));
+
+			jobPropertiesFiles.add(
+				new File(privatePortalDir, "test-private.properties"));
+		}
+
+		jobPropertiesFiles.add(
+			new File(
+				gitRepositoryDir,
+				JenkinsResultsParserUtil.combine(
+					"test.", Environment.get("HOSTNAME"), ".properties")));
+
 		jobPropertiesFiles.add(new File(gitRepositoryDir, "test.properties"));
 	}
 

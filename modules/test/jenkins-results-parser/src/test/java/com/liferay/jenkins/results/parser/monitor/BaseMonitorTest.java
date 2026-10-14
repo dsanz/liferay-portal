@@ -13,6 +13,8 @@ import java.util.Collections;
 import org.junit.Assert;
 import org.junit.Test;
 
+import org.mockito.Mockito;
+
 /**
  * @author Brittney Nguyen
  */
@@ -39,11 +41,50 @@ public class BaseMonitorTest extends com.liferay.jenkins.results.parser.Test {
 	}
 
 	@Test
+	public void testGetAttemptTimeoutMillisReadsCount() {
+		BaseMonitor baseMonitor = Mockito.spy(_newBaseMonitor(60));
+
+		Mockito.doReturn(
+			3
+		).when(
+			baseMonitor
+		).getReadsCount();
+
+		testEquals(18000, baseMonitor.getAttemptTimeoutMillis(0));
+		testEquals(9000, baseMonitor.getAttemptTimeoutMillis(1));
+	}
+
+	@Test
 	public void testGetAttemptTimeoutMillisWithinBudget() {
 		_testGetAttemptTimeoutMillisWithinBudget(0, 10);
 		_testGetAttemptTimeoutMillisWithinBudget(0, 60);
 		_testGetAttemptTimeoutMillisWithinBudget(1, 10);
 		_testGetAttemptTimeoutMillisWithinBudget(1, 60);
+	}
+
+	@Test
+	public void testGetBooleanValue() {
+		BaseMonitor baseMonitor = _newBaseMonitor(60);
+
+		testEquals(
+			false,
+			baseMonitor.getBooleanValue(
+				"parameter", true, "expected.green",
+				Collections.singletonMap("expected.green", "false")));
+		testEquals(
+			true,
+			baseMonitor.getBooleanValue(
+				"parameter", true, "expected.green", Collections.emptyMap()));
+
+		try {
+			baseMonitor.getBooleanValue(
+				"parameter", true, "expected.green",
+				Collections.singletonMap("expected.green", "yes"));
+
+			Assert.fail();
+		}
+		catch (IllegalArgumentException illegalArgumentException) {
+		}
 	}
 
 	@Test
@@ -125,7 +166,7 @@ public class BaseMonitorTest extends com.liferay.jenkins.results.parser.Test {
 		try {
 			_getRequiredURLParameter(url, urlPrefixes);
 
-			Assert.fail("Expected IllegalArgumentException");
+			Assert.fail();
 		}
 		catch (IllegalArgumentException illegalArgumentException) {
 			return illegalArgumentException.getMessage();

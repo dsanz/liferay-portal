@@ -15,7 +15,8 @@ import {captureScreenshot} from '../../../utils/captureScreenshot';
 import {compareScreenshots} from '../../../utils/compareScreenshots';
 import getRandomString from '../../../utils/getRandomString';
 import getBasicWebContentStructureId from '../../../utils/structured-content/getBasicWebContentStructureId';
-import {exportImportPagesTest} from '../../export-import-web/main/fixtures/exportImportPagesTest';
+import {exportImportPagesTest} from '../../export-import-web/revamp/fixtures/exportImportPagesTest';
+import {exportAndDownloadLar} from '../../export-import-web/revamp/utils/exportAndDownloadLar';
 import getContainerDefinition from '../../layout-content-page-editor-web/main/utils/getContainerDefinition';
 import getFragmentDefinition from '../../layout-content-page-editor-web/main/utils/getFragmentDefinition';
 import getGridDefinition from '../../layout-content-page-editor-web/main/utils/getGridDefinition';
@@ -25,8 +26,7 @@ const test = mergeTests(
 	exportImportPagesTest,
 	dataApiHelpersTest,
 	featureFlagsTest({
-		'LPD-35443': {enabled: true},
-		'LPD-57655': {enabled: false},
+		'LPD-57655': {enabled: true},
 		'LPD-76864': {enabled: true},
 		'LPS-178052': {enabled: true},
 	}),
@@ -80,7 +80,9 @@ test(
 
 		await exportImportPage.goToExport(siteA.friendlyUrlPath);
 
-		const exportFilePath = await exportImportPage.export();
+		await exportImportPage.clickNew();
+
+		const {folderPath, name} = await exportAndDownloadLar(exportImportPage);
 
 		// Create a site B
 
@@ -92,7 +94,9 @@ test(
 
 		await exportImportPage.goToImport(siteB.friendlyUrlPath);
 
-		await exportImportPage.import({filePath: exportFilePath});
+		await exportImportPage.clickNew();
+
+		await exportImportPage.import({folderPath, name});
 
 		// Take screenshots in the Site B
 
@@ -200,7 +204,7 @@ test(
 
 		const getPages = await apiHelpers.headlessAdminSite.getPages(
 			siteA.externalReferenceCode,
-			'sort=pageSettings/priority:asc'
+			'flatten=true&sort=pageSettings/priority:asc'
 		);
 
 		expect(getPages.items[0].pageSettings.priority).toEqual(0);
@@ -225,7 +229,9 @@ test(
 
 		await exportImportPage.goToExport(siteA.friendlyUrlPath);
 
-		const exportFilePath = await exportImportPage.export();
+		await exportImportPage.clickNew();
+
+		const {folderPath, name} = await exportAndDownloadLar(exportImportPage);
 
 		// Create a site B
 
@@ -237,7 +243,9 @@ test(
 
 		await exportImportPage.goToImport(siteB.friendlyUrlPath);
 
-		await exportImportPage.import({filePath: exportFilePath});
+		await exportImportPage.clickNew();
+
+		await exportImportPage.import({folderPath, name});
 
 		// Get pages in the Site B
 
@@ -269,7 +277,7 @@ test(
 
 		const importedPages = await apiHelpers.headlessAdminSite.getPages(
 			siteB.externalReferenceCode,
-			'sort=pageSettings/priority:asc'
+			'flatten=true&sort=pageSettings/priority:asc'
 		);
 
 		expect(importedPages.items[0].pageSettings.priority).toEqual(0);
@@ -430,7 +438,9 @@ test(
 
 		await exportImportPage.goToExport(siteA.friendlyUrlPath);
 
-		const exportFilePath = await exportImportPage.export();
+		await exportImportPage.clickNew();
+
+		const {folderPath, name} = await exportAndDownloadLar(exportImportPage);
 
 		// Create a site B
 
@@ -442,7 +452,9 @@ test(
 
 		await exportImportPage.goToImport(siteB.friendlyUrlPath);
 
-		await exportImportPage.import({filePath: exportFilePath});
+		await exportImportPage.clickNew();
+
+		await exportImportPage.import({folderPath, name});
 
 		// Go to the Browser and take screenshoots of each configuration for each fragment in the Site B
 
@@ -539,7 +551,9 @@ test(
 
 		await exportImportPage.goToExport(siteA.friendlyUrlPath);
 
-		const exportFilePath = await exportImportPage.export();
+		await exportImportPage.clickNew();
+
+		const {folderPath, name} = await exportAndDownloadLar(exportImportPage);
 
 		// Create site B and import the LAR into it
 
@@ -549,6 +563,8 @@ test(
 
 		await exportImportPage.goToImport(siteB.friendlyUrlPath);
 
+		await exportImportPage.clickNew();
+
 		// The import succeeds but reports Completed With Errors because of
 		// LPD-102645: the page is imported before the fragment, which reports a
 		// missing reference that nothing removes once the fragment arrives.
@@ -556,7 +572,8 @@ test(
 		// still verifies that the site is imported correctly.
 
 		await exportImportPage.import({
-			filePath: exportFilePath,
+			folderPath,
+			name,
 			taskStatus: 'completedWithErrors',
 		});
 

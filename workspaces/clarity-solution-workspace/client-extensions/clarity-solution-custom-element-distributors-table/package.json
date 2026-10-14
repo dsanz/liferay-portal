@@ -2,15 +2,15 @@
 	"dependencies": {
 		"@clayui/button": "^3.159.0",
 		"@clayui/table": "^3.159.0",
-		"clarity-solution-js-import-maps-entry": "*",
+		"clarity-solution-js-import-maps-entry-distributors": "*",
 		"react": "18.2.0",
 		"react-dom": "18.2.0"
 	},
 	"devDependencies": {
 		"@types/react": "^18.2.0",
 		"@types/react-dom": "^18.2.0",
-		"@vitejs/plugin-react": "^4.2.1",
-		"vite": "^5.2.0"
+		"@vitejs/plugin-react": "^4.7.0",
+		"vite": "^6.4.4"
 	},
 	"name": "@liferay/clarity-solution-custom-element-distributors-table",
 	"private": true,

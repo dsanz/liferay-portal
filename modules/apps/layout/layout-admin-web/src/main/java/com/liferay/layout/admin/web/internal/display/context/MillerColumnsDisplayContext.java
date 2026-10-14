@@ -507,6 +507,12 @@ public class MillerColumnsDisplayContext {
 	private JSONArray _getLayoutSetBranchesJSONArray() throws Exception {
 		JSONArray jsonArray = JSONFactoryUtil.createJSONArray();
 
+		if (!FeatureFlagManagerUtil.isEnabled(
+				_themeDisplay.getCompanyId(), "LPD-105778")) {
+
+			return jsonArray;
+		}
+
 		List<LayoutSetBranch> layoutSetBranches =
 			LayoutSetBranchLocalServiceUtil.getLayoutSetBranches(
 				_themeDisplay.getScopeGroupId(),
@@ -641,8 +647,8 @@ public class MillerColumnsDisplayContext {
 
 	private List<Long> _duplicatedFriendlyURLPlids;
 	private final HttpServletRequest _httpServletRequest;
-	private final LayoutsAdminDisplayContext _layoutsAdminDisplayContext;
 	private final LayoutSetPrototypeHelper _layoutSetPrototypeHelper;
+	private final LayoutsAdminDisplayContext _layoutsAdminDisplayContext;
 	private final LiferayPortletResponse _liferayPortletResponse;
 	private final ThemeDisplay _themeDisplay;
 

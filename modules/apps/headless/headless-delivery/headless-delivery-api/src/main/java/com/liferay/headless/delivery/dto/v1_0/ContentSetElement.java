@@ -309,26 +309,7 @@ public class ContentSetElement implements Serializable {
 
 			sb.append("\"content\": ");
 
-			if (content instanceof Collection) {
-				sb.append(
-					JSONFactoryUtil.createJSONArray((Collection<?>)content));
-			}
-			else if (content instanceof Map) {
-				sb.append(JSONFactoryUtil.createJSONObject((Map<?, ?>)content));
-			}
-			else if (content instanceof Object[]) {
-				sb.append(
-					JSONFactoryUtil.createJSONArray(
-						Arrays.asList((Object[])content)));
-			}
-			else if (content instanceof String) {
-				sb.append("\"");
-				sb.append(_escape((String)content));
-				sb.append("\"");
-			}
-			else {
-				sb.append(content);
-			}
+			sb.append(_toJSON(content));
 		}
 
 		String contentType = getContentType();
@@ -480,6 +461,27 @@ public class ContentSetElement implements Serializable {
 		return sb.toString();
 	}
 
+	private static String _toJSON(Object value) {
+		if (value instanceof Collection) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONArray((Collection<?>)value));
+		}
+		else if (value instanceof Map) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONObject((Map<?, ?>)value));
+		}
+		else if (value instanceof Object[]) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONArray(
+					Arrays.asList((Object[])value)));
+		}
+		else if (value instanceof String) {
+			return StringBundler.concat("\"", _escape(value), "\"");
+		}
+
+		return String.valueOf(value);
+	}
+
 	private static final String[][] _JSON_ESCAPE_STRINGS = {
 		{"\\", "\"", "\b", "\f", "\n", "\r", "\t"},
 		{"\\\\", "\\\"", "\\b", "\\f", "\\n", "\\r", "\\t"}
@@ -488,4 +490,4 @@ public class ContentSetElement implements Serializable {
 	private Map<String, Serializable> _extendedProperties;
 
 }
-// LIFERAY-REST-BUILDER-HASH:-749452907
+// LIFERAY-REST-BUILDER-HASH:1024429083

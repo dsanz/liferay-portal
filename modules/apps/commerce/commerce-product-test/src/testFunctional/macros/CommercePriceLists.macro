@@ -1,30 +1,6 @@
 definition {
 
 	@summary = "Default summary"
-	macro addNewPriceModifier(modifier = null, name = null, target = null) {
-		Click(locator1 = "Button#PLUS");
-
-		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_IFRAME");
-
-		Type(
-			key_fieldLabel = "Name",
-			locator1 = "TextInput#GENERIC_TEXT_INPUT",
-			value1 = ${name});
-
-		Select(
-			key_fieldLabel = "Target",
-			locator1 = "Select#GENERIC_SELECT_FIELD",
-			value1 = ${target});
-
-		Select(
-			key_fieldLabel = "Modifier",
-			locator1 = "Select#GENERIC_SELECT_FIELD",
-			value1 = ${modifier});
-
-		Button.clickSubmitButton();
-	}
-
-	@summary = "Default summary"
 	macro assertDeleteButtonNotPresent(baseEntryName = null) {
 		Click(
 			key_value = ${baseEntryName},
@@ -33,93 +9,6 @@ definition {
 		AssertElementNotPresent(
 			key_menuItem = "Delete",
 			locator1 = "MenuItem#ANY_MENU_ITEM");
-	}
-
-	@summary = "Default summary"
-	macro createPriceListPriceTiers(key_quantity = null, key_value = null, key_pricingType = null) {
-		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
-
-		Click(
-			locator1 = "Radio#ANY",
-			radioLabel = ${key_pricingType});
-
-		Click(locator1 = "Button#PLUS");
-
-		SelectFrameTop();
-
-		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
-
-		if (isSet(key_quantity)) {
-			Type(
-				key_text = "Quantity",
-				locator1 = "TextInput#ANY",
-				value1 = ${key_quantity});
-		}
-
-		if (isSet(key_value)) {
-			Type(
-				key_text = "Tier Price",
-				locator1 = "TextInput#ANY",
-				value1 = ${key_value});
-		}
-
-		if (isSet(minutesToExpire)) {
-			var timeString = selenium.getElementValue("TextInput#DISPLAY_DATE_TIME");
-			var timeAMPM = selenium.getElementValue("TextInput#DISPLAY_DATE_MERIDIAN");
-			var hours = RegexUtil.replace(${timeString}, "([0-9]*):([0-9]*)", 1);
-			var minutes = RegexUtil.replace(${timeString}, "([0-9]*):([0-9]*)", 2);
-			var minutesToExpire = ${minutesToExpire};
-
-			var minutes = ${minutes} + ${minutesToExpire};
-
-			if (${timeAMPM} == 0) {
-				var ampm = "AM";
-			}
-			else {
-				var ampm = "PM";
-			}
-
-			var changeHour = MathUtil.isGreaterThan(${minutes}, 59);
-
-			if (${changeHour} == "true") {
-				var minutes = ${minutes} - 60;
-
-				if (${hours} == 11) {
-					if (${ampm} == "PM") {
-						var ampm = "AM";
-					}
-					else {
-						var ampm = "PM";
-					}
-				}
-
-				if (${hours} == 12) {
-					var hours = 01;
-				}
-				else {
-					var hours = ${hours} + 1;
-				}
-			}
-
-			Uncheck.uncheckToggleSwitch(
-				checkboxName = "Never Expire",
-				locator1 = "Checkbox#ANY_CHECKBOX");
-
-			Type.sendKeys(
-				inputFieldId = "expirationDateTime",
-				locator1 = "TextInput#INPUT_ID",
-				value1 = "${hours}${minutes}${ampm}");
-		}
-
-		Click(locator1 = "Button#SUBMIT");
-
-		SelectFrameTop();
-
-		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
-
-		Button.clickSave();
-
-		SelectFrameTop();
 	}
 
 	@summary = "Default summary"
@@ -218,58 +107,6 @@ definition {
 	}
 
 	@summary = "Default summary"
-	macro editPriceModifier(amountValue = null, modifier = null, entryName = null, priceModifierName = null, modifierTarget = null, target = null, relation = null) {
-		if (!(isSet(active))) {
-			var active = "true";
-		}
-
-		Click(
-			key_value = ${priceModifierName},
-			locator1 = "CommerceEntry#BODY_VERTICAL_ELLIPSIS");
-
-		MenuItem.click(key_menuItem = "Edit");
-
-		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
-
-		if (isSet(modifier)) {
-			Select(
-				key_fieldLabel = "Modifier",
-				locator1 = "Select#GENERIC_SELECT_FIELD",
-				value1 = ${modifier});
-		}
-
-		if (isSet(modifierTarget)) {
-			Select(
-				key_fieldLabel = "Target",
-				locator1 = "Select#GENERIC_SELECT_FIELD",
-				value1 = ${modifierTarget});
-		}
-
-		if (isSet(amountValue)) {
-			Type(
-				key_fieldLabel = "Amount",
-				locator1 = "TextInput#GENERIC_TEXT_INPUT",
-				value1 = ${amountValue});
-		}
-
-		if (${active} == "true") {
-			Check.checkToggleSwitch(locator1 = "ToggleSwitch#ACTIVE");
-		}
-
-		Button.clickSave();
-
-		CommerceEntry.gotoMenuTab(menuTab = ${target});
-
-		CommerceRelations.assignSingleRelationToProductsEntry(
-			entryName = ${entryName},
-			title = ${relation});
-
-		Click(locator1 = "Icon#CLOSE");
-
-		SelectFrameTop();
-	}
-
-	@summary = "Default summary"
 	macro editTierPriceEntryDirectlyInsideProductSKU(quantity = null, price = null, entryName = null) {
 		SelectFrame.selectFrame(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
 
@@ -296,24 +133,6 @@ definition {
 		Navigator.openWithAppendToBaseURL(
 			baseURL = ${baseURL},
 			urlAppend = "group/guest/~/control_panel/manage?p_p_id=com_liferay_commerce_pricing_web_internal_portlet_CommercePriceListPortlet");
-	}
-
-	@summary = "Default summary"
-	macro setOverrideDiscount(overrideDiscounts = null) {
-		Check.checkToggleSwitch(
-			key_toggleSwitchLabel = "Override Discount",
-			locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
-
-		for (var overrideDiscount : list ${overrideDiscounts}) {
-			var key_text = StringUtil.extractFirst(${overrideDiscount}, "-");
-			var currentValue = StringUtil.extractLast(${overrideDiscount}, "-");
-
-			Type(
-				locator1 = "TextInput#ANY",
-				value1 = ${currentValue});
-		}
-
-		Button.clickSave();
 	}
 
 	@summary = "Default summary"

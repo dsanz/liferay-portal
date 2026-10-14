@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
+import {SideNavigationItem} from '../../src/main/resources/META-INF/resources/js/types/SideNavigation';
 import {filterItemsByQuery} from '../../src/main/resources/META-INF/resources/js/useSideNavigationFilter';
 
 describe('Single layer items filtering', () => {
@@ -301,5 +302,76 @@ describe('Section items filtering', () => {
 		const result = filterItemsByQuery(sectionItems, '');
 
 		expect(result.items[0].items![0].items).toBeUndefined();
+	});
+});
+
+describe('Scope items filtering', () => {
+	const scopeItems: Array<SideNavigationItem> = [
+		{href: 'blogsHref', id: 'blogs', label: 'Blogs'},
+		{id: 'system', label: 'System', scope: 'system', scopeMarker: true},
+	];
+
+	it('does not match a scope item by its label', () => {
+		const result = filterItemsByQuery(scopeItems, 'system');
+
+		expect(result.items).toHaveLength(0);
+		expect(result.numberOfMatches).toBe(0);
+	});
+
+	it('puts the scope item back above the matches of its scope', () => {
+		const result = filterItemsByQuery(
+			[
+				...scopeItems,
+				{id: 'settings', label: 'Settings', scope: 'system'},
+				{id: 'server', label: 'Server', scope: 'system'},
+				{
+					id: 'instance',
+					label: 'Instance',
+					scope: 'instance',
+					scopeMarker: true,
+				},
+				{id: 'language', label: 'Language', scope: 'instance'},
+			],
+			'se'
+		);
+
+		expect(result.items.map(({id}) => id)).toEqual([
+			'system',
+			'settings',
+			'server',
+		]);
+		expect(result.numberOfMatches).toBe(2);
+	});
+
+	it('puts the scope item back once above a category whose children match', () => {
+		const result = filterItemsByQuery(
+			[
+				...scopeItems,
+				{
+					id: 'configuration',
+					items: [
+						{id: 'settings', label: 'Settings', scope: 'system'},
+						{id: 'server', label: 'Server', scope: 'system'},
+					],
+					label: 'Configuration',
+					scope: 'system',
+				},
+			],
+			'se'
+		);
+
+		expect(result.items.map(({id}) => id)).toEqual([
+			'system',
+			'configuration',
+		]);
+		expect(result.items[1].items?.map(({id}) => id)).toEqual([
+			'settings',
+			'server',
+		]);
+		expect(result.numberOfMatches).toBe(2);
+	});
+
+	it('keeps a scope item when the query is empty', () => {
+		expect(filterItemsByQuery(scopeItems, '').items).toBe(scopeItems);
 	});
 });

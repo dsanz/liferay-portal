@@ -151,6 +151,42 @@ public class UpgradeRecorderTest {
 	}
 
 	@Test
+	public void testFailureResultByPreupgradeVerifyExceptionWithReleaseManager() {
+		_startUpgrade();
+
+		VerifyExceptionProcess verifyExceptionProcess =
+			new VerifyExceptionProcess();
+
+		try {
+			_appender.start();
+
+			verifyExceptionProcess.verify();
+
+			Assert.fail();
+		}
+		catch (VerifyException verifyException) {
+			_appender.append(
+				Log4jLogEvent.newBuilder(
+				).setLoggerName(
+					PreupgradeVerifyProcessSuite.class.getName()
+				).setLevel(
+					Level.ERROR
+				).setMessage(
+					new SimpleMessage(RandomTestUtil.randomString())
+				).setThrown(
+					verifyException
+				).build());
+		}
+		finally {
+			_appender.stop();
+
+			_stopUpgrade();
+		}
+
+		Assert.assertEquals("failure", _getResult());
+	}
+
+	@Test
 	public void testFailureResultByPreupgradeVerifyExceptionWithoutReleaseManager() {
 		_startUpgrade();
 
@@ -204,42 +240,6 @@ public class UpgradeRecorderTest {
 		}
 
 		Assert.assertEquals("preupgrade verification failure", _getResult());
-	}
-
-	@Test
-	public void testFailureResultByPreupgradeVerifyExceptionWithReleaseManager() {
-		_startUpgrade();
-
-		VerifyExceptionProcess verifyExceptionProcess =
-			new VerifyExceptionProcess();
-
-		try {
-			_appender.start();
-
-			verifyExceptionProcess.verify();
-
-			Assert.fail();
-		}
-		catch (VerifyException verifyException) {
-			_appender.append(
-				Log4jLogEvent.newBuilder(
-				).setLoggerName(
-					PreupgradeVerifyProcessSuite.class.getName()
-				).setLevel(
-					Level.ERROR
-				).setMessage(
-					new SimpleMessage(RandomTestUtil.randomString())
-				).setThrown(
-					verifyException
-				).build());
-		}
-		finally {
-			_appender.stop();
-
-			_stopUpgrade();
-		}
-
-		Assert.assertEquals("failure", _getResult());
 	}
 
 	@Test
@@ -394,10 +394,29 @@ public class UpgradeRecorderTest {
 
 		bundle.start();
 
-		try {
+		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
+				"com.liferay.portal.upgrade.internal.release." +
+					"ReleaseManagerImpl",
+				LoggerTestUtil.ERROR)) {
+
 			_startUpgrade();
 
 			_stopUpgrade();
+
+			List<LogEntry> logEntries = logCapture.getLogEntries();
+
+			Assert.assertEquals(logEntries.toString(), 1, logEntries.size());
+
+			LogEntry logEntry = logEntries.get(0);
+
+			Assert.assertEquals(
+				StringBundler.concat(
+					"Unsatisfied component prevents upgrade processes to be ",
+					"registered: ",
+					UpgradeRecorderTestComponent.class.getName(),
+					" in bundle com.liferay.portal.upgrade.test.bundle has ",
+					"unsatisfied references upgradeRecorderTestReference"),
+				logEntry.getMessage());
 		}
 		finally {
 			bundle.uninstall();

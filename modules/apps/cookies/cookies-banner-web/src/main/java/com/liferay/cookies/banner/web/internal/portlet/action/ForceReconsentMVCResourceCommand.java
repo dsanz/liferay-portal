@@ -8,12 +8,18 @@ package com.liferay.cookies.banner.web.internal.portlet.action;
 import com.liferay.configuration.admin.constants.ConfigurationAdminPortletKeys;
 import com.liferay.cookies.configuration.CookiesConfigurationProvider;
 import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClassDefinition;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCResourceCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCResourceCommand;
+import com.liferay.portal.kernel.security.auth.AuthToken;
+import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
-import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
+import com.liferay.portal.kernel.servlet.HttpMethods;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 
 import jakarta.portlet.ResourceRequest;
@@ -43,20 +49,44 @@ public class ForceReconsentMVCResourceCommand extends BaseMVCResourceCommand {
 			ResourceRequest resourceRequest, ResourceResponse resourceResponse)
 		throws Exception {
 
-		PermissionChecker permissionChecker =
-			PermissionThreadLocal.getPermissionChecker();
+		if (!StringUtil.equals(resourceRequest.getMethod(), HttpMethods.POST)) {
+			resourceResponse.setProperty(
+				ResourceResponse.HTTP_STATUS_CODE,
+				String.valueOf(HttpServletResponse.SC_METHOD_NOT_ALLOWED));
 
-		ExtendedObjectClassDefinition.Scope scope =
-			ExtendedObjectClassDefinition.Scope.SYSTEM;
+			return;
+		}
 
-		String scopeName = ParamUtil.getString(
-			resourceRequest, "scope",
-			ExtendedObjectClassDefinition.Scope.SYSTEM.getValue());
+		try {
+			_authToken.checkCSRFToken(
+				_portal.getOriginalServletRequest(
+					_portal.getHttpServletRequest(resourceRequest)),
+				ForceReconsentMVCResourceCommand.class.getName());
+		}
+		catch (PrincipalException principalException) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(principalException);
+			}
 
-		long scopePK = 0L;
+			resourceResponse.setProperty(
+				ResourceResponse.HTTP_STATUS_CODE,
+				String.valueOf(HttpServletResponse.SC_FORBIDDEN));
+
+			return;
+		}
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)resourceRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
+
+		PermissionChecker permissionChecker =
+			themeDisplay.getPermissionChecker();
+
+		ExtendedObjectClassDefinition.Scope scope =
+			ExtendedObjectClassDefinition.Scope.SYSTEM;
+		String scopeName = ParamUtil.getString(
+			resourceRequest, "scope",
+			ExtendedObjectClassDefinition.Scope.SYSTEM.getValue());
+		long scopePK = 0;
 
 		if (scopeName.equals(
 				ExtendedObjectClassDefinition.Scope.COMPANY.getValue()) &&
@@ -85,7 +115,16 @@ public class ForceReconsentMVCResourceCommand extends BaseMVCResourceCommand {
 			scope, scopePK);
 	}
 
+	private static final Log _log = LogFactoryUtil.getLog(
+		ForceReconsentMVCResourceCommand.class);
+
+	@Reference
+	private AuthToken _authToken;
+
 	@Reference
 	private CookiesConfigurationProvider _cookiesConfigurationProvider;
+
+	@Reference
+	private Portal _portal;
 
 }

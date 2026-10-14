@@ -29,7 +29,9 @@ import com.liferay.headless.admin.site.resource.v1_0.test.util.PageElementsTestU
 import com.liferay.headless.admin.site.resource.v1_0.test.util.PageExperiencesTestUtil;
 import com.liferay.headless.admin.site.resource.v1_0.test.util.PageSpecificationsTestUtil;
 import com.liferay.headless.admin.site.resource.v1_0.test.util.ThumbnailHttpServer;
+import com.liferay.headless.admin.site.resource.v1_0.test.util.ThumbnailURLReferenceTestUtil;
 import com.liferay.headless.admin.site.resource.v1_0.test.util.ThumbnailURLReferenceUtil;
+import com.liferay.headless.admin.site.resource.v1_0.test.util.URLFetchSecurityCompanyConfigurationUtil;
 import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
 import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalService;
 import com.liferay.layout.test.util.ContentLayoutTestUtil;
@@ -64,7 +66,6 @@ import com.liferay.portal.search.test.util.IdempotentRetryAssert;
 import com.liferay.portal.test.log.LogCapture;
 import com.liferay.portal.test.log.LogEntry;
 import com.liferay.portal.test.log.LoggerTestUtil;
-import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
@@ -96,7 +97,6 @@ import org.junit.runner.RunWith;
 /**
  * @author Rubén Pulido
  */
-@FeatureFlag("LPD-35443")
 @RunWith(Arquillian.class)
 public class MasterPageResourceTest extends BaseMasterPageResourceTestCase {
 
@@ -352,7 +352,7 @@ public class MasterPageResourceTest extends BaseMasterPageResourceTestCase {
 
 	@Override
 	@Test
-	@TestInfo("LPD-92443")
+	@TestInfo({"LPD-92443", "LPD-107149"})
 	public void testPostSiteMasterPage() throws Exception {
 		super.testPostSiteMasterPage();
 
@@ -379,6 +379,7 @@ public class MasterPageResourceTest extends BaseMasterPageResourceTestCase {
 		_testPostSiteMasterPageWithThumbnailURLReferenceFileBase64AndURL();
 		_testPostSiteMasterPageWithThumbnailURLReferenceNonexistingProblemException();
 		_testPostSiteMasterPageWithThumbnailURLReferenceURL();
+		_testPostSiteMasterPageWithThumbnailURLReferenceURLFetchSecurity();
 		_testPostSiteMasterPageWithThumbnailURLReferenceURLUnsupportedProtocolProblemException();
 	}
 
@@ -885,8 +886,12 @@ public class MasterPageResourceTest extends BaseMasterPageResourceTestCase {
 
 		MasterPageResource masterPageResource = _getMasterPageResource();
 
-		MasterPage postMasterPage = masterPageResource.postSiteMasterPage(
-			testGroup.getExternalReferenceCode(), masterPage);
+		MasterPage postMasterPage =
+			URLFetchSecurityCompanyConfigurationUtil.
+				swapURLLocalNetworkAccessEnabled(
+					true,
+					() -> masterPageResource.postSiteMasterPage(
+						testGroup.getExternalReferenceCode(), masterPage));
 
 		if (expectedExternalReferenceCode == null) {
 			ThumbnailURLReference postThumbnailURLReference =
@@ -911,9 +916,13 @@ public class MasterPageResourceTest extends BaseMasterPageResourceTestCase {
 
 		MasterPageResource masterPageResource = _getMasterPageResource();
 
-		MasterPage putMasterPage = masterPageResource.putSiteMasterPage(
-			testGroup.getExternalReferenceCode(),
-			masterPage.getExternalReferenceCode(), masterPage);
+		MasterPage putMasterPage =
+			URLFetchSecurityCompanyConfigurationUtil.
+				swapURLLocalNetworkAccessEnabled(
+					true,
+					() -> masterPageResource.putSiteMasterPage(
+						testGroup.getExternalReferenceCode(),
+						masterPage.getExternalReferenceCode(), masterPage));
 
 		if (expectedExternalReferenceCode == null) {
 			ThumbnailURLReference putThumbnailURLReference =
@@ -942,6 +951,17 @@ public class MasterPageResourceTest extends BaseMasterPageResourceTestCase {
 		masterPage.setTaxonomyCategoryBriefs(
 			AssetTestUtil.randomTaxonomyCategoryBriefs(
 				testCompany.getGroupId(), serviceContext));
+
+		return masterPage;
+	}
+
+	private MasterPage _randomMasterPage(
+			ThumbnailURLReference thumbnailURLReference)
+		throws Exception {
+
+		MasterPage masterPage = randomMasterPage();
+
+		masterPage.setThumbnailURLReference(thumbnailURLReference);
 
 		return masterPage;
 	}
@@ -1238,7 +1258,8 @@ public class MasterPageResourceTest extends BaseMasterPageResourceTestCase {
 			Assert.assertEquals("BAD_REQUEST", problem.getStatus());
 			Assert.assertEquals(
 				"Unable to download file from " +
-					thumbnailURLReference.getUrl(),
+					thumbnailURLReference.getUrl() +
+						" because of restricted host invalid.example.test",
 				problem.getTitle());
 		}
 	}
@@ -1449,7 +1470,8 @@ public class MasterPageResourceTest extends BaseMasterPageResourceTestCase {
 			Assert.assertEquals("BAD_REQUEST", problem.getStatus());
 			Assert.assertEquals(
 				"Unable to download file from " +
-					thumbnailURLReference.getUrl(),
+					thumbnailURLReference.getUrl() +
+						" because of restricted host invalid.example.test",
 				problem.getTitle());
 		}
 	}
@@ -1560,6 +1582,27 @@ public class MasterPageResourceTest extends BaseMasterPageResourceTestCase {
 
 		_postSiteMasterPageAndAssertThumbnailURLReference(
 			_thumbnail1Bytes, externalReferenceCode, thumbnailURLReference);
+	}
+
+	private void _testPostSiteMasterPageWithThumbnailURLReferenceURLFetchSecurity()
+		throws Exception {
+
+		MasterPageResource masterPageResource = _getMasterPageResource();
+
+		ThumbnailURLReferenceTestUtil.testThumbnailURLReferenceURLFetchSecurity(
+			(thumbnailURLReference, masterPage) -> _assertThumbnailURLReference(
+				_thumbnail1URL.equals(thumbnailURLReference.getUrl()) ?
+					_thumbnail1Bytes : _thumbnail2Bytes,
+				thumbnailURLReference.getExternalReferenceCode(), masterPage),
+			_randomMasterPage(
+				ThumbnailURLReferenceTestUtil.getThumbnailURLReference(
+					_thumbnail1URL)),
+			_randomMasterPage(
+				ThumbnailURLReferenceTestUtil.getThumbnailURLReference(
+					_thumbnail2URL)),
+			MasterPage::getThumbnailURLReference,
+			masterPage -> masterPageResource.postSiteMasterPage(
+				testGroup.getExternalReferenceCode(), masterPage));
 	}
 
 	private void _testPostSiteMasterPageWithThumbnailURLReferenceURLUnsupportedProtocolProblemException()
@@ -1801,7 +1844,8 @@ public class MasterPageResourceTest extends BaseMasterPageResourceTestCase {
 			Assert.assertEquals("BAD_REQUEST", problem.getStatus());
 			Assert.assertEquals(
 				"Unable to download file from " +
-					thumbnailURLReference.getUrl(),
+					thumbnailURLReference.getUrl() +
+						" because of restricted host invalid.example.test",
 				problem.getTitle());
 		}
 	}

@@ -9,33 +9,31 @@ exports[`View Channel should render 1`] = `
     class="settings-root"
   >
     <nav
-      class="bg-white mb-4 tbar component-tbar"
+      class="align-items-center bg-white sticky-top toolbar-root mb-4 tbar component-tbar"
     >
       <ul
-        class="mx-4 tbar-nav"
+        class="align-items-center mx-3 tbar-nav"
       >
         <li
           class="tbar-item"
         >
-          <div
-            class="component-action"
+          <a
+            aria-label="Back"
+            class="btn btn-monospaced btn-outline-borderless btn-outline-secondary btn-sm rounded-lg"
+            data-discover="true"
+            data-tooltip-align="bottom"
+            href="/workspace/23"
+            title="Back"
           >
-            <a
-              aria-label="Back"
-              class="text-secondary"
-              data-discover="true"
-              href="/workspace/23"
+            <svg
+              class="lexicon-icon lexicon-icon-angle-left"
+              role="presentation"
             >
-              <svg
-                class="lexicon-icon lexicon-icon-angle-left mb-1"
-                role="presentation"
-              >
-                <use
-                  href="#angle-left"
-                />
-              </svg>
-            </a>
-          </div>
+              <use
+                href="#angle-left"
+              />
+            </svg>
+          </a>
         </li>
         <li
           class="pl-0 tbar-item"
@@ -43,17 +41,16 @@ exports[`View Channel should render 1`] = `
           <div
             class="tbar-section"
           >
-            <span
-              class="text-dark"
+            <h1
+              class="font-weight-semi-bold m-0 text-5 text-dark text-nowrap"
             >
-              <span
-                class="text-5 font-weight-bold"
-              >
-                Settings
-              </span>
-            </span>
+              Settings
+            </h1>
           </div>
         </li>
+        <li
+          class="tbar-item tbar-item-expand"
+        />
       </ul>
     </nav>
     <div
@@ -83,12 +80,9 @@ exports[`View Channel should render 1`] = `
                 >
                   <svg
                     class="lexicon-icon lexicon-icon-ac_api icon-root"
+                    data-file="ac_api.svg"
                     role="presentation"
-                  >
-                    <use
-                      href="#ac_api"
-                    />
-                  </svg>
+                  />
                 </span>
                 APIs
               </a>
@@ -105,12 +99,9 @@ exports[`View Channel should render 1`] = `
                 >
                   <svg
                     class="lexicon-icon lexicon-icon-definitions icon-root"
+                    data-file="definitions.svg"
                     role="presentation"
-                  >
-                    <use
-                      href="#definitions"
-                    />
-                  </svg>
+                  />
                 </span>
                 Definitions
               </a>
@@ -127,12 +118,9 @@ exports[`View Channel should render 1`] = `
                 >
                   <svg
                     class="lexicon-icon lexicon-icon-data_privacy_lock icon-root"
+                    data-file="data_privacy_lock.svg"
                     role="presentation"
-                  >
-                    <use
-                      href="#data_privacy_lock"
-                    />
-                  </svg>
+                  />
                 </span>
                 Data Control & Privacy
               </a>
@@ -149,12 +137,9 @@ exports[`View Channel should render 1`] = `
                 >
                   <svg
                     class="lexicon-icon lexicon-icon-faro_data_source icon-root"
+                    data-file="faro_data_source.svg"
                     role="presentation"
-                  >
-                    <use
-                      href="#faro_data_source"
-                    />
-                  </svg>
+                  />
                 </span>
                 Data Sources
               </a>
@@ -171,12 +156,9 @@ exports[`View Channel should render 1`] = `
                 >
                   <svg
                     class="lexicon-icon lexicon-icon-ac_star icon-root"
+                    data-file="ac_star.svg"
                     role="presentation"
-                  >
-                    <use
-                      href="#ac_star"
-                    />
-                  </svg>
+                  />
                 </span>
                 Recommendations
               </a>
@@ -204,12 +186,9 @@ exports[`View Channel should render 1`] = `
                 >
                   <svg
                     class="lexicon-icon lexicon-icon-user_management icon-root"
+                    data-file="user_management.svg"
                     role="presentation"
-                  >
-                    <use
-                      href="#user_management"
-                    />
-                  </svg>
+                  />
                 </span>
                 User Management
               </a>
@@ -226,12 +205,9 @@ exports[`View Channel should render 1`] = `
                 >
                   <svg
                     class="lexicon-icon lexicon-icon-ac_page icon-root"
+                    data-file="ac_page.svg"
                     role="presentation"
-                  >
-                    <use
-                      href="#ac_page"
-                    />
-                  </svg>
+                  />
                 </span>
                 Properties
               </a>
@@ -248,12 +224,9 @@ exports[`View Channel should render 1`] = `
                 >
                   <svg
                     class="lexicon-icon lexicon-icon-usage icon-root"
+                    data-file="usage.svg"
                     role="presentation"
-                  >
-                    <use
-                      href="#usage"
-                    />
-                  </svg>
+                  />
                 </span>
                 Subscription & Usage
               </a>
@@ -502,12 +475,9 @@ exports[`View Channel should render 1`] = `
                     >
                       <svg
                         class="lexicon-icon lexicon-icon-ac_no_sites icon-root icon-size-xxxl"
+                        data-file="ac_no_sites.svg"
                         role="presentation"
-                      >
-                        <use
-                          href="#ac_no_sites"
-                        />
-                      </svg>
+                      />
                     </div>
                     <div
                       class="h4 no-results-title"

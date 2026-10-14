@@ -12,8 +12,8 @@ import {
 	getCMSItemSelectorFilters,
 	getCMSItemSelectorGroupedFilters,
 } from '@liferay/frontend-js-item-selector-web';
+import {uuidv4} from 'frontend-js-web';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {v4 as uuidv4} from 'uuid';
 
 import {getSpaceAvatarSrc} from './getSpaceAvatarSrc';
 
@@ -35,6 +35,10 @@ const getSpaceId = (item: any) => {
 	return item.siteId || item.groupId || item.group?.id || item.id;
 };
 
+function getNotExpiredFilter() {
+	return '(dateExpiration eq null or dateExpiration gt now())';
+}
+
 function getSpaceRootFilesURL(groupId: string) {
 	if (!groupId || groupId === 'undefined') {
 		return '';
@@ -42,14 +46,14 @@ function getSpaceRootFilesURL(groupId: string) {
 
 	return `${ROOT_URL}?${new URLSearchParams({
 		...BASE_SEARCH_PARAMS,
-		filter: `cmsRoot eq true and cmsSection eq 'files' and rootDescendantNode eq false and status in (0) and scopeGroupId eq ${groupId}`,
+		filter: `cmsRoot eq true and cmsSection eq 'files' and rootDescendantNode eq false and status in (0) and scopeGroupId eq ${groupId} and ${getNotExpiredFilter()}`,
 	}).toString()}`;
 }
 
 function getCMSChildFolderURL(folderId: string) {
 	return `${ROOT_URL}?${new URLSearchParams({
 		...BASE_SEARCH_PARAMS,
-		filter: `folderId eq ${folderId}`,
+		filter: `folderId eq ${folderId} and status in (0) and ${getNotExpiredFilter()}`,
 	}).toString()}`;
 }
 

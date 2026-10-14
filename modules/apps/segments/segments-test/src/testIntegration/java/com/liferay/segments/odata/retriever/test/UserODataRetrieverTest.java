@@ -44,6 +44,7 @@ import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserGroupTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
@@ -58,8 +59,11 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -96,6 +100,40 @@ public class UserODataRetrieverTest {
 	public void setUp() throws Exception {
 		_group1 = _addGroup();
 		_group2 = _addGroup();
+	}
+
+	@Test
+	public void testGetUserPrimaryKeysWithMoreUsersThanElasticsearchMaxResultWindow()
+		throws Exception {
+
+		try (SafeCloseable safeCloseable =
+				PropsValuesTestUtil.swapWithSafeCloseable(
+					"INDEX_SEARCH_LIMIT", _ELASTICSEARCH_MAX_RESULT_WINDOW)) {
+
+			Set<Long> expectedUserIds = new HashSet<>();
+
+			String firstName = RandomTestUtil.randomString();
+
+			for (int i = 0;
+				 i < _MORE_USERS_THAN_ELASTICSEARCH_MAX_RESULT_WINDOW; i++) {
+
+				User user = _addUser(firstName, _group1);
+
+				expectedUserIds.add(user.getUserId());
+			}
+
+			long[] primaryKeys = _oDataRetriever.getResultPrimaryKeys(
+				_group1.getCompanyId(),
+				String.format("(firstName eq '%s')", firstName),
+				LocaleUtil.getDefault(), QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+
+			Assert.assertEquals(
+				Arrays.toString(primaryKeys),
+				_MORE_USERS_THAN_ELASTICSEARCH_MAX_RESULT_WINDOW,
+				primaryKeys.length);
+			Assert.assertEquals(
+				expectedUserIds, SetUtil.fromArray(primaryKeys));
+		}
 	}
 
 	@Test
@@ -668,6 +706,30 @@ public class UserODataRetrieverTest {
 	}
 
 	@Test
+	public void testGetUsersFilterByGroupIdWithAnd() throws Exception {
+		String firstName = RandomTestUtil.randomString();
+
+		_user1 = _addUser(
+			firstName, new long[] {_group1.getGroupId(), _group2.getGroupId()});
+		_user2 = _addUser(firstName, _group1);
+
+		String filterString = String.format(
+			"(firstName eq '%s') and (groupId eq '%s') and (groupId eq '%s')",
+			firstName, _group1.getGroupId(), _group2.getGroupId());
+
+		int count = _oDataRetriever.getResultsCount(
+			_group1.getCompanyId(), filterString, LocaleUtil.getDefault());
+
+		Assert.assertEquals(1, count);
+
+		List<User> users = _oDataRetriever.getResults(
+			_group1.getCompanyId(), filterString, LocaleUtil.getDefault(), 0,
+			2);
+
+		Assert.assertEquals(_user1, users.get(0));
+	}
+
+	@Test
 	public void testGetUsersFilterByGroupIds() throws Exception {
 		String firstName = RandomTestUtil.randomString();
 
@@ -715,30 +777,6 @@ public class UserODataRetrieverTest {
 
 		Assert.assertTrue(users.contains(_user1));
 		Assert.assertTrue(users.contains(_user2));
-	}
-
-	@Test
-	public void testGetUsersFilterByGroupIdWithAnd() throws Exception {
-		String firstName = RandomTestUtil.randomString();
-
-		_user1 = _addUser(
-			firstName, new long[] {_group1.getGroupId(), _group2.getGroupId()});
-		_user2 = _addUser(firstName, _group1);
-
-		String filterString = String.format(
-			"(firstName eq '%s') and (groupId eq '%s') and (groupId eq '%s')",
-			firstName, _group1.getGroupId(), _group2.getGroupId());
-
-		int count = _oDataRetriever.getResultsCount(
-			_group1.getCompanyId(), filterString, LocaleUtil.getDefault());
-
-		Assert.assertEquals(1, count);
-
-		List<User> users = _oDataRetriever.getResults(
-			_group1.getCompanyId(), filterString, LocaleUtil.getDefault(), 0,
-			2);
-
-		Assert.assertEquals(_user1, users.get(0));
 	}
 
 	@Test

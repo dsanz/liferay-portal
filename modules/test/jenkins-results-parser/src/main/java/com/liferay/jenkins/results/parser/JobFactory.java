@@ -195,6 +195,21 @@ public class JobFactory {
 		String portalUpstreamBranchName = topLevelBuild.getParameterValue(
 			"PORTAL_UPSTREAM_BRANCH_NAME");
 
+		if (topLevelBuild instanceof PullRequestPortalTopLevelBuild) {
+			PullRequestPortalTopLevelBuild pullRequestPortalTopLevelBuild =
+				(PullRequestPortalTopLevelBuild)topLevelBuild;
+
+			portalUpstreamBranchName =
+				pullRequestPortalTopLevelBuild.getPortalUpstreamBranchName();
+		}
+		else if (topLevelBuild instanceof UpstreamPortalTopLevelBuild) {
+			UpstreamPortalTopLevelBuild upstreamPortalTopLevelBuild =
+				(UpstreamPortalTopLevelBuild)topLevelBuild;
+
+			portalUpstreamBranchName =
+				upstreamPortalTopLevelBuild.getPortalUpstreamBranchName();
+		}
+
 		if (JenkinsResultsParserUtil.isNullOrEmpty(portalUpstreamBranchName)) {
 			portalUpstreamBranchName = topLevelBuild.getBranchName();
 		}
@@ -471,13 +486,13 @@ public class JobFactory {
 				}
 				else {
 					if (upstreamBranchName.contains("release")) {
-						String githubUpstreamBranchName = Environment.get(
+						String gitHubUpstreamBranchName = Environment.get(
 							"GITHUB_UPSTREAM_BRANCH_NAME");
 
 						if (!JenkinsResultsParserUtil.isNullOrEmpty(
-								githubUpstreamBranchName)) {
+								gitHubUpstreamBranchName)) {
 
-							upstreamBranchName = githubUpstreamBranchName;
+							upstreamBranchName = gitHubUpstreamBranchName;
 						}
 					}
 

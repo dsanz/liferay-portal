@@ -1,7 +1,7 @@
 import * as breadcrumbs from 'shared/util/breadcrumbs';
 import BasePage from 'shared/components/base-page';
 import Card from 'shared/components/Card';
-import ClayIcon from '@clayui/icon';
+import ClayIcon from 'shared/components/Icon';
 import ClayLink from '@clayui/link';
 import ClaySticker from '@clayui/sticker';
 import FaroConstants, {RangeKeyTimeRanges} from 'shared/util/constants';
@@ -13,6 +13,7 @@ import {CSVType} from 'shared/components/download-report/utils';
 import {DownloadStaticCSVReport} from 'shared/components/download-report/DownloadStaticCSVReport';
 import {DropdownRangeKey} from 'shared/components/dropdown-range-key/DropdownRangeKey';
 import {FrontendDataSet, pagination} from 'shared/components/FrontendDataSet';
+import {getAssetDescriptorByRESTType} from 'assets/descriptors';
 import {getMimeType} from 'assets/components/mime-type';
 import {InfoPanel} from 'assets/components/InfoPanel';
 import {pickBy} from 'lodash';
@@ -33,13 +34,6 @@ import {useQueryRangeSelectors} from 'shared/hooks/useQueryRangeSelectors';
 const {cur: DEFAULT_CUR} = FaroConstants.pagination;
 
 const OBJECT_TYPES = Object.values(AssetObjectTypes);
-
-const mapRoutes = {
-	blog: Routes.ASSETS_BLOGS_OVERVIEW,
-	document: Routes.ASSETS_DOCUMENTS_AND_MEDIA_OVERVIEW,
-	form: Routes.ASSETS_FORMS_OVERVIEW,
-	webContent: Routes.ASSETS_WEB_CONTENT_OVERVIEW,
-};
 
 const getAssetURL = ({
 	accountId,
@@ -64,10 +58,7 @@ const getAssetURL = ({
 }) => {
 	const assetTitle = value || itemData.assetTitle || itemData.id;
 
-	const oldAssetRoute =
-		mapRoutes[itemData.assetType as keyof typeof mapRoutes];
-
-	const route = oldAssetRoute ?? Routes.ASSETS_OBJECT_ENTRY_OVERVIEW;
+	const {slug} = getAssetDescriptorByRESTType(itemData.assetType);
 
 	const queryParams = new URLSearchParams(rangeSelectorParams);
 
@@ -87,8 +78,9 @@ const getAssetURL = ({
 		queryParams.set('segmentName', segmentName);
 	}
 
-	return `${toRoute(route, {
+	return `${toRoute(Routes.ASSETS_DASHBOARD_OVERVIEW, {
 		assetId: itemData.id,
+		assetType: slug,
 		channelId,
 		groupId,
 		touchpoint: 'Any',
@@ -256,13 +248,19 @@ const List = () => {
 
 	const fdsQueryRef = useRef({filter: '', query: ''});
 
-	let rangeSelectorParams = `rangeKey=${rangeSelectors.rangeKey}`;
+	const customRange =
+		rangeSelectors.rangeKey === RangeKeyTimeRanges.CustomRange;
 
-	if (rangeSelectors.rangeKey === RangeKeyTimeRanges.CustomRange) {
-		rangeSelectorParams =
-			`rangeEnd=${rangeSelectors.rangeEnd}` +
-			`&rangeStart=${rangeSelectors.rangeStart}`;
-	}
+	const rangeSelectorParams = customRange
+		? `rangeEnd=${rangeSelectors.rangeEnd}&rangeStart=${rangeSelectors.rangeStart}`
+		: `rangeKey=${rangeSelectors.rangeKey}`;
+
+	// Links keep the key too: without it `useQueryRangeSelectors` reads no
+	// range at all and falls back to the default.
+
+	const linkRangeSelectorParams = customRange
+		? `rangeKey=${RangeKeyTimeRanges.CustomRange}&${rangeSelectorParams}`
+		: rangeSelectorParams;
 
 	const filters = useMemo(
 		() => [
@@ -491,7 +489,7 @@ const List = () => {
 								accountName,
 								channelId: channelId!,
 								groupId: groupId!,
-								rangeSelectorParams,
+								rangeSelectorParams: linkRangeSelectorParams,
 								segmentId,
 								segmentName,
 							}),
@@ -553,7 +551,8 @@ const List = () => {
 											channelId: channelId!,
 											groupId: groupId!,
 											itemData,
-											rangeSelectorParams,
+											rangeSelectorParams:
+												linkRangeSelectorParams,
 											segmentId,
 											segmentName,
 										})

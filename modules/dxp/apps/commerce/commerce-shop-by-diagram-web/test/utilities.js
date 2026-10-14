@@ -348,14 +348,14 @@ export function mockCommonEndpoints() {
 		`${PINS_FRONTSTORE_ENDPOINT_BASE}/skus`
 	);
 
-	fetchMock.mock(cartFrontStore, () => ({items: []}));
-	fetchMock.mock(diagramsEndpointRegExp, () => getDiagrams());
-	fetchMock.mock(mappedProductAdmin, () => getAdminMappedProducts());
-	fetchMock.mock(mappedProductFrontStore, () =>
+	fetchMock.route(cartFrontStore, () => ({items: []}));
+	fetchMock.route(diagramsEndpointRegExp, () => getDiagrams());
+	fetchMock.route(mappedProductAdmin, () => getAdminMappedProducts());
+	fetchMock.route(mappedProductFrontStore, () =>
 		getFrontStoreMappedProducts()
 	);
-	fetchMock.mock(pinsAdmin, () => getAdminPins());
-	fetchMock.mock(pinsFrontStore, () => getFrontStorePins());
-	fetchMock.mock(skusAdminEndpointRegExp, () => getSkus());
-	fetchMock.mock(skusFrontStoreEndpointRegExp, () => getSkus());
+	fetchMock.route(pinsAdmin, () => getAdminPins());
+	fetchMock.route(pinsFrontStore, () => getFrontStorePins());
+	fetchMock.route(skusAdminEndpointRegExp, () => getSkus());
+	fetchMock.route(skusFrontStoreEndpointRegExp, () => getSkus());
 }

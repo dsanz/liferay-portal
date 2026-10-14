@@ -15,6 +15,7 @@ import com.liferay.expando.kernel.model.adapter.StagedExpandoColumn;
 import com.liferay.expando.kernel.service.ExpandoColumnLocalServiceUtil;
 import com.liferay.expando.kernel.util.ExpandoUtil;
 import com.liferay.exportimport.internal.util.ExportImportPermissionUtil;
+import com.liferay.exportimport.internal.util.ManifestXMLFilePathUtil;
 import com.liferay.exportimport.internal.xstream.ConverterAdapter;
 import com.liferay.exportimport.internal.xstream.XStreamStagedModelTypeHierarchyPermission;
 import com.liferay.exportimport.internal.xstream.converter.TimestampConverter;
@@ -556,7 +557,8 @@ public class PortletDataContextImpl implements PortletDataContext {
 
 			if (classedModel instanceof Layout) {
 				missingReferenceElement.addAttribute(
-					"element-path", "/manifest.xml");
+					"element-path",
+					ManifestXMLFilePathUtil.getExportManifestXmlFilePath(this));
 			}
 			else {
 				missingReferenceElement.addAttribute(
@@ -1097,11 +1099,6 @@ public class PortletDataContextImpl implements PortletDataContext {
 	}
 
 	@Override
-	public Set<String> getScopedPrimaryKeys() {
-		return _scopedPrimaryKeys;
-	}
-
-	@Override
 	public long getScopeGroupId() {
 		return _scopeGroupId;
 	}
@@ -1114,6 +1111,11 @@ public class PortletDataContextImpl implements PortletDataContext {
 	@Override
 	public String getScopeType() {
 		return _scopeType;
+	}
+
+	@Override
+	public Set<String> getScopedPrimaryKeys() {
+		return _scopedPrimaryKeys;
 	}
 
 	@Override
@@ -2903,10 +2905,10 @@ public class PortletDataContextImpl implements PortletDataContext {
 	private boolean _privateLayout;
 	private final Set<String> _references = new HashSet<>();
 	private String _rootPortletId;
-	private final Set<String> _scopedPrimaryKeys = new HashSet<>();
 	private long _scopeGroupId;
 	private String _scopeLayoutUuid;
 	private String _scopeType;
+	private final Set<String> _scopedPrimaryKeys = new HashSet<>();
 	private long _sourceCompanyGroupId;
 	private long _sourceCompanyId;
 	private long _sourceGroupId;

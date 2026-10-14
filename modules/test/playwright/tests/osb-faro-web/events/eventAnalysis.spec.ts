@@ -215,10 +215,12 @@ test(
 
 			for (const attributeName of attributeNameList) {
 				await expect(
-					page.getByRole('button', {
-						exact: true,
-						name: `Event ${attributeName}`,
-					})
+					page
+						.getByRole('region', {name: 'Breakdown By'})
+						.getByRole('group', {
+							exact: true,
+							name: attributeName,
+						})
 				).toBeVisible();
 			}
 
@@ -307,10 +309,12 @@ test(
 		await test.step('Check the analysis result appears', async () => {
 			for (const attributeName of attributeNameList) {
 				await expect(
-					page.getByRole('button', {
-						exact: true,
-						name: `Event ${attributeName}`,
-					})
+					page
+						.getByRole('region', {name: 'Breakdown By'})
+						.getByRole('group', {
+							exact: true,
+							name: attributeName,
+						})
 				).toBeVisible();
 			}
 
@@ -326,7 +330,9 @@ test(
 
 		await test.step('Check that the attributes used have not had the attribute type changed', async () => {
 			await expect(
-				page.getByRole('button', {name: 'Event | temp is greater than'})
+				page
+					.locator('.attribute-filter-section-root .condition-chip')
+					.filter({hasText: /^Event \| temp.*is greater than/})
 			).toBeVisible();
 		});
 	}
@@ -414,7 +420,7 @@ test(
 		await test.step('Add a filter to the analysis', async () => {
 			await page
 				.locator('.attribute-filter-section-root')
-				.getByRole('button')
+				.getByLabel('Add Filter')
 				.click();
 
 			await page
@@ -454,18 +460,14 @@ test(
 					.nth(1)
 			).toBeVisible();
 
-			await page
-				.locator('div')
-				.filter({
-					hasText: /^FilterEvent \| citycontains "rio de janeiro"$/,
-				})
-				.getByLabel('Close')
-				.click();
+			await removeAttribute({page, section: 'Filter'});
 
 			await expect(
-				page.locator('div').filter({
-					hasText: /^FilterEvent \| citycontains "rio de janeiro"$/,
-				})
+				page
+					.locator('.attribute-filter-section-root .condition-chip')
+					.filter({
+						hasText: /^Event \| citycontains "rio de janeiro"$/,
+					})
 			).toHaveCount(0);
 		});
 	}
@@ -553,7 +555,7 @@ test(
 		await test.step('Add a filter to the analysis', async () => {
 			await page
 				.locator('.attribute-filter-section-root')
-				.getByRole('button')
+				.getByLabel('Add Filter')
 				.click();
 
 			await page
@@ -593,20 +595,15 @@ test(
 					.first()
 			).toBeVisible();
 
-			await page
-				.locator('div')
-				.filter({
-					hasText:
-						/^FilterEvent \| citydoes not contain "rio de janeiro"$/,
-				})
-				.getByLabel('Close')
-				.click();
+			await removeAttribute({page, section: 'Filter'});
 
 			await expect(
-				page.locator('div').filter({
-					hasText:
-						/^FilterEvent \| citydoes not contain "rio de janeiro"$/,
-				})
+				page
+					.locator('.attribute-filter-section-root .condition-chip')
+					.filter({
+						hasText:
+							/^Event \| citydoes not contain "rio de janeiro"$/,
+					})
 			).toHaveCount(0);
 		});
 	}
@@ -694,7 +691,7 @@ test(
 		await test.step('Add a filter to the analysis', async () => {
 			await page
 				.locator('.attribute-filter-section-root')
-				.getByRole('button')
+				.getByLabel('Add Filter')
 				.click();
 
 			await page
@@ -734,16 +731,14 @@ test(
 					.nth(1)
 			).toBeVisible();
 
-			await page
-				.locator('div')
-				.filter({hasText: /^FilterEvent \| cityis "rio de janeiro"$/})
-				.getByLabel('Close')
-				.click();
+			await removeAttribute({page, section: 'Filter'});
 
 			await expect(
-				page.locator('div').filter({
-					hasText: /^FilterEvent \| cityis "rio de janeiro"$/,
-				})
+				page
+					.locator('.attribute-filter-section-root .condition-chip')
+					.filter({
+						hasText: /^Event \| cityis "rio de janeiro"$/,
+					})
 			).toHaveCount(0);
 		});
 	}
@@ -831,7 +826,7 @@ test(
 		await test.step('Add a filter to the analysis', async () => {
 			await page
 				.locator('.attribute-filter-section-root')
-				.getByRole('button')
+				.getByLabel('Add Filter')
 				.click();
 
 			await page
@@ -871,18 +866,14 @@ test(
 					.first()
 			).toBeVisible();
 
-			await page
-				.locator('div')
-				.filter({
-					hasText: /^FilterEvent \| cityis not "rio de janeiro"$/,
-				})
-				.getByLabel('Close')
-				.click();
+			await removeAttribute({page, section: 'Filter'});
 
 			await expect(
-				page.locator('div').filter({
-					hasText: /^FilterEvent \| cityis not "rio de janeiro"$/,
-				})
+				page
+					.locator('.attribute-filter-section-root .condition-chip')
+					.filter({
+						hasText: /^Event \| cityis not "rio de janeiro"$/,
+					})
 			).toHaveCount(0);
 		});
 	}
@@ -970,7 +961,7 @@ test(
 		await test.step('Add a filter to the analysis', async () => {
 			await page
 				.locator('.attribute-filter-section-root')
-				.getByRole('button')
+				.getByLabel('Add Filter')
 				.click();
 
 			await page
@@ -1010,25 +1001,21 @@ test(
 					.nth(1)
 			).toBeVisible();
 
-			await page
-				.locator('div')
-				.filter({
-					hasText: /^FilterEvent \| citycontains "rio de janeiro"$/,
-				})
-				.getByLabel('Close')
-				.click();
+			await removeAttribute({page, section: 'Filter'});
 
 			await expect(
-				page.locator('div').filter({
-					hasText: /^FilterEvent \| citycontains "rio de janeiro"$/,
-				})
+				page
+					.locator('.attribute-filter-section-root .condition-chip')
+					.filter({
+						hasText: /^Event \| citycontains "rio de janeiro"$/,
+					})
 			).toHaveCount(0);
 		});
 
 		await test.step('Add a filter to the analysis', async () => {
 			await page
 				.locator('.attribute-filter-section-root')
-				.getByRole('button')
+				.getByLabel('Add Filter')
 				.click();
 
 			await page
@@ -1068,20 +1055,15 @@ test(
 					.first()
 			).toBeVisible();
 
-			await page
-				.locator('div')
-				.filter({
-					hasText:
-						/^FilterEvent \| citydoes not contain "rio de janeiro"$/,
-				})
-				.getByLabel('Close')
-				.click();
+			await removeAttribute({page, section: 'Filter'});
 
 			await expect(
-				page.locator('div').filter({
-					hasText:
-						/^FilterEvent \| citydoes not contain "rio de janeiro"$/,
-				})
+				page
+					.locator('.attribute-filter-section-root .condition-chip')
+					.filter({
+						hasText:
+							/^Event \| citydoes not contain "rio de janeiro"$/,
+					})
 			).toHaveCount(0);
 		});
 	}
@@ -1561,17 +1543,21 @@ test(
 		// The event section offers an add control
 
 		await expect(
-			page.locator('.event-section-root').getByLabel('Add')
+			page.locator('.event-section-root').getByLabel('Add Event')
 		).toBeVisible();
 
 		// The breakdown and filter sections do not offer an add control yet
 
 		await expect(
-			page.locator('.attribute-breakdown-section-root').getByLabel('Add')
+			page
+				.locator('.attribute-breakdown-section-root')
+				.getByLabel('Add Breakdown')
 		).toHaveCount(0);
 
 		await expect(
-			page.locator('.attribute-filter-section-root').getByLabel('Add')
+			page
+				.locator('.attribute-filter-section-root')
+				.getByLabel('Add Filter')
 		).toHaveCount(0);
 	}
 );
@@ -1633,7 +1619,7 @@ test(
 			page,
 		});
 
-		await page.getByLabel('Add').click();
+		await page.getByLabel('Add Event').click();
 
 		const defaultEvent = page.getByRole('menuitem', {name: 'pageViewed'});
 
@@ -1708,7 +1694,7 @@ test(
 
 		await page
 			.locator('.attribute-breakdown-section-root')
-			.getByLabel('Add')
+			.getByLabel('Add Breakdown')
 			.click();
 
 		await page
@@ -1990,7 +1976,7 @@ test(
 		// Only one event can be analyzed, so the event add control is gone
 
 		await expect(
-			page.locator('.event-section-root').getByLabel('Add')
+			page.locator('.event-section-root').getByLabel('Add Event')
 		).toHaveCount(0);
 
 		await addBreakdown({breakdownName: 'pageTitle', page, tab: 'Event'});
@@ -2082,7 +2068,7 @@ test(
 
 		const breakdownAddButton = page
 			.locator('.attribute-breakdown-section-root')
-			.getByLabel('Add');
+			.getByLabel('Add Breakdown');
 
 		// The add control is still offered after four breakdowns
 
@@ -2402,7 +2388,7 @@ test(
 
 		await page
 			.locator('.attribute-filter-section-root')
-			.getByLabel('Add')
+			.getByLabel('Add Filter')
 			.click();
 
 		await page
@@ -2468,7 +2454,7 @@ test(
 		}
 
 		const breakdownChips = page.locator(
-			'.attribute-breakdown-section-root .attribute-chip-container'
+			'.attribute-breakdown-section-root .sortable-condition-chip'
 		);
 
 		const expectOrder = async (order: string[]) => {
@@ -2488,6 +2474,7 @@ test(
 		await dragAndDropElement({
 			dragTarget: breakdownChips.nth(1).locator('.drag-handle'),
 			dropTarget: breakdownChips.nth(0),
+			offset: {y: 8},
 		});
 
 		await expectOrder(['pageTitle', 'category', 'url']);
@@ -2497,9 +2484,73 @@ test(
 		await dragAndDropElement({
 			dragTarget: breakdownChips.nth(1).locator('.drag-handle'),
 			dropTarget: breakdownChips.nth(0),
+			offset: {y: 8},
 		});
 
 		await expectOrder(['category', 'pageTitle', 'url']);
+
+		// Dropping a breakdown outside the side panel leaves the order unchanged
+
+		await dragAndDropElement({
+			dragTarget: breakdownChips.nth(0).locator('.drag-handle'),
+			dropTarget: page.locator('.event-analysis-editor-root'),
+		});
+
+		await expectOrder(['category', 'pageTitle', 'url']);
+	}
+);
+
+test(
+	'Event Analysis reorders filters by dragging them',
+	{
+		tag: '@LPD-107807',
+	},
+	async ({analyticsChannel: channel, apiHelpers, page, project}) => {
+		await sendCustomEventWithAttributes({
+			apiHelpers,
+			channelId: channel.id,
+		});
+
+		await navigateToACPageViaURL({
+			acPage: ACPage.eventAnalysisPage,
+			channelID: channel.id,
+			page,
+			projectID: project.groupId,
+		});
+
+		await page.getByRole('link', {name: 'Create Analysis'}).click();
+
+		await setEventAnalysisName({
+			eventAnalysisName: `Event Analysis ${getRandomString()}`,
+			page,
+		});
+
+		await addCustomEvent({customEventName: 'customEvent', page});
+
+		for (const filterName of ['price', 'temp']) {
+			await addFilter({
+				filterName,
+				input: '1',
+				operator: 'is greater than',
+				page,
+			});
+		}
+
+		const filterChips = page.locator(
+			'.attribute-filter-section-root .sortable-condition-chip'
+		);
+
+		await expect(filterChips.nth(0)).toContainText('price');
+		await expect(filterChips.nth(1)).toContainText('temp');
+
+		await dragAndDropElement({
+			dragTarget: filterChips.nth(1).locator('.drag-handle'),
+			dropTarget: filterChips.nth(0),
+			offset: {y: 8},
+		});
+
+		await expect(filterChips.nth(0)).toContainText('temp');
+		await expect(filterChips.nth(1)).toContainText('price');
 	}
 );
 
@@ -2559,7 +2610,7 @@ test(
 
 		await page
 			.locator('.attribute-breakdown-section-root')
-			.getByLabel('Add')
+			.getByLabel('Add Breakdown')
 			.click();
 
 		await page.getByRole('menuitem', {exact: true, name: 'color'}).hover();
@@ -2574,7 +2625,7 @@ test(
 
 		await page
 			.locator('.attribute-breakdown-section-root')
-			.getByLabel('Add')
+			.getByLabel('Add Breakdown')
 			.click();
 
 		await expect(
@@ -2738,10 +2789,7 @@ test(
 
 		await changeTimeFilter({page, timeFilterPeriod: 'Last 24 hours'});
 
-		await page
-			.locator('.event-analysis-toolbar-right-content')
-			.getByRole('button', {name: 'Save Analysis'})
-			.click();
+		await page.getByRole('button', {name: 'Save Analysis'}).click();
 
 		// The saved analysis is listed; reopen it
 
@@ -2853,9 +2901,7 @@ test(
 
 		await addCustomEvent({customEventName: 'customEvent', page});
 
-		const saveButton = page
-			.locator('.event-analysis-toolbar-right-content')
-			.getByRole('button', {name: 'Save Analysis'});
+		const saveButton = page.getByRole('button', {name: 'Save Analysis'});
 
 		await saveButton.click();
 
@@ -3036,9 +3082,7 @@ test(
 			},
 		]);
 
-		const saveButton = page
-			.locator('.event-analysis-toolbar-right-content')
-			.getByRole('button', {name: 'Save Analysis'});
+		const saveButton = page.getByRole('button', {name: 'Save Analysis'});
 
 		// Create and save an analysis with a price breakdown
 
@@ -3258,7 +3302,7 @@ test(
 		]);
 
 		async function addEventFromTab(eventName: string, tab: string) {
-			await page.getByLabel('Add').click();
+			await page.getByLabel('Add Event').click();
 
 			await page
 				.locator('.card-tab')
@@ -3549,7 +3593,10 @@ test(
 				page,
 			});
 
-			await page.locator('.event-section-root').getByLabel('Add').click();
+			await page
+				.locator('.event-section-root')
+				.getByLabel('Add Event')
+				.click();
 
 			// They appear under the Default tab
 
@@ -3691,10 +3738,7 @@ test(
 
 		await changeTimeFilter({page, timeFilterPeriod: 'Last 24 hours'});
 
-		await page
-			.locator('.event-analysis-toolbar-right-content')
-			.getByRole('button', {name: 'Save Analysis'})
-			.click();
+		await page.getByRole('button', {name: 'Save Analysis'}).click();
 
 		// Sign in as a member (non-admin) user
 
@@ -3787,7 +3831,7 @@ test(
 
 			await page.getByRole('link', {name: 'Create Analysis'}).click();
 
-			await page.getByLabel('Add').click();
+			await page.getByLabel('Add Event').click();
 
 			await page
 				.locator('.card-tab')
@@ -3884,7 +3928,7 @@ test(
 
 		await page.getByRole('link', {name: 'Create Analysis'}).click();
 
-		await page.getByLabel('Add').click();
+		await page.getByLabel('Add Event').click();
 
 		await page
 			.locator('.card-tab')
@@ -4005,12 +4049,13 @@ test(
 		// Move the color breakdown ahead of the page breakdown
 
 		const breakdownChips = page.locator(
-			'.attribute-breakdown-section-root .attribute-chip-container'
+			'.attribute-breakdown-section-root .sortable-condition-chip'
 		);
 
 		await dragAndDropElement({
 			dragTarget: breakdownChips.nth(1).locator('.drag-handle'),
 			dropTarget: breakdownChips.nth(0),
+			offset: {y: 8},
 		});
 
 		// Grouped by color then page (color totals C1=6, C2=4): the rows re-sort

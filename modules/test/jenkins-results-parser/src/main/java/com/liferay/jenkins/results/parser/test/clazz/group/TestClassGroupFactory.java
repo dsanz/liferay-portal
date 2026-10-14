@@ -73,6 +73,13 @@ public class TestClassGroupFactory {
 				(PluginsGulpBatchTestClassGroup)batchTestClassGroup);
 		}
 
+		if (batchTestClassGroup instanceof
+				WorkspacesCompileBatchTestClassGroup) {
+
+			return new WorkspacesCompileAxisTestClassGroup(
+				(WorkspacesCompileBatchTestClassGroup)batchTestClassGroup);
+		}
+
 		return new AxisTestClassGroup(batchTestClassGroup);
 	}
 
@@ -116,6 +123,13 @@ public class TestClassGroupFactory {
 
 		if (batchTestClassGroup instanceof PluginsGulpBatchTestClassGroup) {
 			return new PluginsGulpAxisTestClassGroup(
+				jsonObject, segmentTestClassGroup);
+		}
+
+		if (batchTestClassGroup instanceof
+				WorkspacesCompileBatchTestClassGroup) {
+
+			return new WorkspacesCompileAxisTestClassGroup(
 				jsonObject, segmentTestClassGroup);
 		}
 
@@ -270,6 +284,17 @@ public class TestClassGroupFactory {
 
 			return new PluginsGulpSegmentTestClassGroup(batchTestClassGroup);
 		}
+		else if (batchTestClassGroup instanceof
+					WorkspacesCompileBatchTestClassGroup) {
+
+			if (jsonObject != null) {
+				return new WorkspacesCompileSegmentTestClassGroup(
+					batchTestClassGroup, jsonObject);
+			}
+
+			return new WorkspacesCompileSegmentTestClassGroup(
+				batchTestClassGroup);
+		}
 
 		if (jsonObject != null) {
 			return new SegmentTestClassGroup(batchTestClassGroup, jsonObject);
@@ -406,7 +431,9 @@ public class TestClassGroupFactory {
 						batchName, portalTestClassJob);
 				}
 			}
-			else if (batchName.startsWith("modules-semantic-versioning")) {
+			else if (batchName.startsWith("modules-semantic-versioning") ||
+					 batchName.startsWith("semantic-versioning")) {
+
 				if (jsonObject != null) {
 					batchTestClassGroup = new SemVerModulesBatchTestClassGroup(
 						jsonObject, portalTestClassJob);
@@ -525,16 +552,6 @@ public class TestClassGroupFactory {
 							batchName, portalTestClassJob);
 				}
 			}
-			else if (batchName.startsWith("semantic-versioning")) {
-				if (jsonObject != null) {
-					batchTestClassGroup = new SemanticVersioningTestClassGroup(
-						jsonObject, portalTestClassJob);
-				}
-				else {
-					batchTestClassGroup = new SemanticVersioningTestClassGroup(
-						batchName, portalTestClassJob);
-				}
-			}
 			else if (batchName.startsWith("service-builder")) {
 				if (jsonObject != null) {
 					batchTestClassGroup =
@@ -569,19 +586,9 @@ public class TestClassGroupFactory {
 							batchName, portalTestClassJob);
 				}
 			}
-			else if (batchName.startsWith("workspaces-js-unit")) {
-				if (jsonObject != null) {
-					batchTestClassGroup =
-						new WorkspacesJSUnitModulesBatchTestClassGroup(
-							jsonObject, portalTestClassJob);
-				}
-				else {
-					batchTestClassGroup =
-						new WorkspacesJSUnitModulesBatchTestClassGroup(
-							batchName, portalTestClassJob);
-				}
-			}
-			else if (batchName.startsWith("workspaces-unit")) {
+			else if (batchName.startsWith("workspaces-integration") ||
+					 batchName.startsWith("workspaces-unit")) {
+
 				if (jsonObject != null) {
 					batchTestClassGroup =
 						new WorkspacesModulesJUnitBatchTestClassGroup(
@@ -596,6 +603,18 @@ public class TestClassGroupFactory {
 				else {
 					batchTestClassGroup =
 						new WorkspacesModulesJUnitBatchTestClassGroup(
+							batchName, portalTestClassJob);
+				}
+			}
+			else if (batchName.startsWith("workspaces-js-unit")) {
+				if (jsonObject != null) {
+					batchTestClassGroup =
+						new WorkspacesJSUnitModulesBatchTestClassGroup(
+							jsonObject, portalTestClassJob);
+				}
+				else {
+					batchTestClassGroup =
+						new WorkspacesJSUnitModulesBatchTestClassGroup(
 							batchName, portalTestClassJob);
 				}
 			}

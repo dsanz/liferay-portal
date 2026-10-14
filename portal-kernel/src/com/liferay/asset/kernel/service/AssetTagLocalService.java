@@ -440,6 +440,9 @@ public interface AssetTagLocalService
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public int getAssetTagsCount();
 
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int getCompanyTagsCount(long companyId);
+
 	/**
 	 * Returns the asset tags of the asset entry.
 	 *
@@ -761,4 +764,4 @@ public interface AssetTagLocalService
 		throws E;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-1520589449
+// LIFERAY-SERVICE-BUILDER-HASH:1993427931

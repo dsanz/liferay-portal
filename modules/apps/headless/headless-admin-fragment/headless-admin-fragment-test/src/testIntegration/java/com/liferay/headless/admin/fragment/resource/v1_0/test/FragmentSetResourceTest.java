@@ -235,7 +235,8 @@ public class FragmentSetResourceTest extends BaseFragmentSetResourceTestCase {
 
 		_assertProblemException(
 			"BAD_REQUEST",
-			_language.get(LocaleUtil.getDefault(), "name-is-invalid"),
+			_language.get(
+				LocaleUtil.getDefault(), "fragment-set-name-is-invalid"),
 			() -> fragmentSetResource.postSiteFragmentSet(
 				testGroup.getExternalReferenceCode(), invalidNameFragmentSet));
 
@@ -325,7 +326,8 @@ public class FragmentSetResourceTest extends BaseFragmentSetResourceTestCase {
 
 		_assertProblemException(
 			"BAD_REQUEST",
-			_language.get(LocaleUtil.getDefault(), "name-is-invalid"),
+			_language.get(
+				LocaleUtil.getDefault(), "fragment-set-name-is-invalid"),
 			() -> fragmentSetResource.putSiteFragmentSet(
 				testGroup.getExternalReferenceCode(),
 				nullNameFragmentSet.getExternalReferenceCode(),
@@ -791,6 +793,17 @@ public class FragmentSetResourceTest extends BaseFragmentSetResourceTestCase {
 			"delete", "get", "replace");
 	}
 
+	private void _testGetSiteFragmentSetWithoutPermissions() throws Exception {
+		FragmentSet fragmentSet = testGetSiteFragmentSetsPage_addFragmentSet(
+			testGroup.getExternalReferenceCode(), randomFragmentSet());
+
+		_assertProblemExceptionProblemStatus(
+			"NOT_FOUND",
+			() -> _userWithoutPermissionsFragmentSetResource.getSiteFragmentSet(
+				testGroup.getExternalReferenceCode(),
+				fragmentSet.getExternalReferenceCode()));
+	}
+
 	private void _testGetSiteFragmentSetsPage() throws Exception {
 		FragmentSet nonmarketplaceFragmentSet = randomFragmentSet();
 
@@ -826,17 +839,6 @@ public class FragmentSetResourceTest extends BaseFragmentSetResourceTestCase {
 				Pagination.of(1, 10));
 
 		Assert.assertEquals(0, page.getTotalCount());
-	}
-
-	private void _testGetSiteFragmentSetWithoutPermissions() throws Exception {
-		FragmentSet fragmentSet = testGetSiteFragmentSetsPage_addFragmentSet(
-			testGroup.getExternalReferenceCode(), randomFragmentSet());
-
-		_assertProblemExceptionProblemStatus(
-			"NOT_FOUND",
-			() -> _userWithoutPermissionsFragmentSetResource.getSiteFragmentSet(
-				testGroup.getExternalReferenceCode(),
-				fragmentSet.getExternalReferenceCode()));
 	}
 
 	private void _testPostSiteFragmentSetBatch() throws Exception {

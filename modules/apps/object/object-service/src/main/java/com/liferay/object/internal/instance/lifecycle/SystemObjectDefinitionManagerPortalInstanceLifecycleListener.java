@@ -5,8 +5,8 @@
 
 package com.liferay.object.internal.instance.lifecycle;
 
+import com.liferay.document.library.helper.DLURLHelper;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
-import com.liferay.document.library.util.DLURLHelper;
 import com.liferay.dynamic.data.mapping.expression.DDMExpressionFactory;
 import com.liferay.friendly.url.service.FriendlyURLEntryLocalService;
 import com.liferay.info.collection.provider.InfoCollectionProvider;
@@ -51,7 +51,6 @@ import com.liferay.object.service.ObjectEntryFolderLocalService;
 import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.object.service.ObjectEntryService;
 import com.liferay.object.service.ObjectFieldLocalService;
-import com.liferay.object.service.ObjectFieldSettingLocalService;
 import com.liferay.object.service.ObjectFolderLocalService;
 import com.liferay.object.service.ObjectRelationshipLocalService;
 import com.liferay.object.service.ObjectStateFlowLocalService;
@@ -257,8 +256,7 @@ public class SystemObjectDefinitionManagerPortalInstanceLifecycleListener
 				new ObjectFieldInfoFieldConverter(
 					_ddmExpressionFactory, _listTypeEntryLocalService,
 					_objectConfiguration, _objectDefinitionLocalService,
-					_objectFieldLocalService, _objectFieldSettingLocalService,
-					_objectRelationshipLocalService,
+					_objectFieldLocalService, _objectRelationshipLocalService,
 					_objectScopeProviderRegistry, _objectStateFlowLocalService,
 					_objectStateLocalService, _portal,
 					_restContextPathResolverRegistry,
@@ -291,7 +289,7 @@ public class SystemObjectDefinitionManagerPortalInstanceLifecycleListener
 					_infoItemFieldReaderFieldSetProvider, itemClassName,
 					_objectActionLocalService, objectDefinition,
 					_objectDefinitionLocalService,
-					objectFieldInfoFieldConverter, _objectFieldLocalService,
+					objectFieldInfoFieldConverter,
 					_objectRelationshipLocalService,
 					_templateInfoItemFieldSetProvider),
 				HashMapDictionaryBuilder.<String, Object>put(
@@ -463,9 +461,6 @@ public class SystemObjectDefinitionManagerPortalInstanceLifecycleListener
 
 	@Reference
 	private ObjectFieldLocalService _objectFieldLocalService;
-
-	@Reference
-	private ObjectFieldSettingLocalService _objectFieldSettingLocalService;
 
 	@Reference
 	private ObjectFolderLocalService _objectFolderLocalService;

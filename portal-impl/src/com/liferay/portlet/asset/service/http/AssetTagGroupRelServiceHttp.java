@@ -43,7 +43,8 @@ public class AssetTagGroupRelServiceHttp {
 
 	public static com.liferay.asset.kernel.model.AssetTagGroupRel
 			addAssetTagGroupRel(
-				HttpPrincipal httpPrincipal, long groupId, long tagId)
+				HttpPrincipal httpPrincipal, long groupId, long tagId,
+				int depotEntryType)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		try {
@@ -52,7 +53,7 @@ public class AssetTagGroupRelServiceHttp {
 				_addAssetTagGroupRelParameterTypes0);
 
 			MethodHandler methodHandler = new MethodHandler(
-				methodKey, groupId, tagId);
+				methodKey, groupId, tagId, depotEntryType);
 
 			Object returnObj = null;
 
@@ -126,7 +127,8 @@ public class AssetTagGroupRelServiceHttp {
 	}
 
 	public static void setAssetTagGroupRels(
-			HttpPrincipal httpPrincipal, long tagId, long[] groupIds)
+			HttpPrincipal httpPrincipal, long tagId, long[] groupIds,
+			int depotEntryType)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		try {
@@ -135,7 +137,7 @@ public class AssetTagGroupRelServiceHttp {
 				_setAssetTagGroupRelsParameterTypes2);
 
 			MethodHandler methodHandler = new MethodHandler(
-				methodKey, tagId, groupIds);
+				methodKey, tagId, groupIds, depotEntryType);
 
 			try {
 				TunnelUtil.invoke(httpPrincipal, methodHandler);
@@ -165,11 +167,11 @@ public class AssetTagGroupRelServiceHttp {
 		AssetTagGroupRelServiceHttp.class);
 
 	private static final Class<?>[] _addAssetTagGroupRelParameterTypes0 =
-		new Class[] {long.class, long.class};
+		new Class[] {long.class, long.class, int.class};
 	private static final Class<?>[]
 		_getAssetTagGroupRelsByTagIdParameterTypes1 = new Class[] {long.class};
 	private static final Class<?>[] _setAssetTagGroupRelsParameterTypes2 =
-		new Class[] {long.class, long[].class};
+		new Class[] {long.class, long[].class, int.class};
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-233832462
+// LIFERAY-SERVICE-BUILDER-HASH:-1365528522

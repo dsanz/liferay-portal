@@ -7,6 +7,7 @@ package com.liferay.analytics.cms.rest.internal.resource.v1_0;
 
 import com.liferay.analytics.cms.rest.dto.v1_0.PerformanceTopAsset;
 import com.liferay.analytics.cms.rest.internal.client.AnalyticsCloudClient;
+import com.liferay.analytics.cms.rest.internal.cmp.project.util.CMPProjectUtil;
 import com.liferay.analytics.cms.rest.internal.depot.entry.util.DepotEntryUtil;
 import com.liferay.analytics.cms.rest.resource.v1_0.PerformanceTopAssetResource;
 import com.liferay.analytics.settings.rest.manager.AnalyticsSettingsManager;
@@ -64,8 +65,8 @@ public class PerformanceTopAssetResourceImpl
 
 	@Override
 	public Response getPerformanceTopAssetExport(
-			Long[] depotEntryIds, Integer rangeKey, String search,
-			Filter filter, Sort[] sorts)
+			Long[] cmpProjectIds, Long[] depotEntryIds, Integer rangeKey,
+			String search, Filter filter, Sort[] sorts)
 		throws Exception {
 
 		LicenseManagerUtil.checkFreeTier();
@@ -84,14 +85,26 @@ public class PerformanceTopAssetResourceImpl
 				});
 		}
 
+		Long[] filteredCMPProjectIds = CMPProjectUtil.getFilteredCMPProjectIds(
+			ActionKeys.VIEW_SITE_ADMINISTRATION, cmpProjectIds);
+
+		if (CMPProjectUtil.hasNoVisibleCMPProjects(filteredCMPProjectIds)) {
+			return _getResponse(
+				outputStream -> {
+				});
+		}
+
 		AnalyticsCloudClient analyticsCloudClient = new AnalyticsCloudClient(
 			_http);
 
 		InputStream inputStream = analyticsCloudClient.getInputStream(
 			_analyticsSettingsManager.getAnalyticsConfiguration(
 				contextCompany.getCompanyId()),
-			_getFilterString(), Arrays.asList(groupIds), search, null,
-			"/summaries/export", rangeKey, sorts);
+			null,
+			CMPProjectUtil.getFilterString(
+				filteredCMPProjectIds, _getFilterString()),
+			Arrays.asList(groupIds), search, null, "/summaries/export",
+			rangeKey, sorts);
 
 		return _getResponse(
 			outputStream -> StreamUtil.transfer(inputStream, outputStream));
@@ -99,8 +112,8 @@ public class PerformanceTopAssetResourceImpl
 
 	@Override
 	public Page<PerformanceTopAsset> getPerformanceTopAssetPage(
-			Long[] depotEntryIds, Integer rangeKey, String search,
-			Filter filter, Pagination pagination, Sort[] sorts)
+			Long[] cmpProjectIds, Long[] depotEntryIds, Integer rangeKey,
+			String search, Filter filter, Pagination pagination, Sort[] sorts)
 		throws Exception {
 
 		LicenseManagerUtil.checkFreeTier();
@@ -117,15 +130,23 @@ public class PerformanceTopAssetResourceImpl
 			return Page.of(Collections.emptyList(), pagination, 0);
 		}
 
+		Long[] filteredCMPProjectIds = CMPProjectUtil.getFilteredCMPProjectIds(
+			ActionKeys.VIEW_SITE_ADMINISTRATION, cmpProjectIds);
+
+		if (CMPProjectUtil.hasNoVisibleCMPProjects(filteredCMPProjectIds)) {
+			return Page.of(Collections.emptyList(), pagination, 0);
+		}
+
 		AnalyticsCloudClient analyticsCloudClient = new AnalyticsCloudClient(
 			_http);
 
-		Page<PerformanceTopAsset> performanceTopAssetPage =
+		Page<PerformanceTopAsset> page =
 			analyticsCloudClient.getPerformanceTopAssetPage(
 				_analyticsSettingsManager.getAnalyticsConfiguration(
 					contextCompany.getCompanyId()),
-				_getFilterString(), Arrays.asList(groupIds), search, pagination,
-				rangeKey, sorts);
+				CMPProjectUtil.getFilterString(
+					filteredCMPProjectIds, _getFilterString()),
+				Arrays.asList(groupIds), search, pagination, rangeKey, sorts);
 
 		if ((contextHttpServletRequest != null) &&
 			StringUtil.contains(
@@ -134,14 +155,12 @@ public class PerformanceTopAssetResourceImpl
 
 			Map<String, ObjectDefinition> objectDefinitions = new HashMap<>();
 
-			for (PerformanceTopAsset performanceTopAsset :
-					performanceTopAssetPage.getItems()) {
-
+			for (PerformanceTopAsset performanceTopAsset : page.getItems()) {
 				_setEmbedded(groupIds, objectDefinitions, performanceTopAsset);
 			}
 		}
 
-		return performanceTopAssetPage;
+		return page;
 	}
 
 	private String _getFilterString() {

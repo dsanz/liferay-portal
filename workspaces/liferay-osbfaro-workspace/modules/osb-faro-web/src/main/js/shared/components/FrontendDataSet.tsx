@@ -1,5 +1,6 @@
 import ClayLink from '@clayui/link';
 import {ClayIconSpriteContext as PortalClayIconSpriteContext} from '@clayui/icon-runtime';
+import {CLAY_ICONS_SPRITEMAP} from 'shared/components/Icon';
 import FaroConstants, {RangeKeyTimeRanges} from 'shared/util/constants';
 import Label from '@clayui/label';
 import Loading from 'shared/components/Loading';
@@ -158,11 +159,9 @@ export const columns = {
 export function useSnapshots(fdsName: string, enabled = true) {
 	const fetchSnapshots = enabled && Liferay.FeatureFlags['LPS-164563'];
 
-	const [snapshots, setSnapshots] = useState<Array<{
-		configuration: string;
-		erc: string;
-		label: string;
-	}> | null>(fetchSnapshots ? null : []);
+	const [snapshots, setSnapshots] = useState<
+		IFrontendDataSetProps['snapshots'] | null
+	>(fetchSnapshots ? null : []);
 
 	useEffect(() => {
 		if (!fetchSnapshots) {
@@ -175,7 +174,16 @@ export function useSnapshots(fdsName: string, enabled = true) {
 		)
 			.then((res) => res.json())
 			.then((data) => {
-				const formattedSnapshots = data.items.map(
+
+				// The data set takes snapshots grouped, not flat: every entry
+				// is a group carrying its own `items`, and the single group
+				// whose header is hidden holds the user's own views. All this
+				// endpoint returns belongs there, so wrap it in one hidden
+				// group. Handing over a flat list makes the data set read
+				// `items` off a snapshot and throw while it builds its initial
+				// state, which takes the whole screen down.
+
+				const items = data.items.map(
 					(item: {
 						externalReferenceCode: any;
 						label: any;
@@ -187,7 +195,9 @@ export function useSnapshots(fdsName: string, enabled = true) {
 					})
 				);
 
-				setSnapshots(formattedSnapshots);
+				setSnapshots(
+					items.length ? [{headerVisible: false, items}] : []
+				);
 			})
 			.catch((error) => {
 
@@ -224,17 +234,16 @@ const FrontendDataSet = ({
 
 	// The bundled @clayui/icon context (provided in App.tsx) does not reach the
 	// FrontendDataSet, which renders with the DXP's runtime @clayui/icon. Feed
-	// that runtime context the same sprite so the data set's icons resolve.
+	// that runtime context the same Clay sprite so the data set's icons
+	// resolve.
 
 	return (
-		<PortalClayIconSpriteContext.Provider value="/o/osb-faro-web/dist/sprite.svg">
+		<PortalClayIconSpriteContext.Provider value={CLAY_ICONS_SPRITEMAP}>
 			<Suspense fallback={<Loading />}>
 				<BaseFrontendDataSet
 					{...props}
 					configInURLBehavior={configInURLBehavior}
-					snapshots={
-						snapshots as unknown as IFrontendDataSetProps['snapshots']
-					}
+					snapshots={snapshots}
 					snapshotsEnabled={snapshotsEnabled}
 				/>
 			</Suspense>

@@ -32,6 +32,7 @@ import com.liferay.dynamic.data.mapping.model.DDMTemplate;
 import com.liferay.dynamic.data.mapping.test.util.DDMStructureTestUtil;
 import com.liferay.dynamic.data.mapping.test.util.DDMTemplateTestUtil;
 import com.liferay.exportimport.kernel.configuration.ExportImportConfigurationParameterMapFactoryUtil;
+import com.liferay.exportimport.kernel.lar.ExportImportThreadLocal;
 import com.liferay.exportimport.kernel.lar.PortletDataHandlerKeys;
 import com.liferay.exportimport.kernel.service.StagingLocalServiceUtil;
 import com.liferay.exportimport.kernel.staging.StagingUtil;
@@ -41,6 +42,8 @@ import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.model.JournalFolder;
 import com.liferay.journal.service.JournalFolderLocalService;
 import com.liferay.journal.test.util.JournalTestUtil;
+import com.liferay.layout.exporter.PortletPreferencesPortletConfigurationExporter;
+import com.liferay.layout.importer.PortletPreferencesPortletConfigurationImporter;
 import com.liferay.layout.test.util.LayoutTestUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
@@ -77,6 +80,7 @@ import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.search.test.rule.SearchTestRule;
 import com.liferay.portal.test.rule.Inject;
@@ -245,28 +249,22 @@ public class AssetPublisherExportImportTest extends BaseExportImportTestCase {
 	public void testChildLayoutScopeIds() throws Exception {
 		Group childGroup = GroupTestUtil.addGroup(group.getGroupId());
 
-		Map<String, String[]> preferenceMap = HashMapBuilder.put(
-			"scopeIds",
-			new String[] {
-				AssetPublisherHelper.SCOPE_ID_CHILD_GROUP_PREFIX +
-					childGroup.getGroupId()
-			}
-		).build();
+		PortletPreferences portletPreferences = getImportedPortletPreferences(
+			HashMapBuilder.put(
+				"scopeIds",
+				new String[] {
+					AssetPublisherHelper.SCOPE_ID_CHILD_GROUP_PREFIX +
+						childGroup.getGroupId()
+				}
+			).build());
 
-		try {
-			PortletPreferences portletPreferences =
-				getImportedPortletPreferences(preferenceMap);
+		Assert.assertEquals(null, portletPreferences.getValue("scopeId", null));
+		Assert.assertEquals(
+			AssetPublisherHelper.SCOPE_ID_GROUP_PREFIX +
+				childGroup.getGroupId(),
+			portletPreferences.getValue("scopeIds", null));
 
-			Assert.assertEquals(
-				null, portletPreferences.getValue("scopeId", null));
-			Assert.assertEquals(
-				AssetPublisherHelper.SCOPE_ID_GROUP_PREFIX +
-					childGroup.getGroupId(),
-				portletPreferences.getValue("scopeIds", null));
-		}
-		finally {
-			_groupLocalService.deleteGroup(childGroup);
-		}
+		_groupLocalService.deleteGroup(childGroup);
 	}
 
 	@Test
@@ -574,6 +572,60 @@ public class AssetPublisherExportImportTest extends BaseExportImportTestCase {
 		testDynamicExportImport(new HashMap<>(), expectedAssetEntries, false);
 	}
 
+	@Test
+	@TestInfo("LPD-105711")
+	public void testExportImportAssetCategoriesFilterWithRemoteStaging()
+		throws Exception {
+
+		AssetVocabulary assetVocabulary = AssetTestUtil.addVocabulary(
+			group.getGroupId());
+
+		AssetCategory assetCategory = AssetTestUtil.addCategory(
+			group.getGroupId(), assetVocabulary.getVocabularyId());
+
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(
+				importedGroup.getGroupId());
+
+		serviceContext.setUuid(assetVocabulary.getUuid());
+
+		AssetVocabulary remoteAssetVocabulary =
+			_assetVocabularyLocalService.addVocabulary(
+				TestPropsValues.getUserId(), importedGroup.getGroupId(),
+				RandomTestUtil.randomString(), serviceContext);
+
+		serviceContext.setUuid(assetCategory.getUuid());
+
+		AssetCategory remoteAssetCategory =
+			_assetCategoryLocalService.addCategory(
+				TestPropsValues.getUserId(), importedGroup.getGroupId(),
+				RandomTestUtil.randomString(),
+				remoteAssetVocabulary.getVocabularyId(), serviceContext);
+
+		PortletPreferences importedPortletPreferences =
+			_getRemoteStagingImportedPortletPreferences(
+				HashMapBuilder.put(
+					"assetVocabularyId",
+					new String[] {
+						String.valueOf(assetVocabulary.getVocabularyId())
+					}
+				).put(
+					"queryName0", new String[] {"assetCategories"}
+				).put(
+					"queryValues0",
+					new String[] {String.valueOf(assetCategory.getCategoryId())}
+				).put(
+					"selectionStyle", new String[] {"dynamic"}
+				).build());
+
+		Assert.assertEquals(
+			String.valueOf(remoteAssetVocabulary.getVocabularyId()),
+			importedPortletPreferences.getValue("assetVocabularyId", null));
+		Assert.assertEquals(
+			String.valueOf(remoteAssetCategory.getCategoryId()),
+			importedPortletPreferences.getValue("queryValues0", null));
+	}
+
 	@Ignore
 	@Test
 	public void testExportImportAssetEntries() throws Exception {
@@ -703,6 +755,50 @@ public class AssetPublisherExportImportTest extends BaseExportImportTestCase {
 		Assert.assertNull(
 			portletPreferences.getValue(
 				"assetListEntryGroupExternalReferenceCode", null));
+	}
+
+	@Test
+	@TestInfo("LPD-105711")
+	public void testExportImportClassTypeIdsWithRemoteStaging()
+		throws Exception {
+
+		DDMStructure ddmStructure = DDMStructureTestUtil.addStructure(
+			group.getGroupId(), JournalArticle.class.getName());
+
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext();
+
+		serviceContext.setUuid(ddmStructure.getUuid());
+
+		DDMStructure remoteDDMStructure = DDMStructureTestUtil.addStructure(
+			importedGroup.getGroupId(), JournalArticle.class.getName(), 0,
+			ddmStructure.getDDMForm(), LocaleUtil.getDefault(), serviceContext);
+
+		long journalArticleClassNameId = _portal.getClassNameId(
+			JournalArticle.class);
+
+		PortletPreferences importedPortletPreferences =
+			_getRemoteStagingImportedPortletPreferences(
+				HashMapBuilder.put(
+					"anyAssetType",
+					new String[] {String.valueOf(journalArticleClassNameId)}
+				).put(
+					"classTypeIds",
+					new String[] {String.valueOf(ddmStructure.getStructureId())}
+				).put(
+					"classTypeIdsJournalArticleAssetRendererFactory",
+					new String[] {String.valueOf(ddmStructure.getStructureId())}
+				).put(
+					"selectionStyle", new String[] {"dynamic"}
+				).build());
+
+		Assert.assertEquals(
+			String.valueOf(remoteDDMStructure.getStructureId()),
+			importedPortletPreferences.getValue("classTypeIds", null));
+		Assert.assertEquals(
+			String.valueOf(remoteDDMStructure.getStructureId()),
+			importedPortletPreferences.getValue(
+				"classTypeIdsJournalArticleAssetRendererFactory", null));
 	}
 
 	@Test
@@ -1519,6 +1615,47 @@ public class AssetPublisherExportImportTest extends BaseExportImportTestCase {
 		).build();
 	}
 
+	private PortletPreferences _getRemoteStagingImportedPortletPreferences(
+			Map<String, String[]> preferenceMap)
+		throws Exception {
+
+		UnicodeProperties typeSettingsUnicodeProperties =
+			group.getTypeSettingsProperties();
+
+		typeSettingsUnicodeProperties.setProperty(
+			"remoteGroupExternalReferenceCode",
+			importedGroup.getExternalReferenceCode());
+		typeSettingsUnicodeProperties.setProperty("staged", "true");
+		typeSettingsUnicodeProperties.setProperty("stagedRemotely", "true");
+
+		_groupLocalService.updateGroup(
+			group.getGroupId(), typeSettingsUnicodeProperties.toString());
+
+		String portletId = LayoutTestUtil.addPortletToLayout(
+			TestPropsValues.getUserId(), layout, getPortletId(), "column-1",
+			preferenceMap);
+
+		ExportImportThreadLocal.setPortletStagingInProcess(true);
+
+		Map<String, Object> portletConfiguration =
+			_portletPreferencesPortletConfigurationExporter.
+				getPortletConfiguration(layout.getPlid(), portletId);
+
+		ExportImportThreadLocal.setPortletStagingInProcess(false);
+
+		importedLayout = LayoutTestUtil.addTypePortletLayout(importedGroup);
+
+		ExportImportThreadLocal.setPortletStagingInProcess(true);
+
+		_portletPreferencesPortletConfigurationImporter.
+			importPortletConfiguration(
+				importedLayout.getPlid(), portletId, portletConfiguration);
+
+		ExportImportThreadLocal.setPortletStagingInProcess(false);
+
+		return LayoutTestUtil.getPortletPreferences(importedLayout, portletId);
+	}
+
 	private void _publishLayouts(Group stagingGroup) throws Exception {
 		Map<String, String[]> parameterMap =
 			ExportImportConfigurationParameterMapFactoryUtil.
@@ -1581,5 +1718,13 @@ public class AssetPublisherExportImportTest extends BaseExportImportTestCase {
 
 	@Inject
 	private PortletPreferencesLocalService _portletPreferencesLocalService;
+
+	@Inject
+	private PortletPreferencesPortletConfigurationExporter
+		_portletPreferencesPortletConfigurationExporter;
+
+	@Inject
+	private PortletPreferencesPortletConfigurationImporter
+		_portletPreferencesPortletConfigurationImporter;
 
 }

@@ -515,8 +515,7 @@ definition {
 
 	@summary = "Default summary"
 	macro enableScopeConfiguration() {
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
+		ApplicationsMenu.gotoRootPortlet(
 			panel = "Control Panel",
 			portlet = "Instance Settings");
 
@@ -857,18 +856,6 @@ definition {
 		AssertTextEquals(
 			locator1 = "Message#INFO_MAIN_CONTENT",
 			value1 = "This portlet could not be found. Please redeploy it or remove it from the page.");
-	}
-
-	@summary = "Default summary"
-	macro viewPortletOptions(optionsName = null) {
-		MouseOver.mouseOverNotVisible(locator1 = "Portlet#OPTIONS_ICON");
-
-		Click(locator1 = "Portlet#OPTIONS_ICON");
-
-		AssertTextEquals(
-			key_menuItem = ${optionsName},
-			locator1 = "MenuItem#ANY_MENU_ITEM",
-			value1 = ${optionsName});
 	}
 
 	@summary = "Default summary"

@@ -10,6 +10,7 @@ import com.liferay.headless.commerce.admin.catalog.client.json.BaseJSONParser;
 
 import jakarta.annotation.Generated;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -76,6 +77,20 @@ public class DiagramSerDes {
 			sb.append("\"id\": ");
 
 			sb.append(diagram.getId());
+		}
+
+		if (diagram.getImageExternalReferenceCode() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"imageExternalReferenceCode\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(diagram.getImageExternalReferenceCode()));
+
+			sb.append("\"");
 		}
 
 		if (diagram.getImageId() != null) {
@@ -191,6 +206,15 @@ public class DiagramSerDes {
 			map.put("id", String.valueOf(diagram.getId()));
 		}
 
+		if (diagram.getImageExternalReferenceCode() == null) {
+			map.put("imageExternalReferenceCode", null);
+		}
+		else {
+			map.put(
+				"imageExternalReferenceCode",
+				String.valueOf(diagram.getImageExternalReferenceCode()));
+		}
+
 		if (diagram.getImageId() == null) {
 			map.put("imageId", null);
 		}
@@ -261,6 +285,11 @@ public class DiagramSerDes {
 			else if (Objects.equals(jsonParserFieldName, "id")) {
 				return false;
 			}
+			else if (Objects.equals(
+						jsonParserFieldName, "imageExternalReferenceCode")) {
+
+				return false;
+			}
 			else if (Objects.equals(jsonParserFieldName, "imageId")) {
 				return false;
 			}
@@ -305,6 +334,14 @@ public class DiagramSerDes {
 			else if (Objects.equals(jsonParserFieldName, "id")) {
 				if (jsonParserFieldValue != null) {
 					diagram.setId(Long.valueOf((String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(
+						jsonParserFieldName, "imageExternalReferenceCode")) {
+
+				if (jsonParserFieldValue != null) {
+					diagram.setImageExternalReferenceCode(
+						(String)jsonParserFieldValue);
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "imageId")) {
@@ -392,6 +429,12 @@ public class DiagramSerDes {
 			return "null";
 		}
 
+		if (value instanceof Collection) {
+			Collection<?> collection = (Collection<?>)value;
+
+			return _toJSON(collection.toArray());
+		}
+
 		if (value instanceof Map) {
 			return _toJSON((Map)value);
 		}
@@ -424,4 +467,4 @@ public class DiagramSerDes {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:-2020998811
+// LIFERAY-REST-BUILDER-HASH:703986538

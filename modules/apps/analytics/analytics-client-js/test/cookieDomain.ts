@@ -60,7 +60,9 @@ const expireHostOnlyCookie = () => expireCookie();
 
 describe('Cookie shared across subdomains', () => {
 	beforeEach(() => {
-		fetchMock.mock(/ac-server/i, () => Promise.resolve(200));
+		fetchMock.mockGlobal();
+
+		fetchMock.route(/ac-server/i, () => Promise.resolve(200));
 
 		expireCookie();
 		expireCookie(COOKIE_DOMAIN);
@@ -71,7 +73,7 @@ describe('Cookie shared across subdomains', () => {
 	afterEach(() => {
 		AnalyticsClient.dispose();
 
-		fetchMock.restore();
+		fetchMock.hardReset();
 
 		jest.restoreAllMocks();
 	});
@@ -122,7 +124,7 @@ describe('Cookie shared across subdomains', () => {
 		});
 
 		it('reports the identity again once the id has changed', () => {
-			fetchMock.mock(/identity$/, () => Promise.resolve(200));
+			fetchMock.route(/identity$/, () => Promise.resolve(200));
 
 			setCookie('shared-id', COOKIE_DOMAIN);
 			setItem(AnalyticsType.Keys.UserId, 'local-id');
@@ -172,7 +174,7 @@ describe('Cookie shared across subdomains', () => {
 		});
 
 		it('carries a regenerated id into the shared cookie', async () => {
-			fetchMock.mock(/identity$/, () => Promise.resolve(200));
+			fetchMock.route(/identity$/, () => Promise.resolve(200));
 
 			const analytics = AnalyticsClient.create(CONFIG);
 

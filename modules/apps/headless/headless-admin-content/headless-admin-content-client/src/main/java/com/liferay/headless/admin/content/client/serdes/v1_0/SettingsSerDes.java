@@ -11,6 +11,7 @@ import com.liferay.headless.admin.content.client.json.BaseJSONParser;
 
 import jakarta.annotation.Generated;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -80,14 +81,7 @@ public class SettingsSerDes {
 
 			sb.append("\"favIcon\": ");
 
-			if (settings.getFavIcon() instanceof String) {
-				sb.append("\"");
-				sb.append((String)settings.getFavIcon());
-				sb.append("\"");
-			}
-			else {
-				sb.append(settings.getFavIcon());
-			}
+			sb.append(_toJSON(settings.getFavIcon()));
 		}
 
 		if (settings.getGlobalCSSClientExtensions() != null) {
@@ -102,7 +96,8 @@ public class SettingsSerDes {
 			for (int i = 0; i < settings.getGlobalCSSClientExtensions().length;
 				 i++) {
 
-				sb.append(settings.getGlobalCSSClientExtensions()[i]);
+				sb.append(
+					String.valueOf(settings.getGlobalCSSClientExtensions()[i]));
 
 				if ((i + 1) < settings.getGlobalCSSClientExtensions().length) {
 					sb.append(", ");
@@ -124,7 +119,8 @@ public class SettingsSerDes {
 			for (int i = 0; i < settings.getGlobalJSClientExtensions().length;
 				 i++) {
 
-				sb.append(settings.getGlobalJSClientExtensions()[i]);
+				sb.append(
+					String.valueOf(settings.getGlobalJSClientExtensions()[i]));
 
 				if ((i + 1) < settings.getGlobalJSClientExtensions().length) {
 					sb.append(", ");
@@ -155,7 +151,7 @@ public class SettingsSerDes {
 
 			sb.append("\"masterPage\": ");
 
-			sb.append(settings.getMasterPage());
+			sb.append(String.valueOf(settings.getMasterPage()));
 		}
 
 		if (settings.getStyleBook() != null) {
@@ -165,7 +161,7 @@ public class SettingsSerDes {
 
 			sb.append("\"styleBook\": ");
 
-			sb.append(settings.getStyleBook());
+			sb.append(String.valueOf(settings.getStyleBook()));
 		}
 
 		if (settings.getThemeCSSClientExtension() != null) {
@@ -175,7 +171,7 @@ public class SettingsSerDes {
 
 			sb.append("\"themeCSSClientExtension\": ");
 
-			sb.append(settings.getThemeCSSClientExtension());
+			sb.append(String.valueOf(settings.getThemeCSSClientExtension()));
 		}
 
 		if (settings.getThemeName() != null) {
@@ -199,14 +195,7 @@ public class SettingsSerDes {
 
 			sb.append("\"themeSettings\": ");
 
-			if (settings.getThemeSettings() instanceof String) {
-				sb.append("\"");
-				sb.append((String)settings.getThemeSettings());
-				sb.append("\"");
-			}
-			else {
-				sb.append(settings.getThemeSettings());
-			}
+			sb.append(_toJSON(settings.getThemeSettings()));
 		}
 
 		if (settings.getThemeSpritemapClientExtension() != null) {
@@ -216,7 +205,8 @@ public class SettingsSerDes {
 
 			sb.append("\"themeSpritemapClientExtension\": ");
 
-			sb.append(settings.getThemeSpritemapClientExtension());
+			sb.append(
+				String.valueOf(settings.getThemeSpritemapClientExtension()));
 		}
 
 		sb.append("}");
@@ -555,6 +545,12 @@ public class SettingsSerDes {
 			return "null";
 		}
 
+		if (value instanceof Collection) {
+			Collection<?> collection = (Collection<?>)value;
+
+			return _toJSON(collection.toArray());
+		}
+
 		if (value instanceof Map) {
 			return _toJSON((Map)value);
 		}
@@ -587,4 +583,4 @@ public class SettingsSerDes {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:-1033876754
+// LIFERAY-REST-BUILDER-HASH:-1244307871

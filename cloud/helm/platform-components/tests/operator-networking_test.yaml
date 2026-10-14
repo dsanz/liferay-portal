@@ -1,0 +1,505 @@
+release:
+    name: my-release
+    namespace: argocd-system
+suite: Operator Gateway Networking
+templates:
+    -   templates/operator-networking.yaml
+tests:
+    -   asserts:
+            -   hasDocuments:
+                    count: 5
+            -   documentIndex: 1
+                equal:
+                    path: spec.authorization.defaultAction
+                    value: Allow
+            -   documentIndex: 1
+                notExists:
+                    path: spec.authorization.rules
+        it: Allows every client while the allowlist is disabled, without removing the policy
+        set:
+            argocd:
+                gateway:
+                    enabled: true
+                    hostname: argocd.liferay.test
+    -   asserts:
+            -   hasDocuments:
+                    count: 5
+            -   documentIndex: 1
+                isKind:
+                    of: SecurityPolicy
+            -   documentIndex: 1
+                equal:
+                    path: spec.authorization.rules[0].action
+                    value: Allow
+            -   documentIndex: 1
+                equal:
+                    path: spec.authorization.rules[0].principal.clientCIDRs
+                    value:
+                        -   10.0.0.0/16
+                        -   203.0.113.0/24
+        it: Allows only the configured CIDR blocks
+        set:
+            accessControl:
+                allowedCIDRs:
+                    -   10.0.0.0/16
+                    -   203.0.113.0/24
+                enabled: true
+            argocd:
+                gateway:
+                    enabled: true
+                    hostname: argocd.liferay.test
+    -   asserts:
+            -   hasDocuments:
+                    count: 6
+            -   documentIndex: 0
+                isKind:
+                    of: ClientTrafficPolicy
+            -   documentIndex: 0
+                equal:
+                    path: metadata.name
+                    value: argocd-gateway-client-traffic-policy
+            -   documentIndex: 0
+                equal:
+                    path: metadata.namespace
+                    value: argocd-system
+            -   documentIndex: 0
+                equal:
+                    path: spec
+                    value:
+                        enableProxyProtocol: true
+                        targetRefs:
+                            -   group: gateway.networking.k8s.io
+                                kind: Gateway
+                                name: argocd-gateway
+        it: Attaches the client traffic policy to the gateway when one is configured
+        set:
+            argocd:
+                gateway:
+                    clientTrafficPolicySpec:
+                        enableProxyProtocol: true
+                    enabled: true
+                    hostname: argocd.liferay.test
+    -   asserts:
+            -   documentIndex: 1
+                equal:
+                    path: spec.authorization.defaultAction
+                    value: Deny
+        it: Denies every client that is not allowlisted
+        set:
+            accessControl:
+                allowedCIDRs:
+                    -   203.0.113.0/24
+                enabled: true
+            argocd:
+                gateway:
+                    enabled: true
+                    hostname: argocd.liferay.test
+    -   asserts:
+            -   hasDocuments:
+                    count: 5
+            -   documentIndex: 0
+                equal:
+                    path: metadata.namespace
+                    value: envoy-gateway-system
+            -   documentIndex: 0
+                equal:
+                    path: spec.provider.kubernetes.envoyDeployment.replicas
+                    value: 2
+            -   documentIndex: 0
+                isKind:
+                    of: EnvoyProxy
+            -   documentIndex: 0
+                notExists:
+                    path: spec.provider.kubernetes.envoyDeployment.pod
+            -   documentIndex: 0
+                notExists:
+                    path: spec.provider.kubernetes.envoyService.annotations
+            -   documentIndex: 2
+                equal:
+                    path: spec.gatewayClassName
+                    value: argocd-gateway-class
+            -   documentIndex: 2
+                equal:
+                    path: spec.listeners
+                    value:
+                        -   allowedRoutes:
+                                namespaces:
+                                    from: Same
+                            hostname: argocd.liferay.test
+                            name: http
+                            port: 80
+                            protocol: HTTP
+            -   documentIndex: 2
+                isKind:
+                    of: Gateway
+            -   documentIndex: 3
+                equal:
+                    path: spec.controllerName
+                    value: gateway.envoyproxy.io/gatewayclass-controller
+            -   documentIndex: 3
+                equal:
+                    path: spec.parametersRef.name
+                    value: argocd-gateway-proxy-config
+            -   documentIndex: 3
+                equal:
+                    path: spec.parametersRef.namespace
+                    value: envoy-gateway-system
+            -   documentIndex: 3
+                isKind:
+                    of: GatewayClass
+            -   documentIndex: 4
+                equal:
+                    path: metadata.name
+                    value: argocd-server-route
+            -   documentIndex: 4
+                equal:
+                    path: spec.parentRefs[0].sectionName
+                    value: http
+            -   documentIndex: 4
+                equal:
+                    path: spec.rules[0].backendRefs[0].name
+                    value: argocd-server
+            -   documentIndex: 4
+                equal:
+                    path: spec.rules[0].backendRefs[0].port
+                    value: 80
+            -   documentIndex: 4
+                isKind:
+                    of: HTTPRoute
+        it: Exposes ArgoCD over plain HTTP while the gateway terminates no TLS
+        set:
+            argocd:
+                gateway:
+                    enabled: true
+                    hostname: argocd.liferay.test
+    -   asserts:
+            -   hasDocuments:
+                    count: 5
+            -   documentIndex: 0
+                isKind:
+                    of: EnvoyProxy
+            -   documentIndex: 0
+                equal:
+                    path: metadata.namespace
+                    value: envoy-gateway-system
+            -   documentIndex: 1
+                isKind:
+                    of: SecurityPolicy
+            -   documentIndex: 1
+                equal:
+                    path: spec.targetRefs[0].name
+                    value: argo-workflows-gateway
+            -   documentIndex: 2
+                isKind:
+                    of: Gateway
+            -   documentIndex: 2
+                equal:
+                    path: metadata.namespace
+                    value: argo-workflows-system
+            -   documentIndex: 2
+                equal:
+                    path: spec.listeners
+                    value:
+                        -   allowedRoutes:
+                                namespaces:
+                                    from: Same
+                            hostname: workflows.liferay.test
+                            name: http
+                            port: 80
+                            protocol: HTTP
+            -   documentIndex: 3
+                isKind:
+                    of: GatewayClass
+            -   documentIndex: 3
+                equal:
+                    path: spec.parametersRef.name
+                    value: argo-workflows-gateway-proxy-config
+            -   documentIndex: 4
+                isKind:
+                    of: HTTPRoute
+            -   documentIndex: 4
+                equal:
+                    path: metadata.namespace
+                    value: argo-workflows-system
+            -   documentIndex: 4
+                equal:
+                    path: spec.parentRefs[0].sectionName
+                    value: http
+            -   documentIndex: 4
+                equal:
+                    path: spec.rules[0].backendRefs[0]
+                    value:
+                        name: argo-workflows-server
+                        port: 2746
+        it: Exposes the Argo Workflows server over plain HTTP while the gateway terminates no TLS
+        set:
+            argoWorkflows:
+                gateway:
+                    enabled: true
+                    hostname: workflows.liferay.test
+    -   asserts:
+            -   documentIndex: 4
+                equal:
+                    path: metadata.namespace
+                    value: custom-workflows
+        it: Follows the Argo Workflows namespace
+        set:
+            argoWorkflows:
+                gateway:
+                    enabled: true
+                    hostname: workflows.liferay.test
+            operatorApplications:
+                argoWorkflows:
+                    namespace: custom-workflows
+    -   asserts:
+            -   hasDocuments:
+                    count: 0
+        it: Omits the networking by default
+    -   asserts:
+            -   documentIndex: 0
+                equal:
+                    path: spec.provider.kubernetes.envoyDeployment.pod.annotations["prometheus.io/scrape"]
+                    value: "true"
+            -   documentIndex: 0
+                equal:
+                    path: spec.provider.kubernetes.envoyDeployment.replicas
+                    value: 3
+            -   documentIndex: 0
+                equal:
+                    path: spec.provider.kubernetes.envoyService.annotations["service.beta.kubernetes.io/azure-load-balancer-internal"]
+                    value: "true"
+        it: Passes the Envoy proxy overrides through to the proxy config
+        set:
+            argocd:
+                gateway:
+                    enabled: true
+                    envoyProxy:
+                        podAnnotations:
+                            prometheus.io/scrape: "true"
+                        replicas: 3
+                        serviceAnnotations:
+                            service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+                    hostname: argocd.liferay.test
+    -   asserts:
+            -   failedTemplate:
+                    errorPattern: The value "clusterSecretStore.name" is required to identify the cluster secret store
+        it: Rejects TLS without a cluster secret store name
+        set:
+            argocd:
+                gateway:
+                    enabled: true
+                    hostname: argocd.liferay.test
+                    tls:
+                        externalSecretKey: liferay-certificates-argocd
+    -   asserts:
+            -   failedTemplate:
+                    errorPattern: The value "argoWorkflows.gateway.hostname" is required to route traffic to Argo Workflows
+        it: Rejects an enabled Argo Workflows gateway without a hostname
+        set:
+            argoWorkflows:
+                gateway:
+                    enabled: true
+    -   asserts:
+            -   failedTemplate:
+                    errorPattern: The value "argocd.gateway.hostname" is required to route traffic to ArgoCD
+        it: Rejects an enabled ArgoCD gateway without a hostname
+        set:
+            argocd.gateway.enabled: true
+    -   asserts:
+            -   failedTemplate:
+                    errorPattern: The value "accessControl.allowedCIDRs" must not be empty when "accessControl.enabled" is true
+        it: Rejects an enabled allowlist without CIDR blocks
+        set:
+            accessControl:
+                enabled: true
+            argocd:
+                gateway:
+                    enabled: true
+                    hostname: argocd.liferay.test
+    -   asserts:
+            -   hasDocuments:
+                    count: 10
+            -   documentIndex: 0
+                equal:
+                    path: metadata.name
+                    value: argo-workflows-gateway-proxy-config
+            -   documentIndex: 2
+                equal:
+                    path: metadata.name
+                    value: argo-workflows-gateway
+            -   documentIndex: 2
+                equal:
+                    path: metadata.namespace
+                    value: argo-workflows-system
+            -   documentIndex: 5
+                equal:
+                    path: metadata.name
+                    value: argocd-gateway-proxy-config
+            -   documentIndex: 7
+                equal:
+                    path: metadata.name
+                    value: argocd-gateway
+            -   documentIndex: 7
+                equal:
+                    path: metadata.namespace
+                    value: argocd-system
+        it: Renders the Argo Workflows and ArgoCD gateways side by side
+        set:
+            argoWorkflows:
+                gateway:
+                    enabled: true
+                    hostname: workflows.liferay.test
+            argocd:
+                gateway:
+                    enabled: true
+                    hostname: argocd.liferay.test
+    -   asserts:
+            -   hasDocuments:
+                    count: 7
+            -   documentIndex: 2
+                isKind:
+                    of: SecurityPolicy
+            -   documentIndex: 2
+                equal:
+                    path: spec.targetRefs[0].kind
+                    value: Gateway
+            -   documentIndex: 2
+                equal:
+                    path: spec.targetRefs[0].name
+                    value: argocd-gateway
+            -   documentIndex: 2
+                equal:
+                    path: metadata.namespace
+                    value: argocd-system
+        it: Targets the gateway rather than the routes
+        set:
+            accessControl:
+                allowedCIDRs:
+                    -   203.0.113.0/24
+                enabled: true
+            argocd:
+                gateway:
+                    enabled: true
+                    hostname: argocd.liferay.test
+                    tls:
+                        externalSecretKey: liferay-certificates-argocd
+            clusterSecretStore:
+                name: liferay-secret-store
+    -   asserts:
+            -   hasDocuments:
+                    count: 7
+            -   documentIndex: 0
+                isKind:
+                    of: ExternalSecret
+            -   documentIndex: 0
+                equal:
+                    path: metadata.namespace
+                    value: argo-workflows-system
+            -   documentIndex: 0
+                equal:
+                    path: spec.dataFrom[0].extract.key
+                    value: liferay-certificates-workflows
+            -   documentIndex: 3
+                equal:
+                    path: spec.listeners[1].tls.certificateRefs[0].name
+                    value: argo-workflows-server-tls
+            -   documentIndex: 5
+                equal:
+                    path: spec.rules[0].filters[0].requestRedirect.scheme
+                    value: https
+            -   documentIndex: 6
+                equal:
+                    path: spec.parentRefs[0].sectionName
+                    value: https
+        it: Terminates Argo Workflows TLS and redirects plain HTTP once a certificate is configured
+        set:
+            argoWorkflows:
+                gateway:
+                    enabled: true
+                    hostname: workflows.liferay.test
+                    tls:
+                        externalSecretKey: liferay-certificates-workflows
+            clusterSecretStore:
+                name: liferay-test-secret-store
+    -   asserts:
+            -   hasDocuments:
+                    count: 7
+            -   documentIndex: 0
+                equal:
+                    path: metadata.name
+                    value: argocd-server-tls
+            -   documentIndex: 0
+                equal:
+                    path: metadata.namespace
+                    value: argocd-system
+            -   documentIndex: 0
+                equal:
+                    path: spec.dataFrom[0].extract.decodingStrategy
+                    value: Auto
+            -   documentIndex: 0
+                equal:
+                    path: spec.dataFrom[0].extract.key
+                    value: liferay-certificates-argocd
+            -   documentIndex: 0
+                equal:
+                    path: spec.secretStoreRef.name
+                    value: liferay-test-secret-store
+            -   documentIndex: 0
+                equal:
+                    path: spec.target.template.type
+                    value: kubernetes.io/tls
+            -   documentIndex: 0
+                isKind:
+                    of: ExternalSecret
+            -   documentIndex: 3
+                equal:
+                    path: spec.listeners[1].hostname
+                    value: argocd.liferay.test
+            -   documentIndex: 3
+                equal:
+                    path: spec.listeners[1].name
+                    value: https
+            -   documentIndex: 3
+                equal:
+                    path: spec.listeners[1].port
+                    value: 443
+            -   documentIndex: 3
+                equal:
+                    path: spec.listeners[1].tls.certificateRefs[0].name
+                    value: argocd-server-tls
+            -   documentIndex: 5
+                equal:
+                    path: metadata.name
+                    value: argocd-redirect-route
+            -   documentIndex: 5
+                equal:
+                    path: spec.parentRefs[0].sectionName
+                    value: http
+            -   documentIndex: 5
+                equal:
+                    path: spec.rules[0].filters[0].requestRedirect.scheme
+                    value: https
+            -   documentIndex: 5
+                equal:
+                    path: spec.rules[0].filters[0].requestRedirect.statusCode
+                    value: 301
+            -   documentIndex: 6
+                equal:
+                    path: metadata.name
+                    value: argocd-server-route
+            -   documentIndex: 6
+                equal:
+                    path: spec.parentRefs[0].sectionName
+                    value: https
+        it: Terminates ArgoCD TLS and redirects plain HTTP once a certificate is configured
+        set:
+            argocd:
+                gateway:
+                    enabled: true
+                    hostname: argocd.liferay.test
+                    tls:
+                        externalSecretKey: liferay-certificates-argocd
+            clusterSecretStore:
+                name: liferay-test-secret-store
+            deploymentContext:
+                deploymentName: liferay-test

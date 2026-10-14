@@ -131,13 +131,34 @@ public class FDSFragmentRenderer implements FragmentRenderer {
 			FragmentEntryLink fragmentEntryLink =
 				fragmentRendererContext.getFragmentEntryLink();
 
+			ObjectDefinition dataSetObjectDefinition =
+				_dataSetObjectDefinitionLocalService.
+					fetchObjectDefinitionByExternalReferenceCode(
+						"L_DATA_SET", fragmentEntryLink.getCompanyId());
+
+			if (fragmentRendererContext.isEditMode()) {
+				_writeClassName(
+					dataSetObjectDefinition, fragmentRendererContext);
+			}
+
 			JSONObject configurationJSONObject = getConfigurationJSONObject(
 				fragmentRendererContext);
 
+			JSONObject editableValuesJSONObject = null;
+
+			if (fragmentRendererContext.isEditMode()) {
+				editableValuesJSONObject =
+					fragmentRendererContext.
+						getModifiableEditableValuesJSONObject();
+			}
+			else {
+				editableValuesJSONObject =
+					fragmentEntryLink.getEditableValuesJSONObject();
+			}
+
 			JSONObject itemSelectorJSONObject =
 				(JSONObject)_fragmentEntryConfigurationParser.getFieldValue(
-					configurationJSONObject,
-					fragmentEntryLink.getEditableValuesJSONObject(),
+					configurationJSONObject, editableValuesJSONObject,
 					fragmentRendererContext.getLocale(), "itemSelector");
 
 			String externalReferenceCode = itemSelectorJSONObject.getString(
@@ -147,11 +168,6 @@ public class FDSFragmentRenderer implements FragmentRenderer {
 
 			if (Validator.isNotNull(externalReferenceCode)) {
 				try {
-					ObjectDefinition dataSetObjectDefinition =
-						_dataSetObjectDefinitionLocalService.
-							fetchObjectDefinitionByExternalReferenceCode(
-								"L_DATA_SET", fragmentEntryLink.getCompanyId());
-
 					DefaultObjectEntryManager defaultObjectEntryManager =
 						DefaultObjectEntryManagerProvider.provide(
 							_dataSetObjectEntryManagerRegistry.
@@ -217,8 +233,7 @@ public class FDSFragmentRenderer implements FragmentRenderer {
 			JSONObject apiURLTokenMappingsJSONObject =
 				_getAPIURLTokenMappingsJSONObject(
 					(String)_fragmentEntryConfigurationParser.getFieldValue(
-						configurationJSONObject,
-						fragmentEntryLink.getEditableValuesJSONObject(),
+						configurationJSONObject, editableValuesJSONObject,
 						fragmentRendererContext.getLocale(),
 						"apiURLTokenMappings"));
 
@@ -236,7 +251,7 @@ public class FDSFragmentRenderer implements FragmentRenderer {
 			if (fragmentRendererContext.isEditMode()) {
 				if (hasTokens) {
 					_writeAutoResolvedTokenNames(
-						externalReferenceCode, fragmentEntryLink,
+						externalReferenceCode, fragmentRendererContext,
 						httpServletRequest);
 				}
 
@@ -345,6 +360,38 @@ public class FDSFragmentRenderer implements FragmentRenderer {
 		}
 
 		return tokenNames;
+	}
+
+	private JSONObject _getConfigurationValuesJSONObject(
+		FragmentRendererContext fragmentRendererContext) {
+
+		JSONObject editableValuesJSONObject =
+			fragmentRendererContext.getModifiableEditableValuesJSONObject();
+
+		if (editableValuesJSONObject == null) {
+			FragmentEntryLink fragmentEntryLink =
+				fragmentRendererContext.getFragmentEntryLink();
+
+			fragmentEntryLink.setEditableValues(_jsonFactory.getNullJSON());
+
+			return _jsonFactory.createJSONObject();
+		}
+
+		JSONObject configurationValuesJSONObject =
+			editableValuesJSONObject.getJSONObject(
+				FragmentEntryProcessorConstants.
+					KEY_FREEMARKER_FRAGMENT_ENTRY_PROCESSOR);
+
+		if (configurationValuesJSONObject == null) {
+			configurationValuesJSONObject = _jsonFactory.createJSONObject();
+
+			editableValuesJSONObject.put(
+				FragmentEntryProcessorConstants.
+					KEY_FREEMARKER_FRAGMENT_ENTRY_PROCESSOR,
+				configurationValuesJSONObject);
+		}
+
+		return configurationValuesJSONObject;
 	}
 
 	private String _getExternalReferenceCode(InfoItemDetails infoItemDetails) {
@@ -604,32 +651,12 @@ public class FDSFragmentRenderer implements FragmentRenderer {
 	}
 
 	private void _writeAutoResolvedTokenNames(
-		String externalReferenceCode, FragmentEntryLink fragmentEntryLink,
+		String externalReferenceCode,
+		FragmentRendererContext fragmentRendererContext,
 		HttpServletRequest httpServletRequest) {
 
-		JSONObject editableValuesJSONObject =
-			fragmentEntryLink.getEditableValuesJSONObject();
-
-		if (editableValuesJSONObject == null) {
-			editableValuesJSONObject = _jsonFactory.createJSONObject();
-
-			fragmentEntryLink.setEditableValues(
-				editableValuesJSONObject.toString());
-		}
-
-		JSONObject configurationJSONObject =
-			editableValuesJSONObject.getJSONObject(
-				FragmentEntryProcessorConstants.
-					KEY_FREEMARKER_FRAGMENT_ENTRY_PROCESSOR);
-
-		if (configurationJSONObject == null) {
-			configurationJSONObject = _jsonFactory.createJSONObject();
-
-			editableValuesJSONObject.put(
-				FragmentEntryProcessorConstants.
-					KEY_FREEMARKER_FRAGMENT_ENTRY_PROCESSOR,
-				configurationJSONObject);
-		}
+		JSONObject configurationValuesJSONObject =
+			_getConfigurationValuesJSONObject(fragmentRendererContext);
 
 		try {
 			JSONArray jsonArray = JSONUtil.toJSONArray(
@@ -637,7 +664,7 @@ public class FDSFragmentRenderer implements FragmentRenderer {
 					externalReferenceCode, httpServletRequest),
 				autoResolvedTokenName -> autoResolvedTokenName);
 
-			configurationJSONObject.put(
+			configurationValuesJSONObject.put(
 				"autoResolvedTokenNames", jsonArray.toString());
 		}
 		catch (Exception exception) {
@@ -646,6 +673,38 @@ public class FDSFragmentRenderer implements FragmentRenderer {
 					"Unable to write auto resolved token names", exception);
 			}
 		}
+	}
+
+	private void _writeClassName(
+		ObjectDefinition dataSetObjectDefinition,
+		FragmentRendererContext fragmentRendererContext) {
+
+		if (dataSetObjectDefinition == null) {
+			if (_log.isWarnEnabled()) {
+				FragmentEntryLink fragmentEntryLink =
+					fragmentRendererContext.getFragmentEntryLink();
+
+				_log.warn(
+					"L_DATA_SET object definition was not found for company " +
+						fragmentEntryLink.getCompanyId());
+			}
+
+			return;
+		}
+
+		JSONObject configurationValuesJSONObject =
+			_getConfigurationValuesJSONObject(fragmentRendererContext);
+
+		JSONObject jsonObject = configurationValuesJSONObject.getJSONObject(
+			"itemSelector");
+
+		if (jsonObject == null) {
+			jsonObject = _jsonFactory.createJSONObject();
+
+			configurationValuesJSONObject.put("itemSelector", jsonObject);
+		}
+
+		jsonObject.put("className", dataSetObjectDefinition.getClassName());
 	}
 
 	private void _writeDestroyPreviousComponentScript(

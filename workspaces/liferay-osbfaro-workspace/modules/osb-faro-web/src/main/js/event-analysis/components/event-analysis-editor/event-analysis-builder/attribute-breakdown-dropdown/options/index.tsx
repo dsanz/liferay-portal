@@ -1,21 +1,13 @@
 import ClayButton from '@clayui/button';
-import ClayIcon from '@clayui/icon';
+import ClayIcon from 'shared/components/Icon';
 import DateBreakdown from './DateBreakdown';
 import DurationBreakdown from './DurationBreakdown';
 import FilterInfo from '../../FilterInfo';
 import NumberBreakdown from './NumberBreakdown';
 import React from 'react';
-import {
-	AddBreakdown,
-	EditBreakdown,
-	withAttributesConsumer,
-} from '../../../context/attributes';
-import {
-	Attribute,
-	AttributeOwnerTypes,
-	Breakdowns,
-	DataTypes,
-} from 'event-analysis/utils/types';
+import {DataTypes} from 'shared/types/DataTypes';
+import {Attribute, AttributeOwnerTypes} from 'event-analysis/utils/types';
+import {useAttributes} from '../../../context/attributes';
 
 import {IBreakdownProps} from 'event-analysis/utils/types';
 
@@ -26,28 +18,22 @@ const BREAKDOWNS_MAP: Partial<Record<DataTypes, React.FC<IBreakdownProps>>> = {
 };
 
 interface IBreakdownOptionsProps extends React.HTMLAttributes<HTMLDivElement> {
-	addBreakdown: AddBreakdown;
 	attribute: Attribute;
 	attributeOwnerType: AttributeOwnerTypes;
-	breakdownId?: string;
-	breakdowns: Breakdowns;
-	editBreakdown: EditBreakdown;
 	onActiveChange: (active: boolean) => void;
 	onAttributeChange: (attribute?: Attribute) => void;
 	onEditClick?: (id: string) => void;
 }
 
 const BreakdownOptions: React.FC<IBreakdownOptionsProps> = ({
-	addBreakdown,
 	attribute,
 	attributeOwnerType,
-	breakdownId,
-	breakdowns,
-	editBreakdown,
 	onActiveChange,
 	onAttributeChange,
 	onEditClick,
 }) => {
+	const {addBreakdown} = useAttributes();
+
 	const {
 		dataType,
 		description,
@@ -55,8 +41,6 @@ const BreakdownOptions: React.FC<IBreakdownOptionsProps> = ({
 		id: attributeId,
 		name,
 	} = attribute;
-
-	const breakdown = breakdownId ? breakdowns[breakdownId] : undefined;
 
 	const BreakdownBody = BREAKDOWNS_MAP[dataType];
 
@@ -91,27 +75,13 @@ const BreakdownOptions: React.FC<IBreakdownOptionsProps> = ({
 			<BreakdownBody
 				attributeId={attributeId}
 				attributeOwnerType={attributeOwnerType}
-				breakdown={
-					breakdown?.attributeId === attributeId
-						? breakdown
-						: undefined
-				}
 				description={description}
 				displayName={displayName ?? ''}
 				onSubmit={(newBreakdown: IBreakdownProps['breakdown']) => {
-					if (breakdownId) {
-						editBreakdown({
-							attribute,
-							breakdown: newBreakdown!,
-							id: breakdownId,
-						});
-					}
-					else {
-						addBreakdown({
-							attribute,
-							breakdown: newBreakdown!,
-						});
-					}
+					addBreakdown({
+						attribute,
+						breakdown: newBreakdown!,
+					});
 
 					onAttributeChange(undefined);
 
@@ -122,4 +92,4 @@ const BreakdownOptions: React.FC<IBreakdownOptionsProps> = ({
 	);
 };
 
-export default withAttributesConsumer(BreakdownOptions);
+export default BreakdownOptions;

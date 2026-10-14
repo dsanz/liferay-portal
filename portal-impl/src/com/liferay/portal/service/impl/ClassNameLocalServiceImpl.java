@@ -17,7 +17,6 @@ import com.liferay.portal.kernel.model.CompanyConstants;
 import com.liferay.portal.kernel.model.ModelHintsUtil;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.transaction.Propagation;
-import com.liferay.portal.kernel.transaction.TransactionCallbackUtil;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.PropsValues;
@@ -50,20 +49,6 @@ public class ClassNameLocalServiceImpl
 			className.setValue(value);
 
 			className = classNamePersistence.update(className);
-
-			ClassName newClassName = className;
-
-			// The pool has no transaction awareness, so a created row must
-			// only publish after its transaction commits. Publishing earlier
-			// leaks the class name ID into the pool even when the insert rolls
-			// back, and the pool then serves an ID that has no backing row.
-
-			TransactionCallbackUtil.registerCommitCallback(
-				() -> {
-					ClassNamePool.add(newClassName);
-
-					return null;
-				});
 		}
 		else {
 			ClassNamePool.add(className);
@@ -101,9 +86,11 @@ public class ClassNameLocalServiceImpl
 	public ClassName fetchByClassNameId(long classNameId) {
 		ClassName className = ClassNamePool.fetchByClassNameId(classNameId);
 
-		if (className == null) {
-			className = classNamePersistence.fetchByPrimaryKey(classNameId);
+		if (className != null) {
+			return className;
 		}
+
+		className = classNamePersistence.fetchByPrimaryKey(classNameId);
 
 		ClassNamePool.add(className);
 
@@ -118,9 +105,11 @@ public class ClassNameLocalServiceImpl
 
 		ClassName className = ClassNamePool.fetchByValue(value);
 
-		if (className == null) {
-			className = classNamePersistence.fetchByValue(value);
+		if (className != null) {
+			return className;
 		}
+
+		className = classNamePersistence.fetchByValue(value);
 
 		if (className == null) {
 			return _nullClassName;
@@ -164,7 +153,7 @@ public class ClassNameLocalServiceImpl
 		}
 
 		try {
-			return classNameLocalService.addClassName(value);
+			className = classNameLocalService.addClassName(value);
 		}
 		catch (Throwable throwable) {
 			if (_log.isDebugEnabled()) {
@@ -177,8 +166,12 @@ public class ClassNameLocalServiceImpl
 			// current transaction's uncommitted writes, so the retry returns
 			// the winner's committed row or fails for real.
 
-			return classNameLocalService.addClassName(value);
+			className = classNameLocalService.addClassName(value);
 		}
+
+		ClassNamePool.add(className);
+
+		return className;
 	}
 
 	@Override
@@ -193,6 +186,11 @@ public class ClassNameLocalServiceImpl
 		ClassName className = getClassName(value);
 
 		return className.getClassNameId();
+	}
+
+	@Override
+	public Supplier<Long> getClassNameIdSupplier(String className) {
+		return () -> getClassNameId(className);
 	}
 
 	@Override
@@ -219,11 +217,6 @@ public class ClassNameLocalServiceImpl
 
 			return classNameIds;
 		};
-	}
-
-	@Override
-	public Supplier<Long> getClassNameIdSupplier(String className) {
-		return () -> getClassNameId(className);
 	}
 
 	@Override

@@ -1,19 +1,25 @@
 {{- if $backup.enabled }}
 {{- $anchorDates := dict "Friday" "2024-01-05" "Monday" "2024-01-01" "Saturday" "2024-01-06" "Sunday" "2024-01-07" "Thursday" "2024-01-04" "Tuesday" "2024-01-02" "Wednesday" "2024-01-03" -}}
-{{- $forceDestroy := $xr.spec.forceDestroy | default false -}}
-{{- $isWeekly := eq ($backup.frequency | default "Daily") "Weekly" -}}
+{{- $forceDestroy := $xr.spec.forceDestroy -}}
+{{- $isWeekly := eq $backup.frequency "Weekly" -}}
 
-{{- $anchorDate := $isWeekly | ternary (index $anchorDates ($backup.dayOfWeek | default "Sunday")) "2024-01-01" -}}
+{{- $anchorDate := $isWeekly | ternary (index $anchorDates $backup.dayOfWeek) "2024-01-01" -}}
 {{- $backupRestoreIdentityName := printf "%s-backup-restore" $baseName -}}
 {{- $backupRetentionDuration := printf "P%dD" $backupRetentionDays -}}
-{{- $backupVaultName := printf "%s-vault" $baseName -}}
 
-{{- $backupRepeatingTimeInterval := printf "R/%sT%s:00+00:00/%s" $anchorDate ($backup.timeOfDay | default "05:00") ($isWeekly | ternary "P1W" "P1D") -}}
+{{- $backupRepeatingTimeInterval := printf "R/%sT%s:00+00:00/%s" $anchorDate $backup.timeOfDay ($isWeekly | ternary "P1W" "P1D") -}}
 
-{{- $backupScheduleHash := printf "%s|%s|%s" $backupRepeatingTimeInterval ($backup.timeZone | default "UTC") $backupRetentionDuration | sha256sum | trunc 6 -}}
+{{- $backupScheduleHash := printf "%s|%s|%s" $backupRepeatingTimeInterval $backup.timeZone $backupRetentionDuration | sha256sum | trunc 6 -}}
 
 {{- $backupPolicyStorageName := printf "%s-storage-policy-%s" $backupVaultName $backupScheduleHash -}}
 
+{{- $backupInstanceDataPlanes := list $activeDataPlane -}}
+
+{{- if $demotedDataPlane -}}
+    {{- $backupInstanceDataPlanes = append $backupInstanceDataPlanes $demotedDataPlane -}}
+{{- end }}
+
+{{- $backupRestoreIdentityClientId := dig "liferay-backup-restore-identity" "resource" "status" "atProvider" "clientId" "" $observedResources -}}
 {{- $backupRestoreIdentityPrincipalId := dig "liferay-backup-restore-identity" "resource" "status" "atProvider" "principalId" "" $observedResources -}}
 {{- $backupVaultIdentity := dig "liferay-backup-vault" "resource" "status" "atProvider" "identity" dict $observedResources -}}
 
@@ -27,7 +33,6 @@ metadata:
     annotations:
         gotemplating.fn.crossplane.io/composition-resource-name: liferay-backup-vault-storage-{{ $dataPlane }}
     labels:
-        {{- $tags | toYaml | nindent 8 }}
         dataPlane: {{ $dataPlane }}
     name: {{ $backupVaultName }}-storage-{{ $dataPlane }}
 spec:
@@ -35,7 +40,7 @@ spec:
         principalId: {{ $backupVaultPrincipalId }}
         principalType: ServicePrincipal
         roleDefinitionName: Storage Account Backup Contributor
-        scope: /subscriptions/{{ $env.subscriptionId }}/resourceGroups/{{ $env.resourceGroupName }}/providers/Microsoft.Storage/storageAccounts/{{ $storageAccountBase }}{{ trunc 1 $dataPlane }}
+        scope: /subscriptions/{{ $env.subscriptionId }}/resourceGroups/{{ $env.resourceGroupName }}/providers/Microsoft.Storage/storageAccounts/{{ index $storageAccountNames $dataPlane }}
     managementPolicies: {{ $managementPolicies }}
     providerConfigRef:
         kind: ClusterProviderConfig
@@ -44,19 +49,118 @@ spec:
 {{- end }}
 {{- end }}
 {{- if $backupRestoreIdentityPrincipalId }}
+{{- range $dataPlane := $dataPlanes }}
 apiVersion: authorization.azure.m.upbound.io/v1beta1
 kind: RoleAssignment
 metadata:
     annotations:
-        gotemplating.fn.crossplane.io/composition-resource-name: liferay-backup-restore-vault-backup-operator
+        gotemplating.fn.crossplane.io/composition-resource-name: liferay-backup-restore-database-{{ $dataPlane }}
     labels:
-        {{- $tags | toYaml | nindent 8 }}
-    name: {{ $backupRestoreIdentityName }}-vault-backup-operator
+        dataPlane: {{ $dataPlane }}
+    name: {{ $backupRestoreIdentityName }}-database-{{ $dataPlane }}
 spec:
     forProvider:
         principalId: {{ $backupRestoreIdentityPrincipalId }}
         principalType: ServicePrincipal
-        roleDefinitionName: Backup Operator
+        roleDefinitionName: Reader
+        scope: /subscriptions/{{ $env.subscriptionId }}/resourceGroups/{{ $env.resourceGroupName }}/providers/Microsoft.DBforPostgreSQL/flexibleServers/{{ index $databaseServerNames $dataPlane }}
+    managementPolicies: {{ $managementPolicies }}
+    providerConfigRef:
+        kind: ClusterProviderConfig
+        name: iam
+---
+{{- end }}
+{{- range $retainedDataPlaneKey, $_ := $retainedDataPlanes }}
+{{- if not (has $retainedDataPlaneKey $renderedDataPlaneKeys) }}
+apiVersion: authorization.azure.m.upbound.io/v1beta1
+kind: RoleAssignment
+metadata:
+    annotations:
+        gotemplating.fn.crossplane.io/composition-resource-name: liferay-backup-restore-database-retained-{{ $retainedDataPlaneKey }}
+    labels:
+        retainedDataPlane: {{ $retainedDataPlaneKey }}
+    name: {{ $backupRestoreIdentityName }}-database-retained-{{ $retainedDataPlaneKey }}
+spec:
+    forProvider:
+        principalId: {{ $backupRestoreIdentityPrincipalId }}
+        principalType: ServicePrincipal
+        roleDefinitionName: Reader
+        scope: /subscriptions/{{ $env.subscriptionId }}/resourceGroups/{{ $env.resourceGroupName }}/providers/Microsoft.DBforPostgreSQL/flexibleServers/{{ index $dataPlaneNames $retainedDataPlaneKey "databaseServer" }}
+    managementPolicies: {{ $managementPolicies }}
+    providerConfigRef:
+        kind: ClusterProviderConfig
+        name: iam
+---
+{{- end }}
+{{- end }}
+{{- range $dataPlane := $dataPlanes }}
+apiVersion: authorization.azure.m.upbound.io/v1beta1
+kind: RoleAssignment
+metadata:
+    annotations:
+        gotemplating.fn.crossplane.io/composition-resource-name: liferay-backup-restore-storage-{{ $dataPlane }}
+    labels:
+        dataPlane: {{ $dataPlane }}
+    name: {{ $backupRestoreIdentityName }}-storage-{{ $dataPlane }}
+spec:
+    forProvider:
+        principalId: {{ $backupRestoreIdentityPrincipalId }}
+        principalType: ServicePrincipal
+        roleDefinitionName: Storage Blob Data Contributor
+        scope: /subscriptions/{{ $env.subscriptionId }}/resourceGroups/{{ $env.resourceGroupName }}/providers/Microsoft.Storage/storageAccounts/{{ index $storageAccountNames $dataPlane }}
+    managementPolicies: {{ $managementPolicies }}
+    providerConfigRef:
+        kind: ClusterProviderConfig
+        name: iam
+---
+apiVersion: authorization.azure.m.upbound.io/v1beta1
+kind: RoleAssignment
+metadata:
+    annotations:
+        gotemplating.fn.crossplane.io/composition-resource-name: liferay-backup-restore-storage-reader-{{ $dataPlane }}
+    labels:
+        dataPlane: {{ $dataPlane }}
+    name: {{ $backupRestoreIdentityName }}-storage-reader-{{ $dataPlane }}
+spec:
+    forProvider:
+        principalId: {{ $backupRestoreIdentityPrincipalId }}
+        principalType: ServicePrincipal
+        roleDefinitionName: Reader
+        scope: /subscriptions/{{ $env.subscriptionId }}/resourceGroups/{{ $env.resourceGroupName }}/providers/Microsoft.Storage/storageAccounts/{{ index $storageAccountNames $dataPlane }}
+    managementPolicies: {{ $managementPolicies }}
+    providerConfigRef:
+        kind: ClusterProviderConfig
+        name: iam
+---
+{{- end }}
+apiVersion: authorization.azure.m.upbound.io/v1beta1
+kind: RoleAssignment
+metadata:
+    annotations:
+        gotemplating.fn.crossplane.io/composition-resource-name: liferay-backup-restore-vault-backup-contributor
+    name: {{ $backupRestoreIdentityName }}-vault-backup-contributor
+spec:
+    forProvider:
+        principalId: {{ $backupRestoreIdentityPrincipalId }}
+        principalType: ServicePrincipal
+        roleDefinitionName: Backup Contributor
+        scope: /subscriptions/{{ $env.subscriptionId }}/resourceGroups/{{ $env.resourceGroupName }}/providers/Microsoft.DataProtection/backupVaults/{{ $backupVaultName }}
+    managementPolicies: {{ $managementPolicies }}
+    providerConfigRef:
+        kind: ClusterProviderConfig
+        name: iam
+---
+apiVersion: authorization.azure.m.upbound.io/v1beta1
+kind: RoleAssignment
+metadata:
+    annotations:
+        gotemplating.fn.crossplane.io/composition-resource-name: liferay-backup-restore-vault-reader
+    name: {{ $backupRestoreIdentityName }}-vault-reader
+spec:
+    forProvider:
+        principalId: {{ $backupRestoreIdentityPrincipalId }}
+        principalType: ServicePrincipal
+        roleDefinitionName: Reader
         scope: /subscriptions/{{ $env.subscriptionId }}/resourceGroups/{{ $env.resourceGroupName }}/providers/Microsoft.DataProtection/backupVaults/{{ $backupVaultName }}
     managementPolicies: {{ $managementPolicies }}
     providerConfigRef:
@@ -64,7 +168,7 @@ spec:
         name: iam
 ---
 {{- end }}
-{{- range $dataPlane := $dataPlanes }}
+{{- range $dataPlane := $backupInstanceDataPlanes }}
 {{- $backupRoleId := dig (printf "liferay-backup-vault-storage-%s" $dataPlane) "resource" "status" "atProvider" "id" "" $observedResources }}
 {{- if $backupRoleId }}
 apiVersion: dataprotection.azure.m.upbound.io/v1beta1
@@ -73,9 +177,9 @@ metadata:
     annotations:
         gotemplating.fn.crossplane.io/composition-resource-name: liferay-backup-instance-storage-{{ $dataPlane }}
     labels:
-        {{- $tags | toYaml | nindent 8 }}
         dataPlane: {{ $dataPlane }}
-    name: {{ $backupVaultName }}-storage-instance-{{ $dataPlane }}
+        dataPlaneKey: {{ index $dataPlaneKeys $dataPlane }}
+    name: {{ index $dataPlaneNames (index $dataPlaneKeys $dataPlane) "backupInstance" }}
 spec:
     forProvider:
         backupPolicyIdRef:
@@ -91,7 +195,26 @@ spec:
                 dataPlane: {{ $dataPlane }}
         vaultIdRef:
             name: {{ $backupVaultName }}
-    managementPolicies: {{ $managementPolicies }}
+    managementPolicies: {{ (eq $dataPlane $demotedDataPlane) | ternary $demotedManagementPolicies $managementPolicies }}
+---
+{{- end }}
+{{- end }}
+{{- range $retainedDataPlaneKey, $_ := $retainedDataPlanes }}
+{{- if not (has $retainedDataPlaneKey $renderedDataPlaneKeys) }}
+{{- $retainedBackupInstanceName := index $dataPlaneNames $retainedDataPlaneKey "backupInstance" }}
+apiVersion: dataprotection.azure.m.upbound.io/v1beta1
+kind: BackupInstanceBlobStorage
+metadata:
+    annotations:
+        crossplane.io/external-name: {{ $retainedBackupInstanceName }}
+        gotemplating.fn.crossplane.io/composition-resource-name: liferay-backup-instance-retained-{{ $retainedDataPlaneKey }}
+    labels:
+        retainedDataPlane: {{ $retainedDataPlaneKey }}
+    name: {{ $retainedBackupInstanceName }}-retained
+spec:
+    forProvider:
+        vaultId: /subscriptions/{{ $env.subscriptionId }}/resourceGroups/{{ $env.resourceGroupName }}/providers/Microsoft.DataProtection/backupVaults/{{ $backupVaultName }}
+    managementPolicies: {{ list "Delete" "Observe" | toJson }}
 ---
 {{- end }}
 {{- end }}
@@ -100,14 +223,12 @@ kind: BackupPolicyBlobStorage
 metadata:
     annotations:
         gotemplating.fn.crossplane.io/composition-resource-name: liferay-backup-policy-storage-{{ $backupScheduleHash }}
-    labels:
-        {{- $tags | toYaml | nindent 8 }}
     name: {{ $backupPolicyStorageName }}
 spec:
     forProvider:
         backupRepeatingTimeIntervals:
             -   {{ $backupRepeatingTimeInterval }}
-        timeZone: {{ $backup.timeZone | default "UTC" }}
+        timeZone: {{ $backup.timeZone }}
         vaultDefaultRetentionDuration: {{ $backupRetentionDuration }}
         vaultIdRef:
             name: {{ $backupVaultName }}
@@ -118,8 +239,6 @@ kind: BackupVault
 metadata:
     annotations:
         gotemplating.fn.crossplane.io/composition-resource-name: liferay-backup-vault
-    labels:
-        {{- $tags | toYaml | nindent 8 }}
     name: {{ $backupVaultName }}
 spec:
     forProvider:
@@ -131,17 +250,97 @@ spec:
         resourceGroupName: {{ $env.resourceGroupName }}
         retentionDurationInDays: 14
         softDelete: {{ $forceDestroy | ternary "Off" "On" | quote }}
+        {{- with $backup.vaultTags }}
         tags:
-            {{- merge (dict) $tags ($backup.vaultTags | default dict) | toYaml | nindent 12 }}
+            {{- . | toYaml | nindent 12 }}
+        {{- end }}
     managementPolicies: {{ $managementPolicies }}
 ---
+apiVersion: kubernetes.m.crossplane.io/v1alpha1
+kind: Object
+metadata:
+    annotations:
+        gotemplating.fn.crossplane.io/composition-resource-name: backup-restore-release-cron-workflow
+    name: {{ $baseName }}-backup-restore-release-cron-workflow
+spec:
+    forProvider:
+        manifest:
+            apiVersion: argoproj.io/v1alpha1
+            kind: CronWorkflow
+            metadata:
+                name: backup-restore-release-cron-workflow
+                namespace: {{ $namespace }}
+            spec:
+                concurrencyPolicy: Forbid
+                schedules:
+                    -   0 * * * *
+                startingDeadlineSeconds: 300
+                workflowSpec:
+                    entrypoint: main
+                    podGC:
+                        strategy: OnWorkflowSuccess
+                    serviceAccountName: backup-restore-service-account
+                    templates:
+                        -   name: main
+                            steps:
+                                -   -   name: release-retained-data-planes
+                                        templateRef:
+                                            clusterScope: true
+                                            name: backup-restore-cluster-workflow-template
+                                            template: release-retained-data-planes
+                    ttlStrategy:
+                        secondsAfterCompletion: 86400
+    managementPolicies: {{ $managementPolicies }}
+---
+apiVersion: kubernetes.m.crossplane.io/v1alpha1
+kind: Object
+metadata:
+    annotations:
+        gotemplating.fn.crossplane.io/composition-resource-name: backup-restore-role-binding
+    name: {{ $baseName }}-backup-restore-role-binding
+spec:
+    forProvider:
+        manifest:
+            apiVersion: rbac.authorization.k8s.io/v1
+            kind: RoleBinding
+            metadata:
+                name: backup-restore-role-binding
+                namespace: {{ $namespace }}
+            roleRef:
+                apiGroup: rbac.authorization.k8s.io
+                kind: ClusterRole
+                name: backup-restore-cluster-role
+            subjects:
+                -   kind: ServiceAccount
+                    name: backup-restore-service-account
+                    namespace: {{ $namespace }}
+    managementPolicies: {{ $managementPolicies }}
+---
+{{- if $backupRestoreIdentityClientId }}
+apiVersion: kubernetes.m.crossplane.io/v1alpha1
+kind: Object
+metadata:
+    annotations:
+        gotemplating.fn.crossplane.io/composition-resource-name: backup-restore-service-account
+    name: {{ $baseName }}-backup-restore-service-account
+spec:
+    forProvider:
+        manifest:
+            apiVersion: v1
+            kind: ServiceAccount
+            metadata:
+                annotations:
+                    azure.workload.identity/client-id: {{ $backupRestoreIdentityClientId }}
+                name: backup-restore-service-account
+                namespace: {{ $namespace }}
+    managementPolicies: {{ $managementPolicies }}
+---
+{{- end }}
 apiVersion: managedidentity.azure.m.upbound.io/v1beta1
 kind: FederatedIdentityCredential
 metadata:
     annotations:
         gotemplating.fn.crossplane.io/composition-resource-name: liferay-backup-restore-identity-federation
-    labels:
-        {{- $tags | toYaml | nindent 8 }}
     name: {{ $backupRestoreIdentityName }}-federation
 spec:
     forProvider:
@@ -162,18 +361,41 @@ kind: UserAssignedIdentity
 metadata:
     annotations:
         gotemplating.fn.crossplane.io/composition-resource-name: liferay-backup-restore-identity
-    labels:
-        {{- $tags | toYaml | nindent 8 }}
     name: {{ $backupRestoreIdentityName }}
 spec:
     forProvider:
         location: {{ $region }}
         name: {{ $backupRestoreIdentityName }}
         resourceGroupName: {{ $env.resourceGroupName }}
-        tags:
-            {{- $tags | toYaml | nindent 12 }}
     managementPolicies: {{ $managementPolicies }}
     providerConfigRef:
         kind: ClusterProviderConfig
         name: iam
+{{- range $dataPlane := $backupInstanceDataPlanes }}
+{{- if dig (printf "liferay-backup-vault-storage-%s" $dataPlane) "resource" "status" "atProvider" "id" "" $observedResources }}
+---
+apiVersion: protection.crossplane.io/v1beta1
+kind: Usage
+metadata:
+    annotations:
+        gotemplating.fn.crossplane.io/composition-resource-name: usage-storage-account-by-backup-instance-{{ $dataPlane }}
+    name: {{ $xr.metadata.name }}-storage-account-by-backup-instance-{{ $dataPlane }}
+    namespace: {{ $namespace }}
+spec:
+    by:
+        apiVersion: dataprotection.azure.m.upbound.io/v1beta1
+        kind: BackupInstanceBlobStorage
+        resourceSelector:
+            matchControllerRef: true
+            matchLabels:
+                dataPlane: {{ $dataPlane }}
+    of:
+        apiVersion: storage.azure.m.upbound.io/v1beta1
+        kind: Account
+        resourceSelector:
+            matchControllerRef: true
+            matchLabels:
+                dataPlane: {{ $dataPlane }}
+{{- end }}
+{{- end }}
 {{- end }}

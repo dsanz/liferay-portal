@@ -10,7 +10,6 @@
 		"@types/react-router-dom": "5.3.3",
 		"@types/react-transition-group": "4.4.12",
 		"@types/tinycolor2": "1.4.3",
-		"@types/uuid": "10.0.0",
 		"@types/vfile-message": "2.0.0",
 		"@types/warning": "3.0.0",
 		"@types/yauzl": "2.10.3",
@@ -20,7 +19,6 @@
 	},
 	"private": true,
 	"resolutions": {
-		"liferay-theme-tasks/**/websocket-driver": "0.7.5",
 		"webpack-dev-server/**/websocket-driver": "0.7.5"
 	},
 	"scripts": {
@@ -39,6 +37,7 @@
 			"dxp/apps/osb/osb-patcher/*",
 			"frontend-sdk/*",
 			"test/playwright",
+			"test/playwright-core",
 			"util/portal-tools-rest-builder-test-client-js"
 		]
 	}

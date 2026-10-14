@@ -175,14 +175,14 @@ definition {
 
 		AssertTextEquals(
 			locator1 = "Message#EMPTY_DEPOT_ROLE",
-			value1 = "This user is not assigned any asset library roles.");
+			value1 = "This user is not assigned any asset library or space roles.");
 
 		Role.openRolesAdmin();
 
-		RoleNavigator.gotoRoleType(roleType = "Asset Library");
+		RoleNavigator.gotoRoleType(roleType = "Space");
 
 		AssertTextEquals(
-			key_itemName = "Asset Library Connected Site Member",
+			key_itemName = "Space Connected Site Member",
 			locator1 = "ListGroupItem#ITEM_SUB_INFO",
 			value1 = "This role is automatically assigned.");
 
@@ -459,38 +459,13 @@ definition {
 			dmDocumentVersionNumber = "1.1");
 	}
 
-	@description = "This ensures that an asset library role can be deleted."
+	@description = "This ensures that an asset library role can be edited and deleted."
 	@priority = 5
 	@refactordone
-	test CanDeleteALRole {
-		JSONRole.addDepotRole(roleTitle = "AL Role Name");
-
-		Permissions.definePermissionViaJSONAPI(
-			resourceAction = "VIEW",
-			resourceName = "com.liferay.document.library.kernel.model.DLFileEntry",
-			roleTitle = "AL Role Name",
-			roleType = "asset library");
-
+	test CanEditAndDeleteALRole {
 		Role.openRolesAdmin();
 
-		RoleNavigator.gotoRoleType(roleType = "Asset Library");
-
-		LexiconEntry.delete(rowEntry = "AL Role Name");
-
-		Role.openRolesAdmin();
-
-		RoleNavigator.gotoRoleType(roleType = "Asset Library");
-
-		Role.viewDefaultCP(roleTitle = "AL Role Name");
-	}
-
-	@description = "This ensures that an asset library role can be edited."
-	@priority = 5
-	@refactordone
-	test CanEditALRole {
-		Role.openRolesAdmin();
-
-		RoleNavigator.gotoRoleType(roleType = "Asset Library");
+		RoleNavigator.gotoRoleType(roleType = "Space");
 
 		Role.add(roleTitle = "AL Role Name");
 
@@ -504,11 +479,11 @@ definition {
 
 		Role.viewCP(
 			roleTitle = "AL Role Name",
-			roleType = "Asset Library");
+			roleType = "Space");
 
 		Role.openRolesAdmin();
 
-		RoleNavigator.gotoRoleType(roleType = "Asset Library");
+		RoleNavigator.gotoRoleType(roleType = "Space");
 
 		LexiconEntry.gotoEntry(rowEntry = "AL Role Name");
 
@@ -520,6 +495,18 @@ definition {
 			permissionNavItem = "Documents and Media",
 			permissionSheetSubtitle = "Documents",
 			permissionValues = "Add Document");
+
+		Role.openRolesAdmin();
+
+		RoleNavigator.gotoRoleType(roleType = "Space");
+
+		LexiconEntry.delete(rowEntry = "AL Role Name Edit");
+
+		Role.openRolesAdmin();
+
+		RoleNavigator.gotoRoleType(roleType = "Space");
+
+		Role.viewDefaultCP(roleTitle = "AL Role Name Edit");
 	}
 
 	@description = "This ensures that an asset library role can be edited."
@@ -550,9 +537,9 @@ definition {
 
 		Role.openRolesAdmin();
 
-		Navigator.gotoNavItem(navItem = "Asset Library Roles");
+		Navigator.gotoNavItem(navItem = "Space Roles");
 
-		PermissionsInline.gotoRolePermissions(roleName = "Asset Library Content Reviewer");
+		PermissionsInline.gotoRolePermissions(roleName = "Space Content Reviewer");
 
 		Role.definePermissionPG(
 			permissionDefinitionKey = "CONTENT_PERMISSIONS_ASSIGN_MEMBERS_CHECKBOX",
@@ -571,16 +558,16 @@ definition {
 		SelectFrame(locator1 = "IFrame#MODAL_BODY");
 
 		AssertTextEquals(
-			key_card = "Asset Library Content Reviewer",
+			key_card = "Space Content Reviewer",
 			locator1 = "Card#CARD_TITLE",
-			value1 = "Asset Library Content Reviewer");
+			value1 = "Space Content Reviewer");
 
 		AssertElementNotPresent(
-			key_card = "Asset Library Administrator",
+			key_card = "Space Administrator",
 			locator1 = "Card#CARD_TITLE");
 
 		AssertElementNotPresent(
-			key_card = "Asset Library Owner",
+			key_card = "Space Owner",
 			locator1 = "Card#CARD_TITLE");
 	}
 
@@ -619,7 +606,7 @@ definition {
 
 		AssertTextEquals(
 			locator1 = "Message#EMPTY_DEPOT_ROLE",
-			value1 = "This user is not assigned any asset library roles.");
+			value1 = "This user is not assigned any asset library or space roles.");
 
 		AssertClick(
 			key_roleType = "DepotRole",
@@ -630,7 +617,7 @@ definition {
 
 		AssertTextEquals(
 			locator1 = "Message#EMPTY_INFO_TAGLIB",
-			value1 = "No asset libraries were found.");
+			value1 = "No asset libraries or spaces were found.");
 
 		User.openUsersAdmin();
 
@@ -679,19 +666,19 @@ definition {
 		DepotNavigator.openDepotMembershipsAdmin(depotName = "Test Depot Name");
 
 		Depot.assignAssetLibraryRole(
-			checkAllRoles = "Asset Library Administrator,Asset Library Owner,Asset Library Content Reviewer",
+			checkAllRoles = "Space Administrator,Space Owner,Space Content Reviewer",
 			resourceName = "userfn userln",
-			roleTitle = "Asset Library Owner");
+			roleTitle = "Space Owner");
 
 		ManagementBar.setFilterAndOrder(filterBy = "Roles");
 
 		SelectFrame(locator1 = "IFrame#MODAL_BODY");
 
-		for (var roleTitle : list "Asset Library Administrator,Asset Library Owner,Asset Library Content Reviewer") {
+		for (var roleTitle : list "Space Administrator,Space Owner,Space Content Reviewer") {
 			LexiconEntry.viewEntryName(rowEntry = ${roleTitle});
 		}
 
-		LexiconCard.clickCardTitle(card = "Asset Library Owner");
+		LexiconCard.clickCardTitle(card = "Space Owner");
 
 		SelectFrameTop();
 

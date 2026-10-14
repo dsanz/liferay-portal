@@ -8,6 +8,7 @@ package com.liferay.source.formatter.processor;
 import com.liferay.petra.io.unsync.UnsyncByteArrayOutputStream;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.poshi.core.PoshiContext;
+import com.liferay.poshi.core.PoshiProperties;
 import com.liferay.poshi.core.elements.PoshiElement;
 import com.liferay.poshi.core.elements.PoshiNodeFactory;
 import com.liferay.poshi.core.script.PoshiScriptParserException;
@@ -17,8 +18,6 @@ import com.liferay.source.formatter.check.util.SourceUtil;
 import com.liferay.source.formatter.util.DebugUtil;
 
 import java.io.File;
-import java.io.FileDescriptor;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 
@@ -91,26 +90,8 @@ public class PoshiSourceProcessor extends BaseSourceProcessor {
 
 		_populateFunctionAndMacroFiles();
 
-		System.out.flush();
-
-		UnsyncByteArrayOutputStream unsyncByteArrayOutputStream =
-			new UnsyncByteArrayOutputStream();
-
-		PrintStream printStream = new PrintStream(unsyncByteArrayOutputStream);
-
-		System.setOut(printStream);
-
 		PoshiElement poshiElement = (PoshiElement)PoshiNodeFactory.newPoshiNode(
 			content, FileUtil.getURL(file));
-
-		System.out.flush();
-
-		FileOutputStream fileOutputStream = new FileOutputStream(
-			FileDescriptor.out);
-
-		printStream = new PrintStream(fileOutputStream);
-
-		System.setOut(printStream);
 
 		PoshiScriptParserException.throwExceptions(
 			SourceUtil.getAbsolutePath(file));
@@ -129,6 +110,30 @@ public class PoshiSourceProcessor extends BaseSourceProcessor {
 		}
 
 		return newContent;
+	}
+
+	@Override
+	protected void preFormat() throws Exception {
+
+		// The static initializer of PoshiProperties prints every Poshi
+		// property to System.out. It runs only once, the first time the class
+		// is used, which would otherwise be when parse creates the first
+		// PoshiNode. Trigger it here, before parse runs on multiple threads,
+		// so the listing goes to a discarded stream and parse never needs to
+		// redirect System.out
+
+		PrintStream printStream = System.out;
+
+		printStream.flush();
+
+		System.setOut(new PrintStream(new UnsyncByteArrayOutputStream()));
+
+		try {
+			PoshiProperties.getPoshiProperties();
+		}
+		finally {
+			System.setOut(printStream);
+		}
 	}
 
 	private synchronized void _populateFunctionAndMacroFiles()

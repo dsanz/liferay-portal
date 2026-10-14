@@ -53,7 +53,7 @@ if (liveLayout != null) {
 									<c:when test="<%= !remoteSiteURL.isEmpty() %>">
 										<clay:link
 											cssClass="nav-link"
-											href="<%= HtmlUtil.escape(remoteSiteURL) %>"
+											href="<%= HtmlUtil.escapeHREF(remoteSiteURL) %>"
 											icon="home"
 											label="go-to-remote-live"
 										/>

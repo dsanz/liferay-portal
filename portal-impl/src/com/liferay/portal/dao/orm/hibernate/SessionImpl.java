@@ -8,6 +8,7 @@ package com.liferay.portal.dao.orm.hibernate;
 import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.lang.ThreadContextClassLoaderUtil;
+import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.petra.sql.dsl.spi.ast.DefaultASTNodeListener;
 import com.liferay.petra.string.StringBundler;
@@ -21,11 +22,16 @@ import com.liferay.portal.kernel.dao.orm.Session;
 
 import java.io.Serializable;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+
 import java.sql.Connection;
 import java.sql.SQLException;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.hibernate.LockOptions;
 import org.hibernate.engine.spi.EntityKey;
@@ -58,6 +64,22 @@ public class SessionImpl implements Session {
 		}
 		catch (Exception exception) {
 			throw ExceptionTranslator.translate(exception);
+		}
+	}
+
+	@Override
+	public boolean autoFlushIfRequired(Set<String> querySpaces)
+		throws ORMException {
+
+		try {
+			return (boolean)_autoFlushIfRequiredMethodHandle.invokeExact(
+				(org.hibernate.internal.SessionImpl)_session, querySpaces);
+		}
+		catch (Exception exception) {
+			throw ExceptionTranslator.translate(exception);
+		}
+		catch (Throwable throwable) {
+			return ReflectionUtil.throwException(throwable);
 		}
 	}
 
@@ -334,7 +356,7 @@ public class SessionImpl implements Session {
 	}
 
 	@Override
-	public void reassociateIfAbsent(
+	public Object reassociateIfAbsent(
 		Class<?> clazz, Serializable id, Object object) {
 
 		try {
@@ -355,13 +377,13 @@ public class SessionImpl implements Session {
 			Object currentObject = persistenceContext.getEntity(
 				new EntityKey(id, entityPersister));
 
-			if (currentObject == object) {
-				return;
+			if (currentObject != null) {
+				return currentObject;
 			}
 
-			if (currentObject == null) {
-				_session.lock(object, org.hibernate.LockMode.NONE);
-			}
+			_session.lock(object, org.hibernate.LockMode.NONE);
+
+			return object;
 		}
 		catch (Exception exception) {
 			throw ExceptionTranslator.translate(exception);
@@ -393,6 +415,21 @@ public class SessionImpl implements Session {
 		}
 		catch (Exception exception) {
 			throw ExceptionTranslator.translate(exception);
+		}
+	}
+
+	private static final MethodHandle _autoFlushIfRequiredMethodHandle;
+
+	static {
+		try {
+			MethodHandles.Lookup lookup = ReflectionUtil.getImplLookup();
+
+			_autoFlushIfRequiredMethodHandle = lookup.findVirtual(
+				org.hibernate.internal.SessionImpl.class, "autoFlushIfRequired",
+				MethodType.methodType(boolean.class, Set.class));
+		}
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new ExceptionInInitializerError(reflectiveOperationException);
 		}
 	}
 

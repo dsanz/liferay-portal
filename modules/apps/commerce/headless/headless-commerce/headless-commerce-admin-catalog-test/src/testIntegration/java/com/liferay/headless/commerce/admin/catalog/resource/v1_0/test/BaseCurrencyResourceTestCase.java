@@ -1435,6 +1435,59 @@ public abstract class BaseCurrencyResourceTestCase {
 	}
 
 	@Test
+	public void testPutCurrencyByExternalReferenceCode() throws Exception {
+		Currency postCurrency =
+			testPutCurrencyByExternalReferenceCode_addCurrency();
+
+		Currency randomCurrency = randomCurrency();
+
+		Currency putCurrency =
+			currencyResource.putCurrencyByExternalReferenceCode(
+				postCurrency.getExternalReferenceCode(), randomCurrency);
+
+		assertEquals(randomCurrency, putCurrency);
+		assertValid(putCurrency);
+
+		Currency getCurrency =
+			currencyResource.getCurrencyByExternalReferenceCode(
+				putCurrency.getExternalReferenceCode());
+
+		assertEquals(randomCurrency, getCurrency);
+		assertValid(getCurrency);
+
+		Currency newCurrency =
+			testPutCurrencyByExternalReferenceCode_createCurrency();
+
+		putCurrency = currencyResource.putCurrencyByExternalReferenceCode(
+			newCurrency.getExternalReferenceCode(), newCurrency);
+
+		assertEquals(newCurrency, putCurrency);
+		assertValid(putCurrency);
+
+		getCurrency = currencyResource.getCurrencyByExternalReferenceCode(
+			putCurrency.getExternalReferenceCode());
+
+		assertEquals(newCurrency, getCurrency);
+
+		Assert.assertEquals(
+			newCurrency.getExternalReferenceCode(),
+			putCurrency.getExternalReferenceCode());
+	}
+
+	protected Currency testPutCurrencyByExternalReferenceCode_addCurrency()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	protected Currency testPutCurrencyByExternalReferenceCode_createCurrency()
+		throws Exception {
+
+		return randomCurrency();
+	}
+
+	@Test
 	public void testBatchEngineDeleteImportTask() throws Exception {
 		Currency currency1 = testBatchEngineDeleteImportTask_addCurrency();
 
@@ -1703,6 +1756,14 @@ public abstract class BaseCurrencyResourceTestCase {
 	protected void assertValid(Currency currency) throws Exception {
 		boolean valid = true;
 
+		if (currency.getDateCreated() == null) {
+			valid = false;
+		}
+
+		if (currency.getDateModified() == null) {
+			valid = false;
+		}
+
 		if (currency.getId() == null) {
 			valid = false;
 		}
@@ -1720,6 +1781,14 @@ public abstract class BaseCurrencyResourceTestCase {
 
 			if (Objects.equals("code", additionalAssertFieldName)) {
 				if (currency.getCode() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("creator", additionalAssertFieldName)) {
+				if (currency.getCreator() == null) {
 					valid = false;
 				}
 
@@ -1945,6 +2014,38 @@ public abstract class BaseCurrencyResourceTestCase {
 			if (Objects.equals("code", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(
 						currency1.getCode(), currency2.getCode())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("creator", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						currency1.getCreator(), currency2.getCreator())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("dateCreated", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						currency1.getDateCreated(),
+						currency2.getDateCreated())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("dateModified", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						currency1.getDateModified(),
+						currency2.getDateModified())) {
 
 					return false;
 				}
@@ -2229,6 +2330,69 @@ public abstract class BaseCurrencyResourceTestCase {
 			return sb.toString();
 		}
 
+		if (entityFieldName.equals("creator")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
+		if (entityFieldName.equals("dateCreated")) {
+			if (operator.equals("between")) {
+				Date date = currency.getDateCreated();
+
+				sb = new StringBundler();
+
+				sb.append("(");
+				sb.append(entityFieldName);
+				sb.append(" gt ");
+				sb.append(_format.format(date.getTime() - (2 * Time.SECOND)));
+				sb.append(" and ");
+				sb.append(entityFieldName);
+				sb.append(" lt ");
+				sb.append(_format.format(date.getTime() + (2 * Time.SECOND)));
+				sb.append(")");
+			}
+			else {
+				sb.append(entityFieldName);
+
+				sb.append(" ");
+				sb.append(operator);
+				sb.append(" ");
+
+				sb.append(_format.format(currency.getDateCreated()));
+			}
+
+			return sb.toString();
+		}
+
+		if (entityFieldName.equals("dateModified")) {
+			if (operator.equals("between")) {
+				Date date = currency.getDateModified();
+
+				sb = new StringBundler();
+
+				sb.append("(");
+				sb.append(entityFieldName);
+				sb.append(" gt ");
+				sb.append(_format.format(date.getTime() - (2 * Time.SECOND)));
+				sb.append(" and ");
+				sb.append(entityFieldName);
+				sb.append(" lt ");
+				sb.append(_format.format(date.getTime() + (2 * Time.SECOND)));
+				sb.append(")");
+			}
+			else {
+				sb.append(entityFieldName);
+
+				sb.append(" ");
+				sb.append(operator);
+				sb.append(" ");
+
+				sb.append(_format.format(currency.getDateModified()));
+			}
+
+			return sb.toString();
+		}
+
 		if (entityFieldName.equals("externalReferenceCode")) {
 			Object object = currency.getExternalReferenceCode();
 
@@ -2418,6 +2582,8 @@ public abstract class BaseCurrencyResourceTestCase {
 			{
 				active = RandomTestUtil.randomBoolean();
 				code = StringUtil.toLowerCase(RandomTestUtil.randomString());
+				dateCreated = RandomTestUtil.nextDate();
+				dateModified = RandomTestUtil.nextDate();
 				externalReferenceCode = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
 				id = RandomTestUtil.randomLong();
@@ -2696,4 +2862,4 @@ public abstract class BaseCurrencyResourceTestCase {
 		_vulcanCRUDItemDelegateBuilderRegistry;
 
 }
-// LIFERAY-REST-BUILDER-HASH:2014737205
+// LIFERAY-REST-BUILDER-HASH:-1761869054

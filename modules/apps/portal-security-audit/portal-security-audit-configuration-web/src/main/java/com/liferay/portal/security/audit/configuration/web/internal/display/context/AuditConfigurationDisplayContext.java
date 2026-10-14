@@ -8,7 +8,6 @@ package com.liferay.portal.security.audit.configuration.web.internal.display.con
 import com.liferay.portal.security.audit.configuration.AuditConfiguration;
 import com.liferay.portal.security.audit.configuration.web.internal.util.AuditConfigurationOverrideUtil;
 import com.liferay.portal.security.audit.router.configuration.FileSystemAuditMessageProcessorConfiguration;
-import com.liferay.portal.security.audit.router.configuration.PersistentAuditMessageProcessorConfiguration;
 
 /**
  * @author Christian Moura
@@ -19,14 +18,12 @@ public class AuditConfigurationDisplayContext {
 		AuditConfiguration auditConfiguration,
 		FileSystemAuditMessageProcessorConfiguration
 			fileSystemAuditMessageProcessorConfiguration,
-		PersistentAuditMessageProcessorConfiguration
-			persistentAuditMessageProcessorConfiguration) {
+		boolean systemScope) {
 
 		_auditConfiguration = auditConfiguration;
 		_fileSystemAuditMessageProcessorConfiguration =
 			fileSystemAuditMessageProcessorConfiguration;
-		_persistentAuditMessageProcessorConfiguration =
-			persistentAuditMessageProcessorConfiguration;
+		_systemScope = systemScope;
 	}
 
 	public String getEnabledHelpMessage() {
@@ -67,28 +64,9 @@ public class AuditConfigurationDisplayContext {
 			FileSystemAuditMessageProcessorConfiguration.class, "outputFormat");
 	}
 
-	public int getPersistentAuditMessageProcessorBufferSize() {
-		return _persistentAuditMessageProcessorConfiguration.bufferSize();
-	}
-
-	public String getPersistentAuditMessageProcessorBufferSizeHelpMessage() {
+	public String getPseudonymizationEnabledHelpMessage() {
 		return _getHelpMessage(
-			PersistentAuditMessageProcessorConfiguration.class, "bufferSize");
-	}
-
-	public String getPersistentAuditMessageProcessorEnabledHelpMessage() {
-		return _getHelpMessage(
-			PersistentAuditMessageProcessorConfiguration.class, "enabled");
-	}
-
-	public long getPersistentAuditMessageProcessorFlushInterval() {
-		return _persistentAuditMessageProcessorConfiguration.flushInterval();
-	}
-
-	public String getPersistentAuditMessageProcessorFlushIntervalHelpMessage() {
-		return _getHelpMessage(
-			PersistentAuditMessageProcessorConfiguration.class,
-			"flushInterval");
+			AuditConfiguration.class, "pseudonymizationEnabled");
 	}
 
 	public boolean isEnabled() {
@@ -133,24 +111,17 @@ public class AuditConfigurationDisplayContext {
 			FileSystemAuditMessageProcessorConfiguration.class, "outputFormat");
 	}
 
-	public boolean isPersistentAuditMessageProcessorBufferSizeOverridden() {
-		return _isOverridden(
-			PersistentAuditMessageProcessorConfiguration.class, "bufferSize");
+	public boolean isPseudonymizationEnabled() {
+		return _auditConfiguration.pseudonymizationEnabled();
 	}
 
-	public boolean isPersistentAuditMessageProcessorEnabled() {
-		return _persistentAuditMessageProcessorConfiguration.enabled();
+	public boolean isPseudonymizationEnabledOverridden() {
+		return _isOverridden(
+			AuditConfiguration.class, "pseudonymizationEnabled");
 	}
 
-	public boolean isPersistentAuditMessageProcessorEnabledOverridden() {
-		return _isOverridden(
-			PersistentAuditMessageProcessorConfiguration.class, "enabled");
-	}
-
-	public boolean isPersistentAuditMessageProcessorFlushIntervalOverridden() {
-		return _isOverridden(
-			PersistentAuditMessageProcessorConfiguration.class,
-			"flushInterval");
+	public boolean isSystemScope() {
+		return _systemScope;
 	}
 
 	private String _getHelpMessage(Class<?> clazz, String key) {
@@ -164,7 +135,6 @@ public class AuditConfigurationDisplayContext {
 	private final AuditConfiguration _auditConfiguration;
 	private final FileSystemAuditMessageProcessorConfiguration
 		_fileSystemAuditMessageProcessorConfiguration;
-	private final PersistentAuditMessageProcessorConfiguration
-		_persistentAuditMessageProcessorConfiguration;
+	private final boolean _systemScope;
 
 }

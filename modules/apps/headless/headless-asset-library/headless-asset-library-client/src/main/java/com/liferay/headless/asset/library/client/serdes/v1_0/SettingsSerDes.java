@@ -11,6 +11,7 @@ import com.liferay.headless.asset.library.client.json.BaseJSONParser;
 
 import jakarta.annotation.Generated;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -91,6 +92,20 @@ public class SettingsSerDes {
 			sb.append("\"");
 		}
 
+		if (settings.getGoogleMapsAPIKey() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"googleMapsAPIKey\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(settings.getGoogleMapsAPIKey()));
+
+			sb.append("\"");
+		}
+
 		if (settings.getLogoColor() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -102,6 +117,18 @@ public class SettingsSerDes {
 
 			sb.append(_escape(settings.getLogoColor()));
 
+			sb.append("\"");
+		}
+
+		if (settings.getMapProviderKey() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"mapProviderKey\": ");
+
+			sb.append("\"");
+			sb.append(settings.getMapProviderKey());
 			sb.append("\"");
 		}
 
@@ -210,11 +237,28 @@ public class SettingsSerDes {
 				String.valueOf(settings.getDefaultLanguageId()));
 		}
 
+		if (settings.getGoogleMapsAPIKey() == null) {
+			map.put("googleMapsAPIKey", null);
+		}
+		else {
+			map.put(
+				"googleMapsAPIKey",
+				String.valueOf(settings.getGoogleMapsAPIKey()));
+		}
+
 		if (settings.getLogoColor() == null) {
 			map.put("logoColor", null);
 		}
 		else {
 			map.put("logoColor", String.valueOf(settings.getLogoColor()));
+		}
+
+		if (settings.getMapProviderKey() == null) {
+			map.put("mapProviderKey", null);
+		}
+		else {
+			map.put(
+				"mapProviderKey", String.valueOf(settings.getMapProviderKey()));
 		}
 
 		if (settings.getMimeTypeLimits() == null) {
@@ -286,7 +330,13 @@ public class SettingsSerDes {
 			else if (Objects.equals(jsonParserFieldName, "defaultLanguageId")) {
 				return false;
 			}
+			else if (Objects.equals(jsonParserFieldName, "googleMapsAPIKey")) {
+				return false;
+			}
 			else if (Objects.equals(jsonParserFieldName, "logoColor")) {
+				return false;
+			}
+			else if (Objects.equals(jsonParserFieldName, "mapProviderKey")) {
 				return false;
 			}
 			else if (Objects.equals(jsonParserFieldName, "mimeTypeLimits")) {
@@ -336,9 +386,21 @@ public class SettingsSerDes {
 					settings.setDefaultLanguageId((String)jsonParserFieldValue);
 				}
 			}
+			else if (Objects.equals(jsonParserFieldName, "googleMapsAPIKey")) {
+				if (jsonParserFieldValue != null) {
+					settings.setGoogleMapsAPIKey((String)jsonParserFieldValue);
+				}
+			}
 			else if (Objects.equals(jsonParserFieldName, "logoColor")) {
 				if (jsonParserFieldValue != null) {
 					settings.setLogoColor((String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "mapProviderKey")) {
+				if (jsonParserFieldValue != null) {
+					settings.setMapProviderKey(
+						Settings.MapProviderKey.create(
+							(String)jsonParserFieldValue));
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "mimeTypeLimits")) {
@@ -432,6 +494,12 @@ public class SettingsSerDes {
 			return "null";
 		}
 
+		if (value instanceof Collection) {
+			Collection<?> collection = (Collection<?>)value;
+
+			return _toJSON(collection.toArray());
+		}
+
 		if (value instanceof Map) {
 			return _toJSON((Map)value);
 		}
@@ -464,4 +532,4 @@ public class SettingsSerDes {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:754836252
+// LIFERAY-REST-BUILDER-HASH:-735387560

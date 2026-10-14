@@ -61,7 +61,7 @@ export class ExportImportPage {
 			exact: true,
 			name: 'Clear',
 		});
-		this.completedLabel = page.getByText('completed');
+		this.completedLabel = page.getByText('Completed...', {exact: true});
 		this.continueButton = page.getByRole('button', {name: 'Continue'});
 		this.downloadMenuItem = page.getByRole('menuitem', {
 			exact: true,
@@ -224,10 +224,9 @@ export class ExportImportPage {
 	}
 
 	async getColumnValues(headerName: string): Promise<string[]> {
-		const header = this.page.getByRole('columnheader', {
-			exact: true,
-			name: headerName,
-		});
+		const header = this.page
+			.getByRole('columnheader')
+			.filter({has: this.page.getByText(headerName, {exact: true})});
 
 		const index = await header.evaluate((node) => {
 			return (
@@ -354,8 +353,7 @@ export class ExportImportPage {
 
 	async sortBy(headerName: string) {
 		await this.page
-			.getByRole('columnheader', {exact: true, name: headerName})
-			.getByRole('button')
+			.getByRole('button', {exact: true, name: `Sort by ${headerName}`})
 			.click();
 
 		await this.page.waitForLoadState('networkidle');

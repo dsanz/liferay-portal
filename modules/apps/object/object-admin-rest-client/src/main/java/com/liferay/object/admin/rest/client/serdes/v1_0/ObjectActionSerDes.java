@@ -13,6 +13,7 @@ import jakarta.annotation.Generated;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -123,11 +124,7 @@ public class ObjectActionSerDes {
 
 			sb.append("\"description\": ");
 
-			sb.append("\"");
-
-			sb.append(_escape(objectAction.getDescription()));
-
-			sb.append("\"");
+			sb.append(_toJSON(objectAction.getDescription()));
 		}
 
 		if (objectAction.getErrorMessage() != null) {
@@ -430,7 +427,7 @@ public class ObjectActionSerDes {
 				return false;
 			}
 			else if (Objects.equals(jsonParserFieldName, "description")) {
-				return false;
+				return true;
 			}
 			else if (Objects.equals(jsonParserFieldName, "errorMessage")) {
 				return true;
@@ -510,7 +507,8 @@ public class ObjectActionSerDes {
 			}
 			else if (Objects.equals(jsonParserFieldName, "description")) {
 				if (jsonParserFieldValue != null) {
-					objectAction.setDescription((String)jsonParserFieldValue);
+					objectAction.setDescription(
+						(Map<String, String>)jsonParserFieldValue);
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "errorMessage")) {
@@ -626,6 +624,12 @@ public class ObjectActionSerDes {
 			return "null";
 		}
 
+		if (value instanceof Collection) {
+			Collection<?> collection = (Collection<?>)value;
+
+			return _toJSON(collection.toArray());
+		}
+
 		if (value instanceof Map) {
 			return _toJSON((Map)value);
 		}
@@ -658,4 +662,4 @@ public class ObjectActionSerDes {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:543528549
+// LIFERAY-REST-BUILDER-HASH:-1458008352

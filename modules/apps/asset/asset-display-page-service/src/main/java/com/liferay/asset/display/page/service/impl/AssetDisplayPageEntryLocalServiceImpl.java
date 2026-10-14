@@ -161,6 +161,13 @@ public class AssetDisplayPageEntryLocalServiceImpl
 	public AssetDisplayPageEntry fetchAssetDisplayPageEntry(
 		long groupId, long classNameId, long classPK) {
 
+		int count = assetDisplayPageEntryPersistence.countByG_CN(
+			groupId, classNameId);
+
+		if (count == 0) {
+			return null;
+		}
+
 		return assetDisplayPageEntryPersistence.fetchByG_C_C(
 			groupId, classNameId, classPK);
 	}
@@ -209,6 +216,12 @@ public class AssetDisplayPageEntryLocalServiceImpl
 
 		return assetDisplayPageEntryPersistence.findByLayoutPageTemplateEntryId(
 			layoutPageTemplateEntryId, start, end, orderByComparator);
+	}
+
+	@Override
+	public int getAssetDisplayPageEntriesCount(long groupId, long classNameId) {
+		return assetDisplayPageEntryPersistence.countByG_CN(
+			groupId, classNameId);
 	}
 
 	@Override

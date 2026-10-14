@@ -39,10 +39,14 @@ public class AssetTagGroupRelTable extends BaseTable<AssetTagGroupRelTable> {
 		"companyId", Long.class, Types.BIGINT, Column.FLAG_DEFAULT);
 	public final Column<AssetTagGroupRelTable, Long> tagId = createColumn(
 		"tagId", Long.class, Types.BIGINT, Column.FLAG_DEFAULT);
+	public final Column<AssetTagGroupRelTable, Integer> depotEntryType =
+		createColumn(
+			"depotEntryType", Integer.class, Types.INTEGER,
+			Column.FLAG_DEFAULT);
 
 	private AssetTagGroupRelTable() {
 		super("AssetTagGroupRel", AssetTagGroupRelTable::new);
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-23084204
+// LIFERAY-SERVICE-BUILDER-HASH:586110837

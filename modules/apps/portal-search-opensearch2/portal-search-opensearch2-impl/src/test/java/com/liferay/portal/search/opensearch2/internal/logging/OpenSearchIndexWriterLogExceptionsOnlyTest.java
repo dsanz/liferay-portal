@@ -62,7 +62,6 @@ public class OpenSearchIndexWriterLogExceptionsOnlyTest
 		super.setUp();
 
 		String indexName = String.valueOf(_COMPANY_ID);
-
 		SearchEngineAdapter searchEngineAdapter = getSearchEngineAdapter();
 
 		IndicesExistsIndexResponse indicesExistsIndexResponse =
@@ -488,7 +487,7 @@ public class OpenSearchIndexWriterLogExceptionsOnlyTest
 		Throwable throwable = logEntry.getThrowable();
 
 		if (throwableClass == null) {
-			Assert.assertNull(String.valueOf(throwable), throwable);
+			Assert.assertNull(throwable);
 		}
 		else {
 			Assert.assertSame(throwableClass, throwable.getClass());

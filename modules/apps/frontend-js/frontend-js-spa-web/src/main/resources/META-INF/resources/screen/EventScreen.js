@@ -229,13 +229,15 @@ class EventScreen extends HtmlScreen {
 			response.headers.get('content-security-policy-report-only') ||
 			'';
 
-		const match = policy.match(/'nonce-([^']*)'/i);
-
-		const responseNonce = match ? match[1] : '';
-
 		const documentNonce = (Liferay.CSP && Liferay.CSP.nonce) || '';
 
-		return responseNonce !== documentNonce;
+		if (!policy || !documentNonce) {
+			return Boolean(policy) !== Boolean(documentNonce);
+		}
+
+		const match = policy.match(/'nonce-([^']*)'/i);
+
+		return Boolean(match) && match[1] !== documentNonce;
 	}
 
 	/**

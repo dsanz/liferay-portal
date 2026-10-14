@@ -1,10 +1,10 @@
 import Avatar from 'shared/components/Avatar';
 import Card from 'shared/components/Card';
-import ClayIcon from '@clayui/icon';
+import ClayIcon from 'shared/components/Icon';
 import ClayLink from '@clayui/link';
 import getCN from 'classnames';
 import React from 'react';
-import {formatDateToTimeZone} from 'shared/util/date';
+import {formatDateToTimeZone, LONG_DATE_FORMAT} from 'shared/util/date';
 import {Individual} from 'shared/util/records';
 import {PropTypes} from 'prop-types';
 import {Routes, toRoute} from 'shared/util/router';
@@ -50,7 +50,7 @@ export default class DetailsCard extends React.PureComponent {
 							{sub(Liferay.Language.get('first-seen-x'), [
 								formatDateToTimeZone(
 									firstActivityDate,
-									'LL',
+									LONG_DATE_FORMAT,
 									timeZoneId
 								)
 							])}

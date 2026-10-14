@@ -23,6 +23,22 @@ function assert_clean_upgrade_log {
 	fi
 }
 
+function assert_document_library_not_populated {
+	local document_library_dir="${LIFERAY_HOME}/data/document_library"
+
+	if [[ ! -d ${document_library_dir} ]]
+	then
+		return 0
+	fi
+
+	if [ $(ls -A "${document_library_dir}" | wc -l) -gt 1 ]
+	then
+		echo "Unable to confirm the database store was used for ${document_library_dir}."
+
+		exit 1
+	fi
+}
+
 function cluster_set_up {
 	local jvm_heap_override=${3}
 
@@ -120,31 +136,45 @@ function combine_properties_files {
 }
 
 function default_set_up {
-	update_portal_ext_properties
+	if [[ -n ${PLAYWRIGHT_WORKSPACE_NAME} ]]
+	then
+		update_workspace_portal_ext_properties
 
-	update_learn_resources_dir
+		start_workspace_app_server
 
-	start_default_app_server
+		echo "Skipping the learn resources, OSGi modules, deploy folders, OSGi configs, and client extensions because the ${PLAYWRIGHT_WORKSPACE_NAME} workspace provides its own bundle."
+	else
+		update_portal_ext_properties
 
-	deploy_parent_project_osgi_modules
+		update_learn_resources_dir
 
-	deploy_project_osgi_modules
+		deploy_parent_project_osgi_modules
 
-	deploy_parent_project_deploy_folder
+		deploy_project_osgi_modules
 
-	deploy_project_deploy_folder
+		start_default_app_server
 
-	deploy_parent_project_osgi_configs
+		deploy_parent_project_deploy_folder
 
-	deploy_project_osgi_configs
+		deploy_project_deploy_folder
 
-	deploy_parent_project_client_extensions
+		deploy_parent_project_osgi_configs
 
-	deploy_project_client_extensions
+		deploy_project_osgi_configs
+
+		deploy_parent_project_client_extensions
+
+		deploy_project_client_extensions
+	fi
 }
 
 function default_tear_down {
-	stop_default_app_server
+	if [[ -n ${PLAYWRIGHT_WORKSPACE_NAME} ]]
+	then
+		stop_workspace_app_server
+	else
+		stop_default_app_server
+	fi
 }
 
 function delete_property {
@@ -244,8 +274,6 @@ function deploy_osgi_modules {
 				local gradlew=$(get_gradlew)
 
 				${gradlew} deploy
-
-				wait_for_portal_log_inactivity ${LIFERAY_HOME}
 			else
 				echo "Unable to find OSGi module in ${osgi_module_dir}."
 			fi
@@ -562,6 +590,20 @@ function prepare_additional_bundles {
 	done
 }
 
+function rebuild_legacy_database {
+	local data_archive_type=${1}
+	local portal_version=${2}
+
+	cd "${_PORTAL_PROJECT_DIR}"
+
+	ant -f build-test.xml \
+		-Ddata.archive.type="${data_archive_type}" \
+		-Dkeep.cached.app.server.data=true \
+		-Dportal.version="${portal_version}" \
+		-Dskip.get.testcase.database.properties=true \
+		rebuild-legacy-database
+}
+
 function set_variables {
 	local playwright_env_dir=$(dirname ${BASH_SOURCE[0]})
 
@@ -710,6 +752,15 @@ function start_default_app_server {
 	start_app_server ${LIFERAY_HOME} ${LIFERAY_PORTAL_URL}
 }
 
+function start_workspace_app_server {
+	if ! LIFERAY_COMPOSE_OVERRIDES=ci /bin/bash ${PLAYWRIGHT_WORKSPACE_DIR}/scripts/bootstrap/start.sh
+	then
+		echo "Unable to start the ${PLAYWRIGHT_WORKSPACE_NAME} workspace."
+
+		exit 1
+	fi
+}
+
 function stop_additional_bundles {
 	default_tear_down
 
@@ -797,6 +848,14 @@ function stop_default_app_server {
 	stop_app_server ${LIFERAY_HOME} ${LIFERAY_PORTAL_URL}
 }
 
+function stop_workspace_app_server {
+	docker compose \
+		--file ${PLAYWRIGHT_WORKSPACE_DIR}/docker-compose.yaml \
+		--file ${PLAYWRIGHT_WORKSPACE_DIR}/docker-compose-ci.yaml \
+		down \
+		--volumes
+}
+
 function update_learn_resources_dir {
 	local learn_resources_dir=${_PORTAL_PROJECT_DIR}/learn-resources/data
 
@@ -845,6 +904,51 @@ function update_property {
 	do
 		sed -i "s/${property_name}=.*/${property_name}=${property_value}/g" "${properties_file}"
 	done
+}
+
+function update_workspace_portal_ext_properties {
+	local portal_setup_wizard_properties_file=$(mktemp)
+
+	combine_properties_files \
+		${portal_setup_wizard_properties_file} \
+		\
+		$(get_parent_portal_ext_properties_files) \
+		\
+		$(get_playwright_project_dir)/env/portal-ext.properties
+
+	chmod 644 ${portal_setup_wizard_properties_file}
+
+	if ! docker cp ${portal_setup_wizard_properties_file} ${HOSTNAME}_liferay:/opt/liferay/portal-setup-wizard.properties
+	then
+		echo "Unable to copy ${portal_setup_wizard_properties_file} to the ${PLAYWRIGHT_WORKSPACE_NAME} workspace."
+
+		exit 1
+	fi
+}
+
+function upgrade_legacy_database_set_up {
+	local custom_upgrade_properties=${3}
+	local data_archive_type=${1}
+	local portal_version=${2}
+
+	rebuild_legacy_database "${data_archive_type}" "${portal_version}"
+
+	if [[ -n ${custom_upgrade_properties} ]]
+	then
+		ant -f build-test.xml \
+			-Dcustom.upgrade.properties="${custom_upgrade_properties}" \
+			-Dportal.version="${portal_version}" \
+			-Dtest.class=playwright \
+			upgrade-legacy-database
+	else
+		ant -f build-test.xml \
+			-Dportal.version="${portal_version}" \
+			upgrade-legacy-database
+	fi
+
+	assert_clean_upgrade_log
+
+	default_set_up
 }
 
 function validate_environment_variables {

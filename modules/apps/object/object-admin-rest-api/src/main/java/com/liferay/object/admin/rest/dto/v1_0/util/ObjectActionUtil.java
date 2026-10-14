@@ -50,7 +50,9 @@ public class ObjectActionUtil {
 					serviceBuilderObjectAction::getConditionExpression);
 				setDateCreated(serviceBuilderObjectAction::getCreateDate);
 				setDateModified(serviceBuilderObjectAction::getModifiedDate);
-				setDescription(serviceBuilderObjectAction::getDescription);
+				setDescription(
+					() -> LocalizedMapUtil.getLanguageIdMap(
+						serviceBuilderObjectAction.getDescriptionMap()));
 				setErrorMessage(
 					() -> LocalizedMapUtil.getLanguageIdMap(
 						serviceBuilderObjectAction.getErrorMessageMap()));
@@ -147,7 +149,9 @@ public class ObjectActionUtil {
 				value = GetterUtil.getBoolean(value);
 			}
 			else if (Objects.equals(
-						entry.getKey(), "usePreferredLanguageForGuests")) {
+						entry.getKey(), "urlLocalNetworkAccessEnabled") ||
+					 Objects.equals(
+						 entry.getKey(), "usePreferredLanguageForGuests")) {
 
 				value = GetterUtil.getBoolean(value);
 			}

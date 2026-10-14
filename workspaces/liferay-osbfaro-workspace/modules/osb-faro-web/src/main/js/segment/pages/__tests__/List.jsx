@@ -1,11 +1,12 @@
 import * as API from 'shared/api';
 import * as data from 'test/data';
 import List from '../List';
-import mockStore from 'test/mock-store';
+import mockStore, {mockStoreData, mockStoreDataLDP} from 'test/mock-store';
+import ModalRenderer from 'shared/components/ModalRenderer';
 import React from 'react';
 import {act} from '@testing-library/react';
 import {ChannelContext} from 'shared/context/channel';
-import {cleanup, render, screen, within} from '@testing-library/react';
+import {cleanup, fireEvent, render, screen, within} from '@testing-library/react';
 import {formatDateToTimeZone, getCustomDateTimeFormat} from 'shared/util/date';
 import {getTimestamp} from 'test/data';
 import {MemoryRouter, Route, Routes as RouterRoutes} from 'react-router-dom';
@@ -25,10 +26,14 @@ const MOCK_UNASSIGNED_SEGMENTS_CONTEXT = {
 	unassignedSegmentsDispatch: jest.fn()
 };
 
-const store = mockStore();
+const DefaultComponent = ({
+	queryString = '',
+	storeData = mockStoreDataLDP,
+	...otherProps
+}) => (
+	<Provider store={mockStore(storeData)}>
+		<ModalRenderer />
 
-const DefaultComponent = ({queryString = '', ...otherProps}) => (
-	<Provider store={store}>
 		<MemoryRouter
 			initialEntries={[
 				`/workspace/23/123/contacts/segments${queryString}`
@@ -191,6 +196,32 @@ describe('List', () => {
 		expect(individualGroup).toHaveTextContent('Individual');
 	});
 
+	it('links straight to an individual batch segment for non-LDP plans', async () => {
+		render(<DefaultComponent storeData={mockStoreData} />);
+
+		await act(async () => {
+			jest.runAllTimers();
+		});
+
+		expect(
+			screen.queryByTestId('account-batch-segment-dropdown-item')
+		).not.toBeInTheDocument();
+		expect(
+			screen.queryByTestId('batch-segment-dropdown-item')
+		).not.toBeInTheDocument();
+		expect(
+			screen.queryByTestId('real-time-segment-dropdown-item')
+		).not.toBeInTheDocument();
+
+		const newSegmentLink = screen.getByTestId('new-segment-link');
+
+		expect(newSegmentLink).toHaveTextContent('New Segment');
+		expect(newSegmentLink).toHaveAttribute(
+			'href',
+			'/workspace/23/123/contacts/segments/create?type=BATCH'
+		);
+	});
+
 	it('shows the account count for account segments', async () => {
 		API.projects.fetchFeatureUsages.mockResolvedValueOnce([]);
 		API.individualSegment.search.mockReturnValue(
@@ -198,6 +229,7 @@ describe('List', () => {
 				data.mockSearch(data.mockSegment, 1, {
 					accountsCount: 1800,
 					individualCount: 2300,
+					lastMembershipUpdateDate: getTimestamp(),
 					segmentCategory: SegmentCategories.Account
 				})
 			)
@@ -220,6 +252,7 @@ describe('List', () => {
 				data.mockSearch(data.mockSegment, 1, {
 					accountsCount: 1800,
 					individualCount: 2300,
+					lastMembershipUpdateDate: getTimestamp(),
 					segmentCategory: SegmentCategories.Individual
 				})
 			)
@@ -242,6 +275,7 @@ describe('List', () => {
 				data.mockSearch(data.mockSegment, 1, {
 					accountsCount: 0,
 					individualCount: 0,
+					lastMembershipUpdateDate: getTimestamp(),
 					segmentCategory: SegmentCategories.Individual
 				})
 			)
@@ -264,6 +298,7 @@ describe('List', () => {
 				data.mockSearch(data.mockSegment, 1, {
 					accountsCount: 0,
 					individualCount: 2300,
+					lastMembershipUpdateDate: getTimestamp(),
 					segmentCategory: SegmentCategories.Account
 				})
 			)
@@ -279,14 +314,14 @@ describe('List', () => {
 		expect(within(row).queryByText('0 accounts')).toBeNull();
 	});
 
-	it('shows the membership as processing while the count is not available', async () => {
+	it('shows both columns as processing when the segment has never been counted', async () => {
 		API.projects.fetchFeatureUsages.mockResolvedValueOnce([]);
 		API.individualSegment.search.mockReturnValue(
 			Promise.resolve(
 				data.mockSearch(data.mockSegment, 1, {
-					accountsCount: null,
-					individualCount: null,
-					lastMembershipUpdateDate: getTimestamp(),
+					accountsCount: 0,
+					individualCount: 0,
+					lastMembershipUpdateDate: null,
 					segmentCategory: SegmentCategories.Individual
 				})
 			)
@@ -298,8 +333,31 @@ describe('List', () => {
 
 		const row = screen.getByText('Seattle0').closest('tr');
 
-		expect(within(row).getByText('Processing')).toBeInTheDocument();
+		expect(within(row).getAllByText('Processing')).toHaveLength(2);
 		expect(within(row).queryByText('-')).toBeNull();
+	});
+
+	it('hides a stale count behind processing when the segment has never been counted', async () => {
+		API.projects.fetchFeatureUsages.mockResolvedValueOnce([]);
+		API.individualSegment.search.mockReturnValue(
+			Promise.resolve(
+				data.mockSearch(data.mockSegment, 1, {
+					accountsCount: 1800,
+					individualCount: 2300,
+					lastMembershipUpdateDate: null,
+					segmentCategory: SegmentCategories.Individual
+				})
+			)
+		);
+
+		render(<DefaultComponent />);
+
+		await waitForLoadingToBeRemoved(document.body);
+
+		const row = screen.getByText('Seattle0').closest('tr');
+
+		expect(within(row).getAllByText('Processing')).toHaveLength(2);
+		expect(within(row).queryByText('2.3K individuals')).toBeNull();
 	});
 
 	it('shows the last membership update date', async () => {
@@ -325,12 +383,12 @@ describe('List', () => {
 		).toBeInTheDocument();
 	});
 
-	it('shows a dash as the last membership update date when it is zero', async () => {
+	it('renders the last membership update date with the custom date time format', async () => {
 		API.projects.fetchFeatureUsages.mockResolvedValueOnce([]);
 		API.individualSegment.search.mockReturnValue(
 			Promise.resolve(
 				data.mockSearch(data.mockSegment, 1, {
-					lastMembershipUpdateDate: 0
+					lastMembershipUpdateDate: Date.UTC(2026, 5, 10, 14, 30)
 				})
 			)
 		);
@@ -341,8 +399,28 @@ describe('List', () => {
 
 		const row = screen.getByText('Seattle0').closest('tr');
 
-		expect(within(row).getByText('-')).toBeInTheDocument();
-		expect(within(row).queryByText('Processing')).toBeNull();
+		expect(
+			within(row).getByText('Jun 10, 2026, 2:30 PM')
+		).toBeInTheDocument();
+	});
+
+	it('renders the modified date with the custom date format', async () => {
+		API.projects.fetchFeatureUsages.mockResolvedValueOnce([]);
+		API.individualSegment.search.mockReturnValue(
+			Promise.resolve(
+				data.mockSearch(data.mockSegment, 1, {
+					dateModified: Date.UTC(2026, 5, 9, 23, 45)
+				})
+			)
+		);
+
+		render(<DefaultComponent />);
+
+		await waitForLoadingToBeRemoved(document.body);
+
+		const row = screen.getByText('Seattle0').closest('tr');
+
+		expect(within(row).getByText('Jun 9, 2026')).toBeInTheDocument();
 	});
 
 	it('shows the last membership update date as processing while it is not available', async () => {
@@ -361,6 +439,28 @@ describe('List', () => {
 
 		const row = screen.getByText('Seattle0').closest('tr');
 
-		expect(within(row).getByText('Processing')).toBeInTheDocument();
+		expect(within(row).getAllByText('Processing')).toHaveLength(2);
+	});
+
+	it('opens the manage notifications modal from the row actions', async () => {
+		API.individualSegment.search.mockReturnValue(
+			Promise.resolve(data.mockSearch(data.mockSegment, 1))
+		);
+
+		render(<DefaultComponent />);
+
+		await waitForLoadingToBeRemoved(document.body);
+
+		const row = screen.getByText('Seattle0').closest('tr');
+
+		fireEvent.click(within(row).getByRole('button', {name: 'Menu'}));
+
+		fireEvent.click(
+			screen.getByRole('menuitem', {name: 'Manage Notifications'})
+		);
+
+		expect(
+			screen.getByText('Manage Segment Notifications')
+		).toBeInTheDocument();
 	});
 });

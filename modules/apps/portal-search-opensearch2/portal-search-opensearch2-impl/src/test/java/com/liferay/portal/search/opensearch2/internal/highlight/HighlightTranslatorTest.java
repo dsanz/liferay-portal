@@ -35,6 +35,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import org.opensearch.client.opensearch._types.query_dsl.Query.Kind;
+import org.opensearch.client.opensearch._types.query_dsl.QueryStringQuery;
 import org.opensearch.client.opensearch.core.search.BoundaryScanner;
 import org.opensearch.client.opensearch.core.search.BuiltinHighlighterType;
 import org.opensearch.client.opensearch.core.search.HighlightField;
@@ -95,6 +96,38 @@ public class HighlightTranslatorTest {
 	}
 
 	@Test
+	public void testDefaultHighlightQueryIsIgnoredWhenHighlightQueryIsSet() {
+		_highlightPrototype._highlightQuery = new StringQuery("title:explicit");
+
+		org.opensearch.client.opensearch._types.query_dsl.Query defaultQuery =
+			new org.opensearch.client.opensearch._types.query_dsl.Query(
+				OpenSearchQueryVisitor.INSTANCE.translate(
+					new StringQuery("title:default")));
+
+		org.opensearch.client.opensearch._types.query_dsl.Query highlightQuery =
+			_translateHighlightQuery(_highlightPrototype, defaultQuery);
+
+		QueryStringQuery queryStringQuery = highlightQuery.queryString();
+
+		Assert.assertEquals("title:explicit", queryStringQuery.query());
+
+		Assert.assertNotSame(defaultQuery, highlightQuery);
+	}
+
+	@Test
+	public void testDefaultHighlightQueryIsUsedWhenHighlightQueryIsNull() {
+		org.opensearch.client.opensearch._types.query_dsl.Query defaultQuery =
+			new org.opensearch.client.opensearch._types.query_dsl.Query(
+				OpenSearchQueryVisitor.INSTANCE.translate(
+					new StringQuery("title:default")));
+
+		Assert.assertNull(_highlightPrototype._highlightQuery);
+		Assert.assertSame(
+			defaultQuery,
+			_translateHighlightQuery(_highlightPrototype, defaultQuery));
+	}
+
+	@Test
 	public void testFieldConfigs() {
 		List<FieldConfig> fieldConfigs = new ArrayList<>();
 
@@ -113,6 +146,12 @@ public class HighlightTranslatorTest {
 		_highlightPrototype._highlightQuery = new StringQuery("title:test");
 
 		_assertTranslation(_highlightPrototype);
+	}
+
+	@Test
+	public void testHighlightQueryIsNullWhenDefaultHighlightQueryIsNull() {
+		Assert.assertNull(_highlightPrototype._highlightQuery);
+		Assert.assertNull(_translateHighlightQuery(_highlightPrototype, null));
 	}
 
 	@Test
@@ -224,11 +263,11 @@ public class HighlightTranslatorTest {
 		private String _boundaryScannerType;
 		private final String _fieldName;
 		private Boolean _forceSource;
-		private String _fragmenter;
 		private Integer _fragmentSize;
-		private String _highlighterType;
+		private String _fragmenter;
 		private Boolean _highlightFilter;
 		private Query _highlightQuery;
+		private String _highlighterType;
 		private final String[] _matchedFields;
 		private Integer _noMatchSize;
 		private final Integer _numFragments;
@@ -282,11 +321,11 @@ public class HighlightTranslatorTest {
 		private final String _encoder;
 		private List<FieldConfig> _fieldConfigs;
 		private Boolean _forceSource;
-		private String _fragmenter;
 		private Integer _fragmentSize;
-		private String _highlighterType;
+		private String _fragmenter;
 		private Boolean _highlightFilter;
 		private Query _highlightQuery;
+		private String _highlighterType;
 		private Integer _noMatchSize;
 		private final Integer _numOfFragments;
 		private String _order;
@@ -747,6 +786,19 @@ public class HighlightTranslatorTest {
 		Kind kind = openSearchQuery._kind();
 
 		return kind.jsonValue();
+	}
+
+	private org.opensearch.client.opensearch._types.query_dsl.Query
+		_translateHighlightQuery(
+			HighlightPrototype highlightPrototype,
+			org.opensearch.client.opensearch._types.query_dsl.Query
+				defaultHighlightQuery) {
+
+		org.opensearch.client.opensearch.core.search.Highlight highlight =
+			_highlightTranslator.translate(
+				defaultHighlightQuery, _buildHighlight(highlightPrototype));
+
+		return highlight.highlightQuery();
 	}
 
 	private HighlightPrototype _highlightPrototype;

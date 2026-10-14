@@ -12,12 +12,17 @@ import com.liferay.commerce.currency.exception.NoSuchCurrencyException;
 import com.liferay.commerce.currency.model.CommerceCurrency;
 import com.liferay.commerce.currency.service.CommerceCurrencyLocalService;
 import com.liferay.commerce.currency.service.CommerceCurrencyService;
+import com.liferay.commerce.product.constants.CPPortletKeys;
 import com.liferay.commerce.product.exception.NoSuchCPDefinitionException;
 import com.liferay.commerce.product.exception.NoSuchCatalogException;
 import com.liferay.commerce.product.model.CPDefinition;
 import com.liferay.commerce.product.model.CommerceCatalog;
 import com.liferay.commerce.product.service.CPDefinitionService;
+import com.liferay.commerce.product.service.CommerceCatalogLocalService;
 import com.liferay.commerce.product.service.CommerceCatalogService;
+import com.liferay.exportimport.constants.ExportImportConstants;
+import com.liferay.exportimport.kernel.lar.PortletDataContext;
+import com.liferay.exportimport.vulcan.batch.engine.ExportImportVulcanBatchEngineTaskItemDelegate;
 import com.liferay.headless.commerce.admin.catalog.dto.v1_0.Catalog;
 import com.liferay.headless.commerce.admin.catalog.dto.v1_0.Product;
 import com.liferay.headless.commerce.admin.catalog.internal.odata.entity.v1_0.CatalogEntityModel;
@@ -25,6 +30,7 @@ import com.liferay.headless.commerce.admin.catalog.resource.v1_0.CatalogResource
 import com.liferay.headless.commerce.core.helper.ServiceContextHelper;
 import com.liferay.headless.commerce.core.util.CommerceCurrencyUtil;
 import com.liferay.portal.kernel.change.tracking.CTAware;
+import com.liferay.portal.kernel.lazy.referencing.LazyReferencingThreadLocal;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.search.Field;
@@ -32,6 +38,7 @@ import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.Filter;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.odata.entity.EntityModel;
 import com.liferay.portal.vulcan.dto.converter.DTOConverter;
@@ -46,7 +53,10 @@ import com.liferay.portal.vulcan.util.SearchUtil;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 
+import java.io.Serializable;
+
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
@@ -58,11 +68,16 @@ import org.osgi.service.component.annotations.ServiceScope;
  */
 @Component(
 	properties = "OSGI-INF/liferay/rest/v1_0/catalog.properties",
-	property = "nested.field.support=true", scope = ServiceScope.PROTOTYPE,
-	service = CatalogResource.class
+	property = {
+		"export.import.vulcan.batch.engine.task.item.delegate=true",
+		"nested.field.support=true"
+	},
+	scope = ServiceScope.PROTOTYPE, service = CatalogResource.class
 )
 @CTAware
-public class CatalogResourceImpl extends BaseCatalogResourceImpl {
+public class CatalogResourceImpl
+	extends BaseCatalogResourceImpl
+	implements ExportImportVulcanBatchEngineTaskItemDelegate<Catalog> {
 
 	@Override
 	public Response deleteCatalog(Long id) throws Exception {
@@ -97,52 +112,70 @@ public class CatalogResourceImpl extends BaseCatalogResourceImpl {
 	}
 
 	@Override
-	public Catalog getCatalog(Long id) throws Exception {
-		return _toCatalog(_commerceCatalogService.getCommerceCatalog(id));
-	}
-
-	@Override
-	public Catalog getCatalogByExternalReferenceCode(
-			String externalReferenceCode)
-		throws Exception {
-
-		CommerceCatalog commerceCatalog =
-			_commerceCatalogService.fetchCommerceCatalogByExternalReferenceCode(
-				externalReferenceCode, contextCompany.getCompanyId());
-
-		if (commerceCatalog == null) {
-			throw new NoSuchCatalogException(
-				"Unable to find catalog with external reference code " +
-					externalReferenceCode);
-		}
-
-		return _toCatalog(commerceCatalog);
-	}
-
-	@Override
-	public Page<Catalog> getCatalogsPage(
-			String search, Filter filter, Pagination pagination, Sort[] sorts)
-		throws Exception {
-
-		return SearchUtil.search(
-			Collections.emptyMap(),
-			booleanQuery -> booleanQuery.getPreBooleanFilter(), filter,
-			CommerceCatalog.class.getName(), search, pagination,
-			queryConfig -> queryConfig.setSelectedFieldNames(
-				Field.ENTRY_CLASS_PK),
-			searchContext -> searchContext.setCompanyId(
-				contextCompany.getCompanyId()),
-			sorts,
-			document -> _toCatalog(
-				_commerceCatalogService.getCommerceCatalog(
-					GetterUtil.getLong(document.get(Field.ENTRY_CLASS_PK)))));
-	}
-
-	@Override
 	public EntityModel getEntityModel(MultivaluedMap multivaluedMap)
 		throws Exception {
 
 		return _entityModel;
+	}
+
+	@Override
+	public ExportImportDescriptor<CommerceCatalog> getExportImportDescriptor() {
+		return new ExportImportDescriptor<>() {
+
+			@Override
+			public String getKey() {
+				return CatalogResourceImpl.class.getName();
+			}
+
+			@Override
+			public String getLabelLanguageKey() {
+				return "catalogs";
+			}
+
+			@Override
+			public Class<CommerceCatalog> getModelClass() {
+				return CommerceCatalog.class;
+			}
+
+			@Override
+			public List<String> getNestedFields() {
+				return List.of("creator");
+			}
+
+			@Override
+			public Map<String, Serializable> getParameters(
+				PortletDataContext portletDataContext) {
+
+				return HashMapBuilder.<String, Serializable>put(
+					"filter",
+					() -> StringUtil.merge(
+						transform(
+							_commerceCatalogLocalService.getCommerceCatalogs(
+								portletDataContext.getCompanyId(), true),
+							commerceCatalog ->
+								"externalReferenceCode ne '" +
+									commerceCatalog.getExternalReferenceCode() +
+										"'"),
+						" and ")
+				).build();
+			}
+
+			@Override
+			public String getPortletId() {
+				return CPPortletKeys.COMMERCE_CATALOGS;
+			}
+
+			@Override
+			public Scope getScope() {
+				return Scope.COMPANY;
+			}
+
+			@Override
+			public String getSectionKey() {
+				return ExportImportConstants.SECTION_KEY_PRODUCT_MANAGEMENT;
+			}
+
+		};
 	}
 
 	@Override
@@ -215,7 +248,49 @@ public class CatalogResourceImpl extends BaseCatalogResourceImpl {
 	}
 
 	@Override
-	public Catalog postCatalog(Catalog catalog) throws Exception {
+	protected Catalog doGetCatalog(Long id) throws Exception {
+		return _toCatalog(_commerceCatalogService.getCommerceCatalog(id));
+	}
+
+	@Override
+	protected Catalog doGetCatalogByExternalReferenceCode(
+			String externalReferenceCode)
+		throws Exception {
+
+		CommerceCatalog commerceCatalog =
+			_commerceCatalogService.fetchCommerceCatalogByExternalReferenceCode(
+				externalReferenceCode, contextCompany.getCompanyId());
+
+		if (commerceCatalog == null) {
+			throw new NoSuchCatalogException(
+				"Unable to find catalog with external reference code " +
+					externalReferenceCode);
+		}
+
+		return _toCatalog(commerceCatalog);
+	}
+
+	@Override
+	protected Page<Catalog> doGetCatalogsPage(
+			String search, Filter filter, Pagination pagination, Sort[] sorts)
+		throws Exception {
+
+		return SearchUtil.search(
+			Collections.emptyMap(),
+			booleanQuery -> booleanQuery.getPreBooleanFilter(), filter,
+			CommerceCatalog.class.getName(), search, pagination,
+			queryConfig -> queryConfig.setSelectedFieldNames(
+				Field.ENTRY_CLASS_PK),
+			searchContext -> searchContext.setCompanyId(
+				contextCompany.getCompanyId()),
+			sorts,
+			document -> _toCatalog(
+				_commerceCatalogService.getCommerceCatalog(
+					GetterUtil.getLong(document.get(Field.ENTRY_CLASS_PK)))));
+	}
+
+	@Override
+	protected Catalog doPostCatalog(Catalog catalog) throws Exception {
 		CommerceCatalog commerceCatalog =
 			_commerceCatalogService.fetchCommerceCatalogByExternalReferenceCode(
 				catalog.getExternalReferenceCode(),
@@ -262,7 +337,7 @@ public class CatalogResourceImpl extends BaseCatalogResourceImpl {
 	}
 
 	@Override
-	public Catalog putCatalogByExternalReferenceCode(
+	protected Catalog doPutCatalogByExternalReferenceCode(
 			String externalReferenceCode, Catalog catalog)
 		throws Exception {
 
@@ -294,6 +369,19 @@ public class CatalogResourceImpl extends BaseCatalogResourceImpl {
 		return _toCatalog(commerceCatalog);
 	}
 
+	@Override
+	protected Long getPermissionCheckerGroupId(Object id) throws Exception {
+		CommerceCatalog commerceCatalog =
+			_commerceCatalogLocalService.getCommerceCatalog((Long)id);
+
+		return commerceCatalog.getGroupId();
+	}
+
+	@Override
+	protected String getPermissionCheckerResourceName(Object id) {
+		return CommerceCatalog.class.getName();
+	}
+
 	private long _getAccountEntryId(Catalog catalog, long defaultAccountEntryId)
 		throws Exception {
 
@@ -310,6 +398,14 @@ public class CatalogResourceImpl extends BaseCatalogResourceImpl {
 		if (accountType == null) {
 			return GetterUtil.get(
 				catalog.getAccountId(), defaultAccountEntryId);
+		}
+
+		if (!LazyReferencingThreadLocal.isEnabled()) {
+			AccountEntry accountEntry =
+				_accountEntryService.getAccountEntryByExternalReferenceCode(
+					externalReferenceCode, contextCompany.getCompanyId());
+
+			return accountEntry.getAccountEntryId();
 		}
 
 		AccountEntry accountEntry =
@@ -363,7 +459,9 @@ public class CatalogResourceImpl extends BaseCatalogResourceImpl {
 			return commerceCurrency;
 		}
 
-		if (Validator.isNull(currencyExternalReferenceCode)) {
+		if (Validator.isNull(currencyExternalReferenceCode) ||
+			!LazyReferencingThreadLocal.isEnabled()) {
+
 			throw new NoSuchCurrencyException(
 				"Unable to find currency with external reference code " +
 					currencyExternalReferenceCode);
@@ -425,6 +523,9 @@ public class CatalogResourceImpl extends BaseCatalogResourceImpl {
 		target = "(component.name=com.liferay.headless.commerce.admin.catalog.internal.dto.v1_0.converter.CatalogDTOConverter)"
 	)
 	private DTOConverter<CommerceCatalog, Catalog> _catalogDTOConverter;
+
+	@Reference
+	private CommerceCatalogLocalService _commerceCatalogLocalService;
 
 	@Reference
 	private CommerceCatalogService _commerceCatalogService;

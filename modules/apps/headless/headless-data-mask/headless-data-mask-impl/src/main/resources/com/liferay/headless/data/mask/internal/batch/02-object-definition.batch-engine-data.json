@@ -20,7 +20,6 @@
 			"label": {
 				"en_US": "Data Mask"
 			},
-			"modifiable": true,
 			"name": "DataMask",
 			"objectFields": [
 				{
@@ -126,7 +125,7 @@
 					"type": "String"
 				}
 			],
-			"panelCategoryKey": "control_panel.object",
+			"panelCategoryKey": "",
 			"pluralLabel": {
 				"en_US": "Data Masks"
 			},

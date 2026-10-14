@@ -1,6 +1,6 @@
 import AccountName from 'shared/components/table/cell-components/AccountName';
 import Checkbox from 'shared/components/Checkbox';
-import ClayIcon from '@clayui/icon';
+import ClayIcon from 'shared/components/Icon';
 import getCN from 'classnames';
 import IndividualType from 'shared/components/table/cell-components/IndividualTypes';
 import InfoPopover from 'shared/components/InfoPopover';
@@ -25,7 +25,10 @@ import {
 } from 'shared/components/table/cell-components';
 import {
 	applyTimeZone,
+	formatCalendar,
+	formatDate,
 	formatDateToTimeZone,
+	formatRelativeTime,
 	formatUTCDate,
 	getCustomDateFormat,
 } from './date';
@@ -416,9 +419,7 @@ export const changesListColumns = {
 		) =>
 			operation && [
 				<span key="MEMBERSHIP_CHANGE">
-					{applyTimeZone(dateChanged, timeZoneId).calendar(null, {
-						sameElse: getCustomDateFormat(),
-					})}
+					{formatCalendar(applyTimeZone(dateChanged, timeZoneId))}
 
 					<Label
 						className="membership-operation"
@@ -564,9 +565,10 @@ export const detailsListColumns = {
 	}),
 	getDateModified: (timeZoneId: string | undefined) => ({
 		accessor: 'dateModified',
+		className: 'text-nowrap',
 		dataFormatter: (dateModified: string | number | null | undefined) =>
 			!isNil(dateModified) &&
-			applyTimeZone(dateModified, timeZoneId).fromNow(),
+			formatRelativeTime(applyTimeZone(dateModified, timeZoneId)),
 		label: Liferay.Language.get('last-modified'),
 	}),
 	name: {
@@ -1033,7 +1035,7 @@ export const metricsListColumns = {
 		}) => {
 			const date =
 				!isNil(modifiedDate) &&
-				moment(modifiedDate).format(getCustomDateFormat());
+				formatDate(moment(modifiedDate), getCustomDateFormat());
 
 			return (
 				<td>
@@ -1300,9 +1302,7 @@ export const segmentsListColumns = {
 		cellRenderer: DateCell,
 		cellRendererProps: {
 			dateFormatter: (date: string | number) =>
-				moment(date).calendar(null, {
-					sameElse: getCustomDateFormat(),
-				}),
+				formatCalendar(moment(date)),
 			datePath: 'individualAddedDate',
 		},
 		label: Liferay.Language.get('date-added'),
@@ -1332,9 +1332,7 @@ export const usersListColumns = {
 		cellRenderer: DateCell,
 		cellRendererProps: {
 			dateFormatter: (date: string | number) =>
-				applyTimeZone(date, timeZoneId).calendar(null, {
-					sameElse: getCustomDateFormat(),
-				}),
+				formatCalendar(applyTimeZone(date, timeZoneId)),
 			datePath: 'lastLoginDate',
 		},
 		className: 'table-cell-expand',

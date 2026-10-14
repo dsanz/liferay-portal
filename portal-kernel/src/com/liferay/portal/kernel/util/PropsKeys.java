@@ -403,6 +403,9 @@ public interface PropsKeys {
 	public static final String CHANGE_TRACKING_DELETION_PROTECTION_ENABLED =
 		"change.tracking.deletion.protection.enabled";
 
+	public static final String CLUSTER_LINK_AUTH_KEYSTORE_TYPE =
+		"cluster.link.auth.keystore.type";
+
 	public static final String CLUSTER_LINK_AUTH_VALUE =
 		"cluster.link.auth.value";
 
@@ -1804,9 +1807,6 @@ public interface PropsKeys {
 	public static final String NETVIBES_SERVLET_MAPPING =
 		"netvibes.servlet.mapping";
 
-	public static final String NOTIFICATION_EMAIL_TEMPLATE_ENABLED =
-		"notification.email.template.enabled";
-
 	public static final String NOTIFICATIONS_MAX_EVENTS =
 		"notifications.max.events";
 
@@ -2230,9 +2230,6 @@ public interface PropsKeys {
 
 	public static final String RESOURCE_REPOSITORIES_ROOT =
 		"resource.repositories.root";
-
-	public static final String REST_PROXY_URL_PREFIXES_ALLOWED =
-		"rest.proxy.url.prefixes.allowed";
 
 	public static final String RETRY_ADVICE_MAX_RETRIES =
 		"retry.advice.max.retries";
@@ -2699,6 +2696,9 @@ public interface PropsKeys {
 	public static final String TUNNEL_SERVLET_HIDE_EXCEPTION_DATA =
 		"tunnel.servlet.hide.exception.data";
 
+	public static final String TUNNEL_UTIL_VERIFY_SSL_HOSTNAME =
+		"com.liferay.portal.kernel.service.http.TunnelUtil.verify.ssl.hostname";
+
 	public static final String TUNNELING_SERVLET_ENCRYPTION_ALGORITHM =
 		"tunneling.servlet.encryption.algorithm";
 
@@ -2889,6 +2889,14 @@ public interface PropsKeys {
 
 	public static final String VALUE_OBJECT_ENTITY_THREAD_LOCAL_CACHE_MAX_SIZE =
 		"value.object.entity.thread.local.cache.max.size";
+
+	public static final String
+		VALUE_OBJECT_FINDER_CACHE_COUNT_CLUSTER_TIME_TO_LIVE =
+			"value.object.finder.cache.count.cluster.time.to.live";
+
+	public static final String
+		VALUE_OBJECT_FINDER_CACHE_COUNT_MAINTENANCE_ENABLED =
+			"value.object.finder.cache.count.maintenance.enabled";
 
 	public static final String VALUE_OBJECT_FINDER_CACHE_ENABLED =
 		"value.object.finder.cache.enabled";

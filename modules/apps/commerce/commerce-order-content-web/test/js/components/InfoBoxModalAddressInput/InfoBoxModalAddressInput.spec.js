@@ -111,6 +111,8 @@ global.ResizeObserver = ResizeObserver;
 
 describe('InfoBoxModalAddressInput', () => {
 	beforeEach(async () => {
+		fetchMock.mockGlobal();
+
 		fetchMock.get(/headless-admin-address\/.*\/countries/i, () => {
 			return {
 				items: [
@@ -193,7 +195,7 @@ describe('InfoBoxModalAddressInput', () => {
 	});
 
 	afterEach(() => {
-		fetchMock.restore();
+		fetchMock.hardReset();
 		jest.clearAllMocks();
 
 		cleanup();
@@ -220,7 +222,7 @@ describe('InfoBoxModalAddressInput', () => {
 			/>
 		);
 
-		expect(fetchMock.calls().matched.length).toBe(2);
+		expect(fetchMock.callHistory.calls('matched').length).toBe(2);
 
 		const {addressSubtypeInput} = getLocators(renderedComponent);
 
@@ -260,7 +262,7 @@ describe('InfoBoxModalAddressInput', () => {
 			/>
 		);
 
-		expect(fetchMock.calls().matched.length).toBe(3);
+		expect(fetchMock.callHistory.calls('matched').length).toBe(3);
 
 		const {addressSubtypeInput} = getLocators(renderedComponent);
 
@@ -302,7 +304,7 @@ describe('InfoBoxModalAddressInput', () => {
 			/>
 		);
 
-		expect(fetchMock.calls().matched.length).toBe(2);
+		expect(fetchMock.callHistory.calls('matched').length).toBe(2);
 
 		const {addressSubtypeInput} = getLocators(renderedComponent);
 
@@ -345,7 +347,7 @@ describe('InfoBoxModalAddressInput', () => {
 			/>
 		);
 
-		expect(fetchMock.calls().matched.length).toBe(3);
+		expect(fetchMock.callHistory.calls('matched').length).toBe(3);
 
 		const {addressIdSelect, addressSubtypeInput} =
 			getLocators(renderedComponent);
@@ -395,7 +397,7 @@ describe('InfoBoxModalAddressInput', () => {
 			/>
 		);
 
-		expect(fetchMock.calls().matched.length).toBe(3);
+		expect(fetchMock.callHistory.calls('matched').length).toBe(3);
 
 		const {addressIdSelect, addressSubtypeInput} =
 			getLocators(renderedComponent);
@@ -493,14 +495,14 @@ describe('InfoBoxModalAddressInput', () => {
 
 		await changeAddress(105, 'SHIPPING 2');
 
-		expect(fetchMock.calls().matched.length).toBe(3);
+		expect(fetchMock.callHistory.calls('matched').length).toBe(3);
 
 		await changeAddress(106, 'BILLING AND SHIPPING 2');
 
-		expect(fetchMock.calls().matched.length).toBe(4);
+		expect(fetchMock.callHistory.calls('matched').length).toBe(4);
 
 		await changeAddress(101, '');
 
-		expect(fetchMock.calls().matched.length).toBe(4);
+		expect(fetchMock.callHistory.calls('matched').length).toBe(4);
 	});
 });

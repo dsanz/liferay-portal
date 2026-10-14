@@ -127,7 +127,7 @@ boolean limitToOneSubmissionPerUser = DDMFormInstanceSubmissionLimitStatusUtil.i
 						String redirectURL = ddmFormDisplayContext.getRedirectURL();
 
 						if (Validator.isNull(redirectURL)) {
-							redirectURL = ParamUtil.getString(request, "redirect", currentURL);
+							redirectURL = PortalUtil.escapeRedirect(ParamUtil.getString(request, "redirect", currentURL));
 						}
 						%>
 
@@ -210,6 +210,18 @@ boolean limitToOneSubmissionPerUser = DDMFormInstanceSubmissionLimitStatusUtil.i
 						</liferay-ui:error>
 
 						<liferay-ui:error exception="<%= StorageException.class %>" message="there-was-an-error-when-accessing-the-data-storage" />
+
+						<%
+						Map<String, String> errorMessages = ddmFormDisplayContext.getErrorMessages();
+
+						for (Map.Entry<String, String> entry : errorMessages.entrySet()) {
+						%>
+
+							<liferay-ui:error key="<%= entry.getKey() %>" message="<%= entry.getValue() %>" translateMessage="<%= false %>" />
+
+						<%
+						}
+						%>
 
 						<liferay-ui:error-principal />
 

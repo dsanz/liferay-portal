@@ -32,6 +32,7 @@ spec:
                                     default: {}
                                     properties:
                                         dayOfWeek:
+                                            default: Sunday
                                             enum:
                                                 -   Sunday
                                                 -   Monday
@@ -69,9 +70,6 @@ spec:
                                             default: {}
                                             type: object
                                     type: object
-                                    x-kubernetes-validations:
-                                        -   message: dayOfWeek is required when frequency is Weekly
-                                            rule: "!has(self.frequency) || self.frequency != 'Weekly' || has(self.dayOfWeek)"
                                 cmk:
                                     default:
                                         enabled: false
@@ -86,32 +84,47 @@ spec:
                                     default: {}
                                     type: object
                                 database:
+                                    default: {}
                                     properties:
-                                        authentication:
-                                            default: password
-                                            enum:
-                                                -   password
-                                                -   workloadIdentity
-                                            type: string
                                         highAvailability:
                                             default: false
                                             type: boolean
                                         instanceType:
                                             minLength: 1
                                             type: string
-                                        restorePointInTime:
+                                        restore:
                                             nullable: true
-                                            pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\.[0-9]+)?Z$
-                                            type: string
+                                            properties:
+                                                pointInTime:
+                                                    properties:
+                                                        sourceDataPlane:
+                                                            pattern: ^(blue|green)(-[0-9a-f]{6})?$
+                                                            type: string
+                                                        time:
+                                                            pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\.[0-9]+)?Z$
+                                                            type: string
+                                                    required:
+                                                        -   time
+                                                    type: object
+                                                snapshot:
+                                                    properties:
+                                                        id:
+                                                            minLength: 1
+                                                            type: string
+                                                    required:
+                                                        -   id
+                                                    type: object
+                                            type: object
+                                            x-kubernetes-validations:
+                                                -   message: restore must set exactly one of pointInTime or snapshot
+                                                    rule: has(self.pointInTime) != has(self.snapshot)
                                         storageGB:
+                                            default: 32
                                             type: integer
                                         version:
-                                            minLength: 1
+                                            default: "16"
+                                            pattern: ^[0-9]+$
                                             type: string
-                                    required:
-                                        -   instanceType
-                                        -   storageGB
-                                        -   version
                                     type: object
                                 environmentId:
                                     minLength: 1
@@ -123,6 +136,7 @@ spec:
                                     default: false
                                     type: boolean
                                 overlayAccess:
+                                    default: {}
                                     properties:
                                         enabled:
                                             default: false
@@ -131,20 +145,56 @@ spec:
                                 projectId:
                                     minLength: 1
                                     type: string
-                                region:
-                                    minLength: 1
+                                restoreGeneration:
+                                    nullable: true
+                                    pattern: ^[0-9a-f]{6}$
                                     type: string
                                 restorePhase:
+                                    default: none
                                     enum:
                                         -   none
                                         -   promoting
                                         -   provisioning
                                     type: string
-                                storage:
+                                retainedDataPlanes:
+                                    additionalProperties:
+                                        pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]Z$
+                                        type: string
+                                    default: {}
+                                    type: object
+                                    x-kubernetes-validations:
+                                        -   message: retainedDataPlanes keys must be blue or green, optionally followed by a hyphen and six hexadecimal digits
+                                            rule: self.all(key, key.matches('^(blue|green)(-[0-9a-f]{6})?$'))
+                                search:
+                                    default: {}
                                     properties:
-                                        enableVersioning:
-                                            default: true
-                                            type: boolean
+                                        engine:
+                                            default: elasticsearch
+                                            enum:
+                                                -   elasticsearch
+                                                -   opensearch
+                                            type: string
+                                        opensearch:
+                                            default: {}
+                                            properties:
+                                                instanceCount:
+                                                    default: 2
+                                                    type: integer
+                                                instanceType:
+                                                    minLength: 1
+                                                    type: string
+                                                version:
+                                                    default: "2.15"
+                                                    pattern: ^[0-9]+\.[0-9]+$
+                                                    type: string
+                                                volumeSizeGB:
+                                                    default: 20
+                                                    type: integer
+                                            type: object
+                                    type: object
+                                storage:
+                                    default: {}
+                                    properties:
                                         tags:
                                             additionalProperties:
                                                 type: string
@@ -152,16 +202,14 @@ spec:
                                             type: object
                                     type: object
                                 targetActiveDataPlane:
+                                    default: blue
                                     enum:
                                         -   blue
                                         -   green
                                     type: string
                             required:
-                                -   database
                                 -   environmentId
                                 -   projectId
-                                -   region
-                                -   storage
                             type: object
                         status:
                             properties:

@@ -789,6 +789,19 @@ public class ObjectEntryLocalServiceWrapper
 	}
 
 	@Override
+	public java.util.Map<String, java.io.Serializable> getValues(
+			com.liferay.object.model.ObjectEntry objectEntry,
+			java.util.Map<String, Object> dynamicObjectDefinitionTableValues,
+			java.util.function.Consumer<java.util.Map<String, Object>>
+				dynamicObjectDefinitionTableValuesConsumer)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _objectEntryLocalService.getValues(
+			objectEntry, dynamicObjectDefinitionTableValues,
+			dynamicObjectDefinitionTableValuesConsumer);
+	}
+
+	@Override
 	public java.util.List<java.util.Map<String, java.io.Serializable>>
 			getValuesList(
 				long groupId, long companyId, long userId,
@@ -834,6 +847,15 @@ public class ObjectEntryLocalServiceWrapper
 
 		_objectEntryLocalService.insertIntoOrUpdateExtensionTable(
 			userId, objectDefinitionId, primaryKey, values);
+	}
+
+	@Override
+	public void loadValues(
+			com.liferay.object.model.ObjectDefinition objectDefinition,
+			java.util.List<com.liferay.object.model.ObjectEntry> objectEntries)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		_objectEntryLocalService.loadValues(objectDefinition, objectEntries);
 	}
 
 	@Override
@@ -949,15 +971,6 @@ public class ObjectEntryLocalServiceWrapper
 	}
 
 	@Override
-	public com.liferay.object.model.ObjectEntry updateModifiedDate(
-			long objectEntryId, java.util.Date modifiedDate)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return _objectEntryLocalService.updateModifiedDate(
-			objectEntryId, modifiedDate);
-	}
-
-	@Override
 	public com.liferay.object.model.ObjectEntry updateObjectEntry(
 			long userId, long objectEntryId, long objectEntryFolderId,
 			java.util.Map<String, java.io.Serializable> values,
@@ -1050,4 +1063,4 @@ public class ObjectEntryLocalServiceWrapper
 	private ObjectEntryLocalService _objectEntryLocalService;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:660663488
+// LIFERAY-SERVICE-BUILDER-HASH:225887381

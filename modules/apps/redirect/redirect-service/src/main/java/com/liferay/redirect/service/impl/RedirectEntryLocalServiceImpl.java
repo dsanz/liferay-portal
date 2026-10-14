@@ -200,6 +200,10 @@ public class RedirectEntryLocalServiceImpl
 	public RedirectEntry fetchRedirectEntry(
 		long groupId, String sourceURL, boolean updateLastOccurrenceDate) {
 
+		if (redirectEntryPersistence.countByGroupId(groupId) == 0) {
+			return null;
+		}
+
 		RedirectEntry redirectEntry = redirectEntryPersistence.fetchByG_S(
 			groupId, sourceURL);
 

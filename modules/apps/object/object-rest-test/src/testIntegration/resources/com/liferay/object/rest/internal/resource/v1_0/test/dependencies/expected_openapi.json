@@ -627,14 +627,12 @@
 						"type": "array"
 					},
 					"relationship1": {
-						"description": "Information about the relationship relationship1 can be embedded with \"nestedFields\".",
 						"items": {
 							"$ref": "#/components/schemas/Object2"
 						},
 						"type": "array"
 					},
 					"relationship2": {
-						"description": "Information about the relationship relationship2 can be embedded with \"nestedFields\".",
 						"items": {
 							"$ref": "#/components/schemas/Object2"
 						},
@@ -1452,14 +1450,12 @@
 						"x-parent-map": "properties"
 					},
 					"relationship1": {
-						"description": "Information about the relationship relationship1 can be embedded with \"nestedFields\".",
 						"items": {
 							"type": "object"
 						},
 						"type": "array"
 					},
 					"relationship2": {
-						"description": "Information about the relationship relationship2 can be embedded with \"nestedFields\".",
 						"type": "object"
 					},
 					"relationship2ERC": {
@@ -1468,14 +1464,12 @@
 						"x-parent-map": "properties"
 					},
 					"relationship3": {
-						"description": "Information about the relationship relationship3 can be embedded with \"nestedFields\".",
 						"items": {
 							"type": "object"
 						},
 						"type": "array"
 					},
 					"relationship4": {
-						"description": "Information about the relationship relationship4 can be embedded with \"nestedFields\".",
 						"items": {
 							"type": "object"
 						},
@@ -7556,6 +7550,7 @@
 						"description": "The required language ID of the source text (e.g., \"en_US\").",
 						"in": "query",
 						"name": "sourceLanguageId",
+						"required": true,
 						"schema": {
 							"type": "string"
 						}
@@ -7564,6 +7559,7 @@
 						"description": "A required list of language IDs for the target translations (e.g., \"es_ES\", \"fr_FR\").",
 						"in": "query",
 						"name": "targetLanguageIds",
+						"required": true,
 						"schema": {
 							"type": "string"
 						}
@@ -7658,6 +7654,7 @@
 						"description": "The required language ID for the target translation (e.g., \"en_US\").",
 						"in": "query",
 						"name": "targetLanguageId",
+						"required": true,
 						"schema": {
 							"type": "string"
 						}

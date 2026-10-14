@@ -868,6 +868,9 @@ public class CPMeasurementUnitPersistenceImpl
 		}
 		else {
 			if (!Objects.equals(
+					cpMeasurementUnit.getUuid(),
+					cpMeasurementUnit.getExternalReferenceCode()) &&
+				!Objects.equals(
 					cpMeasurementUnitModelImpl.getColumnOriginalValue(
 						"externalReferenceCode"),
 					cpMeasurementUnit.getExternalReferenceCode())) {
@@ -1395,4 +1398,4 @@ public class CPMeasurementUnitPersistenceImpl
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:937220891
+// LIFERAY-SERVICE-BUILDER-HASH:117335014

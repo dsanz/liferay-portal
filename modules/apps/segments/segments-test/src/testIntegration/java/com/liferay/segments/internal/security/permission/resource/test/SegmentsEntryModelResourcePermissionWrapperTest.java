@@ -65,6 +65,25 @@ public class SegmentsEntryModelResourcePermissionWrapperTest {
 	}
 
 	@Test
+	public void testContainsWithSourceAsahFaroBackend() throws Exception {
+		SegmentsEntry segmentsEntry =
+			_segmentsEntryLocalService.addSegmentsEntry(
+				null, RandomTestUtil.randomString(),
+				Collections.singletonMap(
+					LocaleUtil.getDefault(), RandomTestUtil.randomString()),
+				Collections.singletonMap(
+					LocaleUtil.getDefault(), RandomTestUtil.randomString()),
+				true, null, SegmentsEntryConstants.SOURCE_ASAH_FARO_BACKEND,
+				SegmentsEntryConstants.TYPE_DEFAULT,
+				ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
+
+		Assert.assertFalse(
+			_segmentsEntryModelResourcePermission.contains(
+				_permissionCheckerFactory.create(TestPropsValues.getUser()),
+				segmentsEntry.getSegmentsEntryId(), ActionKeys.UPDATE));
+	}
+
+	@Test
 	public void testContainsWithoutPermissions() throws Exception {
 		User user = UserTestUtil.addUser(_group.getGroupId());
 
@@ -80,24 +99,6 @@ public class SegmentsEntryModelResourcePermissionWrapperTest {
 		finally {
 			_userLocalService.deleteUser(user);
 		}
-	}
-
-	@Test
-	public void testContainsWithSourceAsahFaroBackend() throws Exception {
-		SegmentsEntry segmentsEntry =
-			_segmentsEntryLocalService.addSegmentsEntry(
-				null, RandomTestUtil.randomString(),
-				Collections.singletonMap(
-					LocaleUtil.getDefault(), RandomTestUtil.randomString()),
-				Collections.singletonMap(
-					LocaleUtil.getDefault(), RandomTestUtil.randomString()),
-				true, null, SegmentsEntryConstants.SOURCE_ASAH_FARO_BACKEND,
-				ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
-
-		Assert.assertFalse(
-			_segmentsEntryModelResourcePermission.contains(
-				_permissionCheckerFactory.create(TestPropsValues.getUser()),
-				segmentsEntry.getSegmentsEntryId(), ActionKeys.UPDATE));
 	}
 
 	@DeleteAfterTestRun

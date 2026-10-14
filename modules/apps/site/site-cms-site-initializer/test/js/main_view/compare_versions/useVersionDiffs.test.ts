@@ -119,6 +119,25 @@ describe('injectContentDiffs', () => {
 		expect(box).toHaveClass('form-control');
 	});
 
+	it('does not copy the input group inset classes of a date picker control', () => {
+		const iframe = createIframe(
+			createFieldHTML(
+				'ObjectField_date',
+				'<div class="date-picker"><div class="input-group"><input class="form-control input-group-inset input-group-inset-after" /></div></div>'
+			)
+		);
+
+		injectContentDiffs({date: '09/22/2026'}, 'removals', iframe);
+
+		const box = iframe.contentDocument!.querySelector(
+			'.cms-compare-versions-diff'
+		);
+
+		expect(box).toHaveTextContent('09/22/2026');
+		expect(box).toHaveClass('form-control');
+		expect(box).not.toHaveClass('input-group-inset');
+	});
+
 	it('ignores diffs whose field is not on the page', () => {
 		const iframe = createIframe(createFieldHTML('ObjectField_title'));
 
@@ -294,15 +313,35 @@ describe('useVersionDiffs', () => {
 		jest.clearAllMocks();
 	});
 
-	it('does not request anything while either version is unselected', () => {
+	it('does not request anything while both versions are unselected', () => {
 		renderHook(() =>
-			useVersionDiffs({...DEFAULT_INPUT, sourceVersion: null})
+			useVersionDiffs({
+				...DEFAULT_INPUT,
+				sourceVersion: null,
+				targetVersion: null,
+			})
 		);
+
+		expect(mockFetch).not.toHaveBeenCalled();
+	});
+
+	it('compares the selected version with itself while the other one is unselected', async () => {
+		mockDiffsResponse({source: {}, target: {}});
+
 		renderHook(() =>
 			useVersionDiffs({...DEFAULT_INPUT, targetVersion: null})
 		);
 
-		expect(mockFetch).not.toHaveBeenCalled();
+		await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(1));
+
+		const [, options] = mockFetch.mock.calls[0];
+
+		expect(JSON.parse(options.body)).toEqual({
+			languageId: 'en_US',
+			objectEntryId: 42,
+			sourceVersion: 2,
+			targetVersion: 2,
+		});
 	});
 
 	it('clears the previous diffs while the next comparison is in flight', async () => {

@@ -483,19 +483,6 @@ public class ThemeDisplay
 	}
 
 	/**
-	 * Returns the site's top-level pages.
-	 *
-	 * <p>
-	 * Layout is Liferay's technical name for a page.
-	 * </p>
-	 *
-	 * @return the site's top-level pages
-	 */
-	public List<Layout> getLayouts() {
-		return _layouts;
-	}
-
-	/**
 	 * Returns the current layout set, being either a public layout set or a
 	 * private layout set.
 	 *
@@ -524,6 +511,19 @@ public class ThemeDisplay
 
 	public LayoutTypePortlet getLayoutTypePortlet() {
 		return _layoutTypePortlet;
+	}
+
+	/**
+	 * Returns the site's top-level pages.
+	 *
+	 * <p>
+	 * Layout is Liferay's technical name for a page.
+	 * </p>
+	 *
+	 * @return the site's top-level pages
+	 */
+	public List<Layout> getLayouts() {
+		return _layouts;
 	}
 
 	/**
@@ -615,6 +615,10 @@ public class ThemeDisplay
 		return _contextPath;
 	}
 
+	public String getPathControlPanelEmptyStatesSpritemap() {
+		return _pathControlPanelEmptyStatesSpritemap;
+	}
+
 	/**
 	 * Returns the URL for the control panel's spritemap.
 	 *
@@ -694,6 +698,10 @@ public class ThemeDisplay
 	 */
 	public String getPathThemeCss() {
 		return _pathThemeCss;
+	}
+
+	public String getPathThemeEmptyStatesSpritemap() {
+		return _pathThemeEmptyStatesSpritemap;
 	}
 
 	/**
@@ -1069,10 +1077,6 @@ public class ThemeDisplay
 		return _timeZone;
 	}
 
-	public List<Layout> getUnfilteredLayouts() {
-		return _unfilteredLayouts;
-	}
-
 	public String getURLControlPanel() {
 		return _urlControlPanel;
 	}
@@ -1114,6 +1118,10 @@ public class ThemeDisplay
 
 	public String getURLSignOut() {
 		return _urlSignOut;
+	}
+
+	public List<Layout> getUnfilteredLayouts() {
+		return _unfilteredLayouts;
 	}
 
 	/**
@@ -1182,6 +1190,10 @@ public class ThemeDisplay
 		return true;
 	}
 
+	public boolean isIncludePortletCssJs() {
+		return _includePortletCssJs;
+	}
+
 	public boolean isIncludedJs(String js) {
 		String path = getPathJavaScript();
 
@@ -1192,10 +1204,6 @@ public class ThemeDisplay
 		}
 
 		return false;
-	}
-
-	public boolean isIncludePortletCssJs() {
-		return _includePortletCssJs;
 	}
 
 	public boolean isIsolated() {
@@ -1454,10 +1462,6 @@ public class ThemeDisplay
 		_layout = layout;
 	}
 
-	public void setLayouts(List<Layout> layouts) {
-		_layouts = layouts;
-	}
-
 	public void setLayoutSet(LayoutSet layoutSet) {
 		_layoutSet = layoutSet;
 	}
@@ -1468,6 +1472,10 @@ public class ThemeDisplay
 
 	public void setLayoutTypePortlet(LayoutTypePortlet layoutTypePortlet) {
 		_layoutTypePortlet = layoutTypePortlet;
+	}
+
+	public void setLayouts(List<Layout> layouts) {
+		_layouts = layouts;
 	}
 
 	public void setLifecycle(String lifecycle) {
@@ -1520,6 +1528,10 @@ public class ThemeDisplay
 				_company.getCompanyId(),
 				PropsKeys.CONTROL_PANEL_LAYOUT_REGULAR_THEME_ID));
 
+		setPathControlPanelEmptyStatesSpritemap(
+			StringBundler.concat(
+				cdnBaseURL, controlPanelTheme.getStaticResourcePath(),
+				controlPanelTheme.getImagesPath(), "/clay/empty_states.svg"));
 		setPathControlPanelSpritemap(
 			StringBundler.concat(
 				cdnBaseURL, controlPanelTheme.getStaticResourcePath(),
@@ -1558,6 +1570,10 @@ public class ThemeDisplay
 			setPathThemeRoot(themeStaticResourcePath + rootPath);
 		}
 
+		setPathThemeEmptyStatesSpritemap(
+			StringBundler.concat(
+				cdnBaseURL, themeStaticResourcePath, theme.getImagesPath(),
+				"/clay/empty_states.svg"));
 		setPathThemeSpritemap(
 			StringBundler.concat(
 				cdnBaseURL, themeStaticResourcePath, theme.getImagesPath(),
@@ -1588,6 +1604,13 @@ public class ThemeDisplay
 
 	public void setPathContext(String contextPath) {
 		_contextPath = contextPath;
+	}
+
+	public void setPathControlPanelEmptyStatesSpritemap(
+		String pathControlPanelEmptyStatesSpritemap) {
+
+		_pathControlPanelEmptyStatesSpritemap =
+			pathControlPanelEmptyStatesSpritemap;
 	}
 
 	public void setPathControlPanelSpritemap(String pathControlPanelSpritemap) {
@@ -1628,6 +1651,12 @@ public class ThemeDisplay
 
 	public void setPathThemeCss(String pathThemeCss) {
 		_pathThemeCss = pathThemeCss;
+	}
+
+	public void setPathThemeEmptyStatesSpritemap(
+		String pathThemeEmptyStatesSpritemap) {
+
+		_pathThemeEmptyStatesSpritemap = pathThemeEmptyStatesSpritemap;
 	}
 
 	public void setPathThemeImages(String pathThemeImages) {
@@ -1880,10 +1909,6 @@ public class ThemeDisplay
 		TimeZoneThreadLocal.setThemeDisplayTimeZone(timeZone);
 	}
 
-	public void setUnfilteredLayouts(List<Layout> unfilteredLayouts) {
-		_unfilteredLayouts = unfilteredLayouts;
-	}
-
 	public void setURLControlPanel(String urlControlPanel) {
 		_urlControlPanel = urlControlPanel;
 	}
@@ -1914,6 +1939,10 @@ public class ThemeDisplay
 
 	public void setURLSignOut(String urlSignOut) {
 		_urlSignOut = urlSignOut;
+	}
+
+	public void setUnfilteredLayouts(List<Layout> unfilteredLayouts) {
+		_unfilteredLayouts = unfilteredLayouts;
 	}
 
 	public void setUser(User user) {
@@ -2070,10 +2099,10 @@ public class ThemeDisplay
 	private Layout _layout;
 	private transient Map<Long, String> _layoutFriendlyURLs;
 	private transient Map<String, PortletPreferences> _layoutPortletPreferences;
-	private List<Layout> _layouts;
 	private LayoutSet _layoutSet;
 	private String _layoutSetLogo = StringPool.BLANK;
 	private LayoutTypePortlet _layoutTypePortlet;
+	private List<Layout> _layouts;
 	private String _lifecycle;
 	private boolean _lifecycleAction;
 	private boolean _lifecycleEvent;
@@ -2086,6 +2115,7 @@ public class ThemeDisplay
 	private long _parentSiteGroupId;
 	private String _pathApplet = StringPool.BLANK;
 	private String _pathColorSchemeImages = StringPool.BLANK;
+	private String _pathControlPanelEmptyStatesSpritemap = StringPool.BLANK;
 	private String _pathControlPanelSpritemap = StringPool.BLANK;
 	private String _pathFriendlyURLPrivateGroup = StringPool.BLANK;
 	private String _pathFriendlyURLPrivateUser = StringPool.BLANK;
@@ -2095,6 +2125,7 @@ public class ThemeDisplay
 	private String _pathMain = StringPool.BLANK;
 	private String _pathSound = StringPool.BLANK;
 	private String _pathThemeCss = StringPool.BLANK;
+	private String _pathThemeEmptyStatesSpritemap = StringPool.BLANK;
 	private String _pathThemeImages = StringPool.BLANK;
 	private String _pathThemeJavaScript = StringPool.BLANK;
 	private String _pathThemeRoot = StringPool.BLANK;

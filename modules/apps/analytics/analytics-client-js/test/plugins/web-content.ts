@@ -59,6 +59,7 @@ describe('WebContent Plugin', () => {
 	let Analytics: AnalyticsClient;
 
 	beforeEach(() => {
+		fetchMock.mockGlobal();
 
 		// Force attaching DOM Content Loaded event
 
@@ -67,7 +68,7 @@ describe('WebContent Plugin', () => {
 			writable: false,
 		});
 
-		fetchMock.mock('*', () => 200);
+		fetchMock.route('*', () => 200);
 
 		Analytics = AnalyticsClient.create(INITIAL_ANALYTICS_CONFIG);
 	});
@@ -76,7 +77,7 @@ describe('WebContent Plugin', () => {
 		Analytics.reset();
 		AnalyticsClient.dispose();
 
-		fetchMock.restore();
+		fetchMock.hardReset();
 	});
 
 	describe('webContentViewed event', () => {

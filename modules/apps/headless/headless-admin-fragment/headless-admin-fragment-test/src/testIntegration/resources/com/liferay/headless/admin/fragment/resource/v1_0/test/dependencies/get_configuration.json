@@ -1,0 +1,847 @@
+{
+	"fieldSets": [
+		{
+			"fields": [
+				{
+					"defaultValue": {
+						"categoryTreeNodeType": "Category",
+						"externalReferenceCode": "category-erc"
+					},
+					"name": "categoryByExternalReferenceCode",
+					"type": "categoryTreeNodeSelector",
+					"typeOptions": {
+						"dependency": {
+							"checkboxTrue": {
+								"type": "equal",
+								"value": "true"
+							}
+						}
+					}
+				},
+				{
+					"defaultValue": {
+						"categoryTreeNodeType": "Category",
+						"externalReferenceCode": "category-erc-and-scope-erc",
+						"scopeExternalReferenceCode": "category-scope-erc"
+					},
+					"name": "categoryByExternalReferenceCodeAndScope",
+					"type": "categoryTreeNodeSelector"
+				},
+				{
+					"defaultValue": "{\"categoryTreeNodeType\": \"Category\", \"externalReferenceCode\": \"category-as-string-erc\", \"scopeExternalReferenceCode\": \"category-as-string-scope-erc\"}",
+					"name": "categoryByExternalReferenceCodeAndScopeAsString",
+					"type": "categoryTreeNodeSelector"
+				},
+				{
+					"defaultValue": {
+						"categoryTreeNodeId": "${CATEGORY_ID}",
+						"categoryTreeNodeType": "Category"
+					},
+					"name": "categoryById",
+					"type": "categoryTreeNodeSelector"
+				},
+				{
+					"defaultValue": {
+						"categoryTreeNodeId": "${NONEXISTENT_CLASS_PK}",
+						"categoryTreeNodeType": "Category"
+					},
+					"name": "categoryByNonexistentId",
+					"type": "categoryTreeNodeSelector"
+				},
+				{
+					"defaultValue": {
+						"categoryTreeNodeId": "${NONEXISTENT_CLASS_PK}",
+						"categoryTreeNodeType": "Category",
+						"externalReferenceCode": "category-nonexistent-id-erc"
+					},
+					"name": "categoryByNonexistentIdAndExternalReferenceCode",
+					"type": "categoryTreeNodeSelector"
+				},
+				{
+					"defaultValue": "false",
+					"name": "checkboxFalseAsString",
+					"type": "checkbox",
+					"typeOptions": {
+						"dependency": {
+							"checkboxTrue": {
+								"type": "not-equal",
+								"value": "false"
+							}
+						},
+						"displayType": "checkbox"
+					}
+				},
+				{
+					"defaultValue": true,
+					"name": "checkboxTrue",
+					"type": "checkbox",
+					"typeOptions": {
+						"displayType": "toggle"
+					}
+				},
+				{
+					"defaultValue": "true",
+					"name": "checkboxTrueAsString",
+					"type": "checkbox"
+				},
+				{
+					"defaultValue": {
+						"classPK": "${ASSET_LIST_ENTRY_ID}",
+						"type": "com.liferay.item.selector.criteria.InfoListItemSelectorReturnType"
+					},
+					"name": "collectionByClassPK",
+					"type": "collectionSelector"
+				},
+				{
+					"defaultValue": {
+						"externalReferenceCode": "collection-erc",
+						"type": "com.liferay.item.selector.criteria.InfoListItemSelectorReturnType"
+					},
+					"name": "collectionByExternalReferenceCode",
+					"type": "collectionSelector",
+					"typeOptions": {
+						"itemSubtype": "BASIC-WEB-CONTENT",
+						"itemType": "com.liferay.journal.model.JournalArticle",
+						"numberOfItems": 5
+					}
+				},
+				{
+					"defaultValue": {
+						"externalReferenceCode": "collection-erc-and-other-site-scope-erc",
+						"scopeExternalReferenceCode": "${IRRELEVANT_GROUP_EXTERNAL_REFERENCE_CODE}",
+						"type": "com.liferay.item.selector.criteria.InfoListItemSelectorReturnType"
+					},
+					"name": "collectionByExternalReferenceCodeAndOtherSiteScope",
+					"type": "collectionSelector"
+				},
+				{
+					"defaultValue": {
+						"externalReferenceCode": "collection-erc-and-scope-erc",
+						"scopeExternalReferenceCode": "collection-scope-erc",
+						"type": "com.liferay.item.selector.criteria.InfoListItemSelectorReturnType"
+					},
+					"name": "collectionByExternalReferenceCodeAndScope",
+					"type": "collectionSelector"
+				},
+				{
+					"defaultValue": {
+						"classPK": "${NONEXISTENT_CLASS_PK}",
+						"externalReferenceCode": "collection-nonexistent-class-pk-erc",
+						"type": "com.liferay.item.selector.criteria.InfoListItemSelectorReturnType"
+					},
+					"name": "collectionByNonexistentClassPKAndExternalReferenceCode",
+					"type": "collectionSelector"
+				},
+				{
+					"defaultValue": {
+						"classPK": "#{ASSET_LIST_ENTRY_ID}",
+						"type": "com.liferay.item.selector.criteria.InfoListItemSelectorReturnType"
+					},
+					"name": "collectionByNumericClassPK",
+					"type": "collectionSelector"
+				},
+				{
+					"defaultValue": {
+						"externalReferenceCode": "${IRRELEVANT_GROUP_ASSET_LIST_ENTRY_ERC}",
+						"scopeExternalReferenceCode": "${IRRELEVANT_GROUP_EXTERNAL_REFERENCE_CODE}",
+						"type": "com.liferay.item.selector.criteria.InfoListItemSelectorReturnType"
+					},
+					"name": "collectionByResolvableExternalReferenceCodeAndOtherSiteScope",
+					"type": "collectionSelector"
+				},
+				{
+					"defaultValue": {
+						"key": "com.liferay.asset.internal.info.collection.provider.RecentContentInfoCollectionProvider",
+						"type": "com.liferay.info.list.provider.item.selector.criterion.InfoListProviderItemSelectorReturnType"
+					},
+					"name": "collectionProvider",
+					"type": "collectionSelector"
+				},
+				{
+					"defaultValue": {
+						"key": "com.liferay.asset.internal.info.collection.provider.RelatedAssetsRelatedInfoItemCollectionProvider",
+						"type": "com.liferay.info.list.provider.item.selector.criterion.InfoListProviderItemSelectorReturnType"
+					},
+					"name": "collectionProviderRelatedItems",
+					"type": "collectionSelector"
+				},
+				{
+					"defaultValue": {
+						"key": "${COLLECTION_PROVIDER_SINGLE_FORM_VARIATION_KEY}",
+						"type": "com.liferay.info.list.provider.item.selector.criterion.InfoListProviderItemSelectorReturnType"
+					},
+					"name": "collectionProviderSingleFormVariation",
+					"type": "collectionSelector"
+				},
+				{
+					"defaultValue": {
+						"key": "com.liferay.nonexistent.info.collection.provider.NonexistentInfoCollectionProvider",
+						"type": "com.liferay.info.list.provider.item.selector.criterion.InfoListProviderItemSelectorReturnType"
+					},
+					"name": "collectionProviderUnregistered",
+					"type": "collectionSelector"
+				},
+				{
+					"defaultValue": {
+						"fieldName": "repeatableField",
+						"itemSubtypeKey": "collection-nonexistent-item-type-subtype-erc",
+						"itemType": "com.liferay.nonexistent.model.NonexistentModel",
+						"key": "com.liferay.info.collection.provider.RepeatableFieldInfoItemCollectionProvider",
+						"type": "com.liferay.info.list.provider.item.selector.criterion.InfoListProviderItemSelectorReturnType"
+					},
+					"name": "collectionRepeatableFieldsProviderWithNonexistentItemType",
+					"type": "collectionSelector"
+				},
+				{
+					"defaultValue": {
+						"fieldName": "repeatableField",
+						"itemSubtypeKey": "collection-nonexistent-subtype-erc",
+						"itemType": "com.liferay.journal.model.JournalArticle",
+						"key": "com.liferay.info.collection.provider.RepeatableFieldInfoItemCollectionProvider",
+						"type": "com.liferay.info.list.provider.item.selector.criterion.InfoListProviderItemSelectorReturnType"
+					},
+					"name": "collectionRepeatableFieldsProviderWithNonexistentSubtype",
+					"type": "collectionSelector"
+				},
+				{
+					"defaultValue": {
+						"externalReferenceCode": "collection-visible-erc",
+						"type": "com.liferay.item.selector.criteria.InfoListItemSelectorReturnType"
+					},
+					"name": "collectionVisibleWhenCheckboxTrue",
+					"type": "collectionSelector",
+					"typeOptions": {
+						"dependency": {
+							"checkboxTrue": {
+								"type": "equal",
+								"value": "true"
+							}
+						}
+					}
+				},
+				{
+					"defaultValue": {
+						"cssClass": "brand-color-1",
+						"rgbValue": "#0B5FFF"
+					},
+					"name": "colorPaletteByCSSClassAndRGBValue",
+					"type": "colorPalette"
+				},
+				{
+					"defaultValue": {
+						"color": "primary"
+					},
+					"name": "colorPaletteByColor",
+					"type": "colorPalette"
+				},
+				{
+					"defaultValue": "{\"color\": \"success\"}",
+					"name": "colorPaletteByColorAsString",
+					"type": "colorPalette"
+				},
+				{
+					"defaultValue": {
+						"color": "secondary"
+					},
+					"name": "colorPaletteVisibleWhenCheckboxTrue",
+					"type": "colorPalette",
+					"typeOptions": {
+						"dependency": {
+							"checkboxTrue": {
+								"type": "equal",
+								"value": "true"
+							}
+						}
+					}
+				},
+				{
+					"defaultValue": "#FFFFFF",
+					"name": "colorPicker",
+					"type": "colorPicker"
+				},
+				{
+					"defaultValue": "brand-color-1",
+					"name": "colorPickerToken",
+					"type": "colorPicker"
+				},
+				{
+					"defaultValue": "#0B5FFF",
+					"name": "colorPickerVisibleWhenCheckboxTrue",
+					"type": "colorPicker",
+					"typeOptions": {
+						"dependency": {
+							"checkboxTrue": {
+								"type": "equal",
+								"value": "true"
+							}
+						}
+					}
+				},
+				{
+					"defaultValue": {
+						"className": "com.liferay.journal.model.JournalArticle",
+						"classNameId": "${JOURNAL_ARTICLE_CLASS_NAME_ID}",
+						"classPK": "${JOURNAL_ARTICLE_RESOURCE_PRIM_KEY}"
+					},
+					"name": "itemByClassPK",
+					"type": "itemSelector"
+				},
+				{
+					"defaultValue": {
+						"className": "com.liferay.journal.model.JournalArticle",
+						"classNameId": "${JOURNAL_ARTICLE_CLASS_NAME_ID}",
+						"classPK": "${JOURNAL_ARTICLE_RESOURCE_PRIM_KEY}"
+					},
+					"localizable": true,
+					"name": "itemByClassPKLocalizable",
+					"type": "itemSelector"
+				},
+				{
+					"defaultValue": {
+						"className": "com.liferay.journal.model.JournalArticle",
+						"classNameId": "${JOURNAL_ARTICLE_CLASS_NAME_ID}",
+						"externalReferenceCode": "item-erc"
+					},
+					"name": "itemByExternalReferenceCode",
+					"type": "itemSelector",
+					"typeOptions": {
+						"className": "com.liferay.journal.model.JournalArticle",
+						"dependency": {
+							"checkboxTrue": {
+								"type": "equal",
+								"value": "true"
+							}
+						},
+						"enableSelectTemplate": true,
+						"itemSubtype": "BASIC-WEB-CONTENT",
+						"itemType": "com.liferay.journal.model.JournalArticle",
+						"mimeTypes": [
+							"image/jpeg",
+							"image/png"
+						]
+					}
+				},
+				{
+					"defaultValue": {
+						"className": "com.liferay.journal.model.JournalArticle",
+						"classNameId": "${JOURNAL_ARTICLE_CLASS_NAME_ID}",
+						"externalReferenceCode": "item-erc-and-scope-erc",
+						"scopeExternalReferenceCode": "item-scope-erc"
+					},
+					"name": "itemByExternalReferenceCodeAndScope",
+					"type": "itemSelector"
+				},
+				{
+					"defaultValue": "{\"className\": \"com.liferay.journal.model.JournalArticle\", \"classNameId\": \"${JOURNAL_ARTICLE_CLASS_NAME_ID}\", \"externalReferenceCode\": \"item-as-string-erc\", \"scopeExternalReferenceCode\": \"item-as-string-scope-erc\"}",
+					"name": "itemByExternalReferenceCodeAndScopeAsString",
+					"type": "itemSelector"
+				},
+				{
+					"defaultValue": {
+						"className": "com.liferay.journal.model.JournalArticle",
+						"classNameId": "${JOURNAL_ARTICLE_CLASS_NAME_ID}",
+						"classPK": "${NONEXISTENT_CLASS_PK}"
+					},
+					"name": "itemByNonexistentClassPK",
+					"type": "itemSelector"
+				},
+				{
+					"defaultValue": {
+						"className": "com.liferay.journal.model.JournalArticle",
+						"classNameId": "${JOURNAL_ARTICLE_CLASS_NAME_ID}",
+						"classPK": "${NONEXISTENT_CLASS_PK}",
+						"externalReferenceCode": "item-nonexistent-class-pk-erc"
+					},
+					"name": "itemByNonexistentClassPKAndExternalReferenceCode",
+					"type": "itemSelector"
+				},
+				{
+					"defaultValue": "16px",
+					"name": "length",
+					"type": "length"
+				},
+				{
+					"defaultValue": "auto",
+					"name": "lengthCustom",
+					"type": "length"
+				},
+				{
+					"defaultValue": "50%",
+					"name": "lengthVisibleWhenCheckboxTrue",
+					"type": "length",
+					"typeOptions": {
+						"dependency": {
+							"checkboxTrue": {
+								"type": "equal",
+								"value": "true"
+							}
+						}
+					}
+				},
+				{
+					"defaultValue": {
+						"contextualMenu": "children"
+					},
+					"name": "navigationMenuContextualChildren",
+					"type": "navigationMenuSelector"
+				},
+				{
+					"defaultValue": {
+						"contextualMenu": "parent-and-its-siblings"
+					},
+					"name": "navigationMenuContextualParentAndItsSiblings",
+					"type": "navigationMenuSelector"
+				},
+				{
+					"defaultValue": {
+						"contextualMenu": "self-and-siblings"
+					},
+					"name": "navigationMenuContextualSelfAndSiblings",
+					"type": "navigationMenuSelector"
+				},
+				{
+					"defaultValue": {
+						"siteNavigationMenuId": "${SITE_NAVIGATION_MENU_ID}"
+					},
+					"name": "navigationMenuSiteMenu",
+					"type": "navigationMenuSelector"
+				},
+				{
+					"defaultValue": {
+						"privateLayout": "false",
+						"siteNavigationMenuExternalReferenceCode": "${IRRELEVANT_GROUP_SITE_NAVIGATION_MENU_ERC}",
+						"siteNavigationMenuId": "${IRRELEVANT_GROUP_SITE_NAVIGATION_MENU_ID}",
+						"siteNavigationMenuScopeExternalReferenceCode": "${IRRELEVANT_GROUP_EXTERNAL_REFERENCE_CODE}",
+						"title": "${IRRELEVANT_GROUP_SITE_NAVIGATION_MENU_NAME}",
+						"type": "class com.liferay.site.navigation.item.selector.SiteNavigationMenuItemSelectorReturnType"
+					},
+					"name": "navigationMenuSiteMenuFromOtherSite",
+					"type": "navigationMenuSelector"
+				},
+				{
+					"defaultValue": {
+						"siteNavigationMenuExternalReferenceCode": "${IRRELEVANT_GROUP_SITE_NAVIGATION_MENU_ERC}",
+						"siteNavigationMenuScopeExternalReferenceCode": "${IRRELEVANT_GROUP_EXTERNAL_REFERENCE_CODE}"
+					},
+					"name": "navigationMenuSiteMenuFromOtherSiteWithoutId",
+					"type": "navigationMenuSelector"
+				},
+				{
+					"defaultValue": {
+						"siteNavigationMenuExternalReferenceCode": "site-navigation-menu-nonexistent-erc"
+					},
+					"name": "navigationMenuSiteMenuNonexistent",
+					"type": "navigationMenuSelector"
+				},
+				{
+					"defaultValue": {
+						"siteNavigationMenuExternalReferenceCode": "${SITE_NAVIGATION_MENU_ERC}",
+						"siteNavigationMenuScopeExternalReferenceCode": "${SITE_EXTERNAL_REFERENCE_CODE}"
+					},
+					"name": "navigationMenuSiteMenuWithCurrentSiteScope",
+					"type": "navigationMenuSelector"
+				},
+				{
+					"defaultValue": {
+						"parentSiteNavigationMenuItemId": "${NONEXISTENT_CLASS_PK}",
+						"siteNavigationMenuId": "${SITE_NAVIGATION_MENU_ID}"
+					},
+					"name": "navigationMenuSiteMenuWithNonexistentParentItem",
+					"type": "navigationMenuSelector"
+				},
+				{
+					"defaultValue": {
+						"parentSiteNavigationMenuItemId": "${SITE_NAVIGATION_MENU_ITEM_ID}",
+						"siteNavigationMenuId": "${SITE_NAVIGATION_MENU_ID}"
+					},
+					"name": "navigationMenuSiteMenuWithParentItem",
+					"type": "navigationMenuSelector"
+				},
+				{
+					"defaultValue": {
+						"parentSiteNavigationMenuItemId": "#{SITE_NAVIGATION_MENU_ITEM_ID}",
+						"siteNavigationMenuId": "#{SITE_NAVIGATION_MENU_ID}"
+					},
+					"name": "navigationMenuSiteMenuWithParentItemAndNumericIds",
+					"type": "navigationMenuSelector"
+				},
+				{
+					"defaultValue": "{\"parentSiteNavigationMenuItemId\": \"${SITE_NAVIGATION_MENU_ITEM_ID}\", \"siteNavigationMenuId\": \"${SITE_NAVIGATION_MENU_ID}\"}",
+					"name": "navigationMenuSiteMenuWithParentItemAsString",
+					"type": "navigationMenuSelector"
+				},
+				{
+					"defaultValue": {
+						"privateLayout": false
+					},
+					"name": "navigationMenuSitePages",
+					"type": "navigationMenuSelector"
+				},
+				{
+					"defaultValue": {
+						"privateLayout": true
+					},
+					"name": "navigationMenuSitePagesPrivate",
+					"type": "navigationMenuSelector"
+				},
+				{
+					"defaultValue": {
+						"parentSiteNavigationMenuItemId": "${NONEXISTENT_CLASS_PK}",
+						"privateLayout": false
+					},
+					"name": "navigationMenuSitePagesWithNonexistentParentPage",
+					"type": "navigationMenuSelector"
+				},
+				{
+					"defaultValue": {
+						"parentSiteNavigationMenuItemId": "#{LAYOUT_PLID}",
+						"privateLayout": false
+					},
+					"name": "navigationMenuSitePagesWithNumericParentPage",
+					"type": "navigationMenuSelector"
+				},
+				{
+					"defaultValue": {
+						"parentSiteNavigationMenuItemId": "${LAYOUT_PLID}",
+						"privateLayout": false
+					},
+					"name": "navigationMenuSitePagesWithParentPage",
+					"type": "navigationMenuSelector"
+				},
+				{
+					"defaultValue": {
+						"contextualMenu": "children"
+					},
+					"name": "navigationMenuVisibleWhenCheckboxTrue",
+					"type": "navigationMenuSelector",
+					"typeOptions": {
+						"dependency": {
+							"checkboxTrue": {
+								"type": "equal",
+								"value": "true"
+							}
+						}
+					}
+				},
+				{
+					"defaultValue": "detailed",
+					"name": "selectWithLabels",
+					"type": "select",
+					"typeOptions": {
+						"dependency": {
+							"checkboxTrue": {
+								"type": "equal",
+								"value": "true"
+							}
+						},
+						"validValues": [
+							{
+								"label": "Compact",
+								"value": "compact"
+							},
+							{
+								"label": "Detailed",
+								"value": "detailed"
+							}
+						]
+					}
+				},
+				{
+					"defaultValue": "sm",
+					"name": "selectWithoutLabels",
+					"type": "select",
+					"typeOptions": {
+						"dependency": {
+							"selectWithLabels": {
+								"type": "not-equal",
+								"value": "compact"
+							}
+						},
+						"validValues": [
+							{
+								"value": "sm"
+							},
+							{
+								"value": "lg"
+							}
+						]
+					}
+				},
+				{
+					"defaultValue": [
+						"collection-display-erc"
+					],
+					"name": "targetCollectionDisplay",
+					"type": "targetCollectionDisplay",
+					"typeOptions": {
+						"enableCompatibleCollections": true
+					}
+				},
+				{
+					"defaultValue": [
+						"collection-display-erc-1",
+						"collection-display-erc-2"
+					],
+					"name": "targetCollectionDisplayMultiple",
+					"type": "targetCollectionDisplay",
+					"typeOptions": {
+						"enableCompatibleCollections": false
+					}
+				},
+				{
+					"defaultValue": [
+						"collection-display-visible-erc"
+					],
+					"name": "targetCollectionDisplayVisibleWhenCheckboxTrue",
+					"type": "targetCollectionDisplay",
+					"typeOptions": {
+						"dependency": {
+							"checkboxTrue": {
+								"type": "equal",
+								"value": "true"
+							}
+						}
+					}
+				},
+				{
+					"defaultValue": "Default text",
+					"name": "text",
+					"type": "text"
+				},
+				{
+					"defaultValue": "submit",
+					"localizable": true,
+					"name": "textLocalizable",
+					"type": "text"
+				},
+				{
+					"defaultValue": "Visible text",
+					"name": "textVisibleWhenText",
+					"type": "text",
+					"typeOptions": {
+						"dependency": {
+							"text": {
+								"type": "equal",
+								"value": "Default text"
+							}
+						}
+					}
+				},
+				{
+					"defaultValue": "test@liferay.com",
+					"name": "textWithEmailValidation",
+					"type": "text",
+					"typeOptions": {
+						"validation": {
+							"type": "email"
+						}
+					}
+				},
+				{
+					"defaultValue": "5",
+					"name": "textWithNumberValidation",
+					"type": "text",
+					"typeOptions": {
+						"validation": {
+							"max": 10,
+							"min": 1,
+							"type": "number"
+						}
+					}
+				},
+				{
+					"defaultValue": "abc",
+					"name": "textWithPatternValidation",
+					"type": "text",
+					"typeOptions": {
+						"validation": {
+							"regexp": "^[a-z]+$",
+							"type": "pattern"
+						}
+					}
+				},
+				{
+					"defaultValue": "Valid",
+					"name": "textWithTextValidation",
+					"type": "text",
+					"typeOptions": {
+						"placeholder": "Type a text",
+						"validation": {
+							"errorMessage": "The text must have between 3 and 20 characters.",
+							"maxLength": 20,
+							"minLength": 3,
+							"required": true,
+							"type": "text"
+						}
+					}
+				},
+				{
+					"defaultValue": {
+						"href": "https://www.liferay.com"
+					},
+					"name": "urlHref",
+					"type": "url"
+				},
+				{
+					"defaultValue": {
+						"layout": {
+							"externalReferenceCode": "layout-erc"
+						}
+					},
+					"name": "urlSitePageByExternalReferenceCode",
+					"type": "url"
+				},
+				{
+					"defaultValue": {
+						"layout": {
+							"externalReferenceCode": "layout-erc-and-scope-erc",
+							"scopeExternalReferenceCode": "layout-scope-erc"
+						}
+					},
+					"name": "urlSitePageByExternalReferenceCodeAndScope",
+					"type": "url"
+				},
+				{
+					"defaultValue": {
+						"layout": {
+							"groupId": "${SITE_GROUP_ID}",
+							"layoutId": "${LAYOUT_ID}",
+							"privateLayout": false
+						}
+					},
+					"name": "urlSitePageByLayoutId",
+					"type": "url"
+				},
+				{
+					"defaultValue": {
+						"layout": {
+							"groupId": "${SITE_GROUP_ID}",
+							"layoutId": "${NONEXISTENT_CLASS_PK}",
+							"privateLayout": false
+						}
+					},
+					"name": "urlSitePageByNonexistentLayoutId",
+					"type": "url"
+				},
+				{
+					"defaultValue": {
+						"href": "https://www.liferay.com/visible"
+					},
+					"name": "urlVisibleWhenCheckboxTrue",
+					"type": "url",
+					"typeOptions": {
+						"dependency": {
+							"checkboxTrue": {
+								"type": "equal",
+								"value": "true"
+							}
+						}
+					}
+				},
+				{
+					"defaultValue": {
+						"html": "<iframe src=\"https://www.youtube.com/embed/video1\"></iframe>",
+						"title": "Video 1",
+						"type": "com.liferay.item.selector.criteria.VideoEmbeddableHTMLItemSelectorReturnType"
+					},
+					"name": "videoSelector",
+					"type": "videoSelector"
+				},
+				{
+					"defaultValue": "{\"html\": \"<iframe src=\\\"https://www.youtube.com/embed/video2\\\"></iframe>\", \"title\": \"Video 2\", \"type\": \"com.liferay.item.selector.criteria.VideoEmbeddableHTMLItemSelectorReturnType\"}",
+					"name": "videoSelectorAsString",
+					"type": "videoSelector"
+				},
+				{
+					"defaultValue": {
+						"html": "<iframe src=\"https://www.youtube.com/embed/video3\"></iframe>",
+						"title": "Video 3",
+						"type": "com.liferay.item.selector.criteria.VideoEmbeddableHTMLItemSelectorReturnType"
+					},
+					"localizable": true,
+					"name": "videoSelectorLocalizable",
+					"type": "videoSelector"
+				},
+				{
+					"defaultValue": {
+						"html": "<iframe src=\"https://www.youtube.com/embed/video4\"></iframe>",
+						"title": "Video 4",
+						"type": "com.liferay.item.selector.criteria.VideoEmbeddableHTMLItemSelectorReturnType"
+					},
+					"name": "videoSelectorVisibleWhenCheckboxTrue",
+					"type": "videoSelector",
+					"typeOptions": {
+						"dependency": {
+							"checkboxTrue": {
+								"type": "equal",
+								"value": "true"
+							}
+						}
+					}
+				},
+				{
+					"defaultValue": {
+						"title": "Video without HTML"
+					},
+					"name": "videoSelectorWithoutHTML",
+					"type": "videoSelector"
+				},
+				{
+					"defaultValue": {
+						"html": "<iframe src=\"https://www.youtube.com/embed/video5\"></iframe>",
+						"type": "com.liferay.item.selector.criteria.VideoEmbeddableHTMLItemSelectorReturnType"
+					},
+					"name": "videoSelectorWithoutTitle",
+					"type": "videoSelector"
+				},
+				{
+					"defaultValue": {
+						"categoryTreeNodeType": "Vocabulary",
+						"externalReferenceCode": "vocabulary-erc"
+					},
+					"name": "vocabularyByExternalReferenceCode",
+					"type": "categoryTreeNodeSelector"
+				},
+				{
+					"defaultValue": {
+						"categoryTreeNodeType": "Vocabulary",
+						"externalReferenceCode": "vocabulary-erc-and-scope-erc",
+						"scopeExternalReferenceCode": "vocabulary-scope-erc"
+					},
+					"name": "vocabularyByExternalReferenceCodeAndScope",
+					"type": "categoryTreeNodeSelector"
+				},
+				{
+					"defaultValue": "{\"categoryTreeNodeType\": \"Vocabulary\", \"externalReferenceCode\": \"vocabulary-as-string-erc\", \"scopeExternalReferenceCode\": \"vocabulary-as-string-scope-erc\"}",
+					"name": "vocabularyByExternalReferenceCodeAndScopeAsString",
+					"type": "categoryTreeNodeSelector"
+				},
+				{
+					"defaultValue": {
+						"categoryTreeNodeId": "${VOCABULARY_ID}",
+						"categoryTreeNodeType": "Vocabulary"
+					},
+					"name": "vocabularyById",
+					"type": "categoryTreeNodeSelector"
+				},
+				{
+					"defaultValue": {
+						"categoryTreeNodeId": "${NONEXISTENT_CLASS_PK}",
+						"categoryTreeNodeType": "Vocabulary"
+					},
+					"name": "vocabularyByNonexistentId",
+					"type": "categoryTreeNodeSelector"
+				},
+				{
+					"defaultValue": {
+						"categoryTreeNodeId": "${NONEXISTENT_CLASS_PK}",
+						"categoryTreeNodeType": "Vocabulary",
+						"externalReferenceCode": "vocabulary-nonexistent-id-erc"
+					},
+					"name": "vocabularyByNonexistentIdAndExternalReferenceCode",
+					"type": "categoryTreeNodeSelector"
+				}
+			]
+		}
+	]
+}

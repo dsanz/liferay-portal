@@ -30,8 +30,7 @@
 		"prop-types": "15.7.2",
 		"react": "18.2.0",
 		"react-dom": "18.2.0",
-		"react-dropzone": "11.4.2",
-		"uuid": "9.0.0"
+		"react-dropzone": "11.4.2"
 	},
 	"jest": {
 		"setupFiles": [
@@ -46,5 +45,5 @@
 		"format": "node-scripts format",
 		"test": "node-scripts test"
 	},
-	"version": "2.0.107"
+	"version": "2.0.109"
 }

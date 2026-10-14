@@ -98,7 +98,7 @@ Format dateTimeFormat = FastDateFormatFactoryUtil.getDateTime(FastDateFormatCons
 							<clay:col
 								md="8"
 							>
-								<pre><%= dispatchLog.getError() %></pre>
+								<pre><%= HtmlUtil.escape(dispatchLog.getError()) %></pre>
 							</clay:col>
 						</clay:row>
 					</c:if>
@@ -114,7 +114,7 @@ Format dateTimeFormat = FastDateFormatFactoryUtil.getDateTime(FastDateFormatCons
 							<clay:col
 								md="8"
 							>
-								<pre><%= dispatchLog.getOutput() %></pre>
+								<pre><%= HtmlUtil.escape(dispatchLog.getOutput()) %></pre>
 							</clay:col>
 						</clay:row>
 					</c:if>

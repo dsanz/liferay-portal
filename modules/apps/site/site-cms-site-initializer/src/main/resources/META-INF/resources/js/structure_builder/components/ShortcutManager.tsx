@@ -10,12 +10,12 @@ import {useCache, useStaleCache} from '../contexts/CacheContext';
 import {useSelector, useStateDispatch} from '../contexts/StateContext';
 import selectState from '../selectors/selectState';
 import findChild from '../utils/findChild';
-import handleAddRepeatableGroup from '../utils/handleAddRepeatableGroup';
+import handleAddGroup from '../utils/handleAddGroup';
 import handleDeleteChildren from '../utils/handleDeleteChildren';
 import handlePaste from '../utils/handlePaste';
 import handlePublishStructure from '../utils/handlePublishStructure';
 import handleSaveStructure from '../utils/handleSaveStructure';
-import handleUngroupRepeatableGroup from '../utils/handleUngroupRepeatableGroup';
+import handleUngroup from '../utils/handleUngroup';
 import isCopyable from '../utils/isCopyable';
 import isLocked from '../utils/isLocked';
 import isReferenced from '../utils/isReferenced';
@@ -148,6 +148,7 @@ export default function ShortcutManager() {
 					parentUuid: structure.uuid,
 					status: objectDefinitionsStatus,
 					structure,
+					systemFieldNames: state.systemFieldNames,
 				}),
 		});
 
@@ -156,7 +157,7 @@ export default function ShortcutManager() {
 		map.set('Ctrl+G', {
 			enabled: () => Boolean(selection.length),
 			handler: () =>
-				handleAddRepeatableGroup({
+				handleAddGroup({
 					dispatch,
 					publishedChildren,
 					structure,
@@ -178,7 +179,7 @@ export default function ShortcutManager() {
 
 				if (
 					isReferenced({root: structure, uuid}) ||
-					item.type !== 'repeatable-group'
+					item.type !== 'group'
 				) {
 					return false;
 				}
@@ -186,7 +187,7 @@ export default function ShortcutManager() {
 				return true;
 			},
 			handler: () =>
-				handleUngroupRepeatableGroup({
+				handleUngroup({
 					dispatch,
 					publishedChildren,
 					uuid: selection[0],

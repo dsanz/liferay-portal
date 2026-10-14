@@ -59,6 +59,7 @@ describe('Blogs Plugin', () => {
 	let Analytics: AnalyticsClient;
 
 	beforeEach(() => {
+		fetchMock.mockGlobal();
 
 		// Force attaching DOM Content Loaded event
 
@@ -66,7 +67,7 @@ describe('Blogs Plugin', () => {
 			writable: false,
 		});
 
-		fetchMock.mock('*', () => 200);
+		fetchMock.route('*', () => 200);
 
 		Analytics = AnalyticsClient.create(INITIAL_ANALYTICS_CONFIG);
 	});
@@ -75,7 +76,7 @@ describe('Blogs Plugin', () => {
 		Analytics.reset();
 		AnalyticsClient.dispose();
 
-		fetchMock.restore();
+		fetchMock.hardReset();
 	});
 
 	describe('blogViewed event', () => {

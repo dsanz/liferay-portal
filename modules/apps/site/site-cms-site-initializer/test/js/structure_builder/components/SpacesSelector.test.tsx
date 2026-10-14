@@ -91,6 +91,7 @@ const STRUCTURE: Structure = {
 	spaces: [SPACE_1.externalReferenceCode, SPACE_2.externalReferenceCode],
 	status: 'draft',
 	system: false,
+	titleFieldName: 'title',
 	type: 'L_CMS_CONTENT_STRUCTURES',
 	uuid: getUuid(),
 	workflows: {},
@@ -120,13 +121,13 @@ describe('SpacesSelector', () => {
 		await userEvent.click(screen.getByTestId('remove-space'));
 
 		await waitFor(() => {
-			expect(SpaceService.getSpaceContents).toBeCalledWith({
+			expect(SpaceService.getSpaceContents).toHaveBeenCalledWith({
 				path: '/my-structure',
 				siteId: SPACE_2.siteId,
 			});
 		});
 
-		expect(openToast).toBeCalledWith(
+		expect(openToast).toHaveBeenCalledWith(
 			expect.objectContaining({
 				message:
 					'the-space-x-cannot-be-removed-because-it-has-content-created-from-this-structure',
@@ -134,7 +135,7 @@ describe('SpacesSelector', () => {
 			})
 		);
 
-		expect(dispatch).not.toBeCalledWith(
+		expect(dispatch).not.toHaveBeenCalledWith(
 			expect.objectContaining({
 				spaces: [SPACE_1.externalReferenceCode],
 				type: 'update-structure',

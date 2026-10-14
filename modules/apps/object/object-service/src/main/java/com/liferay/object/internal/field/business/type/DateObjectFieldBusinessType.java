@@ -65,36 +65,6 @@ public class DateObjectFieldBusinessType extends BaseObjectFieldBusinessType {
 	}
 
 	@Override
-	public String getDescription(Locale locale) {
-		return _language.get(locale, "add-a-date");
-	}
-
-	@Override
-	public Object getDisplayContextValue(
-			ObjectField objectField, long userId, Map<String, Object> values)
-		throws PortalException {
-
-		if (objectField.isLocalized()) {
-			Map<String, Object> localizedValues = super.getLocalizedValues(
-				objectField, userId, values);
-
-			if (localizedValues == null) {
-				return null;
-			}
-
-			for (Map.Entry<String, Object> entry : localizedValues.entrySet()) {
-				localizedValues.put(
-					entry.getKey(),
-					_getValue(GetterUtil.getString(entry.getValue())));
-			}
-
-			return localizedValues;
-		}
-
-		return _getValue(MapUtil.getString(values, objectField.getName()));
-	}
-
-	@Override
 	public Serializable getDTOValue(
 			DTOConverterContext dtoConverterContext,
 			ObjectDefinition objectDefinition, ObjectEntry objectEntry,
@@ -117,6 +87,36 @@ public class DateObjectFieldBusinessType extends BaseObjectFieldBusinessType {
 			"yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
 		return simpleDateFormat.format((Timestamp)serializable);
+	}
+
+	@Override
+	public String getDescription(Locale locale) {
+		return _language.get(locale, "add-a-date");
+	}
+
+	@Override
+	public Object getDisplayContextValue(
+			ObjectField objectField, long userId, Map<String, Object> values)
+		throws PortalException {
+
+		if (objectField.isLocalized()) {
+			Map<String, Object> localizedValues = super.getLocalizedValues(
+				null, objectField, userId, values);
+
+			if (localizedValues == null) {
+				return null;
+			}
+
+			for (Map.Entry<String, Object> entry : localizedValues.entrySet()) {
+				localizedValues.put(
+					entry.getKey(),
+					_getValue(GetterUtil.getString(entry.getValue())));
+			}
+
+			return localizedValues;
+		}
+
+		return _getValue(MapUtil.getString(values, objectField.getName()));
 	}
 
 	@Override

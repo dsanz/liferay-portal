@@ -219,7 +219,7 @@ public class ScriptManagementConfigurationUpgradeProcessTest {
 		return _objectActionLocalService.addObjectAction(
 			RandomTestUtil.randomString(), userId,
 			objectDefinition.getObjectDefinitionId(), active, StringPool.BLANK,
-			RandomTestUtil.randomString(),
+			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 			LocalizedMapUtil.getLocalizedMap(label),
 			RandomTestUtil.randomString(), objectActionExecutorKey,
@@ -254,8 +254,8 @@ public class ScriptManagementConfigurationUpgradeProcessTest {
 
 		ObjectDefinition objectDefinition =
 			_objectDefinitionLocalService.addCustomObjectDefinition(
-				null, userId, 0, null, true, false, true, false, true, false,
-				false, false, false, null,
+				null, userId, 0, null, null, true, false, true, false, true,
+				false, false, false, false, null,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				ObjectDefinitionTestUtil.getRandomName(), null, null,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),

@@ -32,6 +32,17 @@ type AppStatus struct {
 	VirtualEntryID int64 `json:"virtualEntryId,omitempty"`
 }
 
+// +kubebuilder:validation:XValidation:message="minReplicas must not exceed maxReplicas",rule="self.minReplicas <= self.maxReplicas"
+type Autoscaling struct {
+	// +kubebuilder:validation:Minimum=1
+	// +kubebuilder:validation:Required
+	MaxReplicas int32 `json:"maxReplicas"`
+
+	// +kubebuilder:validation:Minimum=0
+	// +kubebuilder:validation:Required
+	MinReplicas int32 `json:"minReplicas"`
+}
+
 type LicenseStatus struct {
 	// +optional
 	Checksum string `json:"checksum,omitempty"`
@@ -53,6 +64,7 @@ type LicenseStatus struct {
 // +kubebuilder:printcolumn:JSONPath=`.status.license.maxClusterNodes`,name="Max",type=integer
 // +kubebuilder:printcolumn:JSONPath=`.status.license.validUntil`,name="Valid-Until",type=string
 // +kubebuilder:printcolumn:JSONPath=`.spec.desiredReplicas`,name="Desired",type=integer
+// +kubebuilder:printcolumn:JSONPath=`.status.replicaCeiling`,name="Ceiling",type=integer
 // +kubebuilder:printcolumn:JSONPath=`.status.effectiveReplicas`,name="Effective",type=integer
 // +kubebuilder:printcolumn:JSONPath=`.status.phase`,name="Phase",priority=1,type=string
 // +kubebuilder:printcolumn:JSONPath=`.status.environmentId`,name="Environment-ID",priority=1,type=string
@@ -79,6 +91,9 @@ type LiferayEnvironmentList struct {
 type LiferayEnvironmentSpec struct {
 	// +kubebuilder:validation:Required
 	ActivationCodeSecretRef SecretKeyRef `json:"activationCodeSecretRef"`
+
+	// +optional
+	Autoscaling *Autoscaling `json:"autoscaling,omitempty"`
 
 	// +optional
 	DesiredReplicas *int32 `json:"desiredReplicas,omitempty"`
@@ -126,6 +141,9 @@ type LiferayEnvironmentStatus struct {
 	// +kubebuilder:validation:Enum=Degraded;Pending;Ready
 	// +optional
 	Phase string `json:"phase,omitempty"`
+
+	// +optional
+	ReplicaCeiling *int32 `json:"replicaCeiling,omitempty"`
 
 	// +optional
 	UnreachableSince *metav1.Time `json:"unreachableSince,omitempty"`

@@ -1200,6 +1200,9 @@ public class CPDefinitionOptionRelPersistenceImpl
 		}
 		else {
 			if (!Objects.equals(
+					cpDefinitionOptionRel.getUuid(),
+					cpDefinitionOptionRel.getExternalReferenceCode()) &&
+				!Objects.equals(
 					cpDefinitionOptionRelModelImpl.getColumnOriginalValue(
 						"externalReferenceCode"),
 					cpDefinitionOptionRel.getExternalReferenceCode())) {
@@ -1442,6 +1445,7 @@ public class CPDefinitionOptionRelPersistenceImpl
 		ctMergeColumnNames.add("key_");
 		ctMergeColumnNames.add("priceType");
 		ctMergeColumnNames.add("typeSettings");
+		ctMergeColumnNames.add("status");
 
 		_ctColumnNamesMap.put(
 			CTColumnResolutionType.CONTROL, ctControlColumnNames);
@@ -1845,4 +1849,4 @@ public class CPDefinitionOptionRelPersistenceImpl
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:1701395493
+// LIFERAY-SERVICE-BUILDER-HASH:-1329907907

@@ -5,12 +5,16 @@
 
 package com.liferay.headless.asset.library.dto.v1_0;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonValue;
 
 import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
@@ -24,6 +28,8 @@ import jakarta.xml.bind.annotation.XmlRootElement;
 
 import java.io.Serializable;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -179,6 +185,47 @@ public class Settings implements Serializable {
 	private Supplier<String> _defaultLanguageIdSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema
+	public String getGoogleMapsAPIKey() {
+		if (_googleMapsAPIKeySupplier != null) {
+			googleMapsAPIKey = _googleMapsAPIKeySupplier.get();
+
+			_googleMapsAPIKeySupplier = null;
+		}
+
+		return googleMapsAPIKey;
+	}
+
+	public void setGoogleMapsAPIKey(String googleMapsAPIKey) {
+		this.googleMapsAPIKey = googleMapsAPIKey;
+
+		_googleMapsAPIKeySupplier = null;
+	}
+
+	@JsonIgnore
+	public void setGoogleMapsAPIKey(
+		UnsafeSupplier<String, Exception> googleMapsAPIKeyUnsafeSupplier) {
+
+		_googleMapsAPIKeySupplier = () -> {
+			try {
+				return googleMapsAPIKeyUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected String googleMapsAPIKey;
+
+	@JsonIgnore
+	private Supplier<String> _googleMapsAPIKeySupplier;
+
+	@io.swagger.v3.oas.annotations.media.Schema
 	public String getLogoColor() {
 		if (_logoColorSupplier != null) {
 			logoColor = _logoColorSupplier.get();
@@ -218,6 +265,65 @@ public class Settings implements Serializable {
 
 	@JsonIgnore
 	private Supplier<String> _logoColorSupplier;
+
+	@io.swagger.v3.oas.annotations.media.Schema(
+		description = "Sets the maps API provider to use when displaying geolocalized assets."
+	)
+	@JsonGetter("mapProviderKey")
+	@Valid
+	public MapProviderKey getMapProviderKey() {
+		if (_mapProviderKeySupplier != null) {
+			mapProviderKey = _mapProviderKeySupplier.get();
+
+			_mapProviderKeySupplier = null;
+		}
+
+		return mapProviderKey;
+	}
+
+	@JsonIgnore
+	public String getMapProviderKeyAsString() {
+		MapProviderKey mapProviderKey = getMapProviderKey();
+
+		if (mapProviderKey == null) {
+			return null;
+		}
+
+		return mapProviderKey.toString();
+	}
+
+	public void setMapProviderKey(MapProviderKey mapProviderKey) {
+		this.mapProviderKey = mapProviderKey;
+
+		_mapProviderKeySupplier = null;
+	}
+
+	@JsonIgnore
+	public void setMapProviderKey(
+		UnsafeSupplier<MapProviderKey, Exception>
+			mapProviderKeyUnsafeSupplier) {
+
+		_mapProviderKeySupplier = () -> {
+			try {
+				return mapProviderKeyUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField(
+		description = "Sets the maps API provider to use when displaying geolocalized assets."
+	)
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected MapProviderKey mapProviderKey;
+
+	@JsonIgnore
+	private Supplier<MapProviderKey> _mapProviderKeySupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema
 	@Valid
@@ -507,6 +613,22 @@ public class Settings implements Serializable {
 			sb.append("\"");
 		}
 
+		String googleMapsAPIKey = getGoogleMapsAPIKey();
+
+		if (googleMapsAPIKey != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"googleMapsAPIKey\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(googleMapsAPIKey));
+
+			sb.append("\"");
+		}
+
 		String logoColor = getLogoColor();
 
 		if (logoColor != null) {
@@ -520,6 +642,20 @@ public class Settings implements Serializable {
 
 			sb.append(_escape(logoColor));
 
+			sb.append("\"");
+		}
+
+		MapProviderKey mapProviderKey = getMapProviderKey();
+
+		if (mapProviderKey != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"mapProviderKey\": ");
+
+			sb.append("\"");
+			sb.append(mapProviderKey);
 			sb.append("\"");
 		}
 
@@ -605,6 +741,44 @@ public class Settings implements Serializable {
 	)
 	public String xClassName;
 
+	@GraphQLName("MapProviderKey")
+	public static enum MapProviderKey {
+
+		GOOGLE_MAPS("GoogleMaps"), OPEN_STREET_MAP("OpenStreetMap");
+
+		@JsonCreator
+		public static MapProviderKey create(String value) {
+			if ((value == null) || value.equals("")) {
+				return null;
+			}
+
+			for (MapProviderKey mapProviderKey : values()) {
+				if (Objects.equals(mapProviderKey.getValue(), value)) {
+					return mapProviderKey;
+				}
+			}
+
+			throw new IllegalArgumentException("Invalid enum value: " + value);
+		}
+
+		@JsonValue
+		public String getValue() {
+			return _value;
+		}
+
+		@Override
+		public String toString() {
+			return _value;
+		}
+
+		private MapProviderKey(String value) {
+			_value = value;
+		}
+
+		private final String _value;
+
+	}
+
 	private static String _escape(Object object) {
 		return StringUtil.replace(
 			String.valueOf(object), _JSON_ESCAPE_STRINGS[0],
@@ -686,6 +860,27 @@ public class Settings implements Serializable {
 		return sb.toString();
 	}
 
+	private static String _toJSON(Object value) {
+		if (value instanceof Collection) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONArray((Collection<?>)value));
+		}
+		else if (value instanceof Map) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONObject((Map<?, ?>)value));
+		}
+		else if (value instanceof Object[]) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONArray(
+					Arrays.asList((Object[])value)));
+		}
+		else if (value instanceof String) {
+			return StringBundler.concat("\"", _escape(value), "\"");
+		}
+
+		return String.valueOf(value);
+	}
+
 	private static final String[][] _JSON_ESCAPE_STRINGS = {
 		{"\\", "\"", "\b", "\f", "\n", "\r", "\t"},
 		{"\\\\", "\\\"", "\\b", "\\f", "\\n", "\\r", "\\t"}
@@ -694,4 +889,4 @@ public class Settings implements Serializable {
 	private Map<String, Serializable> _extendedProperties;
 
 }
-// LIFERAY-REST-BUILDER-HASH:1973496856
+// LIFERAY-REST-BUILDER-HASH:2108601217

@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
+import ClayAlert from '@clayui/alert';
 import ClayButton from '@clayui/button';
 import ClayLayout from '@clayui/layout';
 import ClayLoadingIndicator from '@clayui/loading-indicator';
@@ -12,6 +13,7 @@ import React, {useEffect, useState} from 'react';
 
 import {FormField} from '../forms/FormField';
 import {FormSection} from '../forms/FormSection';
+import {FormToggle} from '../forms/FormToggle';
 import {getProfile} from '../services/getProfile';
 import {patchProfile} from '../services/patchProfile';
 import {postProfile} from '../services/postProfile';
@@ -97,8 +99,11 @@ function ProfileForm({
 	portletNamespace,
 	profile,
 }: ProfileFormProps) {
+	const isNew = !profile?.externalReferenceCode;
+
 	const formik = useFormik<ProfileFormValues>({
 		initialValues: {
+			active: profile?.profileStatus?.key === 'active',
 			description: profile?.description ?? '',
 			name: profile?.name ?? '',
 		},
@@ -106,6 +111,7 @@ function ProfileForm({
 			const payload: ProfilePayload = {
 				description: values.description,
 				name: values.name,
+				profileStatus: {key: values.active ? 'active' : 'inactive'},
 			};
 
 			const {data: saved, error} = profile?.externalReferenceCode
@@ -126,7 +132,7 @@ function ProfileForm({
 					)
 				);
 
-				if (profile?.externalReferenceCode) {
+				if (!isNew) {
 					navigate(backURL);
 				}
 				else {
@@ -158,7 +164,35 @@ function ProfileForm({
 	return (
 		<FormikProvider value={formik}>
 			<Form className="profile-form" noValidate>
+				{isNew && (
+					<ClayAlert
+						displayType="info"
+						title={`${Liferay.Language.get('info')}:`}
+					>
+						{Liferay.Language.get(
+							'tools,-data-masks,-and-status-become-available-once-the-profile-is-saved'
+						)}
+					</ClayAlert>
+				)}
+
+				<FormSection title={Liferay.Language.get('profile-status')}>
+					<div className="align-items-center d-flex justify-content-between">
+						<span className="text-secondary">
+							{Liferay.Language.get(
+								'activate-to-make-this-profiles-tools-available-to-mcp-clients'
+							)}
+						</span>
+
+						<FormToggle
+							ariaLabel={Liferay.Language.get('profile-status')}
+							disabled={isNew}
+							name="active"
+						/>
+					</div>
+				</FormSection>
+
 				<FormSection
+					className="mt-4"
 					title={Liferay.Language.get('profile-information')}
 				>
 					<FormField

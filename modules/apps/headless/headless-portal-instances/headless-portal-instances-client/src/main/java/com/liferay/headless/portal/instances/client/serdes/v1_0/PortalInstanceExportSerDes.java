@@ -10,6 +10,7 @@ import com.liferay.headless.portal.instances.client.json.BaseJSONParser;
 
 import jakarta.annotation.Generated;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -60,6 +61,20 @@ public class PortalInstanceExportSerDes {
 			sb.append("\"");
 		}
 
+		if (portalInstanceExport.getPortalInstanceId() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"portalInstanceId\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(portalInstanceExport.getPortalInstanceId()));
+
+			sb.append("\"");
+		}
+
 		if (portalInstanceExport.getSourceCompanyId() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -101,6 +116,15 @@ public class PortalInstanceExportSerDes {
 					portalInstanceExport.getExportedPartitionName()));
 		}
 
+		if (portalInstanceExport.getPortalInstanceId() == null) {
+			map.put("portalInstanceId", null);
+		}
+		else {
+			map.put(
+				"portalInstanceId",
+				String.valueOf(portalInstanceExport.getPortalInstanceId()));
+		}
+
 		if (portalInstanceExport.getSourceCompanyId() == null) {
 			map.put("sourceCompanyId", null);
 		}
@@ -131,6 +155,9 @@ public class PortalInstanceExportSerDes {
 			if (Objects.equals(jsonParserFieldName, "exportedPartitionName")) {
 				return false;
 			}
+			else if (Objects.equals(jsonParserFieldName, "portalInstanceId")) {
+				return false;
+			}
 			else if (Objects.equals(jsonParserFieldName, "sourceCompanyId")) {
 				return false;
 			}
@@ -146,6 +173,12 @@ public class PortalInstanceExportSerDes {
 			if (Objects.equals(jsonParserFieldName, "exportedPartitionName")) {
 				if (jsonParserFieldValue != null) {
 					portalInstanceExport.setExportedPartitionName(
+						(String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "portalInstanceId")) {
+				if (jsonParserFieldValue != null) {
+					portalInstanceExport.setPortalInstanceId(
 						(String)jsonParserFieldValue);
 				}
 			}
@@ -204,6 +237,12 @@ public class PortalInstanceExportSerDes {
 			return "null";
 		}
 
+		if (value instanceof Collection) {
+			Collection<?> collection = (Collection<?>)value;
+
+			return _toJSON(collection.toArray());
+		}
+
 		if (value instanceof Map) {
 			return _toJSON((Map)value);
 		}
@@ -236,4 +275,4 @@ public class PortalInstanceExportSerDes {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:2131645718
+// LIFERAY-REST-BUILDER-HASH:-279348489

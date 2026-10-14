@@ -18,8 +18,8 @@ spec:
                 parameters:
                     -   name: liferay-infrastructure-name
                     -   name: restore-phase
-                    -   default: "null"
-                        name: snapshot-identifier
+                    -   default: ""
+                        name: restore-snapshot-id
                     -   name: target-active-data-plane
             name: apply-infrastructure
             outputs:
@@ -29,15 +29,17 @@ spec:
                             jsonPath: "{.metadata.generation}"
             resource:
                 action: patch
+                flags:
+                    -   --field-manager=liferay-backup-restore
                 manifest: |-
-                    apiVersion: aws.liferay.com/v1alpha1
+                    apiVersion: liferay.com/v1alpha1
                     kind: LiferayInfrastructure
                     metadata:
                         name: {{ "{{" }}inputs.parameters.liferay-infrastructure-name}}
                         namespace: {{ "{{" }}workflow.namespace}}
                     spec:
                         database:
-                            snapshotIdentifier: {{ "{{" }}inputs.parameters.snapshot-identifier}}
+                            restore: {{ "{{" }}=inputs.parameters['restore-snapshot-id'] == '' ? 'null' : toJson({'snapshot': {'id': inputs.parameters['restore-snapshot-id']} })}}
                         restorePhase: {{ "{{" }}inputs.parameters.restore-phase}}
                         targetActiveDataPlane: {{ "{{" }}inputs.parameters.target-active-data-plane}}
                 mergeStrategy: merge
@@ -45,8 +47,8 @@ spec:
                 parameters:
                     -   name: liferay-infrastructure-name
                     -   name: restore-phase
-                    -   default: "null"
-                        name: snapshot-identifier
+                    -   default: ""
+                        name: restore-snapshot-id
                     -   name: target-active-data-plane
             name: apply-wait-infrastructure
             steps:
@@ -56,8 +58,8 @@ spec:
                                     value: "{{ "{{" }}inputs.parameters.liferay-infrastructure-name}}"
                                 -   name: restore-phase
                                     value: "{{ "{{" }}inputs.parameters.restore-phase}}"
-                                -   name: snapshot-identifier
-                                    value: "{{ "{{" }}inputs.parameters.snapshot-identifier}}"
+                                -   name: restore-snapshot-id
+                                    value: "{{ "{{" }}inputs.parameters.restore-snapshot-id}}"
                                 -   name: target-active-data-plane
                                     value: "{{ "{{" }}inputs.parameters.target-active-data-plane}}"
                         name: apply-infrastructure
@@ -218,7 +220,7 @@ spec:
                                     value: promoting
                                 -   name: target-active-data-plane
                                     value: "{{ "{{" }}tasks.get-current-infrastructure-state.outputs.parameters.data-inactive}}"
-                        depends: restore-rds-instance && restore-s3-bucket
+                        depends: restore-s3-bucket && sanitize-database
                         name: promote-inactive-data-plane
                         template: apply-wait-infrastructure
                     -   arguments:
@@ -234,7 +236,7 @@ spec:
                                     value: "{{ "{{" }}tasks.get-current-infrastructure-state.outputs.parameters.liferay-infrastructure-name}}"
                                 -   name: restore-phase
                                     value: provisioning
-                                -   name: snapshot-identifier
+                                -   name: restore-snapshot-id
                                     value: "{{ "{{" }}tasks.get-peer-recovery-points.outputs.parameters.rds-snapshot-id}}"
                                 -   name: target-active-data-plane
                                     value: "{{ "{{" }}tasks.get-current-infrastructure-state.outputs.parameters.data-inactive}}"
@@ -276,6 +278,13 @@ spec:
                         depends: "promote-inactive-data-plane.Succeeded && !restart-liferay.Succeeded"
                         name: roll-back-restart
                         template: roll-back-restart
+                    -   arguments:
+                            parameters:
+                                -   name: data-inactive
+                                    value: "{{ "{{" }}tasks.get-current-infrastructure-state.outputs.parameters.data-inactive}}"
+                        depends: restore-rds-instance
+                        name: sanitize-database
+                        template: sanitize-database
             name: main
         -   name: reset-restore-phase
             script:
@@ -349,6 +358,48 @@ spec:
                                     value: "{{ "{{" }}inputs.parameters.target-active-data-plane}}"
                         name: clean-up-infrastructure
                         template: clean-up-infrastructure
+        -   activeDeadlineSeconds: {{ .Values.restoreSanitization.timeoutSeconds }}
+            inputs:
+                parameters:
+                    -   name: data-inactive
+            name: sanitize-database
+            script:
+                command: [sh]
+                env:
+                    -   name: DATABASE_ENDPOINT
+                        valueFrom:
+                            secretKeyRef:
+                                key: address
+                                name: liferay-database-{{ "{{" }}inputs.parameters.data-inactive}}-credentials
+                    -   name: DATABASE_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                key: password
+                                name: liferay-database-{{ "{{" }}inputs.parameters.data-inactive}}-credentials
+                    -   name: DATABASE_PORT
+                        valueFrom:
+                            secretKeyRef:
+                                key: port
+                                name: liferay-database-{{ "{{" }}inputs.parameters.data-inactive}}-credentials
+                    -   name: DATABASE_USERNAME
+                        valueFrom:
+                            secretKeyRef:
+                                key: username
+                                name: liferay-database-{{ "{{" }}inputs.parameters.data-inactive}}-credentials
+                image: "{{ .Values.images.postgres.repository }}:{{ .Values.images.postgres.tag }}"
+                resources:
+                    {{- .Values.resources.default | toYaml | nindent 20 }}
+                source: |-
+                    {{- tpl (.Files.Get "scripts/sanitize-database.sh") . | nindent 20 }}
+                volumeMounts:
+                    -   mountPath: /restore-sanitization
+                        name: restore-sanitization
+                        readOnly: true
+            volumes:
+                -   configMap:
+                        name: backup-restore-sanitization
+                        optional: true
+                    name: restore-sanitization
         -   inputs:
                 parameters:
                     -   name: expected-generation

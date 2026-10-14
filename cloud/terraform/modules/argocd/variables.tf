@@ -17,6 +17,7 @@ variable "argocd_external_access_config" {
 variable "argocd_helm_chart_version" {
 	type=string
 }
-variable "infrastructure_api_group" {
-	type=string
+variable "observability_enabled" {
+	default=false
+	type=bool
 }

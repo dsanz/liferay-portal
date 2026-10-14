@@ -8,6 +8,7 @@ package com.liferay.mcp.server.rest.resource.v1_0.test;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.mcp.server.rest.client.dto.v1_0.Tool;
 import com.liferay.mcp.server.rest.client.http.HttpInvoker;
+import com.liferay.mcp.server.rest.client.resource.v1_0.ToolResource;
 import com.liferay.object.constants.ObjectFieldConstants;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.service.ObjectDefinitionLocalService;
@@ -28,7 +29,10 @@ import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.PropsValues;
+import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
@@ -36,6 +40,9 @@ import com.liferay.portal.vulcan.util.LocalizedMapUtil;
 
 import java.util.Base64;
 import java.util.Collections;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -54,10 +61,41 @@ public class ToolResourceTest extends BaseToolResourceTestCase {
 	@Test
 	public void testGetToolSetToolSetNameTool() throws Exception {
 		Tool tool = toolResource.getToolSetToolSetNameTool(
-			"mcp-server-v1.0", "getToolSetsPage");
+			"mcp-server-v1.0", "getToolSetsPage", null);
 
 		Assert.assertEquals("getToolSetsPage", tool.getName());
 		Assert.assertNotNull(tool.getInputSchema());
+		Assert.assertNull(tool.getOutputSchema());
+
+		User adminUser = UserTestUtil.getAdminUser(testCompany.getCompanyId());
+
+		ToolResource nestedFieldsToolResource = ToolResource.builder(
+		).authentication(
+			adminUser.getEmailAddress(), PropsValues.DEFAULT_ADMIN_PASSWORD
+		).endpoint(
+			testCompany.getVirtualHostname(),
+			PortalUtil.getPortalServerPort(false), "http"
+		).locale(
+			LocaleUtil.getDefault()
+		).parameter(
+			"nestedFields", "outputSchema"
+		).build();
+
+		JSONAssert.assertEquals(
+			JSONUtil.put(
+				"description", JSONUtil.put("type", "string")
+			).put(
+				"name", JSONUtil.put("type", "string")
+			).toString(),
+			JSONUtil.getValueAsString(
+				JSONFactoryUtil.createJSONObject(
+					String.valueOf(
+						nestedFieldsToolResource.getToolSetToolSetNameTool(
+							"mcp-server-v1.0", "getToolSetsPage", null))),
+				"JSONObject/outputSchema", "JSONObject/properties",
+				"JSONObject/items", "JSONObject/items",
+				"JSONObject/properties"),
+			false);
 
 		ObjectDefinition objectDefinition =
 			ObjectDefinitionTestUtil.publishObjectDefinition();
@@ -70,7 +108,7 @@ public class ToolResourceTest extends BaseToolResourceTestCase {
 			null, TestPropsValues.getUserId(), 0,
 			objectDefinition.getObjectDefinitionId(),
 			ObjectFieldConstants.BUSINESS_TYPE_TEXT,
-			ObjectFieldConstants.DB_TYPE_STRING, false, false, null,
+			ObjectFieldConstants.DB_TYPE_STRING, null, false, false, null,
 			LocalizedMapUtil.getLocalizedMap(name), false, name, null, null,
 			false, false, Collections.emptyList());
 
@@ -89,7 +127,8 @@ public class ToolResourceTest extends BaseToolResourceTestCase {
 		String objectFieldName = "a" + RandomTestUtil.randomString(8);
 
 		ObjectDefinition companyObjectDefinition = _publishObjectDefinition(
-			objectDefinitionName, objectFieldName, TestPropsValues.getUserId());
+			null, objectDefinitionName, objectFieldName,
+			TestPropsValues.getUserId());
 
 		Company company = CompanyTestUtil.addCompany();
 
@@ -98,7 +137,7 @@ public class ToolResourceTest extends BaseToolResourceTestCase {
 		String otherObjectFieldName = "a" + RandomTestUtil.randomString(8);
 
 		_publishObjectDefinition(
-			objectDefinitionName, otherObjectFieldName, user.getUserId());
+			null, objectDefinitionName, otherObjectFieldName, user.getUserId());
 
 		JSONAssert.assertEquals(
 			JSONUtil.put(
@@ -136,6 +175,10 @@ public class ToolResourceTest extends BaseToolResourceTestCase {
 					"JSONObject/body", "JSONObject/properties"),
 				false)
 		);
+
+		_testGetToolSetToolSetNameToolWithObjectFieldDescription();
+		_testGetToolSetToolSetNameToolWithRequiredInputSchemaOnly();
+		_testGetToolSetToolSetNameToolWithRequiredInputSchemaOnlyForAnObject();
 	}
 
 	@Override
@@ -212,10 +255,22 @@ public class ToolResourceTest extends BaseToolResourceTestCase {
 		Assert.assertFalse(itemJSONObject.has("title"));
 	}
 
+	private JSONObject _getRequiredInputSchemaJSONObject(
+			String toolSetName, String toolName)
+		throws Exception {
+
+		JSONObject toolJSONObject = JSONFactoryUtil.createJSONObject(
+			String.valueOf(
+				toolResource.getToolSetToolSetNameTool(
+					toolSetName, toolName, true)));
+
+		return toolJSONObject.getJSONObject("inputSchema");
+	}
+
 	private Tool _getTool(ObjectDefinition objectDefinition) throws Exception {
 		return toolResource.getToolSetToolSetNameTool(
 			_getToolSetName(objectDefinition),
-			"post" + objectDefinition.getShortName());
+			"post" + objectDefinition.getShortName(), null);
 	}
 
 	private String _getToolSetName(ObjectDefinition objectDefinition) {
@@ -226,7 +281,8 @@ public class ToolResourceTest extends BaseToolResourceTestCase {
 	}
 
 	private ObjectDefinition _publishObjectDefinition(
-			String name, String objectFieldName, long userId)
+			Map<Locale, String> descriptionMap, String name,
+			String objectFieldName, long userId)
 		throws Exception {
 
 		ObjectDefinition objectDefinition =
@@ -235,12 +291,126 @@ public class ToolResourceTest extends BaseToolResourceTestCase {
 		_objectFieldLocalService.addCustomObjectField(
 			null, userId, 0, objectDefinition.getObjectDefinitionId(),
 			ObjectFieldConstants.BUSINESS_TYPE_TEXT,
-			ObjectFieldConstants.DB_TYPE_STRING, false, false, null,
-			LocalizedMapUtil.getLocalizedMap(objectFieldName), false,
+			ObjectFieldConstants.DB_TYPE_STRING, descriptionMap, false, false,
+			null, LocalizedMapUtil.getLocalizedMap(objectFieldName), false,
 			objectFieldName, null, null, false, false, Collections.emptyList());
 
 		return _objectDefinitionLocalService.publishCustomObjectDefinition(
 			userId, objectDefinition.getObjectDefinitionId());
+	}
+
+	private void _testGetToolSetToolSetNameToolWithObjectFieldDescription()
+		throws Exception {
+
+		String objectFieldDescription = RandomTestUtil.randomString();
+		String objectFieldName = "a" + RandomTestUtil.randomString(8);
+
+		ObjectDefinition objectDefinition = _publishObjectDefinition(
+			Collections.singletonMap(LocaleUtil.US, objectFieldDescription),
+			ObjectDefinitionTestUtil.getRandomName(), objectFieldName,
+			TestPropsValues.getUserId());
+
+		JSONAssert.assertEquals(
+			JSONUtil.put(
+				objectFieldName,
+				JSONUtil.put(
+					"description", objectFieldDescription
+				).put(
+					"type", "string"
+				)
+			).toString(),
+			JSONUtil.getValueAsString(
+				JSONFactoryUtil.createJSONObject(
+					String.valueOf(_getTool(objectDefinition))),
+				"JSONObject/inputSchema", "JSONObject/properties",
+				"JSONObject/body", "JSONObject/properties"),
+			false);
+	}
+
+	private void _testGetToolSetToolSetNameToolWithRequiredInputSchemaOnly()
+		throws Exception {
+
+		JSONObject bodySchemaJSONObject = JSONUtil.getValueAsJSONObject(
+			JSONFactoryUtil.createJSONObject(
+				String.valueOf(
+					toolResource.getToolSetToolSetNameTool(
+						"headless-delivery-v1.0", "postSiteStructuredContent",
+						null))),
+			"JSONObject/inputSchema", "JSONObject/properties",
+			"JSONObject/body");
+
+		JSONObject propertiesJSONObject = bodySchemaJSONObject.getJSONObject(
+			"properties");
+
+		Set<String> requiredPropertyNames = SetUtil.fromArray(
+			JSONUtil.toStringArray(
+				bodySchemaJSONObject.getJSONArray("required")));
+
+		Assert.assertTrue(
+			String.valueOf(propertiesJSONObject),
+			propertiesJSONObject.length() > requiredPropertyNames.size());
+
+		JSONObject requiredPropertiesJSONObject = JSONUtil.getValueAsJSONObject(
+			_getRequiredInputSchemaJSONObject(
+				"headless-delivery-v1.0", "postSiteStructuredContent"),
+			"JSONObject/properties", "JSONObject/body",
+			"JSONObject/properties");
+
+		Assert.assertEquals(
+			requiredPropertyNames, requiredPropertiesJSONObject.keySet());
+	}
+
+	private void _testGetToolSetToolSetNameToolWithRequiredInputSchemaOnlyForAnObject()
+		throws Exception {
+
+		String objectFieldName = "a" + RandomTestUtil.randomString(8);
+
+		ObjectDefinition objectDefinition = _publishObjectDefinition(
+			null, ObjectDefinitionTestUtil.getRandomName(), objectFieldName,
+			TestPropsValues.getUserId());
+
+		JSONObject propertiesJSONObject = JSONUtil.put(
+			"readOnly", false
+		).put(
+			"type", "string"
+		);
+
+		JSONAssert.assertEquals(
+			JSONUtil.put(
+				objectFieldName, propertiesJSONObject
+			).put(
+				"able", propertiesJSONObject
+			).toString(),
+			JSONUtil.getValueAsString(
+				_getRequiredInputSchemaJSONObject(
+					_getToolSetName(objectDefinition),
+					"post" + objectDefinition.getShortName()),
+				"JSONObject/properties", "JSONObject/body",
+				"JSONObject/properties"),
+			true);
+
+		String requiredObjectFieldName = "a" + RandomTestUtil.randomString(8);
+
+		_objectFieldLocalService.addCustomObjectField(
+			null, TestPropsValues.getUserId(), 0,
+			objectDefinition.getObjectDefinitionId(),
+			ObjectFieldConstants.BUSINESS_TYPE_TEXT,
+			ObjectFieldConstants.DB_TYPE_STRING, null, false, false, null,
+			LocalizedMapUtil.getLocalizedMap(requiredObjectFieldName), false,
+			requiredObjectFieldName, null, null, true, false,
+			Collections.emptyList());
+
+		JSONAssert.assertEquals(
+			JSONUtil.put(
+				requiredObjectFieldName, propertiesJSONObject
+			).toString(),
+			JSONUtil.getValueAsString(
+				_getRequiredInputSchemaJSONObject(
+					_getToolSetName(objectDefinition),
+					"post" + objectDefinition.getShortName()),
+				"JSONObject/properties", "JSONObject/body",
+				"JSONObject/properties"),
+			true);
 	}
 
 	@Inject

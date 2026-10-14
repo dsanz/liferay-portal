@@ -58,9 +58,16 @@ if ((modelDeletionCounters != null) && modelDeletionCounters.containsKey(Layout.
 				</label>
 			</div>
 
-			<c:forEach items="<%= pageNames %>" var="pageName">
-				<div>${pageName}</div>
-			</c:forEach>
+			<%
+			for (String pageName : pageNames) {
+			%>
+
+				<div><%= HtmlUtil.escape(pageName) %></div>
+
+			<%
+			}
+			%>
+
 		</div>
 	</c:if>
 

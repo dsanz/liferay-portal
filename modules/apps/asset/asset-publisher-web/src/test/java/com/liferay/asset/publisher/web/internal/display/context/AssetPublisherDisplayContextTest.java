@@ -5,15 +5,18 @@
 
 package com.liferay.asset.publisher.web.internal.display.context;
 
+import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.asset.kernel.model.ClassType;
 import com.liferay.asset.kernel.model.ClassTypeReader;
 import com.liferay.asset.list.model.AssetListEntry;
 import com.liferay.asset.publisher.util.AssetPublisherHelper;
 import com.liferay.asset.publisher.web.internal.configuration.AssetPublisherPortletInstanceConfiguration;
 import com.liferay.asset.publisher.web.internal.model.TestClassType;
+import com.liferay.asset.publisher.web.internal.util.DefaultAssetPublisherCustomizer;
 import com.liferay.asset.util.AssetHelper;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProviderUtil;
+import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.module.configuration.ConfigurationException;
 import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
@@ -28,6 +31,10 @@ import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
+
+import jakarta.portlet.PortletURL;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.Arrays;
 import java.util.List;
@@ -183,6 +190,16 @@ public class AssetPublisherDisplayContextTest {
 		);
 	}
 
+	@Test
+	public void testGetSearchContainer() throws Exception {
+		_testGetSearchContainer(
+			5, 0, AssetPublisherDisplayContext.PAGINATION_TYPE_NONE);
+		_testGetSearchContainer(
+			10, 5, AssetPublisherDisplayContext.PAGINATION_TYPE_REGULAR);
+		_testGetSearchContainer(
+			10, 5, AssetPublisherDisplayContext.PAGINATION_TYPE_SIMPLE);
+	}
+
 	private LiferayPortletRequest _getLiferayPortletRequest() {
 		LiferayPortletRequest liferayPortletRequest = Mockito.mock(
 			LiferayPortletRequest.class);
@@ -227,6 +244,70 @@ public class AssetPublisherDisplayContextTest {
 		PortalUtil portalUtil = new PortalUtil();
 
 		portalUtil.setPortal(_portal);
+	}
+
+	private void _testGetSearchContainer(
+			int expectedEnd, int expectedStart, String paginationType)
+		throws Exception {
+
+		LiferayPortletRequest liferayPortletRequest =
+			_getLiferayPortletRequest();
+
+		Mockito.when(
+			liferayPortletRequest.getParameter(
+				SearchContainer.DEFAULT_CUR_PARAM)
+		).thenReturn(
+			"2"
+		);
+
+		Mockito.when(
+			liferayPortletRequest.getParameter(
+				SearchContainer.DEFAULT_DELTA_PARAM)
+		).thenReturn(
+			"20"
+		);
+
+		LiferayPortletResponse liferayPortletResponse = Mockito.mock(
+			LiferayPortletResponse.class);
+
+		Mockito.when(
+			liferayPortletResponse.createRenderURL()
+		).thenReturn(
+			Mockito.mock(PortletURL.class)
+		);
+
+		Mockito.when(
+			_portal.getHttpServletRequest(liferayPortletRequest)
+		).thenReturn(
+			Mockito.mock(HttpServletRequest.class)
+		);
+
+		Mockito.when(
+			_portal.getLiferayPortletResponse(Mockito.any())
+		).thenReturn(
+			liferayPortletResponse
+		);
+
+		MockPortletPreferences mockPortletPreferences =
+			new MockPortletPreferences();
+
+		mockPortletPreferences.setValue("delta", "5");
+		mockPortletPreferences.setValue("paginationType", paginationType);
+
+		AssetPublisherDisplayContext assetPublisherDisplayContext =
+			new AssetPublisherDisplayContext(
+				null, null, null,
+				new DefaultAssetPublisherCustomizer(null, null),
+				_assetPublisherHelper, null, null, null, null, _portal,
+				liferayPortletRequest, null, mockPortletPreferences, null,
+				null);
+
+		SearchContainer<AssetEntry> searchContainer =
+			assetPublisherDisplayContext.getSearchContainer();
+
+		Assert.assertEquals(5, searchContainer.getDelta());
+		Assert.assertEquals(expectedEnd, searchContainer.getEnd());
+		Assert.assertEquals(expectedStart, searchContainer.getStart());
 	}
 
 	private static MockedStatic<ConfigurationProviderUtil>

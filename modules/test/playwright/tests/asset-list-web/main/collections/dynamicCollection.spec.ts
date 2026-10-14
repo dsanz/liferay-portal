@@ -29,7 +29,6 @@ const test = mergeTests(
 const testWithEnhancedFiltering = mergeTests(
 	loginTest(),
 	featureFlagsTest({
-		'LPD-74731': {enabled: true}, // Enhanced Filtering
 		'LPS-178052': {enabled: true}, // CMS Objects
 	}),
 	isolatedSiteTest,
@@ -236,9 +235,15 @@ testWithEnhancedFiltering.describe(
 						await collectionsPage.openCollection(collectionName);
 
 						// A column on a field of the item type is saved as JSON
-						// carrying the propertyName, classNameId, classTypeId.
+						// carrying the objectDefinitionExternalReferenceCode
+						// and propertyName.
 
-						expect(await getOrderByColumn(1)).toContain(
+						const orderByColumn1 = await getOrderByColumn(1);
+
+						expect(orderByColumn1).toContain(
+							'"objectDefinitionExternalReferenceCode":"L_CMS_BASIC_WEB_CONTENT"'
+						);
+						expect(orderByColumn1).toContain(
 							'"propertyName":"title"'
 						);
 						expect(await getOrderByColumn(2)).toBe('createDate');
@@ -264,7 +269,7 @@ testWithEnhancedFiltering.describe(
 
 						await collectionsPage.openCollection(collectionName);
 
-						expect(await getOrderByColumn(1)).toBe('modifiedDate');
+						expect(await getOrderByColumn(1)).toBe('modified');
 						expect(await getOrderByColumn(2)).toBe('createDate');
 					}
 				);
@@ -272,7 +277,7 @@ testWithEnhancedFiltering.describe(
 		);
 
 		testWithEnhancedFiltering(
-			'Discards a filter that the selected item type no longer displays',
+			'Discards only the filters the selected item type cannot display',
 			{tag: '@LPD-102710'},
 			async ({collectionsPage, page, site}) => {
 				const collectionName = getRandomString();
@@ -327,7 +332,12 @@ testWithEnhancedFiltering.describe(
 
 						await collectionsPage.openCollection(collectionName);
 
-						expect(await getFilters()).toHaveLength(2);
+						const filters = await getFilters();
+
+						expect(filters).toHaveLength(2);
+						expect(
+							filters[0].objectDefinitionExternalReferenceCode
+						).toBe('L_CMS_BASIC_WEB_CONTENT');
 					}
 				);
 
@@ -343,7 +353,7 @@ testWithEnhancedFiltering.describe(
 				);
 
 				await testWithEnhancedFiltering.step(
-					'Only the filter on the previous item type field is discarded',
+					'The filter on the previous item type field is discarded',
 					async () => {
 						await collectionsPage.goto(site.friendlyUrlPath);
 
@@ -352,13 +362,15 @@ testWithEnhancedFiltering.describe(
 						const filters = await getFilters();
 
 						expect(filters).toHaveLength(1);
+						expect(
+							filters[0].objectDefinitionExternalReferenceCode
+						).toBeUndefined();
 						expect(filters[0].propertyName).toBe('userName');
-						expect(filters[0].classNameId).toBeUndefined();
 					}
 				);
 
 				await testWithEnhancedFiltering.step(
-					'Change the item type to one that does not display the enhanced filter',
+					'Change the item type to Basic Web Content',
 					async () => {
 						await collectionsPage.configureSourceItemType({
 							itemSubtype: 'Basic Web Content',
@@ -370,13 +382,137 @@ testWithEnhancedFiltering.describe(
 				);
 
 				await testWithEnhancedFiltering.step(
-					'The filter on the common field is discarded too',
+					'The filter on the common field persists',
 					async () => {
 						await collectionsPage.goto(site.friendlyUrlPath);
 
 						await collectionsPage.openCollection(collectionName);
 
-						expect(await getFilters()).toEqual([]);
+						const filters = await getFilters();
+
+						expect(filters).toHaveLength(1);
+						expect(
+							filters[0].objectDefinitionExternalReferenceCode
+						).toBeUndefined();
+						expect(filters[0].propertyName).toBe('userName');
+					}
+				);
+			}
+		);
+
+		testWithEnhancedFiltering(
+			'Offers each tags combination only once',
+			{tag: '@LPD-105495'},
+			async ({collectionsPage, page, site}) => {
+				const collectionName = getRandomString();
+
+				const openPicker = async (index: number, label: string) =>
+					await collectionsPage
+						.getFilterConditionRow(index)
+						.getByLabel(label)
+						.click();
+
+				const getOption = (name: RegExp) =>
+					page.getByRole('option', {name});
+
+				const selectOption = async (name: string) =>
+					await page.getByRole('option', {exact: true, name}).click();
+
+				await testWithEnhancedFiltering.step(
+					'Filter a new collection by tags',
+					async () => {
+						await collectionsPage.goto(site.friendlyUrlPath);
+
+						await collectionsPage.addNewDynamicCollection(
+							collectionName
+						);
+
+						await collectionsPage.openFilterSection();
+
+						await collectionsPage.fillFilterCondition(0, {
+							field: 'Tags',
+							operator: 'Contains',
+							quantifier: 'Any of the Following',
+						});
+					}
+				);
+
+				await testWithEnhancedFiltering.step(
+					'The quantifier the first filter uses is no longer offered',
+					async () => {
+						await collectionsPage.addFilterRow();
+
+						await collectionsPage.fillFilterCondition(1, {
+							field: 'Tags',
+							operator: 'Contains',
+						});
+
+						await openPicker(1, 'Quantifier');
+
+						await expect(
+							getOption(/Any of the Following/)
+						).toBeDisabled();
+						await expect(
+							getOption(/Any of the Following/)
+						).toContainText('Already Used');
+
+						await expect(
+							getOption(/All of the Following/)
+						).toBeEnabled();
+
+						await selectOption('All of the Following');
+					}
+				);
+
+				await testWithEnhancedFiltering.step(
+					'The operator is no longer offered once both its quantifiers are used',
+					async () => {
+						await collectionsPage.addFilterRow();
+
+						await collectionsPage.fillFilterCondition(2, {
+							field: 'Tags',
+						});
+
+						await openPicker(2, 'Operator');
+
+						await expect(getOption(/^Contains/)).toBeDisabled();
+						await expect(getOption(/^Contains/)).toContainText(
+							'Already Used'
+						);
+						await expect(
+							getOption(/Does Not Contain/)
+						).toBeEnabled();
+
+						await selectOption('Does Not Contain');
+
+						await openPicker(2, 'Quantifier');
+
+						await selectOption('Any of the Following');
+					}
+				);
+
+				await testWithEnhancedFiltering.step(
+					'The field is no longer offered once all four combinations are used',
+					async () => {
+						await collectionsPage.addFilterRow();
+
+						await collectionsPage.fillFilterCondition(3, {
+							field: 'Tags',
+							operator: 'Does Not Contain',
+							quantifier: 'All of the Following',
+						});
+
+						await collectionsPage.addFilterRow();
+
+						await openPicker(4, 'Field');
+
+						await expect(getOption(/^Tags/)).toBeDisabled();
+						await expect(getOption(/^Tags/)).toContainText(
+							'Already Used'
+						);
+
+						await expect(getOption(/^Categories/)).toBeEnabled();
+						await expect(getOption(/^Keywords/)).toBeEnabled();
 					}
 				);
 			}

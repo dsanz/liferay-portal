@@ -10,9 +10,9 @@ tests:
                 equal:
                     path: subjects[0].namespace
                     value: custom-system
-        it: Follows the Crossplane namespace override
-        set:
-            crossplaneNamespace: custom-system
+        it: Follows the release namespace
+        release:
+            namespace: custom-system
     -   asserts:
             -   hasDocuments:
                     count: 2
@@ -34,8 +34,17 @@ tests:
                         -   apiGroups: [""]
                             resources: ["configmaps", "secrets", "serviceaccounts"]
                             verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+                        -   apiGroups: ["argoproj.io"]
+                            resources: ["cronworkflows"]
+                            verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
                         -   apiGroups: ["batch"]
                             resources: ["jobs"]
+                            verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+                        -   apiGroups: ["rbac.authorization.k8s.io"]
+                            resources: ["clusterroles"]
+                            verbs: ["bind", "get", "list", "watch"]
+                        -   apiGroups: ["rbac.authorization.k8s.io"]
+                            resources: ["rolebindings"]
                             verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
             -   documentIndex: 1
                 isKind:

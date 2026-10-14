@@ -25,26 +25,43 @@ spec:
             {{- end }}
             containers:
                 -   env:
+                        -   name: CLIENT_EXTENSIONS_ENABLED
+                            value: {{ .Values.clientExtensions.enabled | quote }}
                         -   name: DEBUG
                             value: {{ .Values.debug | quote }}
                         -   name: DOWNLOAD_POLL_INTERVAL
                             value: {{ .Values.downloadPollInterval | quote }}
-                        -   name: GRACE_PERIOD
-                            value: {{ .Values.gracePeriod | quote }}
+                        -   name: EXPIRATION_GRACE_PERIOD
+                            value: {{ .Values.expirationGracePeriod | quote }}
                         -   name: HEARTBEAT_INTERVAL
                             value: {{ .Values.heartbeatInterval | quote }}
                         -   name: MARKETPLACE_MOUNT_PATH
                             value: {{ .Values.marketplace.mountPath | quote }}
                         -   name: METRICS_ADDRESS
                             value: {{ printf ":%d" (int .Values.metrics.port) | quote }}
+                        -   name: OPERATOR_NAMESPACE
+                            valueFrom:
+                                fieldRef:
+                                    fieldPath: metadata.namespace
+                        -   name: OPERATOR_SERVICE_ACCOUNT
+                            valueFrom:
+                                fieldRef:
+                                    fieldPath: spec.serviceAccountName
                         -   name: PROBE_ADDRESS
                             value: {{ printf ":%d" (int .Values.probes.port) | quote }}
                         -   name: PROVISIONING_BASE_URL
                             value: {{ .Values.provisioning.baseURL | quote }}
+                        -   name: PROVISIONING_GRACE_PERIOD
+                            value: {{ .Values.provisioningGracePeriod | quote }}
                         -   name: RETRY_INITIAL_DELAY
                             value: {{ .Values.retry.initialDelay | quote }}
                         -   name: RETRY_MAX_DELAY
                             value: {{ .Values.retry.maxDelay | quote }}
+                        {{- range $k, $v := .Values.customEnv }}
+                        {{- if and $v (gt (len $v) 0) }}
+                        {{- toYaml $v | nindent 24 }}
+                        {{- end }}
+                        {{- end }}
                     image: {{ printf "%s:%s" .Values.image.repository (.Values.image.tag | toString) }}
                     imagePullPolicy: {{ .Values.image.pullPolicy }}
                     livenessProbe:
@@ -73,10 +90,17 @@ spec:
                     securityContext:
                         {{- toYaml . | nindent 24 }}
                     {{- end }}
-                    {{- if .Values.marketplace.enabled }}
+                    {{- if or .Values.marketplace.enabled .Values.customVolumeMounts }}
                     volumeMounts:
+                        {{- if .Values.marketplace.enabled }}
                         -   mountPath: {{ .Values.marketplace.mountPath }}
                             name: marketplace
+                        {{- end }}
+                        {{- range $k, $v := .Values.customVolumeMounts }}
+                        {{- if and $v (gt (len $v) 0) }}
+                        {{- toYaml $v | nindent 24 }}
+                        {{- end }}
+                        {{- end }}
                     {{- end }}
             {{- with .Values.image.pullSecrets }}
             imagePullSecrets:
@@ -95,9 +119,16 @@ spec:
             tolerations:
                 {{- toYaml . | nindent 16 }}
             {{- end }}
-            {{- if .Values.marketplace.enabled }}
+            {{- if or .Values.marketplace.enabled .Values.customVolumes }}
             volumes:
+                {{- if .Values.marketplace.enabled }}
                 -   name: marketplace
                     persistentVolumeClaim:
                         claimName: {{ .Values.marketplace.claimName }}
+                {{- end }}
+                {{- range $k, $v := .Values.customVolumes }}
+                {{- if and $v (gt (len $v) 0) }}
+                {{- toYaml $v | nindent 16 }}
+                {{- end }}
+                {{- end }}
             {{- end }}

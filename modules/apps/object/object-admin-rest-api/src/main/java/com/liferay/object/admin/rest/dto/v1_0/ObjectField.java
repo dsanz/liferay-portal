@@ -14,6 +14,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
@@ -27,6 +28,8 @@ import jakarta.xml.bind.annotation.XmlRootElement;
 
 import java.io.Serializable;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -243,6 +246,49 @@ public class ObjectField implements Serializable {
 
 	@JsonIgnore
 	private Supplier<String> _defaultValueSupplier;
+
+	@io.swagger.v3.oas.annotations.media.Schema
+	@Valid
+	public Map<String, String> getDescription() {
+		if (_descriptionSupplier != null) {
+			description = _descriptionSupplier.get();
+
+			_descriptionSupplier = null;
+		}
+
+		return description;
+	}
+
+	public void setDescription(Map<String, String> description) {
+		this.description = description;
+
+		_descriptionSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setDescription(
+		UnsafeSupplier<Map<String, String>, Exception>
+			descriptionUnsafeSupplier) {
+
+		_descriptionSupplier = () -> {
+			try {
+				return descriptionUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected Map<String, String> description;
+
+	@JsonIgnore
+	private Supplier<Map<String, String>> _descriptionSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema
 	public String getExternalReferenceCode() {
@@ -703,6 +749,90 @@ public class ObjectField implements Serializable {
 
 	@JsonIgnore
 	private Supplier<String> _objectDefinitionExternalReferenceCode1Supplier;
+
+	@io.swagger.v3.oas.annotations.media.Schema
+	public String getObjectDefinitionScope1() {
+		if (_objectDefinitionScope1Supplier != null) {
+			objectDefinitionScope1 = _objectDefinitionScope1Supplier.get();
+
+			_objectDefinitionScope1Supplier = null;
+		}
+
+		return objectDefinitionScope1;
+	}
+
+	public void setObjectDefinitionScope1(String objectDefinitionScope1) {
+		this.objectDefinitionScope1 = objectDefinitionScope1;
+
+		_objectDefinitionScope1Supplier = null;
+	}
+
+	@JsonIgnore
+	public void setObjectDefinitionScope1(
+		UnsafeSupplier<String, Exception>
+			objectDefinitionScope1UnsafeSupplier) {
+
+		_objectDefinitionScope1Supplier = () -> {
+			try {
+				return objectDefinitionScope1UnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected String objectDefinitionScope1;
+
+	@JsonIgnore
+	private Supplier<String> _objectDefinitionScope1Supplier;
+
+	@io.swagger.v3.oas.annotations.media.Schema
+	public Boolean getObjectDefinitionSystem1() {
+		if (_objectDefinitionSystem1Supplier != null) {
+			objectDefinitionSystem1 = _objectDefinitionSystem1Supplier.get();
+
+			_objectDefinitionSystem1Supplier = null;
+		}
+
+		return objectDefinitionSystem1;
+	}
+
+	public void setObjectDefinitionSystem1(Boolean objectDefinitionSystem1) {
+		this.objectDefinitionSystem1 = objectDefinitionSystem1;
+
+		_objectDefinitionSystem1Supplier = null;
+	}
+
+	@JsonIgnore
+	public void setObjectDefinitionSystem1(
+		UnsafeSupplier<Boolean, Exception>
+			objectDefinitionSystem1UnsafeSupplier) {
+
+		_objectDefinitionSystem1Supplier = () -> {
+			try {
+				return objectDefinitionSystem1UnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected Boolean objectDefinitionSystem1;
+
+	@JsonIgnore
+	private Supplier<Boolean> _objectDefinitionSystem1Supplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema
 	@Valid
@@ -1250,6 +1380,18 @@ public class ObjectField implements Serializable {
 			sb.append("\"");
 		}
 
+		Map<String, String> description = getDescription();
+
+		if (description != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"description\": ");
+
+			sb.append(_toJSON(description));
+		}
+
 		String externalReferenceCode = getExternalReferenceCode();
 
 		if (externalReferenceCode != null) {
@@ -1402,6 +1544,34 @@ public class ObjectField implements Serializable {
 			sb.append(_escape(objectDefinitionExternalReferenceCode1));
 
 			sb.append("\"");
+		}
+
+		String objectDefinitionScope1 = getObjectDefinitionScope1();
+
+		if (objectDefinitionScope1 != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"objectDefinitionScope1\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(objectDefinitionScope1));
+
+			sb.append("\"");
+		}
+
+		Boolean objectDefinitionSystem1 = getObjectDefinitionSystem1();
+
+		if (objectDefinitionSystem1 != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"objectDefinitionSystem1\": ");
+
+			sb.append(objectDefinitionSystem1);
 		}
 
 		ObjectFieldSetting[] objectFieldSettings = getObjectFieldSettings();
@@ -1569,8 +1739,8 @@ public class ObjectField implements Serializable {
 		BOOLEAN("Boolean"), DATE("Date"), DATE_TIME("DateTime"),
 		DECIMAL("Decimal"), EMAIL_ADDRESS("EmailAddress"),
 		ENCRYPTED("Encrypted"), FORMULA("Formula"), INTEGER("Integer"),
-		LONG_INTEGER("LongInteger"), LONG_TEXT("LongText"),
-		MULTISELECT_PICKLIST("MultiselectPicklist"),
+		LOCATION("Location"), LONG_INTEGER("LongInteger"),
+		LONG_TEXT("LongText"), MULTISELECT_PICKLIST("MultiselectPicklist"),
 		PHONE_NUMBER("PhoneNumber"), PICKLIST("Picklist"),
 		PRECISION_DECIMAL("PrecisionDecimal"), RELATIONSHIP("Relationship"),
 		RICH_TEXT("RichText"), TEXT("Text");
@@ -1845,6 +2015,27 @@ public class ObjectField implements Serializable {
 		return sb.toString();
 	}
 
+	private static String _toJSON(Object value) {
+		if (value instanceof Collection) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONArray((Collection<?>)value));
+		}
+		else if (value instanceof Map) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONObject((Map<?, ?>)value));
+		}
+		else if (value instanceof Object[]) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONArray(
+					Arrays.asList((Object[])value)));
+		}
+		else if (value instanceof String) {
+			return StringBundler.concat("\"", _escape(value), "\"");
+		}
+
+		return String.valueOf(value);
+	}
+
 	private static final String[][] _JSON_ESCAPE_STRINGS = {
 		{"\\", "\"", "\b", "\f", "\n", "\r", "\t"},
 		{"\\\\", "\\\"", "\\b", "\\f", "\\n", "\\r", "\\t"}
@@ -1853,4 +2044,4 @@ public class ObjectField implements Serializable {
 	private Map<String, Serializable> _extendedProperties;
 
 }
-// LIFERAY-REST-BUILDER-HASH:-1956755057
+// LIFERAY-REST-BUILDER-HASH:-607699808

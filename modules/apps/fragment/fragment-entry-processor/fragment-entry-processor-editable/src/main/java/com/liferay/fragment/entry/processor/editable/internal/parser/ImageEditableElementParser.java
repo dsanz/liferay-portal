@@ -5,8 +5,8 @@
 
 package com.liferay.fragment.entry.processor.editable.internal.parser;
 
+import com.liferay.document.library.helper.DLURLHelper;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
-import com.liferay.document.library.util.DLURLHelper;
 import com.liferay.fragment.entry.processor.editable.parser.EditableElementParser;
 import com.liferay.fragment.entry.processor.helper.FragmentEntryProcessorHelper;
 import com.liferay.fragment.exception.FragmentEntryContentException;
@@ -302,7 +302,7 @@ public class ImageEditableElementParser extends BaseEditableElementParser {
 			if (mimeType.startsWith("image")) {
 				return _dlURLHelper.getPreviewURL(
 					fileEntry, fileEntry.getFileVersion(), themeDisplay,
-					StringPool.BLANK);
+					StringPool.BLANK, true, false);
 			}
 
 			return _dlURLHelper.getImagePreviewURL(

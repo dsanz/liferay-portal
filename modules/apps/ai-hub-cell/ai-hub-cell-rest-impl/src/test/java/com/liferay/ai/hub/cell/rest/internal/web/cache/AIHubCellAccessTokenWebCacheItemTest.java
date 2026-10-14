@@ -9,6 +9,7 @@ import com.liferay.ai.hub.cell.configuration.AIHubCellConfiguration;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.model.CompanyConstants;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.HttpUtil;
@@ -61,7 +62,7 @@ public class AIHubCellAccessTokenWebCacheItemTest {
 
 			AIHubCellAccessTokenWebCacheItem aiHubCellAccessTokenWebCacheItem =
 				new AIHubCellAccessTokenWebCacheItem(
-					_getAIHubCellConfiguration());
+					_getAIHubCellConfiguration(), CompanyConstants.SYSTEM);
 
 			aiHubCellAccessTokenWebCacheItem.convert(StringPool.BLANK);
 
@@ -83,7 +84,7 @@ public class AIHubCellAccessTokenWebCacheItemTest {
 
 			AIHubCellAccessTokenWebCacheItem aiHubCellAccessTokenWebCacheItem =
 				new AIHubCellAccessTokenWebCacheItem(
-					_getAIHubCellConfiguration());
+					_getAIHubCellConfiguration(), CompanyConstants.SYSTEM);
 
 			try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
 					AIHubCellAccessTokenWebCacheItem.class.getName(),
@@ -106,7 +107,7 @@ public class AIHubCellAccessTokenWebCacheItemTest {
 
 			AIHubCellAccessTokenWebCacheItem aiHubCellAccessTokenWebCacheItem =
 				new AIHubCellAccessTokenWebCacheItem(
-					_getAIHubCellConfiguration());
+					_getAIHubCellConfiguration(), CompanyConstants.SYSTEM);
 
 			try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
 					AIHubCellAccessTokenWebCacheItem.class.getName(),

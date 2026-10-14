@@ -9,6 +9,8 @@ import com.liferay.asset.kernel.AssetRendererFactoryRegistryUtil;
 import com.liferay.asset.kernel.model.AssetCategory;
 import com.liferay.asset.kernel.model.AssetRendererFactory;
 import com.liferay.asset.kernel.service.AssetCategoryLocalService;
+import com.liferay.asset.list.constants.AssetListConstants;
+import com.liferay.asset.list.internal.util.AssetListFiltersUpgradeUtil;
 import com.liferay.asset.util.AssetRendererFactoryClassProvider;
 import com.liferay.document.library.kernel.model.DLFileEntryType;
 import com.liferay.document.library.kernel.service.DLFileEntryTypeLocalService;
@@ -23,6 +25,9 @@ import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.json.JSONArray;
+import com.liferay.portal.kernel.json.JSONFactory;
+import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
@@ -39,6 +44,7 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.site.model.adapter.StagedGroup;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -92,11 +98,7 @@ public class AssetListEntryExportImportContentProcessor
 			String defaultClassName = _fetchClassName(
 				defaultClassNameId, stagedModel);
 
-			if (defaultClassName == null) {
-				unicodeProperties.setProperty(
-					"anyAssetType", Boolean.TRUE.toString());
-			}
-			else {
+			if (defaultClassName != null) {
 				unicodeProperties.setProperty(
 					"anyAssetTypeClassName", defaultClassName);
 			}
@@ -146,39 +148,22 @@ public class AssetListEntryExportImportContentProcessor
 			}
 		}
 
-		for (Map.Entry<String, String> entry : unicodeProperties.entrySet()) {
-			String key = entry.getKey();
+		for (JSONObject assetCategoryValueJSONObject :
+				_getAssetCategoryValuesJSONObjects(
+					_toFiltersJSONArray(
+						unicodeProperties.getProperty("filters")))) {
 
-			if (StringUtil.startsWith(key, "queryName") &&
-				Objects.equals(entry.getValue(), "assetCategories")) {
+			AssetCategory assetCategory =
+				_assetCategoryLocalService.fetchAssetCategory(
+					assetCategoryValueJSONObject.getLong("value"));
 
-				String index = key.substring(9);
-
-				String queryValues = unicodeProperties.getProperty(
-					"queryValues" + index);
-
-				if (Validator.isNull(queryValues)) {
-					continue;
-				}
-
-				long[] categoryIds = GetterUtil.getLongValues(
-					queryValues.split(","));
-
-				for (long categoryId : categoryIds) {
-					AssetCategory assetCategory =
-						_assetCategoryLocalService.fetchAssetCategory(
-							categoryId);
-
-					if (assetCategory == null) {
-						continue;
-					}
-
-					StagedModelDataHandlerUtil.exportReferenceStagedModel(
-						portletDataContext, stagedModel,
-						_assetCategoryLocalService.getCategory(categoryId),
-						PortletDataContext.REFERENCE_TYPE_DEPENDENCY);
-				}
+			if (assetCategory == null) {
+				continue;
 			}
+
+			StagedModelDataHandlerUtil.exportReferenceStagedModel(
+				portletDataContext, stagedModel, assetCategory,
+				PortletDataContext.REFERENCE_TYPE_DEPENDENCY);
 		}
 
 		return unicodeProperties.toString();
@@ -191,7 +176,9 @@ public class AssetListEntryExportImportContentProcessor
 		throws Exception {
 
 		UnicodeProperties unicodeProperties = UnicodePropertiesBuilder.load(
-			content
+			GetterUtil.getString(
+				AssetListFiltersUpgradeUtil.toUpgradedTypeSettings(content),
+				content)
 		).build();
 
 		Element rootElement = portletDataContext.getImportDataRootElement();
@@ -235,13 +222,27 @@ public class AssetListEntryExportImportContentProcessor
 						return null;
 					})));
 
-		long[] classNameIds = TransformUtil.transformToLongArray(
-			Arrays.asList(
-				StringUtil.split(unicodeProperties.getProperty("classNames"))),
-			className -> _portal.getClassNameId(className));
+		String classNames = unicodeProperties.getProperty("classNames");
 
-		unicodeProperties.setProperty(
-			"classNameIds", StringUtil.merge(classNameIds));
+		if (Validator.isNotNull(classNames) ||
+			!Objects.equals(
+				unicodeProperties.getProperty("anyAssetType"),
+				Boolean.FALSE.toString())) {
+
+			unicodeProperties.setProperty(
+				"classNameIds",
+				StringUtil.merge(
+					TransformUtil.transformToLongArray(
+						Arrays.asList(StringUtil.split(classNames)),
+						className -> _portal.getClassNameId(className))));
+		}
+		else if (Validator.isNotNull(
+					unicodeProperties.getProperty("classNameIds"))) {
+
+			unicodeProperties.setProperty(
+				"classNameIds",
+				String.valueOf(AssetListConstants.CLASS_NAME_ID_NONEXISTENT));
+		}
 
 		String anyAssetTypeClassName = unicodeProperties.getProperty(
 			"anyAssetTypeClassName");
@@ -251,10 +252,24 @@ public class AssetListEntryExportImportContentProcessor
 				"anyAssetType",
 				String.valueOf(_portal.getClassNameId(anyAssetTypeClassName)));
 		}
+		else {
+			long defaultClassNameId = GetterUtil.getLong(
+				unicodeProperties.getProperty("anyAssetType"));
+
+			if (defaultClassNameId > 0) {
+				unicodeProperties.setProperty(
+					"anyAssetType",
+					String.valueOf(
+						AssetListConstants.CLASS_NAME_ID_NONEXISTENT));
+			}
+		}
 
 		Map<Long, Long> ddmStructureIds =
 			(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
 				DDMStructure.class);
+		Map<Long, Long> dlFileEntryTypeIds =
+			(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
+				DLFileEntryType.class);
 
 		List<AssetRendererFactory<?>> assetRendererFactories =
 			AssetRendererFactoryRegistryUtil.getAssetRendererFactories(
@@ -266,6 +281,19 @@ public class AssetListEntryExportImportContentProcessor
 			Class<?> clazz = _assetRendererFactoryClassProvider.getClass(
 				assetRendererFactory);
 
+			long anyClassType = GetterUtil.getLong(
+				unicodeProperties.getProperty(
+					"anyClassType" + clazz.getSimpleName()));
+
+			if (anyClassType != 0L) {
+				unicodeProperties.setProperty(
+					"anyClassType" + clazz.getSimpleName(),
+					String.valueOf(
+						_getClassTypeId(
+							anyClassType, ddmStructureIds,
+							dlFileEntryTypeIds)));
+			}
+
 			String[] classTypeIds = StringUtil.split(
 				unicodeProperties.getProperty(
 					"classTypeIds" + clazz.getSimpleName()));
@@ -273,10 +301,6 @@ public class AssetListEntryExportImportContentProcessor
 			if (ArrayUtil.isEmpty(classTypeIds)) {
 				continue;
 			}
-
-			Map<Long, Long> dlFileEntryTypeIds =
-				(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
-					DLFileEntryType.class);
 
 			unicodeProperties.setProperty(
 				"classTypeIds" + clazz.getSimpleName(),
@@ -286,59 +310,40 @@ public class AssetListEntryExportImportContentProcessor
 						classTypeId -> _getClassTypeId(
 							GetterUtil.getLong(classTypeId), ddmStructureIds,
 							dlFileEntryTypeIds))));
+		}
 
-			long anyClassType = GetterUtil.getLong(
-				unicodeProperties.getProperty(
-					"anyClassType" + clazz.getSimpleName()));
+		JSONArray filtersJSONArray = _toFiltersJSONArray(
+			unicodeProperties.getProperty("filters"));
 
-			if (anyClassType == 0L) {
+		Map<Long, Long> assetCategoryIds =
+			(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
+				AssetCategory.class);
+
+		for (JSONObject assetCategoryValueJSONObject :
+				_getAssetCategoryValuesJSONObjects(filtersJSONArray)) {
+
+			long assetCategoryId = assetCategoryValueJSONObject.getLong(
+				"value");
+
+			if (assetCategoryId <= 0) {
 				continue;
 			}
 
-			long newAnyClassType = _getClassTypeId(
-				anyClassType, ddmStructureIds, dlFileEntryTypeIds);
+			assetCategoryValueJSONObject.put(
+				"value",
+				String.valueOf(
+					MapUtil.getLong(
+						assetCategoryIds, assetCategoryId, assetCategoryId)));
+		}
 
+		if (filtersJSONArray.length() > 0) {
 			unicodeProperties.setProperty(
-				"anyClassType" + clazz.getSimpleName(),
-				String.valueOf(newAnyClassType));
+				"filters", filtersJSONArray.toString());
 		}
 
 		for (Map.Entry<String, String> entry : unicodeProperties.entrySet()) {
 			String key = entry.getKey();
 			String value = entry.getValue();
-
-			if (StringUtil.startsWith(key, "queryName") &&
-				Objects.equals(value, "assetCategories")) {
-
-				String index = key.substring(9);
-
-				String queryValues = unicodeProperties.getProperty(
-					"queryValues" + index);
-
-				if (Validator.isNull(queryValues)) {
-					continue;
-				}
-
-				long[] categoryIds = GetterUtil.getLongValues(
-					queryValues.split(","));
-
-				long[] newCategoryIds = new long[categoryIds.length];
-
-				Map<Long, Long> categoryIdMap =
-					(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
-						AssetCategory.class);
-
-				for (long categoryId : categoryIds) {
-					long newCategoryId = MapUtil.getLong(
-						categoryIdMap, categoryId, categoryId);
-
-					newCategoryIds = ArrayUtil.append(
-						newCategoryIds, newCategoryId);
-				}
-
-				unicodeProperties.setProperty(
-					"queryValues" + index, StringUtil.merge(newCategoryIds));
-			}
 
 			if (StringUtil.startsWith(key, "orderByColumn") &&
 				StringUtil.startsWith(value, "ddm__keyword__")) {
@@ -420,6 +425,43 @@ public class AssetListEntryExportImportContentProcessor
 		return className;
 	}
 
+	private List<JSONObject> _getAssetCategoryValuesJSONObjects(
+		JSONArray filtersJSONArray) {
+
+		List<JSONObject> assetCategoryValuesJSONObjects = new ArrayList<>();
+
+		for (int i = 0; i < filtersJSONArray.length(); i++) {
+			JSONObject filterJSONObject = filtersJSONArray.getJSONObject(i);
+
+			if ((filterJSONObject == null) ||
+				!Objects.equals(
+					filterJSONObject.getString("propertyName"),
+					"assetCategories")) {
+
+				continue;
+			}
+
+			JSONArray assetCategoryValueJSONArray =
+				filterJSONObject.getJSONArray("value");
+
+			if (assetCategoryValueJSONArray == null) {
+				continue;
+			}
+
+			for (int j = 0; j < assetCategoryValueJSONArray.length(); j++) {
+				JSONObject assetCategoryValueJSONObject =
+					assetCategoryValueJSONArray.getJSONObject(j);
+
+				if (assetCategoryValueJSONObject != null) {
+					assetCategoryValuesJSONObjects.add(
+						assetCategoryValueJSONObject);
+				}
+			}
+		}
+
+		return assetCategoryValuesJSONObjects;
+	}
+
 	private long _getClassTypeId(
 		long classTypeId, Map<Long, Long>... primaryKeysMaps) {
 
@@ -433,6 +475,21 @@ public class AssetListEntryExportImportContentProcessor
 		}
 
 		return classTypeId;
+	}
+
+	private JSONArray _toFiltersJSONArray(String filtersJSON) {
+		if (Validator.isNotNull(filtersJSON)) {
+			try {
+				return _jsonFactory.createJSONArray(filtersJSON);
+			}
+			catch (Exception exception) {
+				if (_log.isDebugEnabled()) {
+					_log.debug(exception);
+				}
+			}
+		}
+
+		return _jsonFactory.createJSONArray();
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
@@ -453,6 +510,9 @@ public class AssetListEntryExportImportContentProcessor
 
 	@Reference(unbind = "-")
 	private GroupLocalService _groupLocalService;
+
+	@Reference
+	private JSONFactory _jsonFactory;
 
 	@Reference
 	private Portal _portal;

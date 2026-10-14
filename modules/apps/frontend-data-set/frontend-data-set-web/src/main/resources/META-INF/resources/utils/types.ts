@@ -9,7 +9,7 @@ import React from 'react';
 
 import {IInlineNotificationComponent} from '../inline_notification/InlineNotification';
 import {EEntityFieldType} from '../management_bar/controls/filters/utils/types';
-import {ISnapshots} from '../views/ViewsContext';
+import {ISnapshots, IUserConfiguration} from '../views/ViewsContext';
 
 export declare function FrontendDataSet({
 	actionParameterName,
@@ -386,7 +386,9 @@ export interface IFrontendDataSetProps {
 		initialPageNumber?: number;
 	};
 	portletId?: string;
+	saveDataSetUserConfigurationURL?: string;
 	searchAsYouType?: boolean;
+	searchSuggestionsEnabled?: boolean;
 	selectedItems?: any[];
 	selectedItemsKey?: string | undefined;
 	selectionType?: 'single' | 'multiple';
@@ -403,6 +405,7 @@ export interface IFrontendDataSetProps {
 	sorts?: TSort[];
 	style?: 'default' | 'fluid' | 'stacked';
 	uniformActionsDisplay?: boolean;
+	userConfiguration?: IUserConfiguration | null;
 	views: IView[];
 	viewsTitle?: string;
 }
@@ -429,6 +432,7 @@ export interface IManagementBarProps {
 	selectedItemsKey: string;
 	selectedItemsValue: Array<any>;
 	selectionType?: 'multiple' | 'single';
+	showFilters?: boolean;
 	showNavBarWhenSelected?: boolean;
 	showSearch?: boolean;
 	showSelectAll?: boolean;
@@ -497,6 +501,7 @@ export {
 export enum EConfigInURLKeys {
 	ACTIVE_FILTERS = 'filters',
 	ACTIVE_SORTS = 'sorts',
+	CUSTOM_CONFIGS = 'custom',
 	DELTA = 'delta',
 	PAGE_NUMBER = 'page',
 	SEARCH_PARAM = 'q',
@@ -507,6 +512,7 @@ export enum EConfigInURLKeys {
 export interface IConfigInURL {
 	[EConfigInURLKeys.ACTIVE_FILTERS]: Array<any>;
 	[EConfigInURLKeys.ACTIVE_SORTS]: Array<TSort>;
+	[EConfigInURLKeys.CUSTOM_CONFIGS]: unknown;
 	[EConfigInURLKeys.DELTA]: number;
 	[EConfigInURLKeys.PAGE_NUMBER]: number;
 	[EConfigInURLKeys.SEARCH_PARAM]: string;
@@ -577,8 +583,16 @@ interface ISelectionFilterState extends IBaseFilterState {
 	};
 	showExcludeToggle?: boolean;
 }
+
+/**
+ * What the data set itself writes to its state. The slice a connection owns
+ * is deliberately absent: see `IConnectedFDSState`, next to the only code
+ * that reads it.
+ */
+
 interface IFDSState {
 	filters: Array<IBaseFilterState>;
+	offeredCustomConfigs?: unknown;
 	search: ISearch;
 }
 

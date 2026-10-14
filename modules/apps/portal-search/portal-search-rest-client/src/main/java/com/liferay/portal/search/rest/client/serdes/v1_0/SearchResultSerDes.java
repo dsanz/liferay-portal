@@ -13,6 +13,7 @@ import jakarta.annotation.Generated;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -128,14 +129,7 @@ public class SearchResultSerDes {
 
 			sb.append("\"embedded\": ");
 
-			if (searchResult.getEmbedded() instanceof String) {
-				sb.append("\"");
-				sb.append((String)searchResult.getEmbedded());
-				sb.append("\"");
-			}
-			else {
-				sb.append(searchResult.getEmbedded());
-			}
+			sb.append(_toJSON(searchResult.getEmbedded()));
 		}
 
 		if (searchResult.getEntryClassName() != null) {
@@ -186,6 +180,20 @@ public class SearchResultSerDes {
 			sb.append("\"");
 
 			sb.append(_escape(searchResult.getTitle()));
+
+			sb.append("\"");
+		}
+
+		if (searchResult.getType() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"type\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(searchResult.getType()));
 
 			sb.append("\"");
 		}
@@ -291,6 +299,13 @@ public class SearchResultSerDes {
 			map.put("title", String.valueOf(searchResult.getTitle()));
 		}
 
+		if (searchResult.getType() == null) {
+			map.put("type", null);
+		}
+		else {
+			map.put("type", String.valueOf(searchResult.getType()));
+		}
+
 		return map;
 	}
 
@@ -337,6 +352,9 @@ public class SearchResultSerDes {
 				return false;
 			}
 			else if (Objects.equals(jsonParserFieldName, "title")) {
+				return false;
+			}
+			else if (Objects.equals(jsonParserFieldName, "type")) {
 				return false;
 			}
 
@@ -404,6 +422,11 @@ public class SearchResultSerDes {
 					searchResult.setTitle((String)jsonParserFieldValue);
 				}
 			}
+			else if (Objects.equals(jsonParserFieldName, "type")) {
+				if (jsonParserFieldValue != null) {
+					searchResult.setType((String)jsonParserFieldValue);
+				}
+			}
 		}
 
 	}
@@ -453,6 +476,12 @@ public class SearchResultSerDes {
 			return "null";
 		}
 
+		if (value instanceof Collection) {
+			Collection<?> collection = (Collection<?>)value;
+
+			return _toJSON(collection.toArray());
+		}
+
 		if (value instanceof Map) {
 			return _toJSON((Map)value);
 		}
@@ -485,4 +514,4 @@ public class SearchResultSerDes {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:159395730
+// LIFERAY-REST-BUILDER-HASH:72540213

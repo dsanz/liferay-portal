@@ -2067,6 +2067,9 @@
 				"priority": {
 					"type": "double"
 				},
+				"projectDepotEntryGroupIds": {
+					"type": "keyword"
+				},
 				"properties": {
 					"type": "keyword"
 				},

@@ -20,7 +20,9 @@ describe('AccountMessageQueue', () => {
 	let accountMessageQueue: AccountMessageQueue;
 
 	beforeEach(() => {
-		fetchMock.mock(/demandbase-account$/i, () => Promise.resolve(200));
+		fetchMock.mockGlobal();
+
+		fetchMock.route(/demandbase-account$/i, () => Promise.resolve(200));
 
 		accountMessageQueue = new AccountMessageQueue({
 			analyticsInstance,
@@ -28,7 +30,7 @@ describe('AccountMessageQueue', () => {
 	});
 
 	afterEach(() => {
-		fetchMock.restore();
+		fetchMock.hardReset();
 
 		accountMessageQueue.reset();
 	});
@@ -43,7 +45,7 @@ describe('AccountMessageQueue', () => {
 
 		await Promise.all(accountMessageQueue.onFlush());
 
-		expect(fetchMock.called(/demandbase-account$/i)).toBe(true);
+		expect(fetchMock.callHistory.called(/demandbase-account$/i)).toBe(true);
 	});
 
 	it('builds the endpoint from analytics config', () => {

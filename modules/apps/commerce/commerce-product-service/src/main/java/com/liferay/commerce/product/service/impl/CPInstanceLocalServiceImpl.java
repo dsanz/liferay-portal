@@ -54,6 +54,7 @@ import com.liferay.portal.kernel.dao.orm.QueryDefinition;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.lazy.referencing.LazyReferencingThreadLocal;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.SystemEventConstants;
@@ -72,15 +73,16 @@ import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.SearchException;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.SystemEventLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.service.WorkflowInstanceLinkLocalService;
-import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.BigDecimalUtil;
 import com.liferay.portal.kernel.util.CalendarFactoryUtil;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
+import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -340,6 +342,9 @@ public class CPInstanceLocalServiceImpl extends CPInstanceLocalServiceBaseImpl {
 				externalReferenceCode, serviceContext.getCompanyId());
 
 			if (cpInstance != null) {
+				_updateEmptyCPInstanceOptionValueRels(
+					cpInstance, json, serviceContext);
+
 				return cpInstanceLocalService.updateCPInstance(
 					externalReferenceCode, cpInstance.getCPInstanceId(), sku,
 					gtin, manufacturerPartNumber, purchasable, width, height,
@@ -524,7 +529,6 @@ public class CPInstanceLocalServiceImpl extends CPInstanceLocalServiceBaseImpl {
 
 	@Indexable(type = IndexableType.DELETE)
 	@Override
-	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
 	public CPInstance deleteCPInstance(CPInstance cpInstance)
 		throws PortalException {
 
@@ -533,7 +537,6 @@ public class CPInstanceLocalServiceImpl extends CPInstanceLocalServiceBaseImpl {
 
 	@Indexable(type = IndexableType.DELETE)
 	@Override
-	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
 	public CPInstance deleteCPInstance(CPInstance cpInstance, boolean makeCopy)
 		throws PortalException {
 
@@ -574,6 +577,12 @@ public class CPInstanceLocalServiceImpl extends CPInstanceLocalServiceBaseImpl {
 			CPInstance.class.getName(), cpInstance.getCPInstanceId());
 
 		_reindexCPDefinition(cpInstance.getCPDefinitionId());
+
+		_systemEventLocalService.addSystemEvent(
+			cpInstance.getCompanyId(), cpInstance.getExternalReferenceCode(),
+			CPInstance.class.getName(), cpInstance.getCPInstanceId(),
+			cpInstance.getCPInstanceUuid(), null,
+			SystemEventConstants.TYPE_DELETE, StringPool.BLANK);
 
 		return cpInstance;
 	}
@@ -2014,6 +2023,37 @@ public class CPInstanceLocalServiceImpl extends CPInstanceLocalServiceBaseImpl {
 		return cpDefinitionOptionRelIdCPDefinitionOptionValueRelIds;
 	}
 
+	private void _updateEmptyCPInstanceOptionValueRels(
+			CPInstance cpInstance, String json, ServiceContext serviceContext)
+		throws PortalException {
+
+		if (!LazyReferencingThreadLocal.isEnabled() ||
+			(cpInstance.getStatus() != WorkflowConstants.STATUS_EMPTY)) {
+
+			return;
+		}
+
+		CPDefinitionOptionRelLocalService cpDefinitionOptionRelLocalService =
+			_cpDefinitionOptionRelLocalServiceSnapshot.get();
+
+		Map<Long, List<Long>>
+			cpDefinitionOptionRelIdCPDefinitionOptionValueRelIds =
+				cpDefinitionOptionRelLocalService.
+					getCPDefinitionOptionRelCPDefinitionOptionValueRelIds(
+						cpInstance.getCPDefinitionId(), json);
+
+		if (MapUtil.isEmpty(
+				cpDefinitionOptionRelIdCPDefinitionOptionValueRelIds)) {
+
+			return;
+		}
+
+		_cpInstanceOptionValueRelLocalService.updateCPInstanceOptionValueRels(
+			cpInstance.getGroupId(), cpInstance.getCompanyId(),
+			serviceContext.getUserId(), cpInstance.getCPInstanceId(),
+			cpDefinitionOptionRelIdCPDefinitionOptionValueRelIds);
+	}
+
 	private void _validate(
 			BigDecimal cost, double depth, double height, BigDecimal price,
 			BigDecimal promoPrice, double weight, double width)
@@ -2155,6 +2195,9 @@ public class CPInstanceLocalServiceImpl extends CPInstanceLocalServiceBaseImpl {
 			CPDefinitionOptionValueRelLocalService.class);
 
 	@Reference
+	private CProductPersistence _cProductPersistence;
+
+	@Reference
 	private CPDefinitionOptionValueRelPersistence
 		_cpDefinitionOptionValueRelPersistence;
 
@@ -2174,9 +2217,6 @@ public class CPInstanceLocalServiceImpl extends CPInstanceLocalServiceBaseImpl {
 		_cpInstanceUnitOfMeasurePersistence;
 
 	@Reference
-	private CProductPersistence _cProductPersistence;
-
-	@Reference
 	private CPSubscriptionTypeRegistry _cpSubscriptionTypeRegistry;
 
 	@Reference
@@ -2187,6 +2227,9 @@ public class CPInstanceLocalServiceImpl extends CPInstanceLocalServiceBaseImpl {
 
 	@Reference
 	private Portal _portal;
+
+	@Reference
+	private SystemEventLocalService _systemEventLocalService;
 
 	@Reference
 	private UserLocalService _userLocalService;

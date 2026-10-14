@@ -1,4 +1,5 @@
 import moment from 'moment';
+import {DataTypes} from 'shared/types/DataTypes';
 import {
 	Attribute,
 	AttributeOwnerTypes,
@@ -6,7 +7,6 @@ import {
 	Breakdown,
 	BreakdownData,
 	BreakdownDataItem,
-	DataTypes,
 	DateGroupings,
 	Filter,
 	Operators,
@@ -15,6 +15,7 @@ import {
 } from './types';
 import {formatTime} from 'shared/util/time';
 import {
+	formatDate,
 	formatUTCDate,
 	getCustomDateFormat,
 	getMonthYearFormat,
@@ -61,14 +62,6 @@ export const STRING_OPTIONS = [
 export const BOOLEAN_LABELS_MAP: Record<string, string> = {
 	false: Liferay.Language.get('false'),
 	true: Liferay.Language.get('true'),
-};
-
-export const DATA_TYPE_ICONS_MAP = {
-	[DataTypes.Boolean]: 'check',
-	[DataTypes.Date]: 'date',
-	[DataTypes.Duration]: 'time',
-	[DataTypes.Number]: 'integer',
-	[DataTypes.String]: 'text',
 };
 
 export const DATA_TYPE_LABELS_MAP = {
@@ -219,6 +212,12 @@ const FILTER_DISPLAY_MAP = {
 	[DataTypes.String]: getStringDisplay,
 };
 
+export const getConditionName = (
+	attribute?: Attribute,
+	condition?: {displayName?: string}
+): string =>
+	condition?.displayName || attribute?.displayName || attribute?.name || '';
+
 export const getFilterDisplay = (
 	attribute: Attribute,
 	filter: Filter
@@ -352,9 +351,12 @@ export const formatDateName = (
 ): string => {
 	switch (dateGrouping) {
 		case DateGroupings.Day:
-			return moment(name, 'YYYY-MM-DD').format(getCustomDateFormat());
+			return formatDate(
+				moment(name, 'YYYY-MM-DD'),
+				getCustomDateFormat()
+			);
 		case DateGroupings.Month:
-			return moment(name, 'YYYY-MM').format(getMonthYearFormat());
+			return formatDate(moment(name, 'YYYY-MM'), getMonthYearFormat());
 		case DateGroupings.Year:
 		default:
 			return name;
@@ -505,28 +507,19 @@ export const getMaxEventValue = (
 	);
 
 export function getModifiedEventAttributeDefinitions({
-	attribute,
 	attributeOwnerType,
 	eventAttributeDefinitions,
 }: {
-	attribute: Attribute;
 	attributeOwnerType: AttributeOwnerTypes;
 	eventAttributeDefinitions: Attribute[];
 }): Attribute[] {
+	if (attributeOwnerType === AttributeOwnerTypes.Event) {
+		return eventAttributeDefinitions;
+	}
+
 	let modifiedEventAttributeDefinitions: Attribute[] = [];
 
-	if (attributeOwnerType === AttributeOwnerTypes.Event) {
-		modifiedEventAttributeDefinitions = attribute
-			? eventAttributeDefinitions.map((eventAttributeDefinition) => {
-					if (attribute.id === eventAttributeDefinition.id) {
-						return attribute;
-					}
-
-					return eventAttributeDefinition;
-				})
-			: eventAttributeDefinitions;
-	}
-	else if (attributeOwnerType === AttributeOwnerTypes.Individual) {
+	if (attributeOwnerType === AttributeOwnerTypes.Individual) {
 		modifiedEventAttributeDefinitions = [
 			{
 				dataType: DataTypes.String,

@@ -5,7 +5,7 @@
 
 package com.liferay.oauth2.provider.web.internal.display.context;
 
-import com.liferay.document.library.util.DLURLHelper;
+import com.liferay.document.library.helper.DLURLHelper;
 import com.liferay.oauth2.provider.configuration.OAuth2ProviderConfiguration;
 import com.liferay.oauth2.provider.model.OAuth2Application;
 import com.liferay.oauth2.provider.model.OAuth2ScopeGrant;
@@ -90,12 +90,12 @@ public class AssignScopesTreeDisplayContext
 		return _assignedScopeAliases;
 	}
 
-	public Map<String, String> getScopeAliasesDescriptionsMap() {
-		return _scopeAliasesDescriptionsMap;
-	}
-
 	public Tree.Node<String> getScopeAliasTreeNode() {
 		return _scopeAliasTreeNode;
+	}
+
+	public Map<String, String> getScopeAliasesDescriptionsMap() {
+		return _scopeAliasesDescriptionsMap;
 	}
 
 	protected Set<String> getAssignedScopeAliases(
@@ -178,8 +178,8 @@ public class AssignScopesTreeDisplayContext
 
 	private final Set<String> _assignedDeletedScopeAliases;
 	private final Set<String> _assignedScopeAliases;
-	private final Map<String, String> _scopeAliasesDescriptionsMap;
 	private final Tree.Node<String> _scopeAliasTreeNode;
+	private final Map<String, String> _scopeAliasesDescriptionsMap;
 	private final ScopeDescriptorLocator _scopeDescriptorLocator;
 	private final ScopeLocator _scopeLocator;
 

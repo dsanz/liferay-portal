@@ -1,0 +1,154 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`RoomStatistics matches snapshot 1`] = `
+<div>
+  <section
+    class="analytics-frame rounded-lg"
+  >
+    <div>
+      <div
+        class="room-statistics-container"
+      >
+        <div
+          class="p-4"
+        >
+          <div
+            class="row align-items-center justify-content-between"
+          >
+            <div
+              class=" col-auto pl-5 col"
+            >
+              <div>
+                <span
+                  class="font-weight-semi-bold mb-0 room-statistics-label text-secondary"
+                >
+                  time-viewed
+                </span>
+              </div>
+              <div>
+                <svg
+                  class="lexicon-icon lexicon-icon-time icon-pink-light"
+                  role="presentation"
+                >
+                  <use
+                    href="#time"
+                  />
+                </svg>
+                <span
+                  class="font-weight-semi-bold ml-2 room-statistics-text"
+                >
+                  55 minutes
+                </span>
+              </div>
+            </div>
+            <div
+              class="border-left col-auto pl-5 col"
+            >
+              <div>
+                <span
+                  class="font-weight-semi-bold mb-0 room-statistics-label text-secondary"
+                >
+                  total-visits
+                </span>
+              </div>
+              <div>
+                <svg
+                  class="lexicon-icon lexicon-icon-view icon-blue-light"
+                  role="presentation"
+                >
+                  <use
+                    href="#view"
+                  />
+                </svg>
+                <span
+                  class="font-weight-semi-bold ml-2 room-statistics-text"
+                >
+                  108
+                </span>
+              </div>
+            </div>
+            <div
+              class="border-left col-auto pl-5 col"
+            >
+              <div>
+                <span
+                  class="font-weight-semi-bold mb-0 room-statistics-label text-secondary"
+                >
+                  visitors
+                </span>
+              </div>
+              <div>
+                <svg
+                  class="lexicon-icon lexicon-icon-users icon-purple-light"
+                  role="presentation"
+                >
+                  <use
+                    href="#users"
+                  />
+                </svg>
+                <span
+                  class="font-weight-semi-bold ml-2 room-statistics-text"
+                >
+                  24
+                </span>
+              </div>
+            </div>
+            <div
+              class="border-left col-auto pl-5 col"
+            >
+              <div>
+                <span
+                  class="font-weight-semi-bold mb-0 room-statistics-label text-secondary"
+                >
+                  actions
+                </span>
+              </div>
+              <div>
+                <svg
+                  class="lexicon-icon lexicon-icon-bolt icon-teal-light"
+                  role="presentation"
+                >
+                  <use
+                    href="#bolt"
+                  />
+                </svg>
+                <span
+                  class="font-weight-semi-bold ml-2 room-statistics-text"
+                >
+                  13
+                </span>
+              </div>
+            </div>
+            <div
+              class="border-left col-auto pl-5 col"
+            >
+              <div>
+                <span
+                  class="font-weight-semi-bold mb-0 room-statistics-label text-secondary"
+                >
+                  comments
+                </span>
+              </div>
+              <div>
+                <svg
+                  class="lexicon-icon lexicon-icon-comments icon-indigo-light"
+                  role="presentation"
+                >
+                  <use
+                    href="#comments"
+                  />
+                </svg>
+                <span
+                  class="font-weight-semi-bold ml-2 room-statistics-text"
+                >
+                  7
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+`;

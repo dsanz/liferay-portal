@@ -34,6 +34,7 @@ dependencies {
 	compileOnly project(":apps:portal-search:portal-search-rest-api")
 	compileOnly project(":apps:portal-search:portal-search-spi")
 	compileOnly project(":apps:portal-search:portal-search-web-api")
+	compileOnly project(":apps:portal-security:portal-security-key-api")
 	compileOnly project(":apps:portal-vulcan:portal-vulcan-api")
 	compileOnly project(":apps:portal:portal-aop-api")
 	compileOnly project(":apps:portal:portal-instance-lifecycle-api")
@@ -52,9 +53,9 @@ dependencies {
 	compileOnly project(":dxp:apps:portal-search-tuning:portal-search-tuning-rankings-api")
 	compileOnly project(":dxp:apps:search-experiences:search-experiences-api")
 	compileOnly project(":dxp:apps:search-experiences:search-experiences-rest-api")
-	testImplementation group: "com.fasterxml.jackson.core", name: "jackson-annotations", version: "2.18.9"
-	testImplementation group: "com.fasterxml.jackson.core", name: "jackson-core", version: "2.18.9"
-	testImplementation group: "com.fasterxml.jackson.core", name: "jackson-databind", version: "2.18.9"
+	testImplementation group: "com.fasterxml.jackson.core", name: "jackson-annotations", version: "2.18.11"
+	testImplementation group: "com.fasterxml.jackson.core", name: "jackson-core", version: "2.18.11"
+	testImplementation group: "com.fasterxml.jackson.core", name: "jackson-databind", version: "2.18.11"
 	testImplementation group: "com.liferay", name: "jakarta.ws.rs", version: "3.1.0.LIFERAY-PATCHED-1"
 	testImplementation project(":apps:portal-search:portal-search")
 	testImplementation project(":apps:portal-search:portal-search-test-util")

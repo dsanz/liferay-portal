@@ -505,26 +505,7 @@ public class SearchResponse implements Serializable {
 
 			sb.append("\"request\": ");
 
-			if (request instanceof Collection) {
-				sb.append(
-					JSONFactoryUtil.createJSONArray((Collection<?>)request));
-			}
-			else if (request instanceof Map) {
-				sb.append(JSONFactoryUtil.createJSONObject((Map<?, ?>)request));
-			}
-			else if (request instanceof Object[]) {
-				sb.append(
-					JSONFactoryUtil.createJSONArray(
-						Arrays.asList((Object[])request)));
-			}
-			else if (request instanceof String) {
-				sb.append("\"");
-				sb.append(_escape((String)request));
-				sb.append("\"");
-			}
-			else {
-				sb.append(request);
-			}
+			sb.append(_toJSON(request));
 		}
 
 		String requestString = getRequestString();
@@ -552,27 +533,7 @@ public class SearchResponse implements Serializable {
 
 			sb.append("\"response\": ");
 
-			if (response instanceof Collection) {
-				sb.append(
-					JSONFactoryUtil.createJSONArray((Collection<?>)response));
-			}
-			else if (response instanceof Map) {
-				sb.append(
-					JSONFactoryUtil.createJSONObject((Map<?, ?>)response));
-			}
-			else if (response instanceof Object[]) {
-				sb.append(
-					JSONFactoryUtil.createJSONArray(
-						Arrays.asList((Object[])response)));
-			}
-			else if (response instanceof String) {
-				sb.append("\"");
-				sb.append(_escape((String)response));
-				sb.append("\"");
-			}
-			else {
-				sb.append(response);
-			}
+			sb.append(_toJSON(response));
 		}
 
 		String responseString = getResponseString();
@@ -708,6 +669,27 @@ public class SearchResponse implements Serializable {
 		return sb.toString();
 	}
 
+	private static String _toJSON(Object value) {
+		if (value instanceof Collection) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONArray((Collection<?>)value));
+		}
+		else if (value instanceof Map) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONObject((Map<?, ?>)value));
+		}
+		else if (value instanceof Object[]) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONArray(
+					Arrays.asList((Object[])value)));
+		}
+		else if (value instanceof String) {
+			return StringBundler.concat("\"", _escape(value), "\"");
+		}
+
+		return String.valueOf(value);
+	}
+
 	private static final String[][] _JSON_ESCAPE_STRINGS = {
 		{"\\", "\"", "\b", "\f", "\n", "\r", "\t"},
 		{"\\\\", "\\\"", "\\b", "\\f", "\\n", "\\r", "\\t"}
@@ -716,4 +698,4 @@ public class SearchResponse implements Serializable {
 	private Map<String, Serializable> _extendedProperties;
 
 }
-// LIFERAY-REST-BUILDER-HASH:-1943144320
+// LIFERAY-REST-BUILDER-HASH:1358364993

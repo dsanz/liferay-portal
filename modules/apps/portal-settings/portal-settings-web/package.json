@@ -1,6 +1,7 @@
 {
 	"dependencies": {
-		"@liferay/address-web": "*"
+		"@liferay/address-web": "*",
+		"frontend-js-web": "*"
 	},
 	"main": "js/index.js",
 	"name": "@liferay/portal-settings-web",
@@ -9,5 +10,5 @@
 		"checkFormat": "node-scripts format --check",
 		"format": "node-scripts format"
 	},
-	"version": "5.0.81"
+	"version": "5.0.83"
 }

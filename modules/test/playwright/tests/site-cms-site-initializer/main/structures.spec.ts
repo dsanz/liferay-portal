@@ -15,8 +15,8 @@ import {clickAndExpectToBeHidden} from '../../../utils/clickAndExpectToBeHidden'
 import {getRandomInt} from '../../../utils/getRandomInt';
 import getRandomString from '../../../utils/getRandomString';
 import {performUserSwitch, userData} from '../../../utils/performLogin';
-import {getTempDir} from '../../../utils/temp';
 import {waitForAlert} from '../../../utils/waitForAlert';
+import {exportImportPagesTest} from '../../export-import-web/revamp/fixtures/exportImportPagesTest';
 import postSingleApproverCopy from '../../portal-workflow-kaleo-designer-web/main/utils/postSingleApproverCopy';
 import {structureBuilderPagesTest} from '../structure-builder/fixtures/structureBuilderPagesTest';
 import {cmsPagesTest} from './fixtures/cmsPagesTest';
@@ -28,11 +28,12 @@ const test = mergeTests(
 	loginTest()
 );
 
-const testWithModalExportImport = mergeTests(
+const testWithExportImport = mergeTests(
 	cmsPagesTest,
 	dataApiHelpersTest,
+	exportImportPagesTest,
 	featureFlagsTest({
-		'LPD-57655': {enabled: false},
+		'LPD-57655': {enabled: true},
 	}),
 	loginTest(),
 	structureBuilderPagesTest
@@ -194,6 +195,11 @@ test(
 				scope: 'depot',
 				status: {code: 0},
 			})) as ObjectDefinition;
+
+		apiHelpers.data.push({
+			id: objectDefinition.id,
+			type: 'objectDefinition',
+		});
 
 		await structuresPage.goto();
 
@@ -455,29 +461,31 @@ test(
 	}
 );
 
-testWithModalExportImport(
-	'Export and Import Content Structures actions open the export modal from the breadcrumb',
+testWithExportImport(
+	'Export and Import Content Structures actions open the export and import views from the breadcrumb',
 	{tag: '@LPD-78381'},
-	async ({page, structuresPage}) => {
-		await structuresPage.openMenuItem('Export');
+	async ({exportImportPage, page, structuresPage}) => {
+		await structuresPage.openMenuItem('Export Content Structures');
 
-		await expect(page.locator('.modal-title')).toHaveText(
-			'Export Content Structures'
-		);
+		await expect(page).toHaveURL(/view_export\.jsp/);
 
-		await structuresPage.openMenuItem('Import');
+		await expect(exportImportPage.newButton).toBeVisible();
 
-		await expect(page.locator('.modal-title')).toHaveText(
-			'Import Content Structures'
-		);
+		await structuresPage.openMenuItem('Import Content Structures');
+
+		await expect(page).toHaveURL(/view_import\.jsp/);
+
+		await expect(exportImportPage.newButton).toBeVisible();
 	}
 );
 
-testWithModalExportImport(
+testWithExportImport(
 	'CMS Administrator can export and import content structures',
 	{tag: '@LPD-87533'},
-	async ({apiHelpers, page, structuresPage}) => {
-		let larFilePath: string;
+	async ({apiHelpers, exportImportPage, page, structuresPage}) => {
+		const exportName = `MyExport-${getRandomString()}`;
+
+		let folderPath: string;
 
 		await test.step('Log in as a CMS Administrator', async () => {
 			const user = await addCMSAdministrator(apiHelpers);
@@ -486,87 +494,164 @@ testWithModalExportImport(
 		});
 
 		await test.step('Export content structures and download the LAR', async () => {
-			await structuresPage.openMenuItem('Export');
+			await structuresPage.openMenuItem('Export Content Structures');
 
-			await expect(page.locator('.modal-title')).toHaveText(
-				'Export Content Structures'
-			);
-
-			const exportDialog = page
-				.getByRole('dialog', {name: 'Export Content Structures'})
-				.frameLocator('iframe');
-
-			await exportDialog
-				.getByRole('button', {exact: true, name: 'Export'})
-				.click();
+			await exportImportPage.export(exportName);
 
 			await expect(
-				exportDialog.getByRole('cell', {name: 'In Progress'}).first()
+				exportImportPage.taskStatusLabel(exportName)
 			).toBeVisible();
 
-			await expect(
-				exportDialog.getByRole('cell', {name: 'Successful'}).first()
-			).toBeVisible({timeout: 30000});
-
-			const downloadPromise = page.waitForEvent('download');
-
-			await exportDialog
-				.getByRole('link', {name: /\.lar/i})
-				.first()
-				.click();
-
-			const download = await downloadPromise;
-
-			larFilePath = `${getTempDir()}/${download.suggestedFilename()}`;
-
-			await download.saveAs(larFilePath);
+			folderPath = await exportImportPage.download(exportName);
 		});
 
 		await test.step('Import the downloaded LAR back', async () => {
-			await structuresPage.openMenuItem('Import');
+			await structuresPage.openMenuItem('Import Content Structures');
 
-			await expect(page.locator('.modal-title')).toHaveText(
-				'Import Content Structures'
-			);
+			await exportImportPage.newButton.click();
 
-			const importDialog = page
-				.getByRole('dialog', {name: 'Import Content Structures'})
-				.frameLocator('iframe');
-
-			await importDialog
-				.locator('input[type="file"]')
-				.setInputFiles(larFilePath);
-
-			await importDialog.getByRole('button', {name: 'Continue'}).click();
-
-			await importDialog.getByRole('button', {name: 'Import'}).click();
-
-			await expect(
-				importDialog.getByRole('cell', {name: 'Successful'}).first()
-			).toBeVisible({timeout: 30000});
+			await exportImportPage.import({folderPath, name: exportName});
 		});
 	}
 );
 
-testWithModalExportImport(
+testWithExportImport(
+	'Content structure with a referenced structure and a repeatable group can be imported',
+	{tag: '@LPD-98702'},
+	async ({
+		apiHelpers,
+		exportImportPage,
+		page,
+		structureBuilderPage,
+		structuresPage,
+	}) => {
+		const exportName = `MyExport-${getRandomString()}`;
+		const structureLabel = getRandomString();
+		const structureName = `StructureName${getRandomInt()}`;
+
+		let folderPath: string;
+
+		await test.step('Create a structure with a referenced structure and a repeatable group', async () => {
+			await structureBuilderPage.createStructureFromData({
+				autoDelete: false,
+				label: structureLabel,
+				name: structureName,
+				page: structureBuilderPage,
+				publish: false,
+			});
+
+			await structureBuilderPage.addReferencedStructures([
+				'Basic Web Content',
+			]);
+
+			await structureBuilderPage.addField('Text');
+
+			await structureBuilderPage.createRepeatableGroup({
+				fields: [{label: 'Text'}],
+				label: 'Repeatable Group',
+			});
+
+			await structureBuilderPage.publishStructure();
+		});
+
+		await test.step('Export content structures and download the LAR', async () => {
+			await structuresPage.openMenuItem('Export Content Structures');
+
+			await exportImportPage.export(exportName);
+
+			await expect(
+				exportImportPage.taskStatusLabel(exportName)
+			).toBeVisible();
+
+			folderPath = await exportImportPage.download(exportName);
+		});
+
+		await test.step('Remove the referenced structure and delete the structure', async () => {
+			await structuresPage.goto();
+
+			await structuresPage.execItemAction({
+				action: 'Edit',
+				filter: structureLabel,
+			});
+
+			await structureBuilderPage.deleteFields([
+				{label: 'Basic Web Content'},
+			]);
+
+			await structureBuilderPage.publishStructure();
+
+			await structuresPage.goto();
+
+			await structuresPage.execItemAction({
+				action: 'Delete',
+				filter: structureLabel,
+			});
+
+			await page
+				.getByPlaceholder('Confirm Content Structure Name')
+				.fill(structureLabel);
+			await page.getByRole('button', {name: 'Delete'}).click();
+
+			await waitForAlert(
+				page,
+				`${structureLabel} was deleted successfully`,
+				{type: 'success'}
+			);
+		});
+
+		await test.step('Import the LAR back without errors', async () => {
+			await structuresPage.openMenuItem('Import Content Structures');
+
+			await exportImportPage.newButton.click();
+
+			await exportImportPage.import({folderPath, name: exportName});
+		});
+
+		await test.step('The structure is restored with its referenced structure and repeatable group', async () => {
+			const objectDefinition =
+				await apiHelpers.objectAdmin.waitForObjectDefinition(
+					structureName,
+					{timeout: 30_000}
+				);
+
+			apiHelpers.data.push({
+				id: objectDefinition.id,
+				type: 'objectDefinition',
+			});
+
+			await structureBuilderPage.editStructure(objectDefinition.id);
+
+			await expect(
+				page.locator('.treeview-link', {hasText: 'Basic Web Content'})
+			).toBeVisible();
+			await expect(
+				page.locator('.treeview-link', {hasText: 'Repeatable Group'})
+			).toBeVisible();
+		});
+	}
+);
+
+testWithExportImport(
 	'Export Content Structures list includes only object definitions from CMS folders',
 	{tag: '@LPD-78381'},
-	async ({apiHelpers, page, structuresPage}) => {
-		const contentCountBadge = page
-			.getByRole('dialog', {name: 'Export Content Structures'})
-			.frameLocator('iframe')
-			.locator(
-				'label[for="_com_liferay_exportimport_web_portlet_ExportImportPortlet_PORTLET_DATA_com_liferay_object_web_internal_object_definitions_portlet_ObjectDefinitionsPortlet"] .badge-info'
-			);
+	async ({
+		apiHelpers,
+		exportImportDataSelectionPage,
+		exportImportPage,
+		structuresPage,
+	}) => {
+		const getObjectDefinitionsCount = async () => {
+			await structuresPage.openMenuItem('Export Content Structures');
 
-		await structuresPage.openMenuItem('Export');
+			await exportImportPage.clickNew();
 
-		await contentCountBadge.waitFor({state: 'visible'});
+			const exportableItems =
+				await exportImportDataSelectionPage.getExportableItems();
 
-		const initialCount = parseInt(
-			(await contentCountBadge.textContent()) ?? '0',
-			10
-		);
+			return exportableItems.get('Object Definitions') ?? 0;
+		};
+
+		const initialCount = await getObjectDefinitionsCount();
 
 		const objectDefinition1 =
 			await apiHelpers.objectAdmin.postRandomObjectDefinition({
@@ -590,9 +675,7 @@ testWithModalExportImport(
 			type: 'objectDefinition',
 		});
 
-		await structuresPage.openMenuItem('Export');
-
-		await expect(contentCountBadge).toHaveText(String(initialCount + 1));
+		expect(await getObjectDefinitionsCount()).toBe(initialCount + 1);
 	}
 );
 
@@ -909,17 +992,32 @@ test.describe('Import and Export Structures', () => {
 				override: false,
 			});
 
+			// Wait for the import response before navigating away, otherwise
+			// the navigation aborts the request while the server is still
+			// writing its response
+
+			await waitForAlert(page, 'successfully imported', {
+				type: 'success',
+			});
+
 			// The structure and its field are restored
 
-			await expect(async () => {
-				await structuresPage.goto();
+			await structuresPage.goto();
 
-				await expect(
-					structuresPage.getItem(structureLabel)
-				).toBeVisible({
-					timeout: 5000,
-				});
-			}).toPass();
+			await expect(structuresPage.getItem(structureLabel)).toBeVisible();
+
+			// The import created a new object definition, so register its
+			// id for the cleanup
+
+			const objectDefinition =
+				await apiHelpers.objectAdmin.getObjectDefinitionByName(
+					structureLabel
+				);
+
+			apiHelpers.data.push({
+				id: objectDefinition.id,
+				type: 'objectDefinition',
+			});
 
 			await structuresPage.execItemAction({
 				action: 'Edit',

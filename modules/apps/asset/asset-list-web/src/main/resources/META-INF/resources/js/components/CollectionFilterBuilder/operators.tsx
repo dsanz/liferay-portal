@@ -5,6 +5,35 @@
 
 import type {FilterOperator, FilterProperty} from './types';
 
+/**
+ * Tags, categories, and keywords apply to every item type. On the server,
+ * they all go into an AssetEntryQuery object, which has one field for each
+ * operator and quantifier pair. Each filter sets its pair's field, so a
+ * second filter with the same pair overwrites the first instead of narrowing
+ * the results.
+ *
+ * ConditionBuilder reads these names to stop a combination being used twice.
+ */
+export const ASSET_FIELDS: FilterProperty[] = [
+	{
+		label: Liferay.Language.get('tags'),
+		name: 'assetTags',
+		type: 'asset-tags',
+	},
+	{
+		label: Liferay.Language.get('categories'),
+		name: 'assetCategories',
+		type: 'asset-categories',
+	},
+	{
+		label: Liferay.Language.get('keywords'),
+		name: 'keywords',
+		type: 'text',
+	},
+];
+
+export const ASSET_FIELD_NAMES = new Set(ASSET_FIELDS.map(({name}) => name));
+
 // Booleans use an implicit `eq` operator (auto-set when the field is selected
 // in ConditionBuilder) and render their value as a single Is True / Is False
 // picker via DefaultValueInput. No explicit operator picker is needed.
@@ -26,6 +55,11 @@ const DEFAULT_OPERATORS: FilterOperator[] = [
 	{label: Liferay.Language.get('does-not-contain'), value: 'not-contains'},
 ];
 
+const EQUALITY_OPERATORS: FilterOperator[] = [
+	{label: Liferay.Language.get('equals'), value: 'eq'},
+	{label: Liferay.Language.get('not-equals'), value: 'not-eq'},
+];
+
 export function getCollectionOperators(
 	property: FilterProperty
 ): FilterOperator[] {
@@ -38,6 +72,8 @@ export function getCollectionOperators(
 		case 'integer':
 		case 'numeric':
 			return COMPARISON_OPERATORS;
+		case 'keyword':
+			return EQUALITY_OPERATORS;
 		case 'picklist':
 		case 'text':
 		default:

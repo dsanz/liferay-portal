@@ -463,20 +463,9 @@ public class ContentLayoutTestUtil {
 	public static JSONObject addPortletToLayout(Layout layout, String portletId)
 		throws Exception {
 
-		MVCActionCommand addPortletMVCActionCommand = getMVCActionCommand(
-			"/layout_content_page_editor/add_portlet");
-
-		MockLiferayPortletActionRequest mockLiferayPortletActionRequest =
-			getMockLiferayPortletActionRequest(
-				CompanyLocalServiceUtil.getCompany(layout.getCompanyId()),
-				GroupLocalServiceUtil.getGroup(layout.getGroupId()), layout);
-
 		long segmentsExperienceId =
 			SegmentsExperienceLocalServiceUtil.fetchDefaultSegmentsExperienceId(
 				layout.getPlid());
-
-		mockLiferayPortletActionRequest.setParameter(
-			"segmentsExperienceId", String.valueOf(segmentsExperienceId));
 
 		LayoutPageTemplateStructure layoutPageTemplateStructure =
 			LayoutPageTemplateStructureLocalServiceUtil.
@@ -486,16 +475,57 @@ public class ContentLayoutTestUtil {
 		LayoutStructure layoutStructure = LayoutStructure.of(
 			layoutPageTemplateStructure.getData(segmentsExperienceId));
 
-		mockLiferayPortletActionRequest.setParameter(
-			"parentItemId", layoutStructure.getMainItemId());
+		return addPortletToLayout(
+			layout, layoutStructure.getMainItemId(), portletId,
+			segmentsExperienceId);
+	}
 
+	public static JSONObject addPortletToLayout(
+			Layout layout, String parentItemId, String portletId,
+			long segmentsExperienceId)
+		throws Exception {
+
+		MVCActionCommand addPortletMVCActionCommand = getMVCActionCommand(
+			"/layout_content_page_editor/add_portlet");
+
+		MockLiferayPortletActionRequest mockLiferayPortletActionRequest =
+			getMockLiferayPortletActionRequest(
+				CompanyLocalServiceUtil.getCompany(layout.getCompanyId()),
+				GroupLocalServiceUtil.getGroup(layout.getGroupId()), layout);
+
+		mockLiferayPortletActionRequest.setParameter(
+			"parentItemId", parentItemId);
 		mockLiferayPortletActionRequest.setParameter("portletId", portletId);
+		mockLiferayPortletActionRequest.setParameter(
+			"segmentsExperienceId", String.valueOf(segmentsExperienceId));
 
 		return ReflectionTestUtil.invoke(
 			addPortletMVCActionCommand, "_processAddPortlet",
 			new Class<?>[] {ActionRequest.class, ActionResponse.class},
 			mockLiferayPortletActionRequest,
 			new MockLiferayPortletActionResponse());
+	}
+
+	public static MVCActionCommand getMVCActionCommand(String mvcCommandName) {
+		try {
+			Bundle bundle = FrameworkUtil.getBundle(
+				ContentLayoutTestUtil.class);
+
+			BundleContext bundleContext = bundle.getBundleContext();
+
+			Collection<ServiceReference<MVCActionCommand>>
+				mvcActionCommandReferences = bundleContext.getServiceReferences(
+					MVCActionCommand.class,
+					"(mvc.command.name=" + mvcCommandName + ")");
+
+			Iterator<ServiceReference<MVCActionCommand>> iterator =
+				mvcActionCommandReferences.iterator();
+
+			return bundleContext.getService(iterator.next());
+		}
+		catch (Exception exception) {
+			throw new RuntimeException(exception);
+		}
 	}
 
 	public static MockHttpServletRequest getMockHttpServletRequest(
@@ -549,28 +579,6 @@ public class ContentLayoutTestUtil {
 					fetchDefaultSegmentsExperienceId(layout.getPlid())));
 
 		return mockLiferayPortletActionRequest;
-	}
-
-	public static MVCActionCommand getMVCActionCommand(String mvcCommandName) {
-		try {
-			Bundle bundle = FrameworkUtil.getBundle(
-				ContentLayoutTestUtil.class);
-
-			BundleContext bundleContext = bundle.getBundleContext();
-
-			Collection<ServiceReference<MVCActionCommand>>
-				mvcActionCommandReferences = bundleContext.getServiceReferences(
-					MVCActionCommand.class,
-					"(mvc.command.name=" + mvcCommandName + ")");
-
-			Iterator<ServiceReference<MVCActionCommand>> iterator =
-				mvcActionCommandReferences.iterator();
-
-			return bundleContext.getService(iterator.next());
-		}
-		catch (Exception exception) {
-			throw new RuntimeException(exception);
-		}
 	}
 
 	public static String getRenderLayoutHTML(
@@ -692,13 +700,20 @@ public class ContentLayoutTestUtil {
 	public static void publishLayout(Layout draftLayout, Layout layout)
 		throws Exception {
 
-		MVCActionCommand publishLayoutMVCActionCommand = getMVCActionCommand(
-			"/layout_content_page_editor/publish_layout");
-
 		ServiceContext serviceContext = new ServiceContext();
 
 		serviceContext.setScopeGroupId(layout.getGroupId());
 		serviceContext.setUserId(TestPropsValues.getUserId());
+
+		publishLayout(draftLayout, layout, serviceContext);
+	}
+
+	public static void publishLayout(
+			Layout draftLayout, Layout layout, ServiceContext serviceContext)
+		throws Exception {
+
+		MVCActionCommand publishLayoutMVCActionCommand = getMVCActionCommand(
+			"/layout_content_page_editor/publish_layout");
 
 		try {
 			ServiceContextThreadLocal.pushServiceContext(serviceContext);

@@ -1,26 +1,22 @@
-import ClayButton from '@clayui/button';
-import ClayIcon from '@clayui/icon';
+import AddConditionButton from './AddConditionButton';
+import ConditionsSection from './ConditionsSection';
 import EventChip from './EventChip';
 import EventDropdown from './EventDropdown';
-import React from 'react';
+import React, {useRef} from 'react';
 import {Align} from '@clayui/drop-down';
-import {
-	DeleteAllAttributes,
-	withAttributesConsumer,
-} from '../context/attributes';
 import {Event} from 'event-analysis/utils/types';
+import {useAttributes} from '../context/attributes';
 
 interface IEventSectionProps {
-	deleteAllAttributes: DeleteAllAttributes;
-	event: Event;
+	event?: Event;
 	onEventChange: (event: Event | null) => void;
 }
 
-const EventSection: React.FC<IEventSectionProps> = ({
-	deleteAllAttributes,
-	event,
-	onEventChange,
-}) => {
+const EventSection: React.FC<IEventSectionProps> = ({event, onEventChange}) => {
+	const {deleteAllAttributes} = useAttributes();
+
+	const sectionRef = useRef<HTMLElement>(null);
+
 	const handleEventChange = (event: Event | null): void => {
 		onEventChange(event);
 
@@ -28,39 +24,38 @@ const EventSection: React.FC<IEventSectionProps> = ({
 	};
 
 	return (
-		<div className="event-section-root d-flex align-items-center">
-			<div className="section-header">
-				{Liferay.Language.get('analyze')}
-			</div>
-
-			<div className="event-container d-flex justify-content-between">
-				<div className="event-list">
-					{event && (
-						<EventChip
-							event={event}
-							onEventChange={handleEventChange}
-						/>
-					)}
-				</div>
-
-				{!event && (
+		<ConditionsSection
+			action={
+				!event && (
 					<EventDropdown
-						alignmentPosition={Align.LeftTop}
+						alignmentPosition={Align.RightTop}
 						onEventChange={handleEventChange}
 						trigger={
-							<ClayButton
-								aria-label={Liferay.Language.get('add')}
-								className="button-root add-event-button"
-								size="sm"
-							>
-								<ClayIcon className="icon-root" symbol="plus" />
-							</ClayButton>
+							<AddConditionButton
+								label={Liferay.Language.get('add-event')}
+							/>
 						}
 					/>
-				)}
-			</div>
-		</div>
+				)
+			}
+			className="event-section-root"
+			ref={sectionRef}
+			title={Liferay.Language.get('analyze')}
+		>
+			{event && (
+				<div className="event-container event-list mt-3">
+					<EventChip
+						event={event}
+						onEventChange={(event) => {
+							handleEventChange(event);
+
+							setTimeout(() => sectionRef.current?.focus());
+						}}
+					/>
+				</div>
+			)}
+		</ConditionsSection>
 	);
 };
 
-export default withAttributesConsumer(EventSection);
+export default EventSection;

@@ -5,11 +5,16 @@
 
 package com.liferay.osb.faro.web.internal.spi.bearer.token.provider;
 
+import com.liferay.oauth2.provider.model.OAuth2Application;
 import com.liferay.oauth2.provider.rest.spi.bearer.token.provider.BearerTokenProvider;
 import com.liferay.osb.faro.web.internal.util.AccessTokenExpiresInUtil;
 import com.liferay.petra.io.BigEndianCodec;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.security.SecureRandomUtil;
+import com.liferay.portal.kernel.util.StringUtil;
+
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 import org.osgi.service.component.annotations.Component;
 
@@ -29,7 +34,7 @@ public class AnalyticsCloudBearerTokenProvider implements BearerTokenProvider {
 
 	@Override
 	public void onBeforeCreate(AccessToken accessToken) {
-		accessToken.setExpiresIn(AccessTokenExpiresInUtil.getExpiresIn());
+		accessToken.setExpiresIn(_getExpiresIn(accessToken));
 		accessToken.setTokenKey(generateTokenKey(32));
 	}
 
@@ -71,6 +76,29 @@ public class AnalyticsCloudBearerTokenProvider implements BearerTokenProvider {
 		}
 
 		return true;
+	}
+
+	private long _getExpiresIn(AccessToken accessToken) {
+		OAuth2Application oAuth2Application =
+			accessToken.getOAuth2Application();
+
+		if ((oAuth2Application != null) &&
+			Objects.equals(
+				oAuth2Application.getExternalReferenceCode(), "AI-HUB-CELL")) {
+
+			return TimeUnit.DAYS.toSeconds(30);
+		}
+
+		long expiresIn = AccessTokenExpiresInUtil.getExpiresIn();
+
+		if ((expiresIn > 0) ||
+			((oAuth2Application != null) &&
+			 StringUtil.startsWith(oAuth2Application.getName(), "app-"))) {
+
+			return expiresIn;
+		}
+
+		return TimeUnit.MINUTES.toSeconds(10);
 	}
 
 }

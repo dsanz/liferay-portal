@@ -11,7 +11,7 @@ export default function sortChildren(
 	const array = Array.from(children.values());
 
 	const sorted = array.sort((a, b) => {
-		return getWeight(a.type) - getWeight(b.type);
+		return getWeight(a) - getWeight(b);
 	});
 
 	const map = new Map(sorted.map((child) => [child.uuid, child]));
@@ -19,16 +19,16 @@ export default function sortChildren(
 	return map;
 }
 
-function getWeight(type: StructureChild['type']) {
-	if (type === 'repeatable-group') {
+function getWeight(child: StructureChild) {
+	if (child.type === 'group') {
 		return 3;
 	}
 
-	if (type === 'referenced-structure') {
+	if (child.type === 'referenced-structure') {
 		return 2;
 	}
 
-	if (type === 'related-content') {
+	if (child.type === 'related-content') {
 		return 1;
 	}
 

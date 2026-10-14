@@ -7,19 +7,21 @@ import ClayButton from '@clayui/button';
 import {Option, Picker} from '@clayui/core';
 import DropDown from '@clayui/drop-down';
 import {RowBuilder} from '@liferay/layout-js-components-web';
-import React, {useCallback} from 'react';
-import {v4 as uuidv4} from 'uuid';
+import {uuidv4} from 'frontend-js-web';
+import React, {useCallback, useMemo} from 'react';
 
 import './ConditionBuilder.scss';
 import ValueInput from './ValueInput';
 import {
+	ASSET_FIELD_NAMES,
 	getCollectionOperators,
 	getCollectionQuantifierOptions,
 } from './operators';
-import {getPropertyKey} from './types';
+import {getCombinationKey, getFilterPropertyKey} from './types';
 
 import type {
 	FilterCondition,
+	FilterOperator,
 	FilterProperty,
 	FilterPropertyGroup,
 } from './types';
@@ -46,14 +48,70 @@ interface ConditionBuilderProps {
 	propertiesMap: Map<string, FilterProperty>;
 }
 
-type ConditionRowProps = Omit<
-	ConditionBuilderProps,
-	'conditions' | 'onChange'
-> & {
+type ConditionRowProps = Omit<ConditionBuilderProps, 'onChange'> & {
 	condition: FilterCondition;
 	index: number;
 	onChange: (condition: FilterCondition) => void;
 };
+
+/**
+ * Only the asset fields are collected, because each resolves to a single
+ * AssetEntryQuery slot per operator and quantifier pair. A condition holds a
+ * combination as soon as it names one, even before a value is picked. Waiting
+ * for the value would let two identical rows be built and only collide on
+ * submit.
+ */
+function getUsedCombinationKeys(
+	conditions: FilterCondition[],
+	currentConditionId: string
+): Set<string> {
+	const usedCombinationKeys = new Set<string>();
+
+	for (const condition of conditions) {
+		if (
+			condition.id === currentConditionId ||
+			condition.objectDefinitionExternalReferenceCode !== undefined ||
+			!ASSET_FIELD_NAMES.has(condition.propertyName ?? '') ||
+			!condition.operatorName ||
+			!condition.quantifier
+		) {
+			continue;
+		}
+
+		usedCombinationKeys.add(
+			getCombinationKey(
+				getFilterPropertyKey(undefined, condition.propertyName),
+				condition.operatorName,
+				condition.quantifier
+			)
+		);
+	}
+
+	return usedCombinationKeys;
+}
+
+/**
+ * Returns true once every operator and quantifier pairing of the property is
+ * spoken for.
+ */
+function isExhausted(
+	usedCombinationKeys: Set<string>,
+	propertyKey: string,
+	operators: FilterOperator[],
+	quantifierOptions: FilterOperator[] | null
+): boolean {
+	if (!operators.length || !quantifierOptions?.length) {
+		return false;
+	}
+
+	return operators.every(({value: operatorName}) =>
+		quantifierOptions.every(({value: quantifier}) =>
+			usedCombinationKeys.has(
+				getCombinationKey(propertyKey, operatorName, quantifier)
+			)
+		)
+	);
+}
 
 function isPropertyGroup(
 	input: FilterProperty | FilterPropertyGroup
@@ -61,16 +119,38 @@ function isPropertyGroup(
 	return 'items' in input;
 }
 
+function renderOption({
+	disabled,
+	key,
+	label,
+}: {
+	disabled: boolean;
+	key: string;
+	label: string;
+}) {
+	return (
+		<Option disabled={disabled} key={key} textValue={label}>
+			{label}
+
+			{disabled && (
+				<span className="ml-auto pl-4 text-2 text-secondary">
+					{Liferay.Language.get('already-used')}
+				</span>
+			)}
+		</Option>
+	);
+}
+
 function ConditionRow({
 	condition,
+	conditions,
 	index,
 	onChange,
 	properties,
 	propertiesMap,
 }: ConditionRowProps) {
-	const conditionKey = getPropertyKey(
-		condition.classNameId,
-		condition.classTypeId,
+	const conditionKey = getFilterPropertyKey(
+		condition.objectDefinitionExternalReferenceCode,
 		condition.propertyName
 	);
 
@@ -90,6 +170,29 @@ function ConditionRow({
 		[condition, onChange]
 	);
 
+	const usedCombinationKeys = useMemo(
+		() => getUsedCombinationKeys(conditions, condition.id),
+		[condition.id, conditions]
+	);
+
+	const renderPropertyOption = (property: FilterProperty) => {
+		const propertyKey = getFilterPropertyKey(
+			property.objectDefinitionExternalReferenceCode,
+			property.name
+		);
+
+		return renderOption({
+			disabled: isExhausted(
+				usedCombinationKeys,
+				propertyKey,
+				getCollectionOperators(property),
+				getCollectionQuantifierOptions(property)
+			),
+			key: propertyKey,
+			label: property.label,
+		});
+	};
+
 	return (
 		<>
 			<div className="condition-builder__select form-group mb-0">
@@ -105,9 +208,9 @@ function ConditionRow({
 							: null;
 
 						onChange({
-							classNameId: newProperty?.classNameId,
-							classTypeId: newProperty?.classTypeId,
 							id: condition.id,
+							objectDefinitionExternalReferenceCode:
+								newProperty?.objectDefinitionExternalReferenceCode,
 							operatorName:
 								operators?.length === 0 ? 'eq' : undefined,
 							propertyName: newProperty?.name,
@@ -124,28 +227,10 @@ function ConditionRow({
 								header={item.label}
 								items={item.items}
 							>
-								{(prop) => (
-									<Option
-										key={getPropertyKey(
-											prop.classNameId,
-											prop.classTypeId,
-											prop.name
-										)}
-									>
-										{prop.label}
-									</Option>
-								)}
+								{renderPropertyOption}
 							</DropDown.Group>
 						) : (
-							<Option
-								key={getPropertyKey(
-									item.classNameId,
-									item.classTypeId,
-									item.name
-								)}
-							>
-								{item.label}
-							</Option>
+							renderPropertyOption(item)
 						)
 					}
 				</Picker>
@@ -161,19 +246,39 @@ function ConditionRow({
 							label,
 							value,
 						}))}
-						onSelectionChange={(key) =>
+						onSelectionChange={(key) => {
+							const operatorName = (key as string) || undefined;
+
 							onChange({
 								...condition,
-								operatorName: (key as string) || undefined,
+								operatorName,
+								quantifier: usedCombinationKeys.has(
+									getCombinationKey(
+										conditionKey,
+										operatorName,
+										condition.quantifier
+									)
+								)
+									? undefined
+									: condition.quantifier,
 								value: undefined,
-							})
-						}
+							});
+						}}
 						placeholder={Liferay.Language.get('select')}
 						selectedKey={condition.operatorName ?? ''}
 					>
-						{(item) => (
-							<Option key={item.value}>{item.label}</Option>
-						)}
+						{(item) =>
+							renderOption({
+								disabled: isExhausted(
+									usedCombinationKeys,
+									conditionKey,
+									[item],
+									quantifierOptions
+								),
+								key: item.value,
+								label: item.label,
+							})
+						}
 					</Picker>
 				</div>
 			)}
@@ -197,9 +302,19 @@ function ConditionRow({
 						placeholder={Liferay.Language.get('select')}
 						selectedKey={condition.quantifier ?? ''}
 					>
-						{(item) => (
-							<Option key={item.value}>{item.label}</Option>
-						)}
+						{(item) =>
+							renderOption({
+								disabled: usedCombinationKeys.has(
+									getCombinationKey(
+										conditionKey,
+										condition.operatorName,
+										item.value
+									)
+								),
+								key: item.value,
+								label: item.label,
+							})
+						}
 					</Picker>
 				</div>
 			)}
@@ -255,6 +370,7 @@ export function ConditionBuilder({
 				}) => (
 					<ConditionRow
 						condition={item}
+						conditions={conditions}
 						index={index}
 						onChange={onItemChange}
 						properties={properties}

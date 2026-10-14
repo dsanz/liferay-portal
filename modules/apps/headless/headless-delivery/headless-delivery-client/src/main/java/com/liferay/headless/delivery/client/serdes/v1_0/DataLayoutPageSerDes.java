@@ -11,6 +11,7 @@ import com.liferay.headless.delivery.client.json.BaseJSONParser;
 
 import jakarta.annotation.Generated;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -59,7 +60,8 @@ public class DataLayoutPageSerDes {
 			for (int i = 0; i < dataLayoutPage.getDataLayoutRows().length;
 				 i++) {
 
-				sb.append(dataLayoutPage.getDataLayoutRows()[i]);
+				sb.append(
+					String.valueOf(dataLayoutPage.getDataLayoutRows()[i]));
 
 				if ((i + 1) < dataLayoutPage.getDataLayoutRows().length) {
 					sb.append(", ");
@@ -245,6 +247,12 @@ public class DataLayoutPageSerDes {
 			return "null";
 		}
 
+		if (value instanceof Collection) {
+			Collection<?> collection = (Collection<?>)value;
+
+			return _toJSON(collection.toArray());
+		}
+
 		if (value instanceof Map) {
 			return _toJSON((Map)value);
 		}
@@ -277,4 +285,4 @@ public class DataLayoutPageSerDes {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:1494480465
+// LIFERAY-REST-BUILDER-HASH:-58260826

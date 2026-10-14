@@ -7,17 +7,19 @@ import {
 	ObjectDefinition,
 	ObjectDefinitionAPI,
 } from '@liferay/object-admin-rest-client-js';
-import {expect, mergeTests} from '@playwright/test';
+import {Page, expect, mergeTests} from '@playwright/test';
 import * as path from 'path';
 
 import {dataApiHelpersTest} from '../../../fixtures/dataApiHelpersTest';
 import {featureFlagsTest} from '../../../fixtures/featureFlagsTest';
 import {loginTest} from '../../../fixtures/loginTest';
 import {objectPagesTest} from '../../../fixtures/objectPagesTest';
+import {ApiHelpers} from '../../../helpers/ApiHelpers';
 import createTempFile from '../../../utils/createTempFile';
 import {getRandomInt} from '../../../utils/getRandomInt';
 import getRandomString from '../../../utils/getRandomString';
 import {performUserSwitch, userData} from '../../../utils/performLogin';
+import {PORTLET_URLS} from '../../../utils/portletUrls';
 import {dataMigrationCenterPagesTest} from './fixtures/dataMigrationCenterPagesTest';
 import {
 	OBJECT_DEFINITION_TYPE,
@@ -2149,3 +2151,141 @@ test.describe('can rely on anyOf form validation', () => {
 		).toBeVisible();
 	});
 });
+
+const BATCH_PLANNER_NAMESPACE =
+	'_com_liferay_batch_planner_web_internal_portlet_BatchPlannerPortlet_';
+
+const EXTERNAL_TYPE_PAYLOAD = "<img src=x onerror=alert('externalType')>";
+
+const TASK_ITEM_DELEGATE_NAME_PAYLOAD =
+	"<img src=x onerror=alert('taskItemDelegateName')>";
+
+const USER_NAME_PAYLOAD = "<img src=x onerror=alert('userName')>";
+
+function collectDialogs(page: Page) {
+	const dialogs: string[] = [];
+
+	page.on('dialog', async (dialog) => {
+		dialogs.push(dialog.message());
+
+		await dialog.dismiss();
+	});
+
+	return dialogs;
+}
+
+async function postPlanTemplate(apiHelpers: ApiHelpers) {
+	return apiHelpers.post(`${apiHelpers.baseUrl}batch-planner/v1.0/plans`, {
+		data: {
+			export: true,
+			externalType: 'CSV',
+			internalClassName:
+				'com.liferay.headless.admin.user.dto.v1_0.UserAccount',
+			name: getRandomString(),
+			taskItemDelegateName: TASK_ITEM_DELEGATE_NAME_PAYLOAD,
+			template: true,
+		},
+		failOnStatusCode: true,
+	});
+}
+
+test(
+	'Plan template values set through the API are not executed as JavaScript',
+	{tag: '@LPD-98204'},
+	async ({apiHelpers, page}) => {
+		const plan = await postPlanTemplate(apiHelpers);
+
+		try {
+
+			// The external type is only validated when the plan is added
+
+			await apiHelpers.patch(
+				`${apiHelpers.baseUrl}batch-planner/v1.0/plans/${plan.id}`,
+				{
+					externalType: EXTERNAL_TYPE_PAYLOAD,
+					internalClassName: plan.internalClassName,
+					name: plan.name,
+				}
+			);
+
+			const dialogs = collectDialogs(page);
+
+			const searchParams = new URLSearchParams({
+				[`${BATCH_PLANNER_NAMESPACE}mvcRenderCommandName`]:
+					'/batch_planner/view_batch_planner_plan_templates',
+				[`${BATCH_PLANNER_NAMESPACE}tabs1`]:
+					'batch-planner-plan-templates',
+			});
+
+			await page.goto(
+				`/group/guest${PORTLET_URLS.batchExportImport}&${searchParams}`
+			);
+
+			// The payloads are rendered as text, not executed
+
+			await expect(page.getByText(EXTERNAL_TYPE_PAYLOAD)).toBeVisible();
+			await expect(
+				page.getByText(TASK_ITEM_DELEGATE_NAME_PAYLOAD)
+			).toBeVisible();
+
+			expect(dialogs).toHaveLength(0);
+		}
+		finally {
+			await apiHelpers.delete(
+				`${apiHelpers.baseUrl}batch-planner/v1.0/plans/${plan.id}`
+			);
+		}
+	}
+);
+
+test(
+	'The template creator name is not executed as JavaScript',
+	{tag: '@LPD-98204'},
+	async ({apiHelpers, page}) => {
+
+		// The plan records the creator name, so give the current user a name
+		// that carries the payload before adding the template
+
+		const {id} = await apiHelpers.headlessAdminUser.getMyUserAccount();
+
+		const userAccountURL = `${apiHelpers.baseUrl}headless-admin-user/v1.0/user-accounts/${id}`;
+
+		const {givenName} = await apiHelpers.get(userAccountURL);
+
+		await apiHelpers.patch(userAccountURL, {givenName: USER_NAME_PAYLOAD});
+
+		let plan;
+
+		try {
+			plan = await postPlanTemplate(apiHelpers);
+
+			const dialogs = collectDialogs(page);
+
+			const searchParams = new URLSearchParams({
+				[`${BATCH_PLANNER_NAMESPACE}mvcRenderCommandName`]:
+					'/batch_planner/view_batch_planner_plan_templates',
+				[`${BATCH_PLANNER_NAMESPACE}tabs1`]:
+					'batch-planner-plan-templates',
+			});
+
+			await page.goto(
+				`/group/guest${PORTLET_URLS.batchExportImport}&${searchParams}`
+			);
+
+			// The payload is rendered as text, not executed
+
+			await expect(page.getByText(USER_NAME_PAYLOAD)).toBeVisible();
+
+			expect(dialogs).toHaveLength(0);
+		}
+		finally {
+			await apiHelpers.patch(userAccountURL, {givenName});
+
+			if (plan) {
+				await apiHelpers.delete(
+					`${apiHelpers.baseUrl}batch-planner/v1.0/plans/${plan.id}`
+				);
+			}
+		}
+	}
+);

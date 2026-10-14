@@ -73,7 +73,34 @@ describe('Modal', () => {
 			document.getElementById('myButton') as HTMLButtonElement
 		);
 
-		expect(onCloseCallback).toBeCalled();
+		expect(onCloseCallback).toHaveBeenCalled();
+	});
+
+	it('keeps modal-open on the body when one of two open modals closes', () => {
+		render(
+			<>
+				<Modal buttons={[{id: 'firstCancel', type: 'cancel'}]} />
+				<Modal buttons={[{id: 'secondCancel', type: 'cancel'}]} />
+			</>
+		);
+
+		act(() => {
+			jest.runAllTimers();
+		});
+
+		expect(document.body).toHaveClass('modal-open');
+
+		fireEvent.click(
+			document.getElementById('secondCancel') as HTMLButtonElement
+		);
+
+		act(() => {
+			jest.runAllTimers();
+		});
+
+		expect(document.body).toHaveClass('modal-open');
+		expect(document.getElementById('firstCancel')).toBeInTheDocument();
+		expect(document.getElementById('secondCancel')).not.toBeInTheDocument();
 	});
 
 	// We are skipping this test because Jest does not support

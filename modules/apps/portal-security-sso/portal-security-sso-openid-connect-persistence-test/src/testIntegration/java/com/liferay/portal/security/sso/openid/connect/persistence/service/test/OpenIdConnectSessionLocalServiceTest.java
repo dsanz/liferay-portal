@@ -10,6 +10,7 @@ import com.liferay.counter.kernel.service.CounterLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
+import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.security.sso.openid.connect.constants.OpenIdConnectWebKeys;
@@ -18,7 +19,9 @@ import com.liferay.portal.security.sso.openid.connect.persistence.service.OpenId
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import org.junit.Assert;
 import org.junit.ClassRule;
@@ -62,6 +65,17 @@ public class OpenIdConnectSessionLocalServiceTest {
 			openIdConnectSession2,
 			_openIdConnectSessionLocalService.getOpenIdConnectSession(
 				userId2, issuer));
+
+		String maxLengthIssuer = RandomTestUtil.randomString(255);
+		long userId3 = RandomTestUtil.randomLong();
+
+		OpenIdConnectSession openIdConnectSession3 = _addOpenIdConnectSession(
+			companyId, maxLengthIssuer, null, userId3);
+
+		Assert.assertEquals(
+			openIdConnectSession3,
+			_openIdConnectSessionLocalService.getOpenIdConnectSession(
+				userId3, maxLengthIssuer));
 	}
 
 	@Test
@@ -138,6 +152,17 @@ public class OpenIdConnectSessionLocalServiceTest {
 			Collections.singletonList(openIdConnectSession2),
 			_openIdConnectSessionLocalService.getOpenIdConnectSessions(
 				companyId2, issuer, sessionId));
+
+		String maxLengthSessionId = RandomTestUtil.randomString(255);
+
+		OpenIdConnectSession openIdConnectSession3 = _addOpenIdConnectSession(
+			companyId1, issuer, maxLengthSessionId,
+			RandomTestUtil.randomLong());
+
+		Assert.assertEquals(
+			Collections.singletonList(openIdConnectSession3),
+			_openIdConnectSessionLocalService.getOpenIdConnectSessions(
+				companyId1, issuer, maxLengthSessionId));
 	}
 
 	private OpenIdConnectSession _addOpenIdConnectSession() throws Exception {
@@ -160,8 +185,13 @@ public class OpenIdConnectSessionLocalServiceTest {
 		openIdConnectSession.setIssuer(issuer);
 		openIdConnectSession.setSessionId(sessionId);
 
-		return _openIdConnectSessionLocalService.addOpenIdConnectSession(
-			openIdConnectSession);
+		openIdConnectSession =
+			_openIdConnectSessionLocalService.addOpenIdConnectSession(
+				openIdConnectSession);
+
+		_openIdConnectSessions.add(openIdConnectSession);
+
+		return openIdConnectSession;
 	}
 
 	@Inject
@@ -169,5 +199,9 @@ public class OpenIdConnectSessionLocalServiceTest {
 
 	@Inject
 	private OpenIdConnectSessionLocalService _openIdConnectSessionLocalService;
+
+	@DeleteAfterTestRun
+	private final List<OpenIdConnectSession> _openIdConnectSessions =
+		new ArrayList<>();
 
 }

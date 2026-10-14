@@ -176,6 +176,7 @@
 		<field name="groupId" type="long" />
 		<field name="companyId" type="long" />
 		<field name="tagId" type="long" />
+		<field name="depotEntryType" type="int" />
 	</model>
 	<model name="com.liferay.asset.kernel.model.AssetVocabulary">
 		<field name="mvccVersion" type="long" />

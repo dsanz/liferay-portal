@@ -36,8 +36,10 @@ function buildState(properties: Partial<State> = {}): State {
 		editableElementOptions: [],
 		elementVariations: [],
 		experienceKey: '',
+		filters: [],
 		highlightedTargetElement: null,
 		languageId: 'en_US',
+		searchTerm: '',
 		...properties,
 	};
 }
@@ -74,8 +76,10 @@ describe('elementVariationsReducer', () => {
 				editableElementOptions: null,
 				elementVariations: [],
 				experienceKey: '',
+				filters: [],
 				highlightedTargetElement: null,
 				languageId: 'en_US',
+				searchTerm: '',
 			});
 		});
 
@@ -109,17 +113,6 @@ describe('elementVariationsReducer', () => {
 	});
 
 	describe('reducer', () => {
-		it('sets the draft on CREATE_ELEMENT_VARIATION_DRAFT', () => {
-			const draftElementVariation = buildElementVariation();
-
-			const state = reducer(buildState(), {
-				draftElementVariation,
-				type: 'CREATE_ELEMENT_VARIATION_DRAFT',
-			});
-
-			expect(state.draftElementVariation).toBe(draftElementVariation);
-		});
-
 		it('merges properties into the draft on UPDATE_ELEMENT_VARIATION_DRAFT', () => {
 			const state = reducer(
 				buildState({draftElementVariation: buildElementVariation()}),
@@ -133,44 +126,82 @@ describe('elementVariationsReducer', () => {
 			expect(state.draftElementVariation?.hide).toBe(true);
 		});
 
-		it('sets the language on SET_LANGUAGE_ID', () => {
-			const state = reducer(buildState(), {
-				languageId: 'es_ES',
-				type: 'SET_LANGUAGE_ID',
-			});
+		it('appends a filter on ADD_FILTER', () => {
+			const filter = {
+				exclude: false,
+				type: 'audience' as const,
+				values: ['audience-1'],
+			};
 
-			expect(state.languageId).toBe('es_ES');
+			const state = reducer(buildState(), {filter, type: 'ADD_FILTER'});
+
+			expect(state.filters).toEqual([filter]);
 		});
 
-		it('sets the editable element options on SET_EDITABLE_ELEMENT_OPTIONS', () => {
-			const editableElementOptions = [
-				{label: 'Heading (element-text)', value: '.selector'},
-			];
+		it('replaces the filter of the same type on ADD_FILTER', () => {
+			const filter = {
+				exclude: true,
+				type: 'audience' as const,
+				values: ['audience-2'],
+			};
 
-			const state = reducer(buildState(), {
-				editableElementOptions,
-				type: 'SET_EDITABLE_ELEMENT_OPTIONS',
-			});
+			const state = reducer(
+				buildState({
+					filters: [
+						{
+							exclude: false,
+							type: 'audience',
+							values: ['audience-1'],
+						},
+						{exclude: false, type: 'status', values: ['enabled']},
+					],
+				}),
+				{filter, type: 'ADD_FILTER'}
+			);
 
-			expect(state.editableElementOptions).toBe(editableElementOptions);
+			expect(state.filters).toEqual([
+				{exclude: false, type: 'status', values: ['enabled']},
+				filter,
+			]);
 		});
 
-		it('sets the experience key on SET_EXPERIENCE_KEY', () => {
-			const state = reducer(buildState(), {
-				experienceKey: 'experience-2',
-				type: 'SET_EXPERIENCE_KEY',
-			});
+		it('removes the filter of the given type on DELETE_FILTER', () => {
+			const state = reducer(
+				buildState({
+					filters: [
+						{
+							exclude: false,
+							type: 'audience',
+							values: ['audience-1'],
+						},
+						{exclude: false, type: 'status', values: ['enabled']},
+					],
+				}),
+				{filterType: 'audience', type: 'DELETE_FILTER'}
+			);
 
-			expect(state.experienceKey).toBe('experience-2');
+			expect(state.filters).toEqual([
+				{exclude: false, type: 'status', values: ['enabled']},
+			]);
 		});
 
-		it('sets the highlighted target element on SET_HIGHLIGHTED_TARGET_ELEMENT', () => {
-			const state = reducer(buildState(), {
-				highlightedTargetElement: '.selector',
-				type: 'SET_HIGHLIGHTED_TARGET_ELEMENT',
-			});
+		it('removes every filter and the search term on CLEAR_FILTERS', () => {
+			const state = reducer(
+				buildState({
+					filters: [
+						{
+							exclude: false,
+							type: 'audience',
+							values: ['audience-1'],
+						},
+					],
+					searchTerm: 'vip',
+				}),
+				{type: 'CLEAR_FILTERS'}
+			);
 
-			expect(state.highlightedTargetElement).toBe('.selector');
+			expect(state.filters).toEqual([]);
+			expect(state.searchTerm).toBe('');
 		});
 
 		it('appends a new draft and clears it on SAVE_ELEMENT_VARIATION_DRAFT', () => {
@@ -205,28 +236,18 @@ describe('elementVariationsReducer', () => {
 			expect(state.elementVariations[0].name).toBe('New');
 		});
 
-		it('resets the language to the default on SAVE_ELEMENT_VARIATION_DRAFT', () => {
+		it('resets the language and the highlighted target element on SAVE_ELEMENT_VARIATION_DRAFT', () => {
 			const state = reducer(
 				buildState({
 					draftElementVariation: buildElementVariation({key: 'new'}),
+					highlightedTargetElement: '.selector',
 					languageId: 'es_ES',
 				}),
 				{type: 'SAVE_ELEMENT_VARIATION_DRAFT'}
 			);
 
-			expect(state.languageId).toBe('en_US');
-		});
-
-		it('clears the highlighted target element on SAVE_ELEMENT_VARIATION_DRAFT', () => {
-			const state = reducer(
-				buildState({
-					draftElementVariation: buildElementVariation({key: 'new'}),
-					highlightedTargetElement: '.selector',
-				}),
-				{type: 'SAVE_ELEMENT_VARIATION_DRAFT'}
-			);
-
 			expect(state.highlightedTargetElement).toBeNull();
+			expect(state.languageId).toBe('en_US');
 		});
 
 		it('loads a variation into the draft on EDIT_ELEMENT_VARIATION', () => {
@@ -269,29 +290,19 @@ describe('elementVariationsReducer', () => {
 			expect(state.elementVariations[0].active).toBe(false);
 		});
 
-		it('clears the draft and resets the language on CANCEL_ELEMENT_VARIATION_DRAFT', () => {
+		it('clears the draft and resets the language and the highlighted target element on CANCEL_ELEMENT_VARIATION_DRAFT', () => {
 			const state = reducer(
 				buildState({
 					draftElementVariation: buildElementVariation(),
+					highlightedTargetElement: '.selector',
 					languageId: 'es_ES',
 				}),
 				{type: 'CANCEL_ELEMENT_VARIATION_DRAFT'}
 			);
 
 			expect(state.draftElementVariation).toBeNull();
-			expect(state.languageId).toBe('en_US');
-		});
-
-		it('clears the highlighted target element on CANCEL_ELEMENT_VARIATION_DRAFT', () => {
-			const state = reducer(
-				buildState({
-					draftElementVariation: buildElementVariation(),
-					highlightedTargetElement: '.selector',
-				}),
-				{type: 'CANCEL_ELEMENT_VARIATION_DRAFT'}
-			);
-
 			expect(state.highlightedTargetElement).toBeNull();
+			expect(state.languageId).toBe('en_US');
 		});
 	});
 });

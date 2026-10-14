@@ -1015,6 +1015,9 @@ public class ObjectActionPersistenceImpl
 		}
 		else {
 			if (!Objects.equals(
+					objectAction.getUuid(),
+					objectAction.getExternalReferenceCode()) &&
+				!Objects.equals(
 					objectActionModelImpl.getColumnOriginalValue(
 						"externalReferenceCode"),
 					objectAction.getExternalReferenceCode())) {
@@ -1520,4 +1523,4 @@ public class ObjectActionPersistenceImpl
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-281949075
+// LIFERAY-SERVICE-BUILDER-HASH:521328280

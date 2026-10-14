@@ -4,6 +4,7 @@
  */
 
 import '@testing-library/jest-dom';
+import {SidePanel} from '@clayui/core';
 
 // eslint-disable-next-line @liferay/portal/no-cross-module-deep-import
 import {checkAccessibility} from '@liferay/layout-js-components-web/test/__lib__/index';
@@ -33,6 +34,11 @@ const EDITABLE_ELEMENT_OPTIONS = [
 	{label: 'Body (body)', value: '.body'},
 ];
 
+const AUDIENCES = [
+	{label: 'First audience', value: 'audience-1'},
+	{label: 'Second audience', value: 'audience-2'},
+];
+
 const LOCALES = [{id: 'en_US', label: 'English', symbol: 'en-us'}];
 
 const TRANSLATING_PROPS = {
@@ -49,9 +55,14 @@ function renderForm(
 ) {
 	const onChange = jest.fn();
 
-	return {
-		onChange,
-		...render(
+	const getForm = (
+		currentElementVariation: Partial<ElementVariationProp>
+	) => (
+		<SidePanel
+			containerRef={{current: document.body}}
+			onOpenChange={jest.fn()}
+			open
+		>
 			<ElementVariationForm
 				audiences={[]}
 				defaultLanguageId="en_US"
@@ -59,7 +70,7 @@ function renderForm(
 				editableElementOptions={EDITABLE_ELEMENT_OPTIONS}
 				elementVariation={{
 					...BASE_ELEMENT_VARIATION,
-					...elementVariation,
+					...currentElementVariation,
 				}}
 				elementVariations={[]}
 				languageId="en_US"
@@ -71,13 +82,44 @@ function renderForm(
 				onSave={jest.fn()}
 				{...props}
 			/>
-		),
+		</SidePanel>
+	);
+
+	const {rerender, ...result} = render(getForm(elementVariation));
+
+	return {
+		...result,
+		onChange,
+		rerender: (nextElementVariation: Partial<ElementVariationProp>) =>
+			rerender(getForm(nextElementVariation)),
 	};
 }
 
 describe('ElementVariationForm', () => {
+	const {ResizeObserver: ResizeObserverOriginal} = window;
+
+	beforeAll(() => {
+		window.ResizeObserver = jest.fn().mockImplementation(() => ({
+			disconnect: jest.fn(),
+			observe: jest.fn(),
+			unobserve: jest.fn(),
+		}));
+	});
+
+	afterAll(() => {
+		window.ResizeObserver = ResizeObserverOriginal;
+	});
+
 	beforeEach(() => {
 		jest.clearAllMocks();
+	});
+
+	it('does not show a close button', () => {
+		renderForm();
+
+		expect(
+			screen.queryByRole('button', {name: 'close'})
+		).not.toBeInTheDocument();
 	});
 
 	it('hides the audience selector, the toggle, and the html and js fields until a page element is selected', () => {
@@ -201,45 +243,36 @@ describe('ElementVariationForm', () => {
 		).toHaveLength(2);
 	});
 
-	it('shows a required error and blocks saving when no name is provided', async () => {
-		const onSave = jest.fn();
-
-		renderForm(
+	it.each([
+		[
+			'name',
 			{
 				audienceEntryERCs: ['audience-1'],
 				name: '',
 				targetElement: '.title',
 			},
-			{onSave}
-		);
+		],
+		['page element', {targetElement: ''}],
+		[
+			'existing page element',
+			{audienceEntryERCs: ['audience-1'], targetElement: '.deleted'},
+		],
+		['audience', {targetElement: '.title'}],
+	])(
+		'shows a required error and blocks saving when no %s is provided',
+		async (field, elementVariation) => {
+			const onSave = jest.fn();
 
-		await userEvent.click(screen.getByText('save'));
+			renderForm(elementVariation, {onSave});
 
-		expect(screen.getByText('this-field-is-required')).toBeInTheDocument();
-		expect(onSave).not.toHaveBeenCalled();
-	});
+			await userEvent.click(screen.getByText('save'));
 
-	it('shows a required error and blocks saving when no page element is selected', async () => {
-		const onSave = jest.fn();
-
-		renderForm({targetElement: ''}, {onSave});
-
-		await userEvent.click(screen.getByText('save'));
-
-		expect(screen.getByText('this-field-is-required')).toBeInTheDocument();
-		expect(onSave).not.toHaveBeenCalled();
-	});
-
-	it('shows a required error and blocks saving when no audience is selected', async () => {
-		const onSave = jest.fn();
-
-		renderForm({targetElement: '.title'}, {onSave});
-
-		await userEvent.click(screen.getByText('save'));
-
-		expect(screen.getByText('this-field-is-required')).toBeInTheDocument();
-		expect(onSave).not.toHaveBeenCalled();
-	});
+			expect(
+				screen.getByText('this-field-is-required')
+			).toBeInTheDocument();
+			expect(onSave).not.toHaveBeenCalled();
+		}
+	);
 
 	it('clears the required error when the offending field is updated', async () => {
 		renderForm({
@@ -274,6 +307,37 @@ describe('ElementVariationForm', () => {
 			screen.queryByText('this-field-is-required')
 		).not.toBeInTheDocument();
 		expect(onSave).toHaveBeenCalledTimes(1);
+	});
+
+	it('updates the available audiences when the page element changes', async () => {
+		const {rerender} = renderForm(
+			{targetElement: '.title'},
+			{
+				audiences: AUDIENCES,
+				elementVariations: [
+					{
+						...BASE_ELEMENT_VARIATION,
+						audienceEntryERCs: ['audience-1'],
+						externalReferenceCode: 'erc',
+						key: 'variation-2',
+						segmentsExperienceERC: 'experience',
+						targetElement: '.body',
+					},
+				],
+			}
+		);
+
+		await userEvent.click(screen.getByLabelText('audience'));
+
+		expect(screen.getByText('First audience')).toBeInTheDocument();
+		expect(screen.getByText('Second audience')).toBeInTheDocument();
+
+		rerender({audienceEntryERCs: [], targetElement: '.body'});
+
+		await userEvent.click(screen.getByLabelText('audience'));
+
+		expect(screen.queryByText('First audience')).not.toBeInTheDocument();
+		expect(screen.getByText('Second audience')).toBeInTheDocument();
 	});
 
 	it('has no accessibility violations', async () => {

@@ -6,10 +6,16 @@
 import {expect, mergeTests} from '@playwright/test';
 
 import {loginTest} from '../../../fixtures/loginTest';
+import {notificationsPagesTest} from '../../../fixtures/notificationsPagesTest';
 import {virtualInstancesPagesTest} from '../../../fixtures/virtualInstancesPagesTest';
+import {getRandomInt} from '../../../utils/getRandomInt';
 import getRandomString from '../../../utils/getRandomString';
 
-const test = mergeTests(loginTest(), virtualInstancesPagesTest);
+const test = mergeTests(
+	loginTest(),
+	notificationsPagesTest,
+	virtualInstancesPagesTest
+);
 
 test(
 	'LPD-92621 Importing an invalid schema name shows an error',
@@ -47,10 +53,7 @@ test(
 			const schemaName =
 				await virtualInstancesPage.exportVirtualInstance(exportedWebId);
 
-			await virtualInstancesPage.deleteVirtualInstance(
-				exportedWebId,
-				180 * 1000
-			);
+			await virtualInstancesPage.deleteVirtualInstance(exportedWebId);
 
 			exportedCreated = false;
 
@@ -59,7 +62,6 @@ test(
 			await virtualInstancesPage.submitImportVirtualInstance({
 				name: importedWebId,
 				schemaName,
-				timeout: 180 * 1000,
 				virtualHost: importedWebId,
 				webId: importedWebId,
 			});
@@ -67,16 +69,46 @@ test(
 			imported = true;
 
 			await expect(
-				virtualInstancesPage.importInstanceSuccessMessage(importedWebId)
-			).toBeVisible({timeout: 180 * 1000});
+				virtualInstancesPage.importStartedMessage(schemaName)
+			).toBeVisible();
+
+			await virtualInstancesPage.waitForImportNotification(importedWebId);
 		}
 		finally {
 			if (exportedCreated || imported) {
 				await virtualInstancesPage.deleteVirtualInstance(
-					imported ? importedWebId : exportedWebId,
-					180 * 1000
+					imported ? importedWebId : exportedWebId
 				);
 			}
 		}
+	}
+);
+
+test(
+	'LPD-93377 Importing a nonexistent schema notifies the user of the failure',
+	{tag: '@LPD-93377'},
+	async ({notificationsPage, virtualInstancesPage}) => {
+		test.setTimeout(2 * 180 * 1000);
+
+		const schemaName = `lexported_${getRandomInt()}`;
+
+		await virtualInstancesPage.openImportVirtualInstanceModal();
+
+		await virtualInstancesPage.submitImportVirtualInstance({schemaName});
+
+		await expect(
+			virtualInstancesPage.importStartedMessage(schemaName)
+		).toBeVisible();
+
+		await expect(async () => {
+			await notificationsPage.goto();
+
+			await expect(
+				notificationsPage.getNotification(
+					'The exported schema does not exist.',
+					`The instance could not be imported from the schema ${schemaName}.`
+				)
+			).toBeVisible({timeout: 10 * 1000});
+		}).toPass({timeout: 300 * 1000});
 	}
 );

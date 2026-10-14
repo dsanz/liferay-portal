@@ -5,6 +5,7 @@
 
 import ClayButton from '@clayui/button';
 import {useResource} from '@clayui/data-provider';
+import ClayEmptyState from '@clayui/empty-state';
 import {ClayCheckbox} from '@clayui/form';
 import ClayIcon from '@clayui/icon';
 import ClayLayout from '@clayui/layout';
@@ -27,7 +28,6 @@ import {
 import {getPluralMessage} from '../../utils/language.es';
 import {buildUrl, resultsDataToMap, toggleListItem} from '../../utils/util.es';
 import Item from '../list/Item.es';
-import ClayEmptyState, {DISPLAY_STATES} from '../shared/ClayEmptyState.es';
 import AddResultSearchBar from './AddResultSearchBar.es';
 
 /**
@@ -262,7 +262,15 @@ function AddResultModal({
 	 * 3) Error message when a search request fails to resolve.
 	 */
 	function _renderEmptyState() {
-		let emptyState = <ClayEmptyState />;
+		let emptyState = (
+			<ClayEmptyState
+				description={Liferay.Language.get(
+					'sorry,-no-results-were-found'
+				)}
+				imgSrc={`${Liferay.ThemeDisplay.getPathThemeImages()}/states/search_state.svg`}
+				title={Liferay.Language.get('no-results-found')}
+			/>
+		);
 
 		if (resourceNotAsked) {
 			emptyState = (
@@ -270,7 +278,7 @@ function AddResultModal({
 					description={Liferay.Language.get(
 						'search-the-engine-to-display-results'
 					)}
-					displayState={DISPLAY_STATES.EMPTY}
+					imgSrc={`${Liferay.ThemeDisplay.getPathThemeImages()}/states/empty_state.svg`}
 					title={Liferay.Language.get('search-the-engine')}
 				/>
 			);
@@ -278,14 +286,19 @@ function AddResultModal({
 		else if (error) {
 			emptyState = (
 				<ClayEmptyState
-					actionLabel={Liferay.Language.get('try-again')}
 					description={Liferay.Language.get(
 						'an-error-has-occurred-and-we-were-unable-to-load-the-results'
 					)}
-					displayState={DISPLAY_STATES.EMPTY}
-					onClickAction={_handleRefetch}
+					imgSrc={`${Liferay.ThemeDisplay.getPathThemeImages()}/states/empty_state.svg`}
 					title={Liferay.Language.get('unable-to-load-content')}
-				/>
+				>
+					<ClayButton
+						displayType="secondary"
+						onClick={_handleRefetch}
+					>
+						{Liferay.Language.get('try-again')}
+					</ClayButton>
+				</ClayEmptyState>
 			);
 		}
 
@@ -433,6 +446,7 @@ function AddResultModal({
 							'inline-item',
 							'inline-item-after',
 							'modal-title-help-icon',
+							'text-secondary',
 							PORTAL_TOOLTIP_TRIGGER_CLASS
 						)}
 						data-title={Liferay.Language.get('add-results-help')}
@@ -449,7 +463,7 @@ function AddResultModal({
 						searchQuery={searchQuery}
 					/>
 
-					<div className="add-result-scroller">
+					<div className="add-result-scroller bg-light">
 						{loading && (
 							<ClayLayout.Sheet className="add-result-sheet">
 								<div className="sheet-title">

@@ -19,10 +19,13 @@ import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBInspector;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
 import com.liferay.portal.kernel.dao.db.DBType;
+import com.liferay.portal.kernel.dao.jdbc.ConnectionUtil;
 import com.liferay.portal.kernel.dao.jdbc.CurrentConnectionUtil;
 import com.liferay.portal.kernel.dao.jdbc.DataSourceWrapper;
 import com.liferay.portal.kernel.dao.jdbc.util.ConnectionWrapper;
 import com.liferay.portal.kernel.dao.jdbc.util.StatementWrapper;
+import com.liferay.portal.kernel.exception.CompanyVirtualHostException;
+import com.liferay.portal.kernel.exception.CompanyWebIdException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.instance.PortalInstancePool;
 import com.liferay.portal.kernel.log.Log;
@@ -44,6 +47,7 @@ import com.liferay.portal.kernel.util.InfrastructureUtil;
 import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.PropsValues;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.spring.hibernate.DialectDetector;
 
 import java.sql.Connection;
@@ -146,6 +150,27 @@ public class DBPartitionUtil {
 		return true;
 	}
 
+	public static boolean existsExportedPartition(long companyId)
+		throws PortalException {
+
+		DataSource dataSource = InfrastructureUtil.getDataSource();
+
+		_initializeDBPartitionDB(dataSource);
+
+		try (SafeCloseable safeCloseable =
+				CompanyThreadLocal.setCompanyIdWithSafeCloseable(
+					_defaultCompanyId);
+
+			Connection connection = ConnectionUtil.getConnection(dataSource)) {
+
+			return _dbPartitionDB.existsPartition(
+				connection, getExportedPartitionName(companyId));
+		}
+		catch (SQLException sqlException) {
+			throw new PortalException(sqlException);
+		}
+	}
+
 	public static boolean exportCompany(long companyId) throws PortalException {
 		if (PropsValues.DATABASE_PARTITION_ENABLED ||
 			(companyId == _defaultCompanyId)) {
@@ -169,13 +194,9 @@ public class DBPartitionUtil {
 
 		DataSource dataSource = InfrastructureUtil.getDataSource();
 
-		Connection connection = CurrentConnectionUtil.getConnection(dataSource);
+		try (Connection connection = ConnectionUtil.getConnection(dataSource);
 
-		if (connection == null) {
-			connection = dataSource.getConnection();
-		}
-
-		try (PreparedStatement preparedStatement = connection.prepareStatement(
+			PreparedStatement preparedStatement = connection.prepareStatement(
 				StringBundler.concat(
 					"insert into ", getExportedPartitionName(companyId),
 					".Configuration_ (configurationId, dictionary",
@@ -275,10 +296,10 @@ public class DBPartitionUtil {
 
 		List<String> pids = new ArrayList<>();
 
-		Connection connection = CurrentConnectionUtil.getConnection(
-			InfrastructureUtil.getDataSource());
+		try (Connection connection = ConnectionUtil.getConnection(
+				InfrastructureUtil.getDataSource());
 
-		try (PreparedStatement preparedStatement = connection.prepareStatement(
+			PreparedStatement preparedStatement = connection.prepareStatement(
 				StringBundler.concat(
 					"select configurationId from ", getPartitionName(companyId),
 					".Configuration_ where dictionary like ",
@@ -299,13 +320,9 @@ public class DBPartitionUtil {
 
 		DataSource dataSource = InfrastructureUtil.getDataSource();
 
-		Connection connection = CurrentConnectionUtil.getConnection(dataSource);
+		try (Connection connection = ConnectionUtil.getConnection(dataSource);
 
-		if (connection == null) {
-			connection = dataSource.getConnection();
-		}
-
-		try (PreparedStatement preparedStatement = connection.prepareStatement(
+			PreparedStatement preparedStatement = connection.prepareStatement(
 				StringBundler.concat(
 					"select configurationId, dictionary from ",
 					getPartitionName(companyId), ".Configuration_"));
@@ -356,7 +373,8 @@ public class DBPartitionUtil {
 		return PropsValues.DATABASE_PARTITION_SCHEMA_NAME_PREFIX + companyId;
 	}
 
-	public static boolean importDBPartition(long companyId)
+	public static boolean importDBPartition(
+			long companyId, String virtualHostname, String webId)
 		throws PortalException {
 
 		if (!PropsValues.DATABASE_PARTITION_ENABLED) {
@@ -373,7 +391,7 @@ public class DBPartitionUtil {
 
 			AutoCloseable autoCloseable = _disableAutoCommit(connection)) {
 
-			_importDBPartition(connection, companyId);
+			_importDBPartition(connection, companyId, virtualHostname, webId);
 		}
 		catch (PortalException portalException) {
 			throw portalException;
@@ -1016,22 +1034,7 @@ public class DBPartitionUtil {
 
 		Connection connection = CurrentConnectionUtil.getConnection(dataSource);
 
-		if (_dbPartitionDB == null) {
-			DB db = DBManagerUtil.getDB();
-
-			try {
-				_initializeDBPartitionDB(db, dataSource);
-			}
-			catch (Throwable throwable) {
-				if (throwable instanceof Error) {
-					throw new PortalException(
-						"Export of companies is not supported for " +
-							db.getDBType());
-				}
-
-				throw new PortalException(throwable);
-			}
-		}
+		_initializeDBPartitionDB(dataSource);
 
 		String exportedPartitionName = getExportedPartitionName(companyId);
 
@@ -1476,7 +1479,8 @@ public class DBPartitionUtil {
 	}
 
 	private static void _importDBPartition(
-			Connection connection, long companyId)
+			Connection connection, long companyId, String virtualHostname,
+			String webId)
 		throws PortalException {
 
 		String sourcePartitionName = getExportedPartitionName(companyId);
@@ -1499,6 +1503,13 @@ public class DBPartitionUtil {
 					"Unable to insert the database partition " +
 						sourcePartitionName + " because it does not exist");
 			}
+
+			if (Validator.isNull(webId)) {
+				_validateWebId(connection, companyId, sourcePartitionName);
+			}
+
+			_validateVirtualHostnames(
+				connection, companyId, sourcePartitionName, virtualHostname);
 		}
 		catch (SQLException sqlException) {
 			throw new PortalException(sqlException);
@@ -1513,6 +1524,11 @@ public class DBPartitionUtil {
 
 				statement.executeUpdate(renamePartitionSQL);
 			}
+
+			_updateCompanyVirtualHostname(
+				connection, companyId, virtualHostname);
+
+			_updateCompanyWebId(connection, companyId, webId);
 
 			DBInspector dbInspector = new DBInspector(connection);
 
@@ -1609,6 +1625,29 @@ public class DBPartitionUtil {
 			}
 
 			throw new PortalException(exception1);
+		}
+	}
+
+	private static void _initializeDBPartitionDB(DataSource dataSource)
+		throws PortalException {
+
+		if (_dbPartitionDB != null) {
+			return;
+		}
+
+		DB db = DBManagerUtil.getDB();
+
+		try {
+			_initializeDBPartitionDB(db, dataSource);
+		}
+		catch (Throwable throwable) {
+			if (throwable instanceof Error) {
+				throw new PortalException(
+					"Export of companies is not supported for " +
+						db.getDBType());
+			}
+
+			throw new PortalException(throwable);
 		}
 	}
 
@@ -1754,6 +1793,107 @@ public class DBPartitionUtil {
 				StringUtil.merge(replaceSQLs), ", ",
 				StringUtil.merge(columnNames), " from ", tableName,
 				_getQuartzWhereClauseSQL(fromCompanyId, tableName)));
+	}
+
+	private static void _updateCompanyVirtualHostname(
+			Connection connection, long companyId, String virtualHostname)
+		throws SQLException {
+
+		if (Validator.isNull(virtualHostname)) {
+			return;
+		}
+
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
+				StringBundler.concat(
+					"update ", getPartitionName(companyId),
+					".VirtualHost set hostname = ? where companyId = ? and ",
+					"layoutSetId = 0 and defaultVirtualHost = ?"))) {
+
+			preparedStatement.setString(1, virtualHostname);
+			preparedStatement.setLong(2, companyId);
+			preparedStatement.setBoolean(3, true);
+
+			preparedStatement.executeUpdate();
+		}
+	}
+
+	private static void _updateCompanyWebId(
+			Connection connection, long companyId, String webId)
+		throws SQLException {
+
+		if (Validator.isNull(webId)) {
+			return;
+		}
+
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
+				StringBundler.concat(
+					"update ", getPartitionName(companyId),
+					".Company set webId = ? where companyId = ?"))) {
+
+			preparedStatement.setString(1, webId);
+			preparedStatement.setLong(2, companyId);
+
+			preparedStatement.executeUpdate();
+		}
+	}
+
+	private static void _validateVirtualHostnames(
+			Connection connection, long companyId, String partitionName,
+			String virtualHostname)
+		throws CompanyVirtualHostException, SQLException {
+
+		String sql = StringBundler.concat(
+			"select VirtualHost1.hostname from ", partitionName,
+			".VirtualHost VirtualHost1 inner join ", _defaultPartitionName,
+			".VirtualHost VirtualHost2 on VirtualHost1.hostname = ",
+			"VirtualHost2.hostname where VirtualHost1.companyId = ? and ",
+			"VirtualHost1.ctCollectionId = 0 and VirtualHost2.ctCollectionId ",
+			"= 0");
+
+		if (Validator.isNotNull(virtualHostname)) {
+			sql = StringBundler.concat(
+				sql, " and not (VirtualHost1.layoutSetId = 0 and ",
+				"VirtualHost1.defaultVirtualHost = ?)");
+		}
+
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
+				sql)) {
+
+			preparedStatement.setLong(1, companyId);
+
+			if (Validator.isNotNull(virtualHostname)) {
+				preparedStatement.setBoolean(2, true);
+			}
+
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				if (resultSet.next()) {
+					throw new CompanyVirtualHostException(
+						"Duplicate virtual hostname " +
+							resultSet.getString("hostname"));
+				}
+			}
+		}
+	}
+
+	private static void _validateWebId(
+			Connection connection, long companyId, String partitionName)
+		throws CompanyWebIdException, SQLException {
+
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
+				StringBundler.concat(
+					"select webId from ", partitionName,
+					".Company where companyId = ? and webId in (select webId ",
+					"from ", _defaultPartitionName, ".Company)"))) {
+
+			preparedStatement.setLong(1, companyId);
+
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				if (resultSet.next()) {
+					throw new CompanyWebIdException(
+						"Duplicate web ID " + resultSet.getString("webId"));
+				}
+			}
+		}
 	}
 
 	private static Statement _wrapStatement(Statement statement) {

@@ -94,7 +94,9 @@ public class RelevantRule implements Comparable<RelevantRule> {
 		String modifiedFilesGlobalExcludes = _getBaseDirTestProperty(
 			"modified.files.global.excludes");
 
-		if (modifiedFilesGlobalExcludes != null) {
+		if ((modifiedFilesGlobalExcludes != null) &&
+			!_isIgnoreGlobalExcludes()) {
+
 			modifiedFilesExcludesPathMatchers.addAll(
 				JenkinsResultsParserUtil.toPathMatchers(
 					_getBaseDirPath() + "/",
@@ -151,6 +153,30 @@ public class RelevantRule implements Comparable<RelevantRule> {
 		return _properties;
 	}
 
+	public Set<JobProperty> getTestBatchNamesJobProperties() {
+		return _testBatchNamesJobProperties;
+	}
+
+	public JobProperty getTestBatchNamesJobProperty() {
+		if (_job == null) {
+			throw new IllegalStateException("Job is null");
+		}
+
+		File propertiesFile = new File(_filePath);
+
+		File propertiesBaseDir = propertiesFile.getParentFile();
+
+		JobProperty.Type jobPropertyType = JobProperty.Type.DEFAULT_TEST_DIR;
+
+		if (!_filePath.endsWith("liferay-portal/test.properties")) {
+			jobPropertyType = JobProperty.Type.MODULE_TEST_DIR;
+		}
+
+		return JobPropertyFactory.newJobProperty(
+			"test.batch.names", "relevant", null, _name, _job,
+			propertiesBaseDir, jobPropertyType, true);
+	}
+
 	public List<TestBatch> getTestBatches() {
 		if (_job == null) {
 			throw new IllegalStateException("Job is null");
@@ -182,30 +208,6 @@ public class RelevantRule implements Comparable<RelevantRule> {
 		}
 
 		return _testBatches;
-	}
-
-	public Set<JobProperty> getTestBatchNamesJobProperties() {
-		return _testBatchNamesJobProperties;
-	}
-
-	public JobProperty getTestBatchNamesJobProperty() {
-		if (_job == null) {
-			throw new IllegalStateException("Job is null");
-		}
-
-		File propertiesFile = new File(_filePath);
-
-		File propertiesBaseDir = propertiesFile.getParentFile();
-
-		JobProperty.Type jobPropertyType = JobProperty.Type.DEFAULT_TEST_DIR;
-
-		if (!_filePath.endsWith("liferay-portal/test.properties")) {
-			jobPropertyType = JobProperty.Type.MODULE_TEST_DIR;
-		}
-
-		return JobPropertyFactory.newJobProperty(
-			"test.batch.names", "relevant", null, _name, _job,
-			propertiesBaseDir, jobPropertyType, true);
 	}
 
 	public String getTestScriptCommand() {
@@ -467,6 +469,13 @@ public class RelevantRule implements Comparable<RelevantRule> {
 		return (PortalGitWorkingDirectory)_gitWorkingDirectory;
 	}
 
+	private boolean _isIgnoreGlobalExcludes() {
+		return Boolean.parseBoolean(
+			JenkinsResultsParserUtil.getProperty(
+				getProperties(), "modified.files.ignore.global.excludes",
+				getName(), getTestSuiteName()));
+	}
+
 	private static final Set<String> _moduleDirPaths =
 		ConcurrentHashMap.newKeySet();
 
@@ -478,8 +487,8 @@ public class RelevantRule implements Comparable<RelevantRule> {
 	private List<File> _modifiedModuleProjectDirsList;
 	private final String _name;
 	private final Properties _properties;
-	private List<TestBatch> _testBatches;
 	private final Set<JobProperty> _testBatchNamesJobProperties =
 		new HashSet<>();
+	private List<TestBatch> _testBatches;
 
 }

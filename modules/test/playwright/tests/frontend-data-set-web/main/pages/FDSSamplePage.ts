@@ -60,6 +60,13 @@ export class FDSSamplePage {
 		itemsPerPageSelector: Locator;
 	};
 	readonly resubmitButton: Locator;
+	readonly searchSuggestions: {
+		clearAllButton: Locator;
+		menu: Locator;
+		recentSearchEntries: Locator;
+		recentlyVisitedEntries: Locator;
+		sectionHeadings: Locator;
+	};
 	readonly sidePanel: Locator;
 	readonly sidePanelFrame: FrameLocator;
 	readonly selectAllCheckbox: Locator;
@@ -185,6 +192,24 @@ export class FDSSamplePage {
 		};
 
 		this.resubmitButton = page.getByRole('button', {name: 'Resubmit'});
+
+		const searchSuggestionsMenu = page.locator('.fds-search-suggestions');
+
+		this.searchSuggestions = {
+			clearAllButton: searchSuggestionsMenu.getByRole('menuitem', {
+				name: 'Clear All',
+			}),
+			menu: searchSuggestionsMenu,
+			recentSearchEntries: searchSuggestionsMenu.locator(
+				'.fds-search-suggestions-query-item'
+			),
+			recentlyVisitedEntries: searchSuggestionsMenu.locator(
+				'.fds-search-suggestions-visited-item'
+			),
+			sectionHeadings: searchSuggestionsMenu.locator(
+				'.dropdown-subheader'
+			),
+		};
 
 		this.selectAllCheckbox = page.getByText('Select All');
 
@@ -349,6 +374,48 @@ export class FDSSamplePage {
 		return this.activeFiltersToolbar.container
 			.getByRole('button')
 			.filter({hasText: new RegExp(`^${label}:`)});
+	}
+
+	recentSearchEntry(query: string) {
+		return this.searchSuggestions.recentSearchEntries.getByRole(
+			'menuitem',
+			{
+				exact: true,
+				name: query,
+			}
+		);
+	}
+
+	recentSearchRemoveButton(query: string) {
+		return this.searchSuggestions.recentSearchEntries
+			.filter({
+				has: this.page.getByRole('menuitem', {
+					exact: true,
+					name: query,
+				}),
+			})
+			.getByRole('menuitem', {name: 'Clear Search'});
+	}
+
+	recentlyVisitedEntry(label: string) {
+		return this.searchSuggestions.recentlyVisitedEntries.getByRole(
+			'menuitem',
+			{
+				exact: true,
+				name: label,
+			}
+		);
+	}
+
+	recentlyVisitedRemoveButton(label: string) {
+		return this.searchSuggestions.recentlyVisitedEntries
+			.filter({
+				has: this.page.getByRole('menuitem', {
+					exact: true,
+					name: label,
+				}),
+			})
+			.getByRole('menuitem', {name: 'Remove'});
 	}
 
 	async search(value: string) {

@@ -1491,10 +1491,6 @@ public class PropsValues {
 	public static final String NETVIBES_SERVLET_MAPPING = PropsUtil.get(
 		PropsKeys.NETVIBES_SERVLET_MAPPING);
 
-	public static final boolean NOTIFICATION_EMAIL_TEMPLATE_ENABLED =
-		GetterUtil.getBoolean(
-			PropsUtil.get(PropsKeys.NOTIFICATION_EMAIL_TEMPLATE_ENABLED));
-
 	public static final int NOTIFICATIONS_MAX_EVENTS = GetterUtil.getInteger(
 		PropsUtil.get(PropsKeys.NOTIFICATIONS_MAX_EVENTS));
 
@@ -1943,9 +1939,6 @@ public class PropsValues {
 
 	public static final String RESOURCE_REPOSITORIES_ROOT = PropsUtil.get(
 		PropsKeys.RESOURCE_REPOSITORIES_ROOT);
-
-	public static final String[] REST_PROXY_URL_PREFIXES_ALLOWED =
-		PropsUtil.getArray(PropsKeys.REST_PROXY_URL_PREFIXES_ALLOWED);
 
 	public static final int RETRY_ADVICE_MAX_RETRIES = GetterUtil.getInteger(
 		PropsUtil.get(PropsKeys.RETRY_ADVICE_MAX_RETRIES));

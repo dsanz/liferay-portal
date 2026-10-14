@@ -174,6 +174,9 @@ public interface WebKeys {
 	public static final String FACEBOOK_USER_EMAIL_ADDRESS =
 		"FACEBOOK_USER_EMAIL_ADDRESS";
 
+	public static final String FIPS_SESSION_IDLE_TIMEOUT =
+		"FIPS_SESSION_IDLE_TIMEOUT";
+
 	public static final String FORGOT_PASSWORD_REMINDER_ATTEMPTS =
 		"FORGOT_PASSWORD_REMINDER_ATTEMPTS";
 
@@ -199,6 +202,9 @@ public interface WebKeys {
 	public static final String GROUP = "GROUP";
 
 	public static final String GROUP_FRIENDLY_URL = "GROUP_FRIENDLY_URL";
+
+	public static final String HTTP_SERVLET_REQUEST_PORTAL_PREFERENCES =
+		"LIFERAY_SHARED_HTTP_SERVLET_REQUEST_PORTAL_PREFERENCES";
 
 	public static final String HTTPS_INITIAL = "HTTPS_INITIAL";
 

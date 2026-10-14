@@ -97,10 +97,6 @@ export default function _JournalPortlet({
 	const handleAutoSave = () => {
 		lockHolder.lock?.lock();
 
-		actionInput.value = articleId
-			? '/journal/update_article'
-			: '/journal/add_article';
-
 		handleDDMFormValid({
 			redirectOnSave: false,
 			showErrors: false,
@@ -168,6 +164,8 @@ export default function _JournalPortlet({
 			titleInputComponent?.getValue(defaultLanguageId) ||
 			editingDefaultValues
 		) {
+			const articleAlreadyCreated = Boolean(articleId);
+
 			if (!articleId) {
 				const newArticleIdInput = document.getElementById(
 					`${namespace}newArticleId`
@@ -182,7 +180,15 @@ export default function _JournalPortlet({
 
 			articleIdInput.value = articleId;
 
+			if (!editingDefaultValues) {
+				actionInput.value = articleAlreadyCreated
+					? '/journal/update_article'
+					: '/journal/add_article';
+			}
+
 			availableLocalesInput.value = availableLocales;
+
+			const isFirstSave = !articleAlreadyCreated;
 
 			if (autoSaveDraftEnabled && !redirectOnSave) {
 				if (showErrors) {
@@ -198,12 +204,15 @@ export default function _JournalPortlet({
 						.then((validForm) => {
 							if (validForm) {
 								removeAlert();
-								submitAsyncForm(form, {redirectOnSave});
+								submitAsyncForm(form, {
+									isFirstSave,
+									redirectOnSave,
+								});
 							}
 						});
 				}
 				else {
-					submitAsyncForm(form, {redirectOnSave});
+					submitAsyncForm(form, {isFirstSave, redirectOnSave});
 				}
 			}
 			else if (!formSubmitted) {
@@ -336,7 +345,10 @@ export default function _JournalPortlet({
 
 	const submitAsyncForm = (
 		formElement,
-		{redirectOnSave} = {redirectOnSave: false}
+		{isFirstSave, redirectOnSave} = {
+			isFirstSave: false,
+			redirectOnSave: false,
+		}
 	) => {
 		return fetch(autoSaveDraftURL, {
 			body: new FormData(formElement),
@@ -355,7 +367,7 @@ export default function _JournalPortlet({
 			})
 			.then((data) => {
 				if (data.success) {
-					if (!articleId) {
+					if (isFirstSave) {
 						articleId = data.articleId;
 						document.getElementById(`${namespace}articleId`).value =
 							articleId;
@@ -412,8 +424,11 @@ export default function _JournalPortlet({
 					articleVersionInput.value = data.version;
 					displayedVersion.innerHTML = data.version;
 
-					articleIdWrapper.classList.remove('hide');
-					displayedArticleId.innerHTML = articleId;
+					if (articleIdWrapper) {
+						articleIdWrapper.classList.remove('hide');
+
+						displayedArticleId.innerHTML = articleId;
+					}
 
 					formDateInput.value = data.modifiedDate;
 					lockHolder.lock?.unlock();
@@ -428,7 +443,10 @@ export default function _JournalPortlet({
 					}
 				}
 				else {
-					formDateInput.value = data.modifiedDate;
+					if (data.modifiedDate) {
+						formDateInput.value = data.modifiedDate;
+					}
+
 					lockHolder.lock?.unlock(true);
 					showAlert(
 						Liferay.Language.get(

@@ -14,6 +14,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
@@ -27,6 +28,8 @@ import jakarta.xml.bind.annotation.XmlRootElement;
 
 import java.io.Serializable;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -396,6 +399,51 @@ public class ImportProcessRequest implements Serializable {
 		_requestPortletDataHandlersSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema
+	public String[] getSiteExternalReferenceCodes() {
+		if (_siteExternalReferenceCodesSupplier != null) {
+			siteExternalReferenceCodes =
+				_siteExternalReferenceCodesSupplier.get();
+
+			_siteExternalReferenceCodesSupplier = null;
+		}
+
+		return siteExternalReferenceCodes;
+	}
+
+	public void setSiteExternalReferenceCodes(
+		String[] siteExternalReferenceCodes) {
+
+		this.siteExternalReferenceCodes = siteExternalReferenceCodes;
+
+		_siteExternalReferenceCodesSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setSiteExternalReferenceCodes(
+		UnsafeSupplier<String[], Exception>
+			siteExternalReferenceCodesUnsafeSupplier) {
+
+		_siteExternalReferenceCodesSupplier = () -> {
+			try {
+				return siteExternalReferenceCodesUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected String[] siteExternalReferenceCodes;
+
+	@JsonIgnore
+	private Supplier<String[]> _siteExternalReferenceCodesSupplier;
+
+	@io.swagger.v3.oas.annotations.media.Schema
 	public Boolean getSitePagesSettings() {
 		if (_sitePagesSettingsSupplier != null) {
 			sitePagesSettings = _sitePagesSettingsSupplier.get();
@@ -714,6 +762,32 @@ public class ImportProcessRequest implements Serializable {
 			sb.append("]");
 		}
 
+		String[] siteExternalReferenceCodes = getSiteExternalReferenceCodes();
+
+		if (siteExternalReferenceCodes != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"siteExternalReferenceCodes\": ");
+
+			sb.append("[");
+
+			for (int i = 0; i < siteExternalReferenceCodes.length; i++) {
+				sb.append("\"");
+
+				sb.append(_escape(siteExternalReferenceCodes[i]));
+
+				sb.append("\"");
+
+				if ((i + 1) < siteExternalReferenceCodes.length) {
+					sb.append(", ");
+				}
+			}
+
+			sb.append("]");
+		}
+
 		Boolean sitePagesSettings = getSitePagesSettings();
 
 		if (sitePagesSettings != null) {
@@ -935,6 +1009,27 @@ public class ImportProcessRequest implements Serializable {
 		return sb.toString();
 	}
 
+	private static String _toJSON(Object value) {
+		if (value instanceof Collection) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONArray((Collection<?>)value));
+		}
+		else if (value instanceof Map) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONObject((Map<?, ?>)value));
+		}
+		else if (value instanceof Object[]) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONArray(
+					Arrays.asList((Object[])value)));
+		}
+		else if (value instanceof String) {
+			return StringBundler.concat("\"", _escape(value), "\"");
+		}
+
+		return String.valueOf(value);
+	}
+
 	private static final String[][] _JSON_ESCAPE_STRINGS = {
 		{"\\", "\"", "\b", "\f", "\n", "\r", "\t"},
 		{"\\\\", "\\\"", "\\b", "\\f", "\\n", "\\r", "\\t"}
@@ -943,4 +1038,4 @@ public class ImportProcessRequest implements Serializable {
 	private Map<String, Serializable> _extendedProperties;
 
 }
-// LIFERAY-REST-BUILDER-HASH:1043414390
+// LIFERAY-REST-BUILDER-HASH:-199456213

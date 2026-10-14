@@ -41,7 +41,7 @@ jobs:
                     if-no-files-found: ignore
                     path: cloud/terraform/test-results/*.xml
             -   name: Run Checkov
-                uses: bridgecrewio/checkov-action@v12
+                uses: bridgecrewio/checkov-action@v12.3125.0
                 with:
                     directory: ./cloud/terraform/${{matrix.stack}}
                     framework: terraform
@@ -53,8 +53,7 @@ jobs:
                     -   aws/dependencies
                     -   aws/ecr
                     -   aws/eks
-                    -   aws/gitops/platform
-                    -   aws/gitops/resources
+                    -   aws/platform
                     -   azure/aks
                     -   azure/platform
                     -   gcp/gitops/platform

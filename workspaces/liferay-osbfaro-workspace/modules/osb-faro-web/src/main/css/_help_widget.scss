@@ -12,7 +12,11 @@
 	bottom: 16px;
 	height: 40px;
 	position: fixed;
-	right: 16px;
+
+	// Offset by the chatbot toggle's width and gutter so the two sit side by
+	// side; `ai-hub-chatbot.ts` pins that toggle at a matching 40px.
+
+	right: 64px;
 	width: 40px;
 	z-index: $helpWidgetZIndex;
 

@@ -156,6 +156,20 @@ public interface AssetTagGroupRelModel
 	 */
 	public void setTagId(long tagId);
 
+	/**
+	 * Returns the depot entry type of this asset tag group rel.
+	 *
+	 * @return the depot entry type of this asset tag group rel
+	 */
+	public int getDepotEntryType();
+
+	/**
+	 * Sets the depot entry type of this asset tag group rel.
+	 *
+	 * @param depotEntryType the depot entry type of this asset tag group rel
+	 */
+	public void setDepotEntryType(int depotEntryType);
+
 	@Override
 	public AssetTagGroupRel cloneWithOriginalValues();
 
@@ -164,4 +178,4 @@ public interface AssetTagGroupRelModel
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-1044320999
+// LIFERAY-SERVICE-BUILDER-HASH:-60816522

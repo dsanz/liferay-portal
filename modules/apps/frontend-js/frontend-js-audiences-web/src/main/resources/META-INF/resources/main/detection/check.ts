@@ -17,6 +17,7 @@ import type {
 } from '../index';
 
 const ATTRIBUTES: Attribute[] = [
+	'batch_segments',
 	'browser_name',
 	'browser_version',
 	'cookies',
@@ -27,9 +28,9 @@ const ATTRIBUTES: Attribute[] = [
 	'local_date',
 	'local_hour',
 	'pathname',
+	'real_time_segments',
 	'referrer',
 	'request_parameters',
-	'segments',
 	'timezone',
 	'url',
 	'user_agent',
@@ -87,7 +88,7 @@ function checkAudience(audience: Audience, index: number) {
 	const what = `Audience '${audience?.id ?? `#${index + 1}`}'`;
 
 	checkObject(audience, what);
-	checkKeys(audience, ['conjunction', 'id', 'rules'], what);
+	checkKeys(audience, ['conjunction', 'id', 'rules', 'scope'], what);
 	checkOneOf(
 		audience.conjunction,
 		CONJUNCTIONS,
@@ -95,6 +96,7 @@ function checkAudience(audience: Audience, index: number) {
 	);
 	checkString(audience.id, `${what} field 'id'`);
 	checkRules(audience.rules, `${what} field 'rules'`);
+	checkScope(audience.scope, `${what} field 'scope'`);
 }
 
 function checkRules(rules: Rule[], what: string) {
@@ -180,6 +182,14 @@ function checkOneOf<T extends string>(value: any, alloweds: T[], what: string) {
 	throw new Error(
 		`${what} must be one of: ${alloweds.map((v) => `'${v}'`).join(', ')}`
 	);
+}
+
+function checkScope(scope: any, what: string) {
+	checkArray(scope, what);
+
+	for (let i = 0; i < scope.length; i++) {
+		checkString(scope[i], `${what}[${i}]`);
+	}
 }
 
 function checkString(thing: any, what: string) {

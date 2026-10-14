@@ -7,12 +7,8 @@ package com.liferay.frontend.token.definition.internal.frontend.css.variables;
 
 import com.liferay.frontend.css.variables.ScopedCSSVariables;
 import com.liferay.frontend.css.variables.ScopedCSSVariablesProvider;
-import com.liferay.frontend.token.definition.FrontendToken;
 import com.liferay.frontend.token.definition.FrontendTokenDefinition;
 import com.liferay.frontend.token.definition.FrontendTokenDefinitionRegistry;
-import com.liferay.frontend.token.definition.FrontendTokenMapping;
-import com.liferay.petra.concurrent.ConcurrentReferenceKeyHashMap;
-import com.liferay.petra.memory.FinalizeManager;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -22,7 +18,6 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
@@ -66,8 +61,8 @@ public class DefaultThemeScopedCSSVariablesProvider
 			return Collections.emptyList();
 		}
 
-		Map<String, String> cssVariables = _cssVariablesMap.computeIfAbsent(
-			frontendTokenDefinition, this::_getCSSVariables);
+		Map<String, String> cssVariables =
+			frontendTokenDefinition.getCSSVariables();
 
 		return Collections.singletonList(
 			new ScopedCSSVariables() {
@@ -84,47 +79,6 @@ public class DefaultThemeScopedCSSVariablesProvider
 
 			});
 	}
-
-	private Map<String, String> _getCSSVariables(
-		FrontendTokenDefinition frontendTokenDefinition) {
-
-		Map<String, String> cssVariables = new HashMap<>();
-
-		for (FrontendToken frontendToken :
-				frontendTokenDefinition.getFrontendTokens()) {
-
-			if (frontendToken.<Object>getDefaultValue() == null) {
-				continue;
-			}
-
-			String defaultValue = String.valueOf(
-				frontendToken.<Object>getDefaultValue());
-
-			if (Validator.isNull(defaultValue)) {
-				continue;
-			}
-
-			Collection<FrontendTokenMapping> frontendTokenMappings =
-				frontendToken.getFrontendTokenMappings(
-					FrontendTokenMapping.TYPE_CSS_VARIABLE);
-
-			if (frontendTokenMappings == null) {
-				continue;
-			}
-
-			for (FrontendTokenMapping frontendTokenMapping :
-					frontendTokenMappings) {
-
-				cssVariables.put(frontendTokenMapping.getValue(), defaultValue);
-			}
-		}
-
-		return Collections.unmodifiableMap(cssVariables);
-	}
-
-	private final Map<FrontendTokenDefinition, Map<String, String>>
-		_cssVariablesMap = new ConcurrentReferenceKeyHashMap<>(
-			FinalizeManager.WEAK_REFERENCE_FACTORY);
 
 	@Reference
 	private FrontendTokenDefinitionRegistry _frontendTokenDefinitionRegistry;

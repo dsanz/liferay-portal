@@ -16,7 +16,6 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
-import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
@@ -41,17 +40,46 @@ public class LayoutPageTemplateTestUtil {
 			long groupId, int type)
 		throws PortalException {
 
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(
-				groupId, TestPropsValues.getUserId());
+		return addLayoutPageTemplateCollection(
+			StringPool.BLANK, null, groupId, null,
+			RandomTestUtil.randomString(), type);
+	}
+
+	public static LayoutPageTemplateCollection addLayoutPageTemplateCollection(
+			long groupId, long parentLayoutPageTemplateCollectionId, int type)
+		throws PortalException {
+
+		return addLayoutPageTemplateCollection(
+			StringPool.BLANK, null, groupId, null,
+			RandomTestUtil.randomString(), parentLayoutPageTemplateCollectionId,
+			type);
+	}
+
+	public static LayoutPageTemplateCollection addLayoutPageTemplateCollection(
+			String description, String externalReferenceCode, long groupId,
+			String key, String name, int type)
+		throws PortalException {
+
+		return addLayoutPageTemplateCollection(
+			description, externalReferenceCode, groupId, key, name,
+			LayoutPageTemplateConstants.
+				PARENT_LAYOUT_PAGE_TEMPLATE_COLLECTION_ID_DEFAULT,
+			type);
+	}
+
+	public static LayoutPageTemplateCollection addLayoutPageTemplateCollection(
+			String description, String externalReferenceCode, long groupId,
+			String key, String name, long parentLayoutPageTemplateCollectionId,
+			int type)
+		throws PortalException {
 
 		return LayoutPageTemplateCollectionLocalServiceUtil.
 			addLayoutPageTemplateCollection(
-				null, TestPropsValues.getUserId(), groupId,
-				LayoutPageTemplateConstants.
-					PARENT_LAYOUT_PAGE_TEMPLATE_COLLECTION_ID_DEFAULT,
-				null, RandomTestUtil.randomString(), StringPool.BLANK, type,
-				serviceContext);
+				externalReferenceCode, TestPropsValues.getUserId(), groupId,
+				parentLayoutPageTemplateCollectionId, key, name, description,
+				type,
+				ServiceContextTestUtil.getServiceContext(
+					groupId, TestPropsValues.getUserId()));
 	}
 
 	public static LayoutPageTemplateEntry addLayoutPageTemplateEntry(

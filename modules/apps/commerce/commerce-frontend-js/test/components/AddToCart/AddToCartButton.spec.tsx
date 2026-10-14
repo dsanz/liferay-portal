@@ -68,6 +68,8 @@ describe('Add to Cart Button', () => {
 	const {Liferay: originalLiferayObject} = global.window;
 
 	beforeEach(() => {
+		fetchMock.mockGlobal();
+
 		fetchMock.get(
 			/headless-commerce-delivery-cart\/v1.0\/carts\/[0-9]+\?nestedFields=cartItems/,
 			() => {
@@ -86,7 +88,7 @@ describe('Add to Cart Button', () => {
 
 		fetchMock.post(
 			/headless-commerce-delivery-cart\/v1.0\/channels\/[0-9]+\/carts\?nestedFields=cartItems/,
-			(_: any, options: any) => {
+			({options}: any) => {
 				createCartFn(JSON.parse(options.body || '{}'));
 
 				return {items: []};
@@ -95,7 +97,7 @@ describe('Add to Cart Button', () => {
 
 		fetchMock.post(
 			/headless-commerce-delivery-cart\/v1.0\/carts\/[0-9]+\/items/,
-			(_: any, options: any) => {
+			({options}: any) => {
 				addProductToCartFn(JSON.parse(options.body || '{}'));
 
 				return {};
@@ -104,7 +106,7 @@ describe('Add to Cart Button', () => {
 
 		fetchMock.patch(
 			/\/o\/headless-commerce-delivery-cart\/v1.0\/carts\/[0-9]+\?nestedFields=cartItems/,
-			(_: any, options: any) => {
+			({options}: any) => {
 				addProductsToCartFn(JSON.parse(options.body || '{}'));
 
 				return {cartItems: []};
@@ -125,7 +127,7 @@ describe('Add to Cart Button', () => {
 	afterEach(() => {
 		cleanup();
 
-		fetchMock.restore();
+		fetchMock.hardReset();
 
 		addProductToCartFn.mockReset();
 		addProductsToCartFn.mockReset();

@@ -101,7 +101,8 @@ public abstract class BaseTestClass implements TestClass {
 		).put(
 			"average_overhead_duration", getAverageOverheadDuration()
 		).put(
-			"file", getTestClassFile()
+			"file",
+			JenkinsResultsParserUtil.getCanonicalPath(getTestClassFile())
 		).put(
 			"ignored", isIgnored()
 		);
@@ -209,13 +210,6 @@ public abstract class BaseTestClass implements TestClass {
 	}
 
 	@Override
-	public int hashCode() {
-		JSONObject jsonObject = getJSONObject();
-
-		return jsonObject.hashCode();
-	}
-
-	@Override
 	public boolean hasTestClassMethods() {
 		List<TestClassMethod> testClassMethods = getTestClassMethods();
 
@@ -224,6 +218,13 @@ public abstract class BaseTestClass implements TestClass {
 		}
 
 		return true;
+	}
+
+	@Override
+	public int hashCode() {
+		JSONObject jsonObject = getJSONObject();
+
+		return jsonObject.hashCode();
 	}
 
 	@Override

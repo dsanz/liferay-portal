@@ -78,10 +78,12 @@ import {config as systemSettingsWithUIConfig} from './tests/configuration-admin-
 import {config as consentManagementPlatformIntegrationConfig} from './tests/consent-management-platform-integration/main/config';
 import {config as contactsWebConfig} from './tests/contacts-web/main/config';
 import {config as contentDashboardWebConfig} from './tests/content-dashboard-web/main/config';
+import {config as contentMarketingPlatformWebConfig} from './tests/content-marketing-platform-web/main/config';
 import {config as cookiesBannerWebConfig} from './tests/cookies-banner-web/main/config';
 import {config as dataCleanupConfig} from './tests/data-cleanup/main/config';
 import {config as depotWebConfig} from './tests/depot-web/main/config';
 import {config as designLibraryWebConfig} from './tests/design-library-web/main/config';
+import {config as digitalSalesRoomWebConfig} from './tests/digital-sales-room-web/main/config';
 import {config as dispatchWebConfig} from './tests/dispatch-web/main/config';
 import {config as documentLibraryWebConfig} from './tests/document-library-web/main/config';
 import {config as dynamicDataMappingFormWebConfig} from './tests/dynamic-data-mapping-form-web/main/config';
@@ -105,9 +107,11 @@ import {config as frontendJsAuiWebSearchContainerSelectConfig} from './tests/fro
 import {config as frontendJsBootstrapSupportWebConfig} from './tests/frontend-js-bootstrap-support-web/main/config';
 import {config as frontendJsClayWebConfig} from './tests/frontend-js-clay-web/main/config';
 import {config as frontendJsComponentsWebConfig} from './tests/frontend-js-components-web/main/config';
+import {config as frontendJsImageEditorWebConfig} from './tests/frontend-js-image-editor-web/main/config';
 import {config as frontendJsItemSelectorWebConfig} from './tests/frontend-js-item-selector-web/main/config';
 import {config as frontendJsSpaWebConfig} from './tests/frontend-js-spa-web/main/config';
 import {config as frontendJsWebConfig} from './tests/frontend-js-web/main/config';
+import {config as frontendJsWebSessionTimeoutWarningConfig} from './tests/frontend-js-web/session-timeout-warning/config';
 import {config as frontendTaglibClayConfig} from './tests/frontend-taglib-clay/main/config';
 import {config as frontendTaglibConfig} from './tests/frontend-taglib/main/config';
 import {config as frontendTaglibSpaOffConfig} from './tests/frontend-taglib/spa-off/config';
@@ -116,6 +120,7 @@ import {config as headlessBuilderImplConfig} from './tests/headless-builder-impl
 import {config as headlessBuilderWebConfig} from './tests/headless-builder-web/main/config';
 import {config as headlessDiscoveryWebConfig} from './tests/headless-discovery-web/main/config';
 import {config as iframeWebConfig} from './tests/iframe-web/main/config';
+import {config as ipGeocoderSampleWebConfig} from './tests/ip-geocoder-sample-web/main/config';
 import {config as itemSelectorTaglibConfig} from './tests/item-selector-taglib/main/config';
 import {config as journalWebConfig} from './tests/journal-web/main/config';
 import {config as knowledgeBaseWebConfig} from './tests/knowledge-base-web/main/config';
@@ -172,7 +177,25 @@ import {config as osbFaroWebSettingsConfig} from './tests/osb-faro-web/settings/
 import {config as passwordPoliciesAdminWebFirstLoginConfig} from './tests/password-policies-admin-web/first-login/config';
 import {config as passwordPoliciesAdminWebConfig} from './tests/password-policies-admin-web/main/config';
 import {config as passwordPoliciesAdminWebSetupAdminConfig} from './tests/password-policies-admin-web/setup-admin/config';
-import {config as portalDbInfrastructureUpgradeConfig} from './tests/portal-db-infrastructure/upgrade/config';
+import {config as portalDBInfrastructureUpgradeAFSStore7413Config} from './tests/portal-db-infrastructure/upgrade-afs-store-7413/config';
+import {config as portalDBInfrastructureUpgradeDBStore621021Config} from './tests/portal-db-infrastructure/upgrade-db-store-621021/config';
+import {config as portalDBInfrastructureUpgradeDBStore7310Config} from './tests/portal-db-infrastructure/upgrade-db-store-7310/config';
+import {config as portalDBInfrastructureUpgradeDBStore7413Config} from './tests/portal-db-infrastructure/upgrade-db-store-7413/config';
+import {config as portalDBInfrastructureUpgradePortal6130Config} from './tests/portal-db-infrastructure/upgrade-portal-6130/config';
+import {config as portalDBInfrastructureUpgradePortal621021Config} from './tests/portal-db-infrastructure/upgrade-portal-621021/config';
+import {config as portalDBInfrastructureUpgradePortal625Config} from './tests/portal-db-infrastructure/upgrade-portal-625/config';
+import {config as portalDBInfrastructureUpgradePortal70106Config} from './tests/portal-db-infrastructure/upgrade-portal-70106/config';
+import {config as portalDBInfrastructureUpgradePortal7110Config} from './tests/portal-db-infrastructure/upgrade-portal-7110/config';
+import {config as portalDBInfrastructureUpgradePortal71103Config} from './tests/portal-db-infrastructure/upgrade-portal-71103/config';
+import {config as portalDBInfrastructureUpgradePortal7210Config} from './tests/portal-db-infrastructure/upgrade-portal-7210/config';
+import {config as portalDBInfrastructureUpgradePortal7310Config} from './tests/portal-db-infrastructure/upgrade-portal-7310/config';
+import {config as portalDBInfrastructureUpgradePortal7413Config} from './tests/portal-db-infrastructure/upgrade-portal-7413/config';
+import {config as portalDBInfrastructureUpgradePortalPartition7413u33Config} from './tests/portal-db-infrastructure/upgrade-portal-partition-7413u33/config';
+import {config as portalDBInfrastructureUpgradePortletsPermissions621015Config} from './tests/portal-db-infrastructure/upgrade-portlets-permissions-621015/config';
+import {config as portalDBInfrastructureUpgradePortletsPermissions621021Config} from './tests/portal-db-infrastructure/upgrade-portlets-permissions-621021/config';
+import {config as portalDBInfrastructureUpgradeVirtualInstances621021Config} from './tests/portal-db-infrastructure/upgrade-virtual-instances-621021/config';
+import {config as portalDBInfrastructureUpgradeVirtualInstances7310Config} from './tests/portal-db-infrastructure/upgrade-virtual-instances-7310/config';
+import {config as portalDBInfrastructureUpgradeVirtualInstances7413u33Config} from './tests/portal-db-infrastructure/upgrade-virtual-instances-7413u33/config';
 import {config as portalDefaultPermissionsWebConfig} from './tests/portal-default-permissions-web/main/config';
 import {config as portalImplMainConfig} from './tests/portal-impl/main/config';
 import {config as portalImplPortletConfig} from './tests/portal-impl/portlet/config';
@@ -213,22 +236,17 @@ import {config as scimConfiguraitonWebConfig} from './tests/scim-configuration-w
 import {config as searchExperiencesWebConfig} from './tests/search-experiences-web/main/config';
 import {config as segmentExperimentWebConfig} from './tests/segment-experiment-web/main/config';
 import {config as segmentsWebConfig} from './tests/segments-web/main/config';
-import {config as seoStudioWebConfig} from './tests/seo-studio-web/main/config';
 import {config as serverAdminWebDatabaseMigrationConfig} from './tests/server-admin-web/database-migration/config';
 import {config as serverAdminWebConfig} from './tests/server-admin-web/main/config';
 import {config as pageManagementSiteConfig} from './tests/setup/page-management-site/main/config';
 import {config as pageManagementSiteTeardownConfig} from './tests/setup/page-management-site/teardown/config';
-import {config as seoStudioSiteConfig} from './tests/setup/seo-studio-site/main/config';
-import {config as seoStudioSiteTeardownConfig} from './tests/setup/seo-studio-site/teardown/config';
 import {config as siteCmsSiteConfig} from './tests/setup/site-cms-site/main/config';
 import {config as siteCmsSiteTeardownConfig} from './tests/setup/site-cms-site/teardown/config';
 import {config as siteAdminWebConfig} from './tests/site-admin-web/main/config';
-import {config as siteCmpSiteInitializerConfig} from './tests/site-cmp-site-initializer/main/config';
 import {config as siteCmsSiteInitializerConfig} from './tests/site-cms-site-initializer/main/config';
 import {config as siteCmsSiteInitializerPermissionsConfig} from './tests/site-cms-site-initializer/permissions/config';
 import {config as siteCmsSiteInitializerStructureBuilderConfig} from './tests/site-cms-site-initializer/structure-builder/config';
 import {config as siteCmsStandaloneSiteInitializerConfig} from './tests/site-cms-standalone-site-initializer/main/config';
-import {config as siteDsrSiteInitializerConfig} from './tests/site-dsr-site-initializer/main/config';
 import {config as siteMySitesWebConfig} from './tests/site-my-sites-web/main/config';
 import {config as siteNavigationAdminWebConfig} from './tests/site-navigation-admin-web/main/config';
 import {config as siteNavigationBreadcrumbWebConfig} from './tests/site-navigation-breadcrumb-web/main/config';
@@ -258,8 +276,6 @@ import {config as marketplaceConfig} from './tests/workspaces/liferay-workspace-
 const setupProjects = [
 	pageManagementSiteConfig,
 	pageManagementSiteTeardownConfig,
-	seoStudioSiteConfig,
-	seoStudioSiteTeardownConfig,
 	siteCmsSiteConfig,
 	siteCmsSiteTeardownConfig,
 ];
@@ -344,10 +360,12 @@ export default defineConfig({
 		systemSettingsOverrideConfig,
 		systemSettingsWithUIConfig,
 		contentDashboardWebConfig,
+		contentMarketingPlatformWebConfig,
 		cookiesBannerWebConfig,
 		customerConfig,
 		depotWebConfig,
 		designLibraryWebConfig,
+		digitalSalesRoomWebConfig,
 		dispatchWebConfig,
 		documentLibraryWebConfig,
 		dynamicDataMappingFormWebConfig,
@@ -371,9 +389,11 @@ export default defineConfig({
 		frontendJsBootstrapSupportWebConfig,
 		frontendJsClayWebConfig,
 		frontendJsComponentsWebConfig,
+		frontendJsImageEditorWebConfig,
 		frontendJsItemSelectorWebConfig,
 		frontendJsSpaWebConfig,
 		frontendJsWebConfig,
+		frontendJsWebSessionTimeoutWarningConfig,
 		frontendTaglibClayConfig,
 		frontendTaglibConfig,
 		frontendTaglibSpaOffConfig,
@@ -382,6 +402,7 @@ export default defineConfig({
 		headlessBuilderWebConfig,
 		headlessDiscoveryWebConfig,
 		iframeWebConfig,
+		ipGeocoderSampleWebConfig,
 		itemSelectorTaglibConfig,
 		journalWebConfig,
 		knowledgeBaseWebConfig,
@@ -439,7 +460,25 @@ export default defineConfig({
 		passwordPoliciesAdminWebConfig,
 		passwordPoliciesAdminWebFirstLoginConfig,
 		passwordPoliciesAdminWebSetupAdminConfig,
-		portalDbInfrastructureUpgradeConfig,
+		portalDBInfrastructureUpgradeAFSStore7413Config,
+		portalDBInfrastructureUpgradeDBStore621021Config,
+		portalDBInfrastructureUpgradeDBStore7310Config,
+		portalDBInfrastructureUpgradeDBStore7413Config,
+		portalDBInfrastructureUpgradePortal6130Config,
+		portalDBInfrastructureUpgradePortal621021Config,
+		portalDBInfrastructureUpgradePortal625Config,
+		portalDBInfrastructureUpgradePortal70106Config,
+		portalDBInfrastructureUpgradePortal71103Config,
+		portalDBInfrastructureUpgradePortal7110Config,
+		portalDBInfrastructureUpgradePortal7210Config,
+		portalDBInfrastructureUpgradePortal7310Config,
+		portalDBInfrastructureUpgradePortal7413Config,
+		portalDBInfrastructureUpgradePortalPartition7413u33Config,
+		portalDBInfrastructureUpgradePortletsPermissions621015Config,
+		portalDBInfrastructureUpgradePortletsPermissions621021Config,
+		portalDBInfrastructureUpgradeVirtualInstances621021Config,
+		portalDBInfrastructureUpgradeVirtualInstances7310Config,
+		portalDBInfrastructureUpgradeVirtualInstances7413u33Config,
 		portalDefaultPermissionsWebConfig,
 		portalImplMainConfig,
 		portalImplPortletConfig,
@@ -481,16 +520,13 @@ export default defineConfig({
 		searchExperiencesWebConfig,
 		segmentExperimentWebConfig,
 		segmentsWebConfig,
-		seoStudioWebConfig,
 		serverAdminWebConfig,
 		serverAdminWebDatabaseMigrationConfig,
 		siteAdminWebConfig,
-		siteCmpSiteInitializerConfig,
 		siteCmsSiteInitializerConfig,
 		siteCmsSiteInitializerPermissionsConfig,
 		siteCmsSiteInitializerStructureBuilderConfig,
 		siteCmsStandaloneSiteInitializerConfig,
-		siteDsrSiteInitializerConfig,
 		siteMySitesWebConfig,
 		siteNavigationAdminWebConfig,
 		siteNavigationBreadcrumbWebConfig,

@@ -5,18 +5,85 @@
 
 package com.liferay.layout.page.template.admin.web.internal.util;
 
+import com.liferay.layout.page.template.admin.constants.LayoutPageTemplateAdminPortletKeys;
 import com.liferay.layout.page.template.model.LayoutPageTemplateCollection;
 import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
+import com.liferay.layout.page.template.service.LayoutPageTemplateCollectionLocalServiceUtil;
 import com.liferay.layout.page.template.util.comparator.LayoutPageTemplateCollectionCreateDateComparator;
 import com.liferay.layout.page.template.util.comparator.LayoutPageTemplateCollectionNameComparator;
 import com.liferay.layout.page.template.util.comparator.LayoutPageTemplateEntryCreateDateComparator;
 import com.liferay.layout.page.template.util.comparator.LayoutPageTemplateEntryNameComparator;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.Validator;
+
+import jakarta.portlet.RenderResponse;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * @author Jürgen Kappler
  */
 public class LayoutPageTemplatePortletUtil {
+
+	public static LayoutPageTemplateCollection
+		fetchLayoutPageTemplateCollection(
+			HttpServletRequest httpServletRequest, long groupId) {
+
+		String portletNamespace = PortalUtil.getPortletNamespace(
+			LayoutPageTemplateAdminPortletKeys.LAYOUT_PAGE_TEMPLATES);
+
+		long layoutPageTemplateCollectionId = ParamUtil.getLong(
+			httpServletRequest,
+			portletNamespace + "layoutPageTemplateCollectionId",
+			ParamUtil.getLong(
+				httpServletRequest, "layoutPageTemplateCollectionId"));
+
+		if (layoutPageTemplateCollectionId > 0) {
+			LayoutPageTemplateCollection layoutPageTemplateCollection =
+				LayoutPageTemplateCollectionLocalServiceUtil.
+					fetchLayoutPageTemplateCollection(
+						layoutPageTemplateCollectionId);
+
+			if ((layoutPageTemplateCollection != null) &&
+				(layoutPageTemplateCollection.getGroupId() == groupId)) {
+
+				return layoutPageTemplateCollection;
+			}
+
+			return null;
+		}
+
+		String externalReferenceCode = ParamUtil.getString(
+			httpServletRequest,
+			portletNamespace +
+				"layoutPageTemplateCollectionExternalReferenceCode",
+			ParamUtil.getString(
+				httpServletRequest,
+				"layoutPageTemplateCollectionExternalReferenceCode"));
+
+		if (Validator.isNull(externalReferenceCode)) {
+			return null;
+		}
+
+		return LayoutPageTemplateCollectionLocalServiceUtil.
+			fetchLayoutPageTemplateCollectionByExternalReferenceCode(
+				externalReferenceCode, groupId);
+	}
+
+	public static String getBackURL(
+		RenderResponse renderResponse, ThemeDisplay themeDisplay) {
+
+		String backURL = HttpComponentsUtil.removeParameter(
+			themeDisplay.getURLCurrent(),
+			renderResponse.getNamespace() + "backURL");
+
+		return HttpComponentsUtil.removeParameter(
+			backURL, renderResponse.getNamespace() + "redirect");
+	}
 
 	public static OrderByComparator<LayoutPageTemplateCollection>
 		getLayoutPageTemplateCollectionOrderByComparator(

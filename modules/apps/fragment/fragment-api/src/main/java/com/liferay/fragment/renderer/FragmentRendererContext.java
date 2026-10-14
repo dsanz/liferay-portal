@@ -8,6 +8,7 @@ package com.liferay.fragment.renderer;
 import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.info.form.InfoForm;
 import com.liferay.info.item.InfoItemReference;
+import com.liferay.portal.kernel.json.JSONObject;
 
 import java.io.Serializable;
 
@@ -26,6 +27,8 @@ public interface FragmentRendererContext {
 
 	public Map<String, Serializable> getAttributes();
 
+	public Object getContextInfoItem();
+
 	public InfoItemReference getContextInfoItemReference();
 
 	public String getFragmentElementId();
@@ -37,6 +40,8 @@ public interface FragmentRendererContext {
 	public Locale getLocale();
 
 	public String getMode();
+
+	public JSONObject getModifiableEditableValuesJSONObject();
 
 	public long getPreviewClassNameId();
 

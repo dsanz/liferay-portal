@@ -17,10 +17,12 @@ import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.lang.ThreadContextClassLoaderUtil;
 import com.liferay.petra.string.CharPool;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.petra.string.StringUtil;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -32,6 +34,7 @@ import com.liferay.portal.kernel.xml.SAXReaderUtil;
 import com.liferay.segments.model.SegmentsExperience;
 import com.liferay.segments.service.SegmentsExperienceLocalService;
 import com.liferay.translation.exception.XLIFFFileException;
+import com.liferay.translation.internal.configuration.TranslationCompanyConfigurationUtil;
 import com.liferay.translation.internal.util.XLIFFLocaleIdUtil;
 import com.liferay.translation.snapshot.TranslationSnapshot;
 import com.liferay.translation.snapshot.TranslationSnapshotProvider;
@@ -52,6 +55,7 @@ import java.util.regex.Pattern;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.exceptions.OkapiIllegalFilterOperationException;
+import net.sf.okapi.common.resource.Code;
 import net.sf.okapi.common.resource.DocumentPart;
 import net.sf.okapi.common.resource.ITextUnit;
 import net.sf.okapi.common.resource.Property;
@@ -64,6 +68,7 @@ import net.sf.okapi.common.resource.TextPart;
 import net.sf.okapi.filters.autoxliff.AutoXLIFFFilter;
 import net.sf.okapi.lib.xliff2.InvalidParameterException;
 import net.sf.okapi.lib.xliff2.XLIFFException;
+import net.sf.okapi.lib.xliff2.core.CTag;
 import net.sf.okapi.lib.xliff2.core.Fragment;
 import net.sf.okapi.lib.xliff2.core.Part;
 import net.sf.okapi.lib.xliff2.core.StartXliffData;
@@ -177,6 +182,13 @@ public class XLIFFTranslationSnapshotProvider
 
 		_validateXLIFFStartSubdocument(infoItemReference, startSubDocument);
 
+		if (TranslationCompanyConfigurationUtil.
+				isHTMLInlineCodeProtectionEnabled(
+					CompanyThreadLocal.getCompanyId())) {
+
+			_validateInlineCodes(events);
+		}
+
 		Locale sourceLocale = _getSourceLocale(startSubDocument);
 		Locale targetLocale = _getTargetLocale(startSubDocument);
 
@@ -200,6 +212,13 @@ public class XLIFFTranslationSnapshotProvider
 		xliffDocument.load(tempFile);
 
 		_validateXLIFFFile(groupId, infoItemReference, xliffDocument);
+
+		if (TranslationCompanyConfigurationUtil.
+				isHTMLInlineCodeProtectionEnabled(
+					CompanyThreadLocal.getCompanyId())) {
+
+			_validateInlineCodes(xliffDocument);
+		}
 
 		StartXliffData startXliffData = xliffDocument.getStartXliffData();
 
@@ -344,6 +363,16 @@ public class XLIFFTranslationSnapshotProvider
 		return LocaleUtil.fromLanguageId(targetLanguageProperty.getValue());
 	}
 
+	private boolean _hasInlineCodes(Fragment fragment) {
+		for (Object object : fragment) {
+			if (object instanceof CTag) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	private boolean _isBlankTargetUnit(Unit unit) {
 		for (int i = 0; i < unit.getPartCount(); i++) {
 			Part part = unit.getPart(i);
@@ -352,6 +381,15 @@ public class XLIFFTranslationSnapshotProvider
 
 			if ((targetFragment == null) ||
 				!Validator.isBlank(targetFragment.getPlainText())) {
+
+				return false;
+			}
+
+			Fragment sourceFragment = part.getSource();
+
+			if (_hasInlineCodes(targetFragment) &&
+				((sourceFragment == null) ||
+				 Validator.isBlank(sourceFragment.getPlainText()))) {
 
 				return false;
 			}
@@ -465,27 +503,45 @@ public class XLIFFTranslationSnapshotProvider
 						"There is no translation target");
 				}
 
-				String targetPlaintext = targetFragment.getPlainText();
+				String targetText = _toText(targetFragment);
 
 				unsafeConsumer.accept(
 					new InfoFieldValue<>(
 						_createInfoField(targetLocale, unit.getId()),
 						InfoLocalizedValue.builder(
 						).value(
-							targetLocale, targetPlaintext
+							targetLocale, targetText
 						).value(
 							biConsumer -> {
 								if (includeSource) {
 									Fragment sourceFragment = part.getSource();
 
 									biConsumer.accept(
-										sourceLocale,
-										sourceFragment.getPlainText());
+										sourceLocale, _toText(sourceFragment));
 								}
 							}
 						).build()));
 			}
 		}
+	}
+
+	private String _toText(Fragment fragment) {
+		StringBundler sb = new StringBundler();
+
+		for (Object object : fragment) {
+			if (object instanceof CTag) {
+				CTag cTag = (CTag)object;
+
+				if (cTag.hasData()) {
+					sb.append(cTag.getData());
+				}
+			}
+			else if (object instanceof String) {
+				sb.append((String)object);
+			}
+		}
+
+		return sb.toString();
 	}
 
 	private void _validateDocumentPartVersion(List<Event> events)
@@ -503,6 +559,83 @@ public class XLIFFTranslationSnapshotProvider
 					throw new XLIFFFileException.MustBeValid(
 						"version must be 1.2");
 				}
+			}
+		}
+	}
+
+	private void _validateInlineCodes(Fragment fragment)
+		throws XLIFFFileException.MustBeValid {
+
+		if (fragment == null) {
+			return;
+		}
+
+		for (Object object : fragment) {
+			if (object instanceof CTag) {
+				CTag cTag = (CTag)object;
+
+				if (!cTag.hasData()) {
+					throw new XLIFFFileException.MustBeValid(
+						StringBundler.concat(
+							"Inline code \"", cTag.getId(),
+							"\" has no original data"));
+				}
+			}
+		}
+	}
+
+	private void _validateInlineCodes(List<Event> events)
+		throws XLIFFFileException.MustBeValid {
+
+		for (Event event : events) {
+			if (!event.isTextUnit()) {
+				continue;
+			}
+
+			ITextUnit iTextUnit = event.getTextUnit();
+
+			_validateInlineCodes(iTextUnit.getSource());
+
+			for (LocaleId targetLocaleId : iTextUnit.getTargetLocales()) {
+				_validateInlineCodes(iTextUnit.getTarget(targetLocaleId));
+			}
+		}
+	}
+
+	private void _validateInlineCodes(TextContainer textContainer)
+		throws XLIFFFileException.MustBeValid {
+
+		if (textContainer == null) {
+			return;
+		}
+
+		for (TextPart textPart : textContainer.getParts()) {
+			TextFragment textFragment = textPart.getContent();
+
+			if (textFragment == null) {
+				continue;
+			}
+
+			for (Code code : textFragment.getCodes()) {
+				if (Validator.isNull(code.getData())) {
+					throw new XLIFFFileException.MustBeValid(
+						StringBundler.concat(
+							"Inline code \"", code.getId(),
+							"\" has no original data"));
+				}
+			}
+		}
+	}
+
+	private void _validateInlineCodes(XLIFFDocument xliffDocument)
+		throws XLIFFFileException.MustBeValid {
+
+		for (Unit unit : xliffDocument.getUnits()) {
+			for (int i = 0; i < unit.getPartCount(); i++) {
+				Part part = unit.getPart(i);
+
+				_validateInlineCodes(part.getSource());
+				_validateInlineCodes(part.getTarget());
 			}
 		}
 	}

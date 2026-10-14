@@ -798,9 +798,9 @@
 					classname="com.liferay.source.formatter.SourceFormatter"
 					classpathref="source.formatter.classpath"
 					dir="${source.formatter.dir}"
-					failonerror="true"
 					fork="true"
 					newenvironment="true"
+					resultproperty="source.formatter.result"
 				>
 					<jvmarg if:true="${jvm.debug}" value="${jpda.settings}" />
 					<jvmarg value="-Dfile.encoding=UTF-8" />
@@ -833,6 +833,22 @@
 					<arg value="use.ci.github.access.token=${use.ci.github.access.token}" />
 					<arg value="validate.commit.messages=${validate.commit.messages}" />
 				</java>
+
+				<property name="source.formatter.result" value="-1" />
+
+				<fail message="Source Formatter exited with a toolchain failure, reported above.${line.separator}This is not a formatting violation.">
+					<condition>
+						<equals arg1="${source.formatter.result}" arg2="2" />
+					</condition>
+				</fail>
+
+				<fail message="Java returned: ${source.formatter.result}">
+					<condition>
+						<not>
+							<equals arg1="${source.formatter.result}" arg2="0" />
+						</not>
+					</condition>
+				</fail>
 
 				<delete file="ServiceBuilder.temp" />
 

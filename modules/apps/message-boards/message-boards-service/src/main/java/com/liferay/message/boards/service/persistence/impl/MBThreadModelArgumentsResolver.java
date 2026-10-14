@@ -11,9 +11,12 @@ import com.liferay.message.boards.model.impl.MBThreadModelImpl;
 import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
 import com.liferay.portal.kernel.model.BaseModel;
+import com.liferay.portal.kernel.util.GetterUtil;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiPredicate;
 
 import org.osgi.service.component.annotations.Component;
 
@@ -49,6 +52,15 @@ public class MBThreadModelArgumentsResolver implements ArgumentsResolver {
 
 		MBThreadModelImpl mbThreadModelImpl = (MBThreadModelImpl)baseModel;
 
+		BiPredicate<MBThreadModelImpl, Boolean> whereBiPredicate =
+			_whereBiPredicates.get(finderPath.getFinderName());
+
+		if ((whereBiPredicate != null) &&
+			!whereBiPredicate.test(mbThreadModelImpl, original)) {
+
+			return null;
+		}
+
 		long columnBitmask = mbThreadModelImpl.getColumnBitmask();
 
 		if (!checkColumn || (columnBitmask == 0)) {
@@ -64,6 +76,13 @@ public class MBThreadModelArgumentsResolver implements ArgumentsResolver {
 			for (String columnName : columnNames) {
 				finderPathColumnBitmask |= mbThreadModelImpl.getColumnBitmask(
 					columnName);
+			}
+
+			Long whereColumnBitmask = _whereColumnBitmasks.get(
+				finderPath.getFinderName());
+
+			if (whereColumnBitmask != null) {
+				finderPathColumnBitmask |= whereColumnBitmask;
 			}
 
 			if (finderPath.isBaseModelResult() &&
@@ -93,6 +112,17 @@ public class MBThreadModelArgumentsResolver implements ArgumentsResolver {
 	@Override
 	public String getTableName() {
 		return MBThreadTable.INSTANCE.getTableName();
+	}
+
+	private static Object _getColumnValue(
+		MBThreadModelImpl mbThreadModelImpl, String columnName,
+		boolean original) {
+
+		if (original) {
+			return mbThreadModelImpl.getColumnOriginalValue(columnName);
+		}
+
+		return mbThreadModelImpl.getColumnValue(columnName);
 	}
 
 	private static Object[] _getValue(
@@ -136,5 +166,31 @@ public class MBThreadModelArgumentsResolver implements ArgumentsResolver {
 		_ORDER_BY_COLUMNS_BITMASK = orderByColumnsBitmask;
 	}
 
+	private static final Map<String, Long> _whereColumnBitmasks =
+		new HashMap<>();
+	private static final Map<String, BiPredicate<MBThreadModelImpl, Boolean>>
+		_whereBiPredicates = new HashMap<>();
+
+	static {
+		long whereColumnBitmask = MBThreadModelImpl.getColumnBitmask(
+			"categoryId");
+
+		BiPredicate<MBThreadModelImpl, Boolean> whereBiPredicate =
+			(mbThreadModelImpl, original) ->
+				GetterUtil.getLong(
+					_getColumnValue(
+						mbThreadModelImpl, "categoryId", original)) != -1L;
+
+		_whereColumnBitmasks.put("GroupId", whereColumnBitmask);
+
+		_whereBiPredicates.put("GroupId", whereBiPredicate);
+		_whereColumnBitmasks.put("G_S", whereColumnBitmask);
+
+		_whereBiPredicates.put("G_S", whereBiPredicate);
+		_whereColumnBitmasks.put("L_P", whereColumnBitmask);
+
+		_whereBiPredicates.put("L_P", whereBiPredicate);
+	}
+
 }
-// LIFERAY-SERVICE-BUILDER-HASH:1296600995
+// LIFERAY-SERVICE-BUILDER-HASH:1105763923

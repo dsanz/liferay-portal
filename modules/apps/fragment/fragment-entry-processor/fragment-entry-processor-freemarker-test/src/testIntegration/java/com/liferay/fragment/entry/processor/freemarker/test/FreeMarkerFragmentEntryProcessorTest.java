@@ -699,6 +699,128 @@ public class FreeMarkerFragmentEntryProcessorTest {
 	}
 
 	@Test
+	public void testProcessFragmentEntryLinkHTMLWithContextInfoItem()
+		throws Exception {
+
+		JournalArticle journalArticle1 = JournalTestUtil.addArticle(
+			_group.getGroupId(), RandomTestUtil.randomString(),
+			RandomTestUtil.randomString());
+
+		FragmentEntryLink fragmentEntryLink = _getFragmentEntryLink(
+			"configuration_itemselector.json",
+			"fragment_entry_link_editable_values_with_configuration_" +
+				"itemselector.json",
+			"fragment_entry_with_configuration_itemselector_journal_article." +
+				"html",
+			HashMapBuilder.put(
+				"className", journalArticle1.getModelClassName()
+			).put(
+				"classNameId", String.valueOf(journalArticle1.getClassNameId())
+			).put(
+				"classPK", String.valueOf(journalArticle1.getResourcePrimKey())
+			).build());
+
+		fragmentEntryLink.setHtml(
+			"<div class=\"fragment_name\">[#if itemSelector1Object??]" +
+				"${itemSelector1Object}[/#if]</div>");
+
+		JSONObject jsonObject = JSONUtil.put(
+			"itemSelector1",
+			JSONUtil.put(
+				"className", JournalArticle.class.getName()
+			).put(
+				"classPK", String.valueOf(journalArticle1.getResourcePrimKey())
+			));
+
+		DefaultFragmentEntryProcessorContext
+			defaultFragmentEntryProcessorContext =
+				new DefaultFragmentEntryProcessorContext(
+					_serviceContext.getCompanyId(),
+					_serviceContext.getRequest(), new MockHttpServletResponse(),
+					null, null, _serviceContext.getScopeGroupId());
+
+		JournalArticle journalArticle2 = JournalTestUtil.addArticle(
+			_group.getGroupId(), RandomTestUtil.randomString(),
+			RandomTestUtil.randomString());
+
+		defaultFragmentEntryProcessorContext.setContextInfoItem(
+			journalArticle2);
+
+		_assertContainsJournalArticleInfo(
+			_getProcessedHTML(
+				fragmentEntryLink, jsonObject,
+				defaultFragmentEntryProcessorContext),
+			journalArticle2);
+
+		defaultFragmentEntryProcessorContext.setContextInfoItem(null);
+
+		_assertContainsJournalArticleInfo(
+			_getProcessedHTML(
+				fragmentEntryLink, jsonObject,
+				defaultFragmentEntryProcessorContext),
+			journalArticle1);
+	}
+
+	@Test
+	@TestInfo("LPD-107496")
+	public void testProcessFragmentEntryLinkHTMLWithDisablePortletRender()
+		throws Exception {
+
+		FragmentEntryLink fragmentEntryLink =
+			_fragmentEntryLinkLocalService.createFragmentEntryLink(0);
+
+		fragmentEntryLink.setHtml(
+			_readFileToString(
+				"fragment_entry_with_disable_portlet_render.html"));
+
+		DefaultFragmentEntryProcessorContext
+			defaultFragmentEntryProcessorContext =
+				new DefaultFragmentEntryProcessorContext(
+					_serviceContext.getCompanyId(),
+					_serviceContext.getRequest(), new MockHttpServletResponse(),
+					LocaleUtil.getDefault(), null,
+					_serviceContext.getScopeGroupId());
+
+		defaultFragmentEntryProcessorContext.setDisablePortletRender(true);
+
+		String html =
+			_fragmentEntryProcessorRegistry.processFragmentEntryLinkHTML(
+				fragmentEntryLink, defaultFragmentEntryProcessorContext);
+
+		Assert.assertThat(
+			html,
+			CoreMatchers.containsString(
+				"<div id=\"action-url\">defined</div>"));
+		Assert.assertThat(
+			html,
+			CoreMatchers.containsString("<div id=\"rest-client\">0</div>"));
+		Assert.assertThat(
+			html,
+			CoreMatchers.containsString(
+				"<div id=\"runtime-portlet\">disabled</div>"));
+		Assert.assertThat(
+			html,
+			CoreMatchers.containsString(
+				"<h1 data-lfr-editable-id=\"title\" " +
+					"data-lfr-editable-type=\"text\">Title</h1>"));
+		Assert.assertThat(
+			html,
+			CoreMatchers.containsString(
+				"<lfr-drop-zone data-lfr-drop-zone-id=\"loop-1\">" +
+					"</lfr-drop-zone>"));
+		Assert.assertThat(
+			html,
+			CoreMatchers.containsString(
+				"<lfr-drop-zone data-lfr-drop-zone-id=\"loop-2\">" +
+					"</lfr-drop-zone>"));
+		Assert.assertThat(
+			html,
+			CoreMatchers.containsString(
+				"<lfr-drop-zone data-lfr-drop-zone-id=\"static\">" +
+					"</lfr-drop-zone>"));
+	}
+
+	@Test
 	public void testProcessFragmentEntryLinkHTMLWithInvalidFreeMarker()
 		throws Exception {
 

@@ -1,7 +1,5 @@
 mock_provider "aws" {}
-mock_provider "helm" {}
 mock_provider "kubernetes" {}
-mock_provider "random" {}
 mock_provider "time" {}
 override_data {
 	target=data.aws_availability_zones.available
@@ -20,7 +18,6 @@ override_module {
 		cluster_addons={}
 		cluster_certificate_authority_data="dGVzdA=="
 		cluster_endpoint="https://example.eks.amazonaws.com"
-		cluster_id="liferay-test-eks"
 		cluster_name="liferay-test-eks"
 		cluster_primary_security_group_id="sg-0123456789abcdef0"
 		cluster_version="1.31"
@@ -28,10 +25,6 @@ override_module {
 		oidc_provider_arn="arn:aws:iam::123456789012:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/EXAMPLE"
 	}
 	target=module.eks
-}
-override_module {
-	outputs={}
-	target=module.envoy_proxy_role
 }
 override_module {
 	outputs={
@@ -59,25 +52,6 @@ run "should_compute_default_subnet_cidrs" {
 	assert {
 		condition=local.default_public_subnets == ["10.0.101.0/24", "10.0.102.0/24"]
 		error_message="The default_public_subnets list must be cidrsubnet(vpc_cidr, 8, i+101) for each AZ"
-	}
-	command=plan
-}
-run "should_create_an_envoy_ingress_rule_per_port" {
-	assert {
-		condition=aws_vpc_security_group_ingress_rule.envoy_ingress_managed["10080"].cidr_ipv4 == "10.0.0.0/16"
-		error_message="The Envoy ingress rules must be scoped to the VPC CIDR"
-	}
-	assert {
-		condition=aws_vpc_security_group_ingress_rule.envoy_ingress_managed["10080"].from_port == 10080 && aws_vpc_security_group_ingress_rule.envoy_ingress_managed["10080"].to_port == 10080
-		error_message="The 10080 ingress rule must open port 10080"
-	}
-	assert {
-		condition=aws_vpc_security_group_ingress_rule.envoy_ingress_managed["10443"].from_port == 10443 && aws_vpc_security_group_ingress_rule.envoy_ingress_managed["10443"].to_port == 10443
-		error_message="The 10443 ingress rule must open port 10443"
-	}
-	assert {
-		condition=length(aws_vpc_security_group_ingress_rule.envoy_ingress_managed) == 2
-		error_message="One managed ingress rule must be created per Envoy port (10080, 10443)"
 	}
 	command=plan
 }
@@ -146,6 +120,5 @@ run "should_shift_subnets_when_vpc_cidr_changes" {
 }
 variables {
 	deployment_name="liferay-test"
-	envoy_gateway_helm_chart_version="1.5.2"
 	region="us-east-1"
 }

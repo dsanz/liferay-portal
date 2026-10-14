@@ -17,7 +17,10 @@ import org.osgi.service.component.annotations.Component;
  * @author Javier Moral
  */
 @Component(
-	property = "dto.class.name=com.liferay.layout.page.template.model.LayoutPageTemplateCollection",
+	property = {
+		"default=true",
+		"dto.class.name=com.liferay.layout.page.template.model.LayoutPageTemplateCollection"
+	},
 	service = DTOConverter.class
 )
 public class PageTemplateSetDTOConverter
@@ -36,6 +39,7 @@ public class PageTemplateSetDTOConverter
 
 		return new PageTemplateSet() {
 			{
+				setActions(dtoConverterContext::getActions);
 				setCreator(
 					() -> CreatorUtil.toCreator(
 						layoutPageTemplateCollection.getUserId(),

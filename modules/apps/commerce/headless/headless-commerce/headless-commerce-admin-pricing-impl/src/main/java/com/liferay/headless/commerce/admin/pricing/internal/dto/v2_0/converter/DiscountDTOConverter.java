@@ -14,10 +14,14 @@ import com.liferay.commerce.discount.service.CommerceDiscountService;
 import com.liferay.commerce.percentage.PercentageFormatter;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.headless.commerce.admin.pricing.dto.v2_0.Discount;
+import com.liferay.headless.commerce.admin.pricing.internal.dto.v2_0.util.CreatorUtil;
 import com.liferay.portal.kernel.language.Language;
+import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.language.LanguageResources;
 import com.liferay.portal.vulcan.dto.converter.DTOConverter;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterContext;
+import com.liferay.portal.vulcan.fields.NestedFieldsSupplier;
 
 import java.math.BigDecimal;
 
@@ -31,7 +35,10 @@ import org.osgi.service.component.annotations.Reference;
  * @author Riccardo Alberti
  */
 @Component(
-	property = "dto.class.name=com.liferay.commerce.discount.model.CommerceDiscount",
+	property = {
+		"default=true",
+		"dto.class.name=com.liferay.commerce.discount.model.CommerceDiscount"
+	},
 	service = DTOConverter.class
 )
 public class DiscountDTOConverter
@@ -58,6 +65,13 @@ public class DiscountDTOConverter
 					() -> _getAmountFormatted(
 						commerceDiscount, dtoConverterContext.getLocale()));
 				setCouponCode(commerceDiscount::getCouponCode);
+				setCreator(
+					() -> NestedFieldsSupplier.supply(
+						"creator",
+						fieldName -> CreatorUtil.toCreator(
+							_portal,
+							_userLocalService.fetchUser(
+								commerceDiscount.getUserId()))));
 				setCustomFields(
 					() -> {
 						ExpandoBridge expandoBridge =
@@ -65,6 +79,8 @@ public class DiscountDTOConverter
 
 						return expandoBridge.getAttributes();
 					});
+				setDateCreated(commerceDiscount::getCreateDate);
+				setDateModified(commerceDiscount::getModifiedDate);
 				setDisplayDate(commerceDiscount::getDisplayDate);
 				setExpirationDate(commerceDiscount::getExpirationDate);
 				setExternalReferenceCode(
@@ -89,6 +105,7 @@ public class DiscountDTOConverter
 						LanguageResources.getResourceBundle(
 							dtoConverterContext.getLocale()),
 						commerceDiscount.getTarget()));
+				setTargetKey(commerceDiscount::getTarget);
 				setTitle(commerceDiscount::getTitle);
 				setUseCouponCode(commerceDiscount::isUseCouponCode);
 				setUsePercentage(commerceDiscount::isUsePercentage);
@@ -166,5 +183,11 @@ public class DiscountDTOConverter
 
 	@Reference
 	private PercentageFormatter _percentageFormatter;
+
+	@Reference
+	private Portal _portal;
+
+	@Reference
+	private UserLocalService _userLocalService;
 
 }

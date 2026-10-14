@@ -13,8 +13,9 @@
 	export class ObjectField {
 			"DBType"?: 'BigDecimal' | 'Boolean' | 'Clob' | 'Date' | 'DateTime' | 'Double' | 'Integer' | 'Long' | 'String';
 			"actions"?: {[key: string]: {[key: string]: string;};};
-			"businessType"?: 'Aggregation' | 'Assignee' | 'Attachment' | 'AutoIncrement' | 'Boolean' | 'Date' | 'DateTime' | 'Decimal' | 'EmailAddress' | 'Encrypted' | 'Formula' | 'Integer' | 'LongInteger' | 'LongText' | 'MultiselectPicklist' | 'PhoneNumber' | 'Picklist' | 'PrecisionDecimal' | 'Relationship' | 'RichText' | 'Text';
+			"businessType"?: 'Aggregation' | 'Assignee' | 'Attachment' | 'AutoIncrement' | 'Boolean' | 'Date' | 'DateTime' | 'Decimal' | 'EmailAddress' | 'Encrypted' | 'Formula' | 'Integer' | 'Location' | 'LongInteger' | 'LongText' | 'MultiselectPicklist' | 'PhoneNumber' | 'Picklist' | 'PrecisionDecimal' | 'Relationship' | 'RichText' | 'Text';
 			"defaultValue"?: string;
+			"description"?: {[key: string]: string;};
 			"externalReferenceCode"?: string;
 			"id"?: number;
 			"indexed"?: boolean;
@@ -26,6 +27,8 @@
 			"localized"?: boolean;
 			"name"?: string;
 			"objectDefinitionExternalReferenceCode1"?: string;
+			"objectDefinitionScope1"?: string;
+			"objectDefinitionSystem1"?: boolean;
 			"objectFieldSettings"?: Array<ObjectFieldSetting>;
 			"objectRelationshipExternalReferenceCode"?: string;
 			"readOnly"?: 'conditional' | 'false' | 'true';
@@ -57,12 +60,17 @@
 		{
 			baseName: "businessType",
 			name: "businessType",
-			type: "'Aggregation' | 'Assignee' | 'Attachment' | 'AutoIncrement' | 'Boolean' | 'Date' | 'DateTime' | 'Decimal' | 'EmailAddress' | 'Encrypted' | 'Formula' | 'Integer' | 'LongInteger' | 'LongText' | 'MultiselectPicklist' | 'PhoneNumber' | 'Picklist' | 'PrecisionDecimal' | 'Relationship' | 'RichText' | 'Text'",
+			type: "'Aggregation' | 'Assignee' | 'Attachment' | 'AutoIncrement' | 'Boolean' | 'Date' | 'DateTime' | 'Decimal' | 'EmailAddress' | 'Encrypted' | 'Formula' | 'Integer' | 'Location' | 'LongInteger' | 'LongText' | 'MultiselectPicklist' | 'PhoneNumber' | 'Picklist' | 'PrecisionDecimal' | 'Relationship' | 'RichText' | 'Text'",
 		},
 		{
 			baseName: "defaultValue",
 			name: "defaultValue",
 			type: "string",
+		},
+		{
+			baseName: "description",
+			name: "description",
+			type: "{[key: string]: string;}",
 		},
 		{
 			baseName: "externalReferenceCode",
@@ -118,6 +126,16 @@
 			baseName: "objectDefinitionExternalReferenceCode1",
 			name: "objectDefinitionExternalReferenceCode1",
 			type: "string",
+		},
+		{
+			baseName: "objectDefinitionScope1",
+			name: "objectDefinitionScope1",
+			type: "string",
+		},
+		{
+			baseName: "objectDefinitionSystem1",
+			name: "objectDefinitionSystem1",
+			type: "boolean",
 		},
 		{
 			baseName: "objectFieldSettings",

@@ -100,6 +100,8 @@ Every skill lives under `skills/` and owns one workflow. Match the user's intent
 | Manage Commerce catalogs, products, SKUs, or B2B accounts | `commerce-catalogs` |
 | Deploy and operate a Liferay Cloud (LXC) project via `lcp` | `manage-cloud-project` |
 | Build an entire site experience from one prompt (orchestrator; calls the others) | `build-site` |
+| Author a new workspace skill from source code or a spec doc | `author-skill` |
+| Commit a workspace skill to liferay-portal | `commit-skill` |
 
 Site building is **site initializer first**: the `siteInitializer` CET tree is the single source of truth. Build by triggering the initializer, then iterate by editing the source tree and applying each change live (theme, objects, fragments) or by reprovisioning (pages). See `rules/site-initializer-format.md`.
 
@@ -120,4 +122,4 @@ Reference cards under `rules/` hold the data skills look up. Skills cite the car
 
 The authoritative documentation is [learn.liferay.com](https://learn.liferay.com); search `site:learn.liferay.com <topic>` to find a topic.
 
-The Liferay Portal source code at [github.com/liferay/liferay-portal](https://github.com/liferay/liferay-portal) is canonical for architectural patterns and code samples; working client extension examples live at `workspaces/liferay-sample-workspace/client-extensions/`.
+The Liferay Portal source code at [github.com/liferay/liferay-portal](https://github.com/liferay/liferay-portal) is canonical for architectural patterns and code samples; working client extension examples live at [workspaces/liferay-sample-workspace/client-extensions](https://github.com/liferay/liferay-portal/tree/master/workspaces/liferay-sample-workspace/client-extensions).

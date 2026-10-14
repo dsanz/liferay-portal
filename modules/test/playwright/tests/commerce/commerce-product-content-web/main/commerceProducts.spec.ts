@@ -4,7 +4,7 @@
  */
 
 import {expect, mergeTests} from '@playwright/test';
-import {createReadStream} from 'fs';
+import {createReadStream, readFileSync} from 'fs';
 import path from 'node:path';
 
 import {commercePagesTest} from '../../../../fixtures/commercePagesTest';
@@ -17,12 +17,15 @@ import {pageViewModePagesTest} from '../../../../fixtures/pageViewModePagesTest'
 import {liferayConfig} from '../../../../liferay.config';
 import {getRandomInt} from '../../../../utils/getRandomInt';
 import getRandomString from '../../../../utils/getRandomString';
-import performLogin, {performLogout} from '../../../../utils/performLogin';
+import performLogin, {
+	performLoginViaApi,
+	performLogout,
+} from '../../../../utils/performLogin';
 import {waitForAlert} from '../../../../utils/waitForAlert';
 import getFragmentDefinition from '../../../layout-content-page-editor-web/main/utils/getFragmentDefinition';
 import getPageDefinition from '../../../layout-content-page-editor-web/main/utils/getPageDefinition';
 import getWidgetDefinition from '../../../layout-content-page-editor-web/main/utils/getWidgetDefinition';
-import {miniumSetUp} from '../../utils/commerce';
+import {createAccountWithBuyerUser, miniumSetUp} from '../../utils/commerce';
 
 export const test = mergeTests(
 	commercePagesTest,
@@ -235,8 +238,8 @@ test('COMMERCE-12809 As a buyer, I want to be able to verify the included and ex
 		await apiHelpers.headlessCommerceAdminOrder.postOrderRule({
 			type: 'products-limit',
 			typeSettings:
-				'products-limit-field-product-ids=' +
-				product3.productId +
+				'products-limit-field-product-external-reference-codes=' +
+				product3.externalReferenceCode +
 				'\nproducts-limit-field-product-quantity=0.9\n',
 		});
 
@@ -303,13 +306,7 @@ test('COMMERCE-12809 As a buyer, I want to be able to verify the included and ex
 	}
 });
 
-test('COMMERCE-8153 Verify the visibility rules', async ({
-	apiHelpers,
-	commerceAdminProductDetailsDiagramPage,
-	commerceAdminProductDetailsPage,
-	commerceAdminProductPage,
-	page,
-}) => {
+test('COMMERCE-8153 Verify the visibility rules', async ({apiHelpers}) => {
 	const account1 = await apiHelpers.headlessAdminUser.postAccount({
 		name: 'Account1',
 		type: 'person',
@@ -368,24 +365,18 @@ test('COMMERCE-8153 Verify the visibility rules', async ({
 	const productDiagram =
 		await apiHelpers.headlessCommerceAdminCatalog.postProduct({
 			catalogId: catalog.id,
+			diagram: {
+				attachmentBase64: {
+					attachment: readFileSync(
+						path.join(__dirname, '/dependencies/liferay.png')
+					).toString('base64'),
+					title: {en_US: getRandomString()},
+				},
+				radius: 1,
+			},
 			name: {en_US: 'Diagram'},
 			productType: 'diagram',
 		});
-
-	await commerceAdminProductPage.gotoProduct(productDiagram.name['en_US']);
-	await commerceAdminProductDetailsPage.goToProductDiagram();
-	await commerceAdminProductDetailsDiagramPage.goToDragAndDropImages();
-
-	await page
-		.frameLocator('iframe[title="Select File"]')
-		.getByRole('link', {name: 'Provided by Liferay'})
-		.click();
-	await page
-		.frameLocator('iframe[title="Select File"]')
-		.locator(
-			'[id="_com_liferay_item_selector_web_portlet_ItemSelectorPortlet_repositoryEntriesSearchContainer_1"] img'
-		)
-		.click();
 
 	await apiHelpers.headlessCommerceAdminCatalog.postPin(
 		productDiagram.productId,
@@ -834,9 +825,6 @@ test('LPD-33075 Verify buyers can view the SKU of a product on the product card 
 
 test('LPD-3424 Can click AddToButton button multiple times on Diagram Product Display Page', async ({
 	apiHelpers,
-	commerceAdminProductDetailsDiagramPage,
-	commerceAdminProductDetailsPage,
-	commerceAdminProductPage,
 	page,
 	productDetailsPage,
 	site,
@@ -873,24 +861,18 @@ test('LPD-3424 Can click AddToButton button multiple times on Diagram Product Di
 	const productDiagram =
 		await apiHelpers.headlessCommerceAdminCatalog.postProduct({
 			catalogId: catalog.id,
+			diagram: {
+				attachmentBase64: {
+					attachment: readFileSync(
+						path.join(__dirname, '/dependencies/liferay.png')
+					).toString('base64'),
+					title: {en_US: getRandomString()},
+				},
+				radius: 1,
+			},
 			name: {en_US: getRandomString()},
 			productType: 'diagram',
 		});
-
-	await commerceAdminProductPage.gotoProduct(productDiagram.name['en_US']);
-	await commerceAdminProductDetailsPage.goToProductDiagram();
-	await commerceAdminProductDetailsDiagramPage.goToDragAndDropImages();
-
-	await page
-		.frameLocator('iframe[title="Select File"]')
-		.getByRole('link', {name: 'Provided by Liferay'})
-		.click();
-	await page
-		.frameLocator('iframe[title="Select File"]')
-		.locator(
-			'[id="_com_liferay_item_selector_web_portlet_ItemSelectorPortlet_repositoryEntriesSearchContainer_1"] img'
-		)
-		.click();
 
 	const pin = await apiHelpers.headlessCommerceAdminCatalog.postPin(
 		productDiagram.productId,
@@ -1609,5 +1591,193 @@ test(
 		expect(uomKeys).toEqual(
 			[boxSkuUnitOfMeasure.key, eachSkuUnitOfMeasure.key].sort()
 		);
+	}
+);
+
+test(
+	'A products limit rule counts a bundle product together with its bundled product',
+	{tag: ['@COMMERCE-12889', '@LPD-106024']},
+	async ({
+		apiHelpers,
+		commerceAdminChannelsPage,
+		commerceMiniCartPage,
+		page,
+		productDetailsPage,
+		site,
+	}) => {
+		test.setTimeout(120000);
+
+		const catalog =
+			await apiHelpers.headlessCommerceAdminCatalog.postCatalog({
+				name: getRandomString(),
+			});
+
+		for (const widgetName of [
+			'com_liferay_commerce_checkout_web_internal_portlet_CommerceCheckoutPortlet',
+			'com_liferay_commerce_order_content_web_internal_portlet_CommerceOpenOrderContentPortlet',
+		]) {
+			await apiHelpers.headlessDelivery.createSitePage({
+				pageDefinition: getPageDefinition([
+					getWidgetDefinition({id: getRandomString(), widgetName}),
+				]),
+				siteId: site.id,
+				title: getRandomString(),
+			});
+		}
+
+		await apiHelpers.headlessDelivery.createSitePage({
+			pageDefinition: getPageDefinition([
+				getWidgetDefinition({
+					id: getRandomString(),
+					widgetName:
+						'com_liferay_commerce_product_content_web_internal_portlet_CPContentPortlet',
+				}),
+				getFragmentDefinition({
+					id: getRandomString(),
+					key: 'COMMERCE_CART_FRAGMENTS-mini-cart',
+				}),
+			]),
+			siteId: site.id,
+			title: getRandomString(),
+		});
+
+		const channel =
+			await apiHelpers.headlessCommerceAdminChannel.postChannel({
+				siteGroupId: site.id,
+			});
+
+		await commerceAdminChannelsPage.changeCommerceChannelSiteType(
+			channel.name,
+			'B2B'
+		);
+
+		await waitForAlert(page);
+
+		const {buyerUser} = await createAccountWithBuyerUser(
+			apiHelpers,
+			site.id
+		);
+
+		const bundleProductName = getRandomString();
+		const linkedProductName = getRandomString();
+		const optionName = 'Option1';
+
+		let bundleProduct;
+		let linkedProduct;
+
+		await test.step('Create a bundle product that adds two units of a linked product', async () => {
+			linkedProduct =
+				await apiHelpers.headlessCommerceAdminCatalog.postProduct({
+					catalogId: catalog.id,
+					name: {en_US: linkedProductName},
+					productConfiguration: {allowBackOrder: true},
+					skus: [
+						{
+							cost: 0,
+							price: 24,
+							published: true,
+							purchasable: true,
+							sku: `SKU-${linkedProductName}`,
+						},
+					],
+				});
+
+			const optionKey = `option-${getRandomInt()}`;
+
+			const option =
+				await apiHelpers.headlessCommerceAdminCatalog.postOption(
+					'select',
+					optionKey,
+					optionName,
+					1
+				);
+
+			bundleProduct =
+				await apiHelpers.headlessCommerceAdminCatalog.postProduct({
+					catalogId: catalog.id,
+					name: {en_US: bundleProductName},
+					productConfiguration: {allowBackOrder: true},
+					productOptions: [
+						{
+							fieldType: 'select',
+							key: optionKey,
+							name: {en_US: optionName},
+							optionId: option.id,
+							priceType: 'static',
+							priority: 1,
+							productOptionValues: [
+								{
+									deltaPrice: 0.0,
+									key: 'value1',
+									name: {en_US: 'Value1'},
+									preselected: true,
+									priority: 1,
+									quantity: 2,
+									skuId: linkedProduct.skus[0].id,
+								},
+							],
+							required: true,
+							skuContributor: false,
+						},
+					],
+					skus: [
+						{
+							cost: 0,
+							price: 50,
+							published: true,
+							purchasable: true,
+							sku: `SKU-${bundleProductName}`,
+						},
+					],
+				});
+		});
+
+		await test.step('Create an active order rule limiting both products to two', async () => {
+			await apiHelpers.headlessCommerceAdminOrder.postOrderRule({
+				type: 'products-limit',
+				typeSettings:
+					'products-limit-field-product-external-reference-codes=' +
+					`${bundleProduct.externalReferenceCode},` +
+					`${linkedProduct.externalReferenceCode}\n` +
+					'products-limit-field-product-quantity=2\n',
+			});
+		});
+
+		await test.step('Add the bundle to the cart as the buyer and submit the order', async () => {
+			await performLogout(page);
+
+			await performLoginViaApi({
+				page,
+				screenName: buyerUser.alternateName,
+			});
+
+			await page.goto(`/web/${site.name}/p/${bundleProductName}`);
+
+			await expect(
+				productDetailsPage.optionSelector(optionName)
+			).toBeVisible();
+
+			await productDetailsPage.addToCartButton.click();
+
+			await commerceMiniCartPage.miniCartButton.click();
+
+			await expect(
+				commerceMiniCartPage.miniCartItem(bundleProductName)
+			).toBeVisible();
+
+			await commerceMiniCartPage.submitButton.click();
+		});
+
+		await test.step('Verify the order is rejected because the two products total three', async () => {
+			await expect(
+				page
+					.getByRole('dialog')
+					.getByText(
+						'No more than 2 products in this product range can be purchased together.'
+					)
+			).toBeVisible();
+
+			await expect(page.locator('.commerce-multi-step-nav')).toBeHidden();
+		});
 	}
 );

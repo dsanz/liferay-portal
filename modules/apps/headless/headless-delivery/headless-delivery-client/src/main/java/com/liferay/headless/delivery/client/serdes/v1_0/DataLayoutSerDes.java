@@ -15,6 +15,7 @@ import jakarta.annotation.Generated;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -110,7 +111,7 @@ public class DataLayoutSerDes {
 			sb.append("[");
 
 			for (int i = 0; i < dataLayout.getDataLayoutPages().length; i++) {
-				sb.append(dataLayout.getDataLayoutPages()[i]);
+				sb.append(String.valueOf(dataLayout.getDataLayoutPages()[i]));
 
 				if ((i + 1) < dataLayout.getDataLayoutPages().length) {
 					sb.append(", ");
@@ -130,7 +131,7 @@ public class DataLayoutSerDes {
 			sb.append("[");
 
 			for (int i = 0; i < dataLayout.getDataRules().length; i++) {
-				sb.append(dataLayout.getDataRules()[i]);
+				sb.append(String.valueOf(dataLayout.getDataRules()[i]));
 
 				if ((i + 1) < dataLayout.getDataRules().length) {
 					sb.append(", ");
@@ -585,6 +586,12 @@ public class DataLayoutSerDes {
 			return "null";
 		}
 
+		if (value instanceof Collection) {
+			Collection<?> collection = (Collection<?>)value;
+
+			return _toJSON(collection.toArray());
+		}
+
 		if (value instanceof Map) {
 			return _toJSON((Map)value);
 		}
@@ -617,4 +624,4 @@ public class DataLayoutSerDes {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:-244775168
+// LIFERAY-REST-BUILDER-HASH:1500137030

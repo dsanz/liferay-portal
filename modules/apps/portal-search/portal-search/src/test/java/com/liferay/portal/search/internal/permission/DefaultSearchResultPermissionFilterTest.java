@@ -6,6 +6,7 @@
 package com.liferay.portal.search.internal.permission;
 
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
@@ -21,8 +22,12 @@ import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalServiceUtil;
+import com.liferay.portal.kernel.util.PropsValues;
 import com.liferay.portal.search.configuration.DefaultSearchResultPermissionFilterConfiguration;
+import com.liferay.portal.search.hits.SearchHitBuilder;
+import com.liferay.portal.search.hits.SearchHits;
 import com.liferay.portal.search.hits.SearchHitsBuilder;
+import com.liferay.portal.search.hits.TotalHitsRelation;
 import com.liferay.portal.search.internal.searcher.SearchResponseImpl;
 import com.liferay.portal.search.legacy.searcher.SearchRequestBuilderFactory;
 import com.liferay.portal.search.searcher.SearchRequest;
@@ -37,6 +42,7 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 /**
@@ -58,45 +64,20 @@ public class DefaultSearchResultPermissionFilterTest {
 			defaultSearchResultPermissionFilter =
 				_getDefaultSearchResultPermissionFilter();
 
-		SearchContext searchContext = _getSearchContext(4);
+		SearchContext searchContext = _getSearchContext(0, 4);
 
 		_assertPagination(
 			searchContext, defaultSearchResultPermissionFilter, 4, 10);
 
-		searchContext = _getSearchContext(8);
+		searchContext = _getSearchContext(0, 8);
 
 		_assertPagination(
 			searchContext, defaultSearchResultPermissionFilter, 8, 10);
 
-		searchContext = _getSearchContext(10);
+		searchContext = _getSearchContext(0, 10);
 
 		_assertPagination(
 			searchContext, defaultSearchResultPermissionFilter, 10, 10);
-	}
-
-	@Test
-	public void testSearchGuestWithoutThreshold() {
-		_groupAdmin = false;
-		_permissionFilteredSearchResultAccurateCountThreshold = 0;
-
-		DefaultSearchResultPermissionFilter
-			defaultSearchResultPermissionFilter =
-				_getDefaultSearchResultPermissionFilter();
-
-		SearchContext searchContext = _getSearchContext(4);
-
-		_assertPagination(
-			searchContext, defaultSearchResultPermissionFilter, 4, 10);
-
-		searchContext = _getSearchContext(8);
-
-		_assertPagination(
-			searchContext, defaultSearchResultPermissionFilter, 8, 10);
-
-		searchContext = _getSearchContext(10);
-
-		_assertPagination(
-			searchContext, defaultSearchResultPermissionFilter, 9, 9);
 	}
 
 	@Test
@@ -108,20 +89,62 @@ public class DefaultSearchResultPermissionFilterTest {
 			defaultSearchResultPermissionFilter =
 				_getDefaultSearchResultPermissionFilter();
 
-		SearchContext searchContext = _getSearchContext(4);
+		SearchContext searchContext = _getSearchContext(0, 4);
 
 		_assertPagination(
 			searchContext, defaultSearchResultPermissionFilter, 4, 9);
 
-		searchContext = _getSearchContext(8);
+		searchContext = _getSearchContext(0, 8);
 
 		_assertPagination(
 			searchContext, defaultSearchResultPermissionFilter, 8, 9);
 
-		searchContext = _getSearchContext(10);
+		searchContext = _getSearchContext(0, 10);
 
 		_assertPagination(
 			searchContext, defaultSearchResultPermissionFilter, 9, 9);
+	}
+
+	@Test
+	public void testSearchGuestWithoutThreshold() {
+		_groupAdmin = false;
+		_permissionFilteredSearchResultAccurateCountThreshold = 0;
+
+		DefaultSearchResultPermissionFilter
+			defaultSearchResultPermissionFilter =
+				_getDefaultSearchResultPermissionFilter();
+
+		SearchContext searchContext = _getSearchContext(0, 4);
+
+		_assertPagination(
+			searchContext, defaultSearchResultPermissionFilter, 4, 10);
+
+		searchContext = _getSearchContext(0, 8);
+
+		_assertPagination(
+			searchContext, defaultSearchResultPermissionFilter, 8, 10);
+
+		searchContext = _getSearchContext(0, 10);
+
+		_assertPagination(
+			searchContext, defaultSearchResultPermissionFilter, 9, 9);
+	}
+
+	@Test
+	public void testSearchPreservesTotalHitsRelation() {
+		_groupAdmin = false;
+		_permissionFilteredSearchResultAccurateCountThreshold = 0;
+
+		SearchContext searchContext = _getSearchContext(0, 10);
+
+		searchContext.setEnd(QueryUtil.ALL_POS);
+		searchContext.setStart(QueryUtil.ALL_POS);
+
+		_mockSearchHits(searchContext, TotalHitsRelation.GTE);
+
+		_assertTotalHitsRelation(
+			searchContext, _getDefaultSearchResultPermissionFilter(),
+			TotalHitsRelation.GTE);
 	}
 
 	@Test
@@ -168,7 +191,7 @@ public class DefaultSearchResultPermissionFilterTest {
 			defaultSearchResultPermissionFilter =
 				_getDefaultSearchResultPermissionFilter();
 
-		SearchContext searchContext = _getSearchContext(10);
+		SearchContext searchContext = _getSearchContext(0, 10);
 
 		_assertResultsCount(
 			searchContext, defaultSearchResultPermissionFilter, 9, false);
@@ -179,13 +202,109 @@ public class DefaultSearchResultPermissionFilterTest {
 	}
 
 	@Test
+	public void testSearchWithEndExceedingIndexSearchLimit() {
+		_groupAdmin = true;
+		_permissionFilteredSearchResultAccurateCountThreshold = 0;
+
+		DefaultSearchResultPermissionFilter
+			defaultSearchResultPermissionFilter =
+				_getDefaultSearchResultPermissionFilter();
+
+		SearchContext searchContext = _getSearchContext(
+			PropsValues.INDEX_SEARCH_LIMIT - 1,
+			PropsValues.INDEX_SEARCH_LIMIT + 1);
+
+		defaultSearchResultPermissionFilter.search(searchContext);
+
+		Assert.assertEquals(
+			PropsValues.INDEX_SEARCH_LIMIT, searchContext.getEnd());
+
+		_groupAdmin = false;
+
+		defaultSearchResultPermissionFilter.search(
+			_getSearchContext(
+				PropsValues.INDEX_SEARCH_LIMIT - 1,
+				PropsValues.INDEX_SEARCH_LIMIT + 1));
+
+		Mockito.verify(
+			_searchRequestBuilder, Mockito.times(2)
+		).from(
+			PropsValues.INDEX_SEARCH_LIMIT - 1
+		);
+
+		Mockito.verify(
+			_searchRequestBuilder, Mockito.times(2)
+		).size(
+			1
+		);
+	}
+
+	@Test
+	public void testSearchWithLargestAllowedStartAndEnd() {
+		_groupAdmin = true;
+		_permissionFilteredSearchResultAccurateCountThreshold = 0;
+
+		DefaultSearchResultPermissionFilter
+			defaultSearchResultPermissionFilter =
+				_getDefaultSearchResultPermissionFilter();
+
+		defaultSearchResultPermissionFilter.search(
+			_getSearchContext(
+				PropsValues.INDEX_SEARCH_LIMIT - 1,
+				PropsValues.INDEX_SEARCH_LIMIT));
+
+		_groupAdmin = false;
+
+		defaultSearchResultPermissionFilter.search(
+			_getSearchContext(
+				PropsValues.INDEX_SEARCH_LIMIT - 1,
+				PropsValues.INDEX_SEARCH_LIMIT));
+
+		Mockito.verify(
+			_searchFunction, Mockito.times(2)
+		).apply(
+			Mockito.any()
+		);
+
+		Mockito.verify(
+			_searchRequestBuilder, Mockito.never()
+		).from(
+			PropsValues.INDEX_SEARCH_LIMIT - 1
+		);
+	}
+
+	@Test
 	public void testSearchWithSizeZero() {
 		_groupAdmin = false;
 		_permissionFilteredSearchResultAccurateCountThreshold = 0;
 
 		_assertPagination(
-			_getSearchContext(0), _getDefaultSearchResultPermissionFilter(), 0,
-			_PRIVATE_DOCUMENTS + _PUBLIC_DOCUMENTS);
+			_getSearchContext(0, 0), _getDefaultSearchResultPermissionFilter(),
+			0, _PRIVATE_DOCUMENTS + _PUBLIC_DOCUMENTS);
+	}
+
+	@Test
+	public void testSearchWithStartExceedingIndexSearchLimit() {
+		_groupAdmin = true;
+		_permissionFilteredSearchResultAccurateCountThreshold = 0;
+
+		DefaultSearchResultPermissionFilter
+			defaultSearchResultPermissionFilter =
+				_getDefaultSearchResultPermissionFilter();
+
+		defaultSearchResultPermissionFilter.search(
+			_getSearchContext(
+				PropsValues.INDEX_SEARCH_LIMIT,
+				PropsValues.INDEX_SEARCH_LIMIT + 1));
+
+		_groupAdmin = false;
+
+		defaultSearchResultPermissionFilter.search(
+			_getSearchContext(
+				PropsValues.INDEX_SEARCH_LIMIT,
+				PropsValues.INDEX_SEARCH_LIMIT + 1));
+
+		Mockito.verifyNoInteractions(_searchFunction);
 	}
 
 	private void _assertPagination(
@@ -218,6 +337,28 @@ public class DefaultSearchResultPermissionFilterTest {
 			defaultSearchResultPermissionFilter.search(
 				searchContext
 			).getLength());
+	}
+
+	private void _assertTotalHitsRelation(
+		SearchContext searchContext,
+		DefaultSearchResultPermissionFilter defaultSearchResultPermissionFilter,
+		TotalHitsRelation expectedTotalHitsRelation) {
+
+		defaultSearchResultPermissionFilter.search(searchContext);
+
+		ArgumentCaptor<SearchHits> argumentCaptor = ArgumentCaptor.forClass(
+			SearchHits.class);
+
+		Mockito.verify(
+			(SearchResponseImpl)searchContext.getAttribute("search.response")
+		).setSearchHits(
+			argumentCaptor.capture()
+		);
+
+		SearchHits searchHits = argumentCaptor.getValue();
+
+		Assert.assertEquals(
+			expectedTotalHitsRelation, searchHits.getTotalHitsRelation());
 	}
 
 	private DefaultSearchResultPermissionFilter
@@ -262,15 +403,10 @@ public class DefaultSearchResultPermissionFilterTest {
 	private Hits _getHits(int size) {
 		Hits hits = new HitsImpl();
 
-		if (_permissionFilteredSearchResultAccurateCountThreshold > size) {
-			size = _permissionFilteredSearchResultAccurateCountThreshold;
-
-			int maxDocSize = _PRIVATE_DOCUMENTS + _PUBLIC_DOCUMENTS;
-
-			if (size > maxDocSize) {
-				size = maxDocSize;
-			}
-		}
+		size = Math.min(
+			Math.max(
+				size, _permissionFilteredSearchResultAccurateCountThreshold),
+			_PRIVATE_DOCUMENTS + _PUBLIC_DOCUMENTS);
 
 		Document[] documents = Arrays.copyOf(_documents, size);
 
@@ -287,7 +423,7 @@ public class DefaultSearchResultPermissionFilterTest {
 		return Mockito.spy(hits);
 	}
 
-	private SearchContext _getSearchContext(int end) {
+	private SearchContext _getSearchContext(int start, int end) {
 		SearchContext searchContext = new SearchContext();
 
 		_mockPermission(searchContext);
@@ -296,7 +432,7 @@ public class DefaultSearchResultPermissionFilterTest {
 		_setUpDocuments();
 
 		searchContext.setEnd(end);
-		searchContext.setStart(0);
+		searchContext.setStart(start);
 
 		Mockito.when(
 			_searchFunction.apply(searchContext)
@@ -311,17 +447,14 @@ public class DefaultSearchResultPermissionFilterTest {
 		SearchRequestBuilderFactory searchRequestBuilderFactory = Mockito.mock(
 			SearchRequestBuilderFactory.class);
 
-		SearchRequestBuilder searchRequestBuilder = Mockito.mock(
-			SearchRequestBuilder.class);
-
 		Mockito.when(
 			searchRequestBuilderFactory.builder(Mockito.any())
 		).thenReturn(
-			searchRequestBuilder
+			_searchRequestBuilder
 		);
 
 		Mockito.when(
-			searchRequestBuilder.build()
+			_searchRequestBuilder.build()
 		).thenReturn(
 			_searchRequest
 		);
@@ -343,6 +476,26 @@ public class DefaultSearchResultPermissionFilterTest {
 			_permissionChecker.isGroupAdmin(_USER_GROUP_ID)
 		).thenReturn(
 			_groupAdmin
+		);
+	}
+
+	private void _mockSearchHits(
+		SearchContext searchContext, TotalHitsRelation totalHitsRelation) {
+
+		SearchHitBuilder searchHitBuilder = new SearchHitBuilder();
+		SearchHitsBuilder searchHitsBuilder = new SearchHitsBuilder();
+
+		SearchResponseImpl searchResponseImpl =
+			(SearchResponseImpl)searchContext.getAttribute("search.response");
+
+		Mockito.when(
+			searchResponseImpl.getSearchHits()
+		).thenReturn(
+			searchHitsBuilder.addSearchHit(
+				searchHitBuilder.build()
+			).totalHitsRelation(
+				totalHitsRelation
+			).build()
 		);
 	}
 
@@ -415,6 +568,8 @@ public class DefaultSearchResultPermissionFilterTest {
 	private int _permissionFilteredSearchResultAccurateCountThreshold;
 	private final Function<SearchContext, Hits> _searchFunction = Mockito.mock(
 		Function.class);
+	private final SearchRequestBuilder _searchRequestBuilder = Mockito.mock(
+		SearchRequestBuilder.class);
 	private final ServiceTrackerMap<String, ModelResourcePermission<?>>
 		_serviceTrackerMap = Mockito.mock(ServiceTrackerMap.class);
 

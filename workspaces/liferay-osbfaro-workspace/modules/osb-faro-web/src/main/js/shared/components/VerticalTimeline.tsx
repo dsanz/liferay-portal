@@ -1,19 +1,26 @@
-import ClayIcon from '@clayui/icon';
-import ClayLabel from '@clayui/label';
+import ClayButton from '@clayui/button';
+import ClayIcon from 'shared/components/Icon';
+import ClayLabel, {LabelDisplayType} from '@clayui/label';
 import ClayLink from '@clayui/link';
 import ClaySticker from '@clayui/sticker';
+import ClayTable from '@clayui/table';
+import CopyButton from 'shared/components/CopyButton';
+import EventCountPill from 'shared/components/EventCountPill';
 import getCN from 'classnames';
 import Loading from 'shared/components/Loading';
 import moment from 'moment';
 import React, {FC, useState} from 'react';
+import RowMain from 'shared/components/RowMain';
 import TextTruncate from './TextTruncate';
 import {Colors} from 'shared/util/colors-size';
-import {formatDateToTimeZone} from 'shared/util/date';
+import {formatDateToTimeZone, TIME_FORMAT} from 'shared/util/date';
+import {
+	formatPayloadTables,
+	PayloadTable as IPayloadTable,
+} from 'shared/util/payloadTables';
 import {
 	isWebhookUserAgent,
 	SessionEvent,
-	TimelineCampaign,
-	VerticalTimelineHeader,
 	VerticalTimelineIndividual,
 	VerticalTimelineItem,
 	VerticalTimelinePageGroup,
@@ -22,11 +29,6 @@ import {
 import {LIFERAY_DXP_APPLICATION_IDS} from 'shared/util/constants';
 import {sub} from 'shared/util/lang';
 import {Text} from '@clayui/core';
-
-// 'LT' is moment's locale-aware time token: 12-hour with AM/PM for
-// en-US, 24-hour for pt-BR/es-ES/ja-JP.
-
-const TIME_FORMAT = 'LT';
 
 const DEVICE_ICONS_MAP = {
 	any: {
@@ -59,74 +61,29 @@ type IRowProps<Item> = {
 	timeZoneId: string;
 };
 
-/**
- * The clickable part of a row: everything but the content it reveals. The caret
- * lives here so every expandable row carries it in the same place, on the right.
- */
-const RowMain: FC<{
-	children: React.ReactNode;
-	expanded: boolean;
-	onToggle: () => void;
-}> = ({children, expanded, onToggle}) => (
-	<div
-		className="row-main d-flex align-items-start"
-		onClick={onToggle}
-		onKeyPress={onToggle}
-		role="button"
-		tabIndex={0}
-	>
-		{children}
-
-		<ClayIcon
-			className="angle-icon icon-root ml-3 flex-shrink-0 text-secondary"
-			symbol={expanded ? 'angle-up' : 'angle-down'}
-		/>
-	</div>
-);
-
-const EventCountPill: FC<{totalEvents?: number}> = ({totalEvents}) =>
-	totalEvents === undefined ? null : (
-		<span className="event-count-pill align-items-center d-inline-flex flex-shrink-0 font-weight-semi-bold text-secondary">
-			<ClayIcon className="icon-root" symbol="click" />
-
-			<span className="event-count ml-1">{totalEvents}</span>
-		</span>
-	);
-
-/**
- * Marks a row the visitor reached through a campaign, shown beside the row's
- * event count. Every touch reads the same on the row itself; which campaign it
- * was rides in the tooltip, so a long Salesforce campaign name never stretches
- * the row. A touch whose identity matched no stored campaign names its raw id
- * there instead, so the two states stay tellable apart without the row
- * carrying a machine-readable string.
- */
-const CampaignLabel: FC<{campaign: TimelineCampaign}> = ({
-	campaign: {campaignId, campaignName},
-}) => (
+const RowIconLabel: FC<{
+	displayType: LabelDisplayType;
+	icon: string;
+	rootClassName: string;
+	text: string;
+	title: string;
+}> = ({displayType, icon, rootClassName, text, title}) => (
 	<span
-		className="campaign-label-root align-items-center d-inline-flex flex-shrink-0"
+		className={`${rootClassName}-root align-items-center d-inline-flex flex-shrink-0`}
 		data-tooltip
 		data-tooltip-align="top"
-		title={
-			campaignName ??
-			(sub(Liferay.Language.get('unresolved-campaign-x'), [
-				campaignId,
-			]) as string)
-		}
+		title={title}
 	>
 		<ClayLabel
-			className="campaign-label flex-shrink-0 font-weight-semi-bold m-0"
-			displayType="warning"
+			className={`${rootClassName} flex-shrink-0 font-weight-semi-bold m-0`}
+			displayType={displayType}
 			withClose={false}
 		>
 			<ClayLabel.ItemBefore>
-				<ClayIcon symbol="megaphone" />
+				<ClayIcon symbol={icon} />
 			</ClayLabel.ItemBefore>
 
-			<ClayLabel.ItemExpand>
-				{Liferay.Language.get('campaign-touch')}
-			</ClayLabel.ItemExpand>
+			<ClayLabel.ItemExpand>{text}</ClayLabel.ItemExpand>
 		</ClayLabel>
 	</span>
 );
@@ -216,76 +173,202 @@ const ExternalLink: FC<{url: string}> = ({url}) => (
 	</ClayLink>
 );
 
-const RowAttributes: FC<{payload: Record<string, unknown>}> = ({payload}) => (
-	<code className="attributes-payload text-secondary d-block w-100">
-		{JSON.stringify(payload, null, 2)}
-	</code>
+/**
+ * One titled table of the expanded row's payload. The property column carries
+ * the heading role so a screen reader announces which attribute a value belongs
+ * to, the same way the visible bold treatment does.
+ */
+const PayloadTable: FC<{table: IPayloadTable}> = ({table: {rows, title}}) => (
+	<div className="payload-table">
+		<div className="payload-table-title text-uppercase">
+			<Text size={2} weight="semi-bold">
+				{title}
+			</Text>
+		</div>
+
+		<ClayTable className="table-sm" striped={false}>
+			<ClayTable.Head>
+				<ClayTable.Row>
+					<ClayTable.Cell headingCell>
+						{Liferay.Language.get('property')}
+					</ClayTable.Cell>
+
+					<ClayTable.Cell headingCell>
+						{Liferay.Language.get('value')}
+					</ClayTable.Cell>
+				</ClayTable.Row>
+			</ClayTable.Head>
+
+			<ClayTable.Body>
+				{rows.map(({property, value}) => (
+					<ClayTable.Row key={property}>
+						<ClayTable.Cell className="text-dark" headingCell>
+							{property}
+						</ClayTable.Cell>
+
+						<ClayTable.Cell>{value}</ClayTable.Cell>
+					</ClayTable.Row>
+				))}
+			</ClayTable.Body>
+		</ClayTable>
+	</div>
 );
 
-const DayRow: FC<{item: VerticalTimelineHeader}> = ({
-	item: {title, totalEvents},
-}) => (
-	<li className="timeline-row day-row p-3 bg-white w-100 d-flex align-items-center">
-		<ClayIcon
-			className="day-icon icon-root text-secondary mr-2"
-			symbol="calendar"
-		/>
+/**
+ * The payload as the API returned it, with a button that copies exactly what is
+ * on screen. The copy sits over the code rather than in the row's header so it
+ * travels with the view it belongs to, and never offers to copy a table.
+ */
+const PayloadCode: FC<{payload: Record<string, unknown>}> = ({payload}) => {
+	const code = JSON.stringify(payload, null, 2);
 
-		<span className="title text-dark">{title}</span>
+	return (
+		<div className="payload-code-root position-relative">
+			<CopyButton
+				borderless
+				className="payload-copy"
+				displayType="secondary"
+				label={Liferay.Language.get('copy-details')}
+				monospaced
+				size="xs"
+				text={code}
+			/>
 
-		<EventCountPill totalEvents={totalEvents} />
-	</li>
+			<code className="payload-code text-secondary d-block w-100">
+				{code}
+			</code>
+		</div>
+	);
+};
+
+const PAYLOAD_VIEWS = ['table', 'code'] as const;
+
+type PayloadView = (typeof PAYLOAD_VIEWS)[number];
+
+const PAYLOAD_VIEW_LANG_MAP: Record<PayloadView, string> = {
+	code: Liferay.Language.get('code'),
+	table: Liferay.Language.get('table'),
+};
+
+/**
+ * Picks which shape the expanded payload is read in. The tables are the way in,
+ * and the raw payload sits one click away for the times a reader needs the keys
+ * and nesting the tables flatten away.
+ */
+const PayloadViewSelector: FC<{
+	onChange: (view: PayloadView) => void;
+	view: PayloadView;
+}> = ({onChange, view}) => (
+	<ClayButton.Group className="payload-view-selector">
+		{PAYLOAD_VIEWS.map((payloadView) => (
+			<ClayButton
+				className={getCN('button-root payload-view-option', {
+					active: payloadView === view,
+				})}
+				displayType="secondary"
+				key={payloadView}
+				onClick={() => onChange(payloadView)}
+				size="xs"
+			>
+				{PAYLOAD_VIEW_LANG_MAP[payloadView]}
+			</ClayButton>
+		))}
+	</ClayButton.Group>
 );
+
+/**
+ * The payload an expanded row reveals. The chosen view is state of this
+ * component, which the timeline instantiates once per row, so switching one
+ * row to the raw payload leaves every other row on the tables.
+ */
+const RowAttributes: FC<{payload: Record<string, unknown>}> = ({payload}) => {
+	const [view, setView] = useState<PayloadView>('table');
+
+	return (
+		<div className="attributes-payload d-block w-100">
+			<div className="payload-header d-flex align-items-center justify-content-between">
+				<Text size={3} weight="semi-bold">
+					{Liferay.Language.get('details')}
+				</Text>
+
+				<PayloadViewSelector onChange={setView} view={view} />
+			</div>
+
+			{view === 'table' ? (
+				formatPayloadTables(payload).map((table) => (
+					<PayloadTable key={table.title} table={table} />
+				))
+			) : (
+				<PayloadCode payload={payload} />
+			)}
+		</div>
+	);
+};
 
 /**
  * The individual a group of sessions belongs to: a plain, unexpandable row —
  * no caret, no click handler — ahead of that individual's sessions for the
- * day.
+ * day. The heading is what identifies the person and carries the profile
+ * link: their name, or their raw id when they are still anonymous. The line
+ * beneath describes them: a known individual's job title, or the anonymous
+ * label standing in for one.
  */
 const IndividualRow: FC<{item: VerticalTimelineIndividual}> = ({
-	item: {individualId, individualName, individualUrl, isAnonymous},
-}) => (
-	<li className="timeline-row individual-row bg-white w-100">
-		<div className="row-content flex-fill d-flex align-items-center">
-			<ClaySticker className="individual-sticker" shape="user-icon">
-				<ClayIcon
-					color="gray"
-					symbol={isAnonymous ? 'anonymize' : 'user'}
-				/>
-			</ClaySticker>
+	item: {individualId, individualName, individualUrl, isAnonymous, jobTitle},
+}) => {
+	const title = (isAnonymous && individualId) || individualName;
 
-			<div className="individual-info">
-				{individualUrl ? (
-					<ClayLink className="individual-name" href={individualUrl}>
-						<Text color="primary" size={3} weight="semi-bold">
-							{individualName}
-						</Text>
-					</ClayLink>
-				) : (
-					<span className="individual-name">
-						<Text color="primary" size={3} weight="semi-bold">
-							{individualName}
-						</Text>
-					</span>
-				)}
+	const subtitle = isAnonymous
+		? individualId && individualName
+		: jobTitle || individualId;
 
-				{individualId && (
-					<div className="individual-id">
-						<Text color="secondary" size={3} weight="normal">
-							{individualId}
-						</Text>
-					</div>
-				)}
+	return (
+		<li className="timeline-row individual-row bg-white w-100">
+			<div className="row-content flex-fill d-flex align-items-center">
+				<ClaySticker className="individual-sticker" shape="user-icon">
+					<ClayIcon
+						color="gray"
+						symbol={isAnonymous ? 'anonymize' : 'user'}
+					/>
+				</ClaySticker>
+
+				<div className="individual-info">
+					{individualUrl ? (
+						<ClayLink
+							className="individual-title"
+							href={individualUrl}
+						>
+							<Text size={3} weight="semi-bold">
+								{title}
+							</Text>
+						</ClayLink>
+					) : (
+						<span className="individual-title">
+							<Text size={3} weight="semi-bold">
+								{title}
+							</Text>
+						</span>
+					)}
+
+					{subtitle && (
+						<div className="individual-subtitle">
+							<Text color="secondary" size={3} weight="normal">
+								{subtitle}
+							</Text>
+						</div>
+					)}
+				</div>
 			</div>
-		</div>
-	</li>
-);
+		</li>
+	);
+};
 
 /**
- * A session. Expanding it reveals its raw attributes (browser, device, screen
- * size…) — the pages visited during the session are not gated behind that
- * expand; they always render below, so the stream reads as a list of visited
- * pages without an extra click.
+ * A session. Its details read device, data source, then event count, so the
+ * count closes the row in the same column as a campaign row's touch count. Expanding it reveals its
+ * raw attributes (browser, device, screen size…) — the pages visited during the
+ * session are not gated behind that expand; they always render below, so the
+ * stream reads as a list of visited pages without an extra click.
  */
 const SessionRow: FC<IRowProps<VerticalTimelineSession>> = ({
 	LDPEnabled,
@@ -329,12 +412,9 @@ const SessionRow: FC<IRowProps<VerticalTimelineSession>> = ({
 				{expanded}
 			)}
 		>
-			<RowMain
-				expanded={expanded}
-				onToggle={() => setExpanded(!expanded)}
-			>
+			<RowMain infoButton onToggle={() => setExpanded(!expanded)}>
 				<div className="row-content flex-fill">
-					<span className="title text-dark">
+					<span className="title text-secondary">
 						{sub(Liferay.Language.get('session-x-x'), [
 							time
 								? formatDateToTimeZone(
@@ -351,6 +431,8 @@ const SessionRow: FC<IRowProps<VerticalTimelineSession>> = ({
 				<div className="row-details ml-auto pl-3 d-flex align-items-center">
 					{becameKnown && <BecameKnownLabel />}
 
+					<DeviceIcon browserName={browserName} device={device} />
+
 					{LDPEnabled && (
 						<DataSourceLabel
 							applicationId={applicationId}
@@ -359,8 +441,6 @@ const SessionRow: FC<IRowProps<VerticalTimelineSession>> = ({
 					)}
 
 					<EventCountPill totalEvents={totalEvents} />
-
-					<DeviceIcon browserName={browserName} device={device} />
 				</div>
 			</RowMain>
 
@@ -388,6 +468,7 @@ const PageGroupRow: FC<IRowProps<VerticalTimelinePageGroup>> = ({
 	item: {
 		campaign,
 		descriptionUrl,
+		experienceNames,
 		nestedItems,
 		subtitle,
 		time,
@@ -412,10 +493,12 @@ const PageGroupRow: FC<IRowProps<VerticalTimelinePageGroup>> = ({
 					<div className="page-row-header">
 						<RowTime time={time} timeZoneId={timeZoneId} />
 
-						<ClayIcon
-							className="row-icon icon-root text-secondary mt-0 flex-shrink-0"
-							symbol="page"
-						/>
+						<ClaySticker className="page-sticker flex-shrink-0">
+							<ClayIcon
+								className="row-icon icon-root text-secondary"
+								symbol="page"
+							/>
+						</ClaySticker>
 
 						{descriptionUrl ? (
 							<ClayLink
@@ -437,7 +520,35 @@ const PageGroupRow: FC<IRowProps<VerticalTimelinePageGroup>> = ({
 						<div className="row-metrics d-flex align-items-center">
 							<EventCountPill totalEvents={totalEvents} />
 
-							{campaign && <CampaignLabel campaign={campaign} />}
+							{campaign && (
+								<RowIconLabel
+									displayType="warning"
+									icon="megaphone"
+									rootClassName="campaign-label"
+									text={Liferay.Language.get(
+										'campaign-touch'
+									)}
+									title={
+										campaign.campaignName ??
+										(sub(
+											Liferay.Language.get(
+												'unresolved-campaign-x'
+											),
+											[campaign.campaignId]
+										) as string)
+									}
+								/>
+							)}
+
+							{!!experienceNames?.length && (
+								<RowIconLabel
+									displayType="info"
+									icon="test"
+									rootClassName="experience-label"
+									text={Liferay.Language.get('experience')}
+									title={experienceNames.join('\n')}
+								/>
+							)}
 						</div>
 					</div>
 				</div>
@@ -478,13 +589,17 @@ const EventRow: FC<IRowProps<SessionEvent>> = ({
 				expanded,
 			})}
 		>
-			<RowMain
-				expanded={expanded}
-				onToggle={() => setExpanded(!expanded)}
-			>
+			<RowMain infoButton onToggle={() => setExpanded(!expanded)}>
 				<div className="row-content flex-fill">
 					<div className="event-header">
 						<RowTime time={time} timeZoneId={timeZoneId} />
+
+						<ClaySticker className="event-sticker flex-shrink-0">
+							<ClayIcon
+								className="row-icon icon-root text-secondary"
+								symbol="click"
+							/>
+						</ClaySticker>
 
 						<span className="title text-dark">
 							<TextTruncate title={title} />
@@ -511,7 +626,23 @@ const EventRow: FC<IRowProps<SessionEvent>> = ({
 
 						{campaign && (
 							<div className="row-metrics d-flex align-items-center">
-								<CampaignLabel campaign={campaign} />
+								<RowIconLabel
+									displayType="warning"
+									icon="megaphone"
+									rootClassName="campaign-label"
+									text={Liferay.Language.get(
+										'campaign-touch'
+									)}
+									title={
+										campaign.campaignName ??
+										(sub(
+											Liferay.Language.get(
+												'unresolved-campaign-x'
+											),
+											[campaign.campaignId]
+										) as string)
+									}
+								/>
 							</div>
 						)}
 					</div>
@@ -525,10 +656,6 @@ const EventRow: FC<IRowProps<SessionEvent>> = ({
 
 const TimelineRow: FC<IRowProps<ITEM_SHAPE>> = (props) => {
 	const {item} = props;
-
-	if ('header' in item) {
-		return <DayRow item={item} />;
-	}
 
 	if ('individual' in item) {
 		return <IndividualRow item={item} />;

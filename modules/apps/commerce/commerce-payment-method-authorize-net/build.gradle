@@ -1,6 +1,6 @@
 dependencies {
 	compileInclude group: "net.authorize", name: "anet-java-sdk", version: "3.0.0"
-	compileInclude group: "org.apache.httpcomponents.client5", name: "httpclient5", version: "5.6.3"
+	compileInclude group: "org.apache.httpcomponents.client5", name: "httpclient5", version: "5.6.4"
 	compileInclude group: "org.apache.httpcomponents.core5", name: "httpcore5", version: "5.4.3"
 	compileInclude group: "org.apache.httpcomponents.core5", name: "httpcore5-h2", version: "5.4.3"
 	compileOnly group: "com.google.code.gson", name: "gson", version: "2.9.0"
@@ -20,9 +20,11 @@ dependencies {
 	compileOnly project(":apps:commerce:commerce-product-api")
 	compileOnly project(":apps:frontend-taglib:frontend-taglib")
 	compileOnly project(":apps:portal-configuration:portal-configuration-module-configuration-api")
+	compileOnly project(":apps:portal-security:portal-security-key-api")
 	compileOnly project(":apps:static:portal-configuration:portal-configuration-metatype-api")
 	compileOnly project(":core:petra:petra-function")
 	compileOnly project(":core:petra:petra-io")
 	compileOnly project(":core:petra:petra-lang")
+	compileOnly project(":core:petra:petra-reflect")
 	compileOnly project(":core:petra:petra-string")
 }

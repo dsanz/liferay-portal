@@ -12,6 +12,10 @@ variable "deployment_name" {
 variable "envoy_gateway_helm_chart_version" {
 	type=string
 }
+variable "envoy_listener_ports" {
+	default=["10080", "10443"]
+	type=list(string)
+}
 variable "gateway_namespace" {
 	default="envoy-gateway-system"
 	type=string
@@ -35,6 +39,15 @@ variable "master_ipv4_cidr_block" {
 variable "max_node_count" {
 	default=4
 	type=number
+}
+variable "metrics_scrape_config" {
+	default={}
+	type=object(
+		{
+			enabled=optional(bool, true)
+			namespace=optional(string, "gmp-system")
+		}
+	)
 }
 variable "min_node_count" {
 	default=1

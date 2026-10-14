@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -63,6 +65,19 @@ public class PortalReleasePortalTopLevelBuild
 	@Override
 	public PortalRelease getPortalRelease() {
 		if (_portalRelease != null) {
+			return _portalRelease;
+		}
+
+		if (Boolean.parseBoolean(
+				getParameterValue("TEST_PORTAL_RELEASE_STANDALONE"))) {
+
+			_portalRelease = _getStandalonePortalRelease();
+
+			BuildDatabase buildDatabase = getBuildDatabase();
+
+			buildDatabase.putPortalRelease(
+				_portalRelease.getPortalVersion(), _portalRelease);
+
 			return _portalRelease;
 		}
 
@@ -239,6 +254,68 @@ public class PortalReleasePortalTopLevelBuild
 
 		return sb.toString();
 	}
+
+	private PortalRelease _getStandalonePortalRelease() {
+		String tomcatURLString = getParameterValue(
+			"TEST_PORTAL_RELEASE_TOMCAT_URL");
+
+		if (!JenkinsResultsParserUtil.isURL(tomcatURLString)) {
+			throw new RuntimeException(
+				"TEST_PORTAL_RELEASE_TOMCAT_URL is required when " +
+					"TEST_PORTAL_RELEASE_STANDALONE is true");
+		}
+
+		List<String> nontomcatURLParameterNames = new ArrayList<>();
+
+		for (String parameterName : _NONTOMCAT_URL_PARAMETER_NAMES) {
+			if (!JenkinsResultsParserUtil.isNullOrEmpty(
+					getParameterValue(parameterName))) {
+
+				nontomcatURLParameterNames.add(parameterName);
+			}
+		}
+
+		if (!nontomcatURLParameterNames.isEmpty()) {
+			throw new RuntimeException(
+				JenkinsResultsParserUtil.combine(
+					"A standalone release takes only ",
+					"TEST_PORTAL_RELEASE_TOMCAT_URL. Remove ",
+					JenkinsResultsParserUtil.join(
+						", ", nontomcatURLParameterNames),
+					"."));
+		}
+
+		try {
+			URL portalReleaseTomcatURL = new URL(tomcatURLString);
+
+			if (!PortalRelease.isStandaloneBundleURL(portalReleaseTomcatURL)) {
+				throw new RuntimeException(
+					JenkinsResultsParserUtil.combine(
+						"Invalid standalone bundle URL ", tomcatURLString,
+						". The file name must match liferay-dxp-tomcat-",
+						"<version>-<build profile>-<timestamp>.",
+						"(7z|tar.gz|zip), where the build profile ends in ",
+						"-standalone."));
+			}
+
+			PortalRelease portalRelease = PortalReleaseFactory.newPortalRelease(
+				portalReleaseTomcatURL);
+
+			portalRelease.setPortalBundleTomcatURL(portalReleaseTomcatURL);
+			portalRelease.setStandalone(true);
+
+			return portalRelease;
+		}
+		catch (MalformedURLException malformedURLException) {
+			throw new RuntimeException(malformedURLException);
+		}
+	}
+
+	private static final String[] _NONTOMCAT_URL_PARAMETER_NAMES = {
+		"TEST_PORTAL_RELEASE_DEPENDENCIES_URL", "TEST_PORTAL_RELEASE_OSGI_URL",
+		"TEST_PORTAL_RELEASE_SQL_URL", "TEST_PORTAL_RELEASE_TOOLS_URL",
+		"TEST_PORTAL_RELEASE_WAR_URL"
+	};
 
 	private static final Pattern _pattern = Pattern.compile(
 		"(?<major>\\d)\\.(?<minor>\\d)\\.(?<fix>\\d+)");

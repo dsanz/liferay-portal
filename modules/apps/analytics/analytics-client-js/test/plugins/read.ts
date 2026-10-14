@@ -49,6 +49,7 @@ describe('Read Plugin', () => {
 	beforeAll(createMetaTag);
 
 	beforeEach(() => {
+		fetchMock.mockGlobal();
 
 		// Force attaching DOM Content Loaded event
 
@@ -73,7 +74,7 @@ describe('Read Plugin', () => {
 			writable: true,
 		});
 
-		fetchMock.mock('*', () => 200);
+		fetchMock.route('*', () => 200);
 
 		Analytics = AnalyticsClient.create(INITIAL_ANALYTICS_CONFIG);
 	});
@@ -82,7 +83,7 @@ describe('Read Plugin', () => {
 		Analytics.reset();
 		AnalyticsClient.dispose();
 
-		fetchMock.restore();
+		fetchMock.hardReset();
 	});
 
 	describe('readPage event', () => {

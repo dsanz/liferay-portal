@@ -21,11 +21,13 @@ import {
 
 describe('Diagram', () => {
 	beforeEach(() => {
+		fetchMock.mockGlobal();
+
 		mockCommonEndpoints();
 	});
 
 	afterEach(() => {
-		fetchMock.restore();
+		fetchMock.hardReset();
 	});
 
 	describe('Default Renderer Admin', () => {

@@ -8,6 +8,8 @@ package com.liferay.layout.service.test;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.change.tracking.model.CTCollection;
 import com.liferay.change.tracking.service.CTCollectionLocalService;
+import com.liferay.fragment.constants.FragmentPortletKeys;
+import com.liferay.layout.admin.kernel.model.LayoutTypePortletConstants;
 import com.liferay.layout.test.util.ContentLayoutTestUtil;
 import com.liferay.layout.test.util.LayoutTestUtil;
 import com.liferay.petra.lang.SafeCloseable;
@@ -29,6 +31,7 @@ import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.LayoutService;
+import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
@@ -437,18 +440,79 @@ public class LayoutServiceTest {
 		}
 	}
 
-	private String[] _addPortletsToLayout(
-			int columnIndex, long plid, String[] portletNames)
-		throws Exception {
+	@Test
+	@TestInfo("LPD-108338")
+	public void testUpdateTypeSettingsWithPortletCategory() throws Exception {
+		Layout layout = _addTypePortletLayout(
+			RandomTestUtil.randomString(), false, StringPool.BLANK);
 
-		String[] portletIds = new String[portletNames.length];
+		String panelSelectedPortlets =
+			"root--category-collaboration," + FragmentPortletKeys.FRAGMENT;
 
-		for (int i = 0; i < portletNames.length; i++) {
-			portletIds[i] = _addPortletToLayout(
-				columnIndex, i, plid, portletNames[i]);
+		layout = _layoutService.updateTypeSettings(
+			layout.getGroupId(), layout.isPrivateLayout(), layout.getLayoutId(),
+			LayoutTypePortletConstants.PANEL_SELECTED_PORTLETS +
+				StringPool.EQUAL + panelSelectedPortlets);
+
+		Assert.assertEquals(
+			panelSelectedPortlets,
+			layout.getTypeSettingsProperty(
+				LayoutTypePortletConstants.PANEL_SELECTED_PORTLETS));
+	}
+
+	@Test
+	@TestInfo("LPD-106870")
+	public void testUpdateTypeSettingsWithoutPermissions() throws Exception {
+		Layout layout = _addTypePortletLayout(
+			RandomTestUtil.randomString(), false, StringPool.BLANK);
+
+		User user = UserTestUtil.addUser();
+
+		Role role = RoleTestUtil.addRole(RoleConstants.TYPE_REGULAR);
+
+		_roleLocalService.addUserRole(user.getUserId(), role.getRoleId());
+
+		_resourcePermissionLocalService.setResourcePermissions(
+			layout.getCompanyId(), Layout.class.getName(),
+			ResourceConstants.SCOPE_INDIVIDUAL,
+			String.valueOf(layout.getPlid()), role.getRoleId(),
+			new String[] {ActionKeys.UPDATE});
+
+		try (ContextUserReplace contextUserReplace = new ContextUserReplace(
+				user)) {
+
+			_layoutService.updateTypeSettings(
+				layout.getGroupId(), layout.isPrivateLayout(),
+				layout.getLayoutId(), "layout-template-id=1_column");
+
+			Assert.assertThrows(
+				PrincipalException.MustHavePermission.class,
+				() -> _layoutService.updateTypeSettings(
+					layout.getGroupId(), layout.isPrivateLayout(),
+					layout.getLayoutId(),
+					"column-1=" + FragmentPortletKeys.FRAGMENT));
+			Assert.assertThrows(
+				PrincipalException.MustHavePermission.class,
+				() -> _layoutService.updateTypeSettings(
+					layout.getGroupId(), layout.isPrivateLayout(),
+					layout.getLayoutId(),
+					LayoutTypePortletConstants.FULL_PAGE_APPLICATION_PORTLET +
+						StringPool.EQUAL + FragmentPortletKeys.FRAGMENT));
+			Assert.assertThrows(
+				PrincipalException.MustHavePermission.class,
+				() -> _layoutService.updateTypeSettings(
+					layout.getGroupId(), layout.isPrivateLayout(),
+					layout.getLayoutId(),
+					LayoutTypePortletConstants.PANEL_SELECTED_PORTLETS +
+						StringPool.EQUAL + FragmentPortletKeys.FRAGMENT));
 		}
 
-		return portletIds;
+		Layout updatedLayout = _layoutLocalService.getLayout(layout.getPlid());
+
+		String typeSettings = updatedLayout.getTypeSettings();
+
+		Assert.assertFalse(
+			typeSettings, typeSettings.contains(FragmentPortletKeys.FRAGMENT));
 	}
 
 	private String _addPortletToLayout(
@@ -473,6 +537,20 @@ public class LayoutServiceTest {
 			layout.getTypeSettings());
 
 		return portletId;
+	}
+
+	private String[] _addPortletsToLayout(
+			int columnIndex, long plid, String[] portletNames)
+		throws Exception {
+
+		String[] portletIds = new String[portletNames.length];
+
+		for (int i = 0; i < portletNames.length; i++) {
+			portletIds[i] = _addPortletToLayout(
+				columnIndex, i, plid, portletNames[i]);
+		}
+
+		return portletIds;
 	}
 
 	private Layout _addTypePortletLayout(
@@ -654,6 +732,9 @@ public class LayoutServiceTest {
 
 	@Inject
 	private Portal _portal;
+
+	@Inject
+	private ResourcePermissionLocalService _resourcePermissionLocalService;
 
 	@Inject
 	private RoleLocalService _roleLocalService;

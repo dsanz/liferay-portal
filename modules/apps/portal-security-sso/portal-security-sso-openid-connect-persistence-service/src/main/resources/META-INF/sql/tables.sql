@@ -6,12 +6,12 @@ create table OpenIdConnectSession (
 	modifiedDate DATE null,
 	accessToken TEXT null,
 	accessTokenExpirationDate DATE null,
-	authServerWellKnownURI VARCHAR(256) null,
-	clientId VARCHAR(256) null,
+	authServerWellKnownURI VARCHAR(255) null,
+	clientId VARCHAR(255) null,
 	idToken TEXT null,
-	issuer VARCHAR(75) null,
+	issuer VARCHAR(255) null,
 	refreshToken VARCHAR(2000) null,
-	sessionId VARCHAR(75) null
+	sessionId VARCHAR(255) null
 );
 
 create table OpenIdConnectUser (
@@ -20,6 +20,6 @@ create table OpenIdConnectUser (
 	companyId LONG,
 	userId LONG,
 	createDate DATE null,
-	issuer VARCHAR(75) null,
+	issuer VARCHAR(255) null,
 	subject VARCHAR(75) null
 );

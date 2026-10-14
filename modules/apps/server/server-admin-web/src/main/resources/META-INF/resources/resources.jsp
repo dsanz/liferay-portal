@@ -11,6 +11,76 @@
 <liferay-ui:error exception="<%= CaptchaException.class %>" message="captcha-verification-failed" />
 <liferay-ui:error exception="<%= CaptchaTextException.class %>" message="text-verification-failed" />
 
+<c:if test="<%= SessionErrors.contains(renderRequest, VerifyException.class) %>">
+
+	<%
+	VerifyException verifyException = (VerifyException)SessionErrors.get(renderRequest, VerifyException.class);
+	%>
+
+	<clay:alert
+		dismissible="<%= true %>"
+		displayType="danger"
+	>
+		<%= HtmlUtil.escape(verifyException.getMessage()) %>
+	</clay:alert>
+</c:if>
+
+<c:if test='<%= SessionErrors.contains(renderRequest, "verifyDatabaseStateErrors") %>'>
+
+	<%
+	List<String> errorMessages = (List<String>)SessionErrors.get(renderRequest, "verifyDatabaseStateErrors");
+	%>
+
+	<clay:alert
+		dismissible="<%= true %>"
+		displayType="danger"
+	>
+		<liferay-ui:message key="the-database-state-verification-found-the-following-errors" />
+
+		<ul class="mb-0 mt-2">
+
+			<%
+			for (String errorMessage : errorMessages) {
+			%>
+
+				<li><%= HtmlUtil.escape(errorMessage) %></li>
+
+			<%
+			}
+			%>
+
+		</ul>
+	</clay:alert>
+</c:if>
+
+<c:if test='<%= SessionMessages.contains(renderRequest, "verifyDatabaseStateWarnings") %>'>
+
+	<%
+	List<String> warnMessages = (List<String>)SessionMessages.get(renderRequest, "verifyDatabaseStateWarnings");
+	%>
+
+	<clay:alert
+		dismissible="<%= true %>"
+		displayType="warning"
+	>
+		<liferay-ui:message key="the-database-state-verification-found-the-following-warnings" />
+
+		<ul class="mb-0 mt-2">
+
+			<%
+			for (String warnMessage : warnMessages) {
+			%>
+
+				<li><%= HtmlUtil.escape(warnMessage) %></li>
+
+			<%
+			}
+			%>
+
+		</ul>
+	</clay:alert>
+</c:if>
+
 <%
 String[] installedPatches = PatcherValues.INSTALLED_PATCH_NAMES;
 
@@ -187,6 +257,17 @@ long usedMemory = totalMemory - runtime.freeMemory();
 
 		<aui:fieldset collapsed="<%= false %>" collapsible="<%= true %>" label="verification-actions">
 			<ul class="list-group system-action-group">
+				<li class="list-group-item list-group-item-flex">
+					<div class="autofit-col autofit-col-expand">
+						<p class="list-group-title text-truncate">
+							<liferay-ui:message key="verify-the-database-state" />
+						</p>
+					</div>
+
+					<div class="autofit-col">
+						<aui:button cssClass="save-server-button" data-cmd="verifyDatabaseState" value="execute" />
+					</div>
+				</li>
 				<li class="list-group-item list-group-item-flex">
 					<div class="autofit-col autofit-col-expand">
 						<p class="list-group-title text-truncate">

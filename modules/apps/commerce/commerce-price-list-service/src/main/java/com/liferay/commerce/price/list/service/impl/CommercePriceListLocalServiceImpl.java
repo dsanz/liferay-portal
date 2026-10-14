@@ -82,9 +82,9 @@ import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.ResourceLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.SystemEventLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.service.WorkflowInstanceLinkLocalService;
-import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.BigDecimalUtil;
 import com.liferay.portal.kernel.util.CalendarFactoryUtil;
@@ -330,7 +330,6 @@ public class CommercePriceListLocalServiceImpl
 
 	@Indexable(type = IndexableType.DELETE)
 	@Override
-	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
 	public CommercePriceList deleteCommercePriceList(
 			CommercePriceList commercePriceList)
 		throws PortalException {
@@ -355,20 +354,6 @@ public class CommercePriceListLocalServiceImpl
 	}
 
 	@Override
-	public void deleteCommercePriceLists(long companyId)
-		throws PortalException {
-
-		List<CommercePriceList> commercePriceLists =
-			commercePriceListPersistence.findByCompanyId(
-				companyId, QueryUtil.ALL_POS, QueryUtil.ALL_POS);
-
-		for (CommercePriceList commercePriceList : commercePriceLists) {
-			commercePriceListLocalService.forceDeleteCommercePriceList(
-				commercePriceList);
-		}
-	}
-
-	@Override
 	public CommercePriceList fetchCatalogBaseCommercePriceList(long groupId) {
 		return commercePriceListPersistence.fetchByG_CBPL_T_First(
 			groupId, true, CommercePriceListConstants.TYPE_PRICE_LIST, null);
@@ -384,7 +369,6 @@ public class CommercePriceListLocalServiceImpl
 
 	@Indexable(type = IndexableType.DELETE)
 	@Override
-	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
 	public CommercePriceList forceDeleteCommercePriceList(
 			CommercePriceList commercePriceList)
 		throws PortalException {
@@ -433,6 +417,14 @@ public class CommercePriceListLocalServiceImpl
 			commercePriceList.getCompanyId(), commercePriceList.getGroupId(),
 			CommercePriceList.class.getName(),
 			commercePriceList.getCommercePriceListId());
+
+		_systemEventLocalService.addSystemEvent(
+			commercePriceList.getCompanyId(),
+			commercePriceList.getExternalReferenceCode(),
+			CommercePriceList.class.getName(),
+			commercePriceList.getCommercePriceListId(),
+			commercePriceList.getUuid(), null, SystemEventConstants.TYPE_DELETE,
+			StringPool.BLANK);
 
 		return commercePriceList;
 	}
@@ -1932,6 +1924,9 @@ public class CommercePriceListLocalServiceImpl
 
 	@Reference
 	private ResourceLocalService _resourceLocalService;
+
+	@Reference
+	private SystemEventLocalService _systemEventLocalService;
 
 	@Reference
 	private UserLocalService _userLocalService;

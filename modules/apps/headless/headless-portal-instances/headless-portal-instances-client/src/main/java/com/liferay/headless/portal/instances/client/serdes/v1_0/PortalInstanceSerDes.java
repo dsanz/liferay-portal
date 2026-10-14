@@ -10,6 +10,7 @@ import com.liferay.headless.portal.instances.client.json.BaseJSONParser;
 
 import jakarta.annotation.Generated;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -88,6 +89,16 @@ public class PortalInstanceSerDes {
 			sb.append(_escape(portalInstance.getDomain()));
 
 			sb.append("\"");
+		}
+
+		if (portalInstance.getMaxUsers() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"maxUsers\": ");
+
+			sb.append(portalInstance.getMaxUsers());
 		}
 
 		if (portalInstance.getPortalInstanceId() != null) {
@@ -179,6 +190,13 @@ public class PortalInstanceSerDes {
 			map.put("domain", String.valueOf(portalInstance.getDomain()));
 		}
 
+		if (portalInstance.getMaxUsers() == null) {
+			map.put("maxUsers", null);
+		}
+		else {
+			map.put("maxUsers", String.valueOf(portalInstance.getMaxUsers()));
+		}
+
 		if (portalInstance.getPortalInstanceId() == null) {
 			map.put("portalInstanceId", null);
 		}
@@ -235,6 +253,9 @@ public class PortalInstanceSerDes {
 			else if (Objects.equals(jsonParserFieldName, "domain")) {
 				return false;
 			}
+			else if (Objects.equals(jsonParserFieldName, "maxUsers")) {
+				return false;
+			}
 			else if (Objects.equals(jsonParserFieldName, "portalInstanceId")) {
 				return false;
 			}
@@ -275,6 +296,12 @@ public class PortalInstanceSerDes {
 			else if (Objects.equals(jsonParserFieldName, "domain")) {
 				if (jsonParserFieldValue != null) {
 					portalInstance.setDomain((String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "maxUsers")) {
+				if (jsonParserFieldValue != null) {
+					portalInstance.setMaxUsers(
+						Integer.valueOf((String)jsonParserFieldValue));
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "portalInstanceId")) {
@@ -345,6 +372,12 @@ public class PortalInstanceSerDes {
 			return "null";
 		}
 
+		if (value instanceof Collection) {
+			Collection<?> collection = (Collection<?>)value;
+
+			return _toJSON(collection.toArray());
+		}
+
 		if (value instanceof Map) {
 			return _toJSON((Map)value);
 		}
@@ -377,4 +410,4 @@ public class PortalInstanceSerDes {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:1493873890
+// LIFERAY-REST-BUILDER-HASH:1392270776

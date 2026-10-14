@@ -5,12 +5,14 @@
 
 import {FrameLocator, Locator, Page} from '@playwright/test';
 
+import {waitForAlert} from '../../../utils/waitForAlert';
 import {CommerceDNDTablePage} from '../commerceDNDTablePage';
 import {CommerceLayoutsPage} from './commerceLayoutsPage';
 
 export class PlacedOrdersPage extends CommerceDNDTablePage {
 	readonly commerceBillingAddress: Locator;
 	readonly configurationIFrame: FrameLocator;
+	readonly configurationIFrameDisplayTemplateSelector: Locator;
 	readonly configurationIFrameSaveButton: Locator;
 	readonly configurationIFrameShowFullAddressToggle: Locator;
 	readonly configurationIFrameShowPhoneNumberToggle: Locator;
@@ -22,15 +24,21 @@ export class PlacedOrdersPage extends CommerceDNDTablePage {
 	readonly orderCell: (orderId: string) => Locator;
 	readonly orderColumn: (rowIndex: number, rowColumn: number) => Locator;
 	readonly orderDateSortButton: Locator;
+	readonly orderDetailsTermLink: (
+		termType: string,
+		termName: string
+	) => Locator;
 	readonly orderDetailsValue: (label: string) => Locator;
 	readonly orderRowLink: (orderId: number | string) => Locator;
 	readonly orderItemActionsButton: Locator;
 	readonly orderItemActionsButtonEdit: Locator;
+	readonly orderItemActionsButtonFor: (productName: string) => Locator;
 	readonly page: Page;
 	readonly pageLabel: Locator;
 	readonly pageTitle: Locator;
 	readonly panelList: Locator;
 	readonly placedOrderTableViewButton: Locator;
+	readonly portlet: Locator;
 	readonly searchButton: Locator;
 	readonly searchInput: Locator;
 	readonly commerceShippingAddress: Locator;
@@ -48,6 +56,10 @@ export class PlacedOrdersPage extends CommerceDNDTablePage {
 		this.configurationIFrame = page.frameLocator(
 			'iframe[id="modalIframe"]'
 		);
+		this.configurationIFrameDisplayTemplateSelector =
+			this.configurationIFrame.locator(
+				'[id="_com_liferay_portlet_configuration_web_portlet_PortletConfigurationPortlet_displayStyle"]'
+			);
 		this.configurationIFrameSaveButton = this.configurationIFrame.getByRole(
 			'button',
 			{name: 'Save'}
@@ -78,6 +90,12 @@ export class PlacedOrdersPage extends CommerceDNDTablePage {
 		this.orderDateSortButton = page
 			.getByRole('columnheader', {name: 'Order Date'})
 			.getByRole('button');
+		this.orderDetailsTermLink = (termType: string, termName: string) =>
+			this.portlet
+				.locator('.commerce-panel', {
+					has: page.getByText(termType, {exact: true}),
+				})
+				.getByRole('link', {name: termName});
 		this.orderDetailsValue = (label: string) =>
 			page
 				.locator('dl.commerce-list')
@@ -93,6 +111,11 @@ export class PlacedOrdersPage extends CommerceDNDTablePage {
 		this.orderItemActionsButtonEdit = page.getByRole('menuitem', {
 			name: 'Edit',
 		});
+		this.orderItemActionsButtonFor = (productName: string) =>
+			this.table.getByRole('button', {
+				exact: true,
+				name: `${productName} Actions`,
+			});
 		this.page = page;
 		this.pageLabel = page
 			.getByTestId('layoutHref')
@@ -104,6 +127,9 @@ export class PlacedOrdersPage extends CommerceDNDTablePage {
 			.getByTestId('specificationFacetPanel')
 			.getByRole('button');
 		this.placedOrderTableViewButton = this.table.getByLabel('View');
+		this.portlet = page.locator(
+			'#portlet_com_liferay_commerce_order_content_web_internal_portlet_CommerceOrderContentPortlet'
+		);
 		this.searchButton = page.getByRole('button', {
 			exact: true,
 			name: 'Search',
@@ -144,5 +170,26 @@ export class PlacedOrdersPage extends CommerceDNDTablePage {
 
 	async goto() {
 		await this.layoutsPage.goto();
+	}
+
+	async goToConfiguration() {
+		await this.optionsButton.click();
+
+		await this.configurationMenuItem.click();
+	}
+
+	async selectDisplayTemplate(displayTemplateName: string) {
+		await this.configurationIFrameDisplayTemplateSelector.click();
+
+		await this.configurationIFrame
+			.getByRole('option', {name: displayTemplateName})
+			.click();
+
+		await this.configurationIFrameSaveButton.click();
+
+		await waitForAlert(
+			this.configurationIFrame,
+			'Success:You have successfully updated the setup'
+		);
 	}
 }

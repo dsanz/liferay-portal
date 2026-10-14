@@ -20,6 +20,7 @@ import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.LayoutSetPrototype;
+import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
@@ -105,20 +106,17 @@ public class SiteResourceImpl extends BaseSiteResourceImpl {
 	}
 
 	@Override
-	public Site getSite(Long siteId) {
-		Group group = _groupLocalService.fetchGroup(siteId);
-
-		return _toSite(group);
+	public Site getSite(Long siteId) throws Exception {
+		return _toSite(_groupService.getGroup(siteId));
 	}
 
 	@Override
 	public Site getSiteByExternalReferenceCode(String externalReferenceCode)
 		throws Exception {
 
-		Group group = _groupLocalService.getGroupByExternalReferenceCode(
-			externalReferenceCode, contextCompany.getCompanyId());
-
-		return _toSite(group);
+		return _toSite(
+			_groupService.getGroupByExternalReferenceCode(
+				externalReferenceCode, contextCompany.getCompanyId()));
 	}
 
 	@Override
@@ -207,6 +205,16 @@ public class SiteResourceImpl extends BaseSiteResourceImpl {
 			group = _addGroup(externalReferenceCode, site);
 		}
 		else {
+			if (!group.isSite()) {
+				throw new IllegalArgumentException(
+					"No site exists with external reference code " +
+						externalReferenceCode);
+			}
+
+			GroupPermissionUtil.check(
+				PermissionThreadLocal.getPermissionChecker(), group,
+				ActionKeys.UPDATE);
+
 			group = _updateGroup(group, site);
 		}
 
@@ -217,6 +225,13 @@ public class SiteResourceImpl extends BaseSiteResourceImpl {
 	public Site putSiteByExternalReferenceCode(
 			String externalReferenceCode, MultipartBody multipartBody)
 		throws Exception {
+
+		PermissionChecker permissionChecker =
+			PermissionThreadLocal.getPermissionChecker();
+
+		if (!permissionChecker.isCompanyAdmin()) {
+			throw new PrincipalException.MustBeCompanyAdmin(permissionChecker);
+		}
 
 		Group group = _groupLocalService.fetchGroupByExternalReferenceCode(
 			externalReferenceCode, contextCompany.getCompanyId());
@@ -241,8 +256,6 @@ public class SiteResourceImpl extends BaseSiteResourceImpl {
 				group, multipartBody.getValueAsInstance("site", Site.class));
 		}
 
-		PermissionChecker permissionChecker =
-			PermissionThreadLocal.getPermissionChecker();
 		String name = PrincipalThreadLocal.getName();
 
 		File tempFile = FileUtil.createTempFile(
@@ -492,7 +505,16 @@ public class SiteResourceImpl extends BaseSiteResourceImpl {
 	private ServiceContext _getServiceContext() throws PortalException {
 		ServiceContext serviceContext = null;
 
-		if (contextHttpServletRequest != null) {
+		ServiceContext currentServiceContext =
+			ServiceContextThreadLocal.getServiceContext();
+
+		if ((currentServiceContext != null) &&
+			(currentServiceContext.getRequest() != null)) {
+
+			serviceContext = ServiceContextFactory.getInstance(
+				currentServiceContext.getRequest());
+		}
+		else if (contextHttpServletRequest != null) {
 			serviceContext = ServiceContextFactory.getInstance(
 				contextHttpServletRequest);
 		}

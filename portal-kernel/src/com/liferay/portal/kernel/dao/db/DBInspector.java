@@ -406,6 +406,14 @@ public class DBInspector {
 			StringUtil.toLowerCase(tableName));
 	}
 
+	public boolean isSupportedColumnType(String columnType) {
+		if (_getByColumnType(columnType, DB::getSQLType) != null) {
+			return true;
+		}
+
+		return false;
+	}
+
 	public String normalizeName(String name) throws SQLException {
 		return normalizeName(name, _connection.getMetaData());
 	}
@@ -487,20 +495,6 @@ public class DBInspector {
 		return DB.SQL_SIZE_NONE;
 	}
 
-	private ResultSet _getColumnsResultSet(String tableName, String columnName)
-		throws SQLException {
-
-		DatabaseMetaData databaseMetaData = _connection.getMetaData();
-
-		if (columnName != null) {
-			columnName = normalizeName(columnName, databaseMetaData);
-		}
-
-		return databaseMetaData.getColumns(
-			getCatalog(), getSchema(),
-			normalizeName(tableName, databaseMetaData), columnName);
-	}
-
 	private int _getColumnType(String tableName, String columnName)
 		throws Exception {
 
@@ -533,6 +527,20 @@ public class DBInspector {
 		_columnTypes.put(cacheKey, columnType);
 
 		return columnType;
+	}
+
+	private ResultSet _getColumnsResultSet(String tableName, String columnName)
+		throws SQLException {
+
+		DatabaseMetaData databaseMetaData = _connection.getMetaData();
+
+		if (columnName != null) {
+			columnName = normalizeName(columnName, databaseMetaData);
+		}
+
+		return databaseMetaData.getColumns(
+			getCatalog(), getSchema(),
+			normalizeName(tableName, databaseMetaData), columnName);
 	}
 
 	private List<String> _getNames(String namePattern, String elementType)

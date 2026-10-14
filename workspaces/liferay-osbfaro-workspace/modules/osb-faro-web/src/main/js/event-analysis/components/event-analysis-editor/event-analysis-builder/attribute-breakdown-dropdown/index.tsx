@@ -8,14 +8,13 @@ import EventAttributeDefinitionsQuery, {
 	EventAttributeDefinitionsVariables,
 } from 'event-analysis/queries/EventAttributeDefinitionsQuery';
 import React, {useState} from 'react';
-import {AddBreakdown, EditBreakdown} from '../../context/attributes';
+import {AddBreakdown} from '../../context/attributes';
 import {Align} from '@clayui/drop-down';
+import {DataTypes} from 'shared/types/DataTypes';
 import {
 	Attribute,
 	AttributeOwnerTypes,
 	AttributeTypes,
-	Breakdown,
-	DataTypes,
 } from 'event-analysis/utils/types';
 import {
 	BREAKDOWN_FNS_MAP,
@@ -23,24 +22,18 @@ import {
 	getTabs,
 } from 'event-analysis/utils/utils';
 import {close, modalTypes, open} from 'shared/actions/modals';
-import {connect, ConnectedProps} from 'react-redux';
 import {CSSTransition, TransitionGroup} from 'react-transition-group';
 import {DISPLAY_NAME} from 'shared/util/pagination';
 import {OrderByDirections} from 'shared/util/constants';
 import {SafeResults} from 'shared/hoc/util';
+import {useDispatch} from 'react-redux';
 import {useQuery} from '@apollo/client';
 
-const connector = connect(null, {close, open});
-
-type PropsFromRedux = ConnectedProps<typeof connector>;
-
-interface IAttributeBreakdownDropdownProps extends PropsFromRedux {
+interface IAttributeBreakdownDropdownProps {
 	alignmentPosition?: (typeof Align)[keyof typeof Align];
-	attribute?: Attribute;
-	breakdown?: Breakdown;
 	disabledIds: string[];
 	eventId: string;
-	onAttributeSelect: AddBreakdown | EditBreakdown;
+	onAttributeSelect: AddBreakdown;
 	trigger: React.ReactElement;
 	uneditableIds: string[];
 }
@@ -49,21 +42,19 @@ const AttributeBreakdownDropdown: React.FC<
 	IAttributeBreakdownDropdownProps
 > = ({
 	alignmentPosition = Align.RightTop,
-	attribute,
-	breakdown,
-	close,
 	disabledIds,
 	eventId,
 	onAttributeSelect,
-	open,
 	trigger,
 	uneditableIds,
 }) => {
+	const dispatch = useDispatch();
+
 	const [attributeOwnerType, setAttributeOwnerType] =
 		useState<AttributeOwnerTypes>(AttributeOwnerTypes.Event);
 	const [query, setQuery] = useState('');
 	const [selectedAttribute, setSelectedAttribute] =
-		useState<Attribute | null>(breakdown && attribute ? attribute : null);
+		useState<Attribute | null>(null);
 
 	const result = useQuery<
 		EventAttributeDefinitionsData,
@@ -83,9 +74,6 @@ const AttributeBreakdownDropdown: React.FC<
 		},
 	});
 
-	const attributeId = attribute ? attribute.id : null;
-	const breakdownId = breakdown ? breakdown.id : null;
-
 	const hasOptions = (attribute: Attribute) =>
 		[DataTypes.Date, DataTypes.Duration, DataTypes.Number].includes(
 			attribute.dataType
@@ -98,7 +86,7 @@ const AttributeBreakdownDropdown: React.FC<
 			result.refetch();
 		}
 
-		close();
+		dispatch(close());
 	};
 
 	return (
@@ -109,9 +97,7 @@ const AttributeBreakdownDropdown: React.FC<
 				if (!active) {
 					setAttributeOwnerType(AttributeOwnerTypes.Event);
 					setQuery('');
-					setSelectedAttribute(
-						breakdown && attribute ? attribute : null
-					);
+					setSelectedAttribute(null);
 				}
 			}}
 			trigger={trigger}
@@ -147,7 +133,6 @@ const AttributeBreakdownDropdown: React.FC<
 										const modifiedEventAttributeDefinitions =
 											getModifiedEventAttributeDefinitions(
 												{
-													attribute: attribute!,
 													attributeOwnerType,
 													eventAttributeDefinitions,
 												}
@@ -155,9 +140,6 @@ const AttributeBreakdownDropdown: React.FC<
 
 										return (
 											<BaseDropdown.SearchableList
-												activeId={
-													attributeId ?? undefined
-												}
 												disabledIds={disabledIds}
 												items={
 													modifiedEventAttributeDefinitions
@@ -167,16 +149,19 @@ const AttributeBreakdownDropdown: React.FC<
 														return;
 													}
 
-													open(
-														modalTypes.EDIT_ATTRIBUTE_EVENT_MODAL,
-														{
-															id: item.id,
-															mutation:
-																UPDATE_EVENT_ATTRIBUTE_DEFINITION,
-															onClose,
-															query: EventAttributeDefinitionQuery,
-															showTypecast: true,
-														}
+													dispatch(
+														open(
+															modalTypes.EDIT_ATTRIBUTE_EVENT_MODAL,
+															{
+																id: item.id,
+																mutation:
+																	UPDATE_EVENT_ATTRIBUTE_DEFINITION,
+																onClose,
+																query: EventAttributeDefinitionQuery,
+																showTypecast:
+																	true,
+															}
+														)
 													);
 
 													setActive(false);
@@ -208,7 +193,6 @@ const AttributeBreakdownDropdown: React.FC<
 																displayName ??
 																'',
 														}),
-														id: breakdownId ?? '',
 													});
 
 													setActive(false);
@@ -243,10 +227,9 @@ const AttributeBreakdownDropdown: React.FC<
 								<BreakdownOptions
 									attribute={selectedAttribute!}
 									attributeOwnerType={attributeOwnerType}
-									breakdownId={breakdownId ?? undefined}
 									onActiveChange={setActive}
-									onAttributeChange={(params: Attribute) => {
-										setSelectedAttribute(params);
+									onAttributeChange={(attribute) => {
+										setSelectedAttribute(attribute ?? null);
 									}}
 									onEditClick={
 										uneditableIds &&
@@ -258,16 +241,19 @@ const AttributeBreakdownDropdown: React.FC<
 										)
 											? undefined
 											: () => {
-													open(
-														modalTypes.EDIT_ATTRIBUTE_EVENT_MODAL,
-														{
-															id: selectedAttribute?.id,
-															mutation:
-																UPDATE_EVENT_ATTRIBUTE_DEFINITION,
-															onClose,
-															query: EventAttributeDefinitionQuery,
-															showTypecast: true,
-														}
+													dispatch(
+														open(
+															modalTypes.EDIT_ATTRIBUTE_EVENT_MODAL,
+															{
+																id: selectedAttribute?.id,
+																mutation:
+																	UPDATE_EVENT_ATTRIBUTE_DEFINITION,
+																onClose,
+																query: EventAttributeDefinitionQuery,
+																showTypecast:
+																	true,
+															}
+														)
 													);
 
 													setActive(false);
@@ -283,4 +269,4 @@ const AttributeBreakdownDropdown: React.FC<
 	);
 };
 
-export default connector(AttributeBreakdownDropdown);
+export default AttributeBreakdownDropdown;

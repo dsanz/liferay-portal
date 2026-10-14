@@ -12,9 +12,18 @@ import '@testing-library/jest-dom';
 
 import FrontendDataSet from '../src/main/resources/META-INF/resources/FrontendDataSet';
 import FrontendDataSetContext from '../src/main/resources/META-INF/resources/FrontendDataSetContext';
+import {FDSConnection} from '../src/main/resources/META-INF/resources/js/api/FDSConnection';
+import {readConfigFromURL} from '../src/main/resources/META-INF/resources/utils/configInURL';
 import EVENTS from '../src/main/resources/META-INF/resources/utils/eventsDefinitions';
+import recentSearches from '../src/main/resources/META-INF/resources/utils/recentSearches';
+import {EConfigInURLKeys} from '../src/main/resources/META-INF/resources/utils/types';
 
 const ID = 'test-fds';
+
+// The Data Set state lives in an atom keyed by the Data Set name, and atoms
+// outlive a test, so every test works against a name of its own
+
+let fdsCount = 0;
 
 const VIEWS = [
 	{
@@ -47,12 +56,17 @@ function mockPendingRequests() {
 	const requests: Array<{
 		resolve: (body: string) => void;
 		signal?: AbortSignal | null;
+		url: string;
 	}> = [];
 
 	fetch.mockResponse(
 		(request) =>
 			new Promise<string>((resolve) => {
-				requests.push({resolve, signal: request.signal});
+				requests.push({
+					resolve,
+					signal: request.signal,
+					url: request.url,
+				});
 			})
 	);
 
@@ -67,25 +81,31 @@ async function settle() {
 
 // The shared Liferay mock records listeners instead of dispatching to them
 
-function refreshFromTheOutside() {
+function refreshFromTheOutside(id: string) {
 	const calls = (Liferay.on as jest.Mock).mock.calls.filter(
 		([eventName]) => eventName === EVENTS.UPDATE_DISPLAY
 	);
 
 	const [, handleRefreshFromTheOutside] = calls[calls.length - 1];
 
-	act(() => handleRefreshFromTheOutside({id: ID}));
+	act(() => handleRefreshFromTheOutside({id}));
 }
 
 describe('FrontendDataSet', () => {
+	let id: string;
+
 	beforeEach(() => {
 		jest.clearAllMocks();
+
+		id = `${ID}-${++fdsCount}`;
+
+		window.history.pushState({}, '', '/');
 	});
 
 	it('cancels a search request superseded by a newer one', async () => {
 		const requests = mockPendingRequests();
 
-		render(<FrontendDataSet apiURL="/o/products" id={ID} views={VIEWS} />);
+		render(<FrontendDataSet apiURL="/o/products" id={id} views={VIEWS} />);
 
 		await waitFor(() => expect(requests).toHaveLength(1));
 
@@ -110,7 +130,7 @@ describe('FrontendDataSet', () => {
 	it('ignores a refresh response that lands after a newer search', async () => {
 		const requests = mockPendingRequests();
 
-		render(<FrontendDataSet apiURL="/o/products" id={ID} views={VIEWS} />);
+		render(<FrontendDataSet apiURL="/o/products" id={id} views={VIEWS} />);
 
 		await waitFor(() => expect(requests).toHaveLength(1));
 
@@ -120,7 +140,7 @@ describe('FrontendDataSet', () => {
 
 		// A refresh is never aborted, so only the sequence guards it
 
-		refreshFromTheOutside();
+		refreshFromTheOutside(id);
 
 		await waitFor(() => expect(requests).toHaveLength(2));
 
@@ -181,5 +201,425 @@ describe('FrontendDataSet', () => {
 
 		expect(identities.length).toBeGreaterThan(1);
 		expect(new Set(identities).size).toBe(1);
+	});
+
+	describe('Search suggestions: recent searches', () => {
+		async function typeAndSettle(
+			requests: ReturnType<typeof mockPendingRequests>,
+			keystrokes: string,
+			names: Array<string>
+		) {
+			const requestCount = requests.length;
+
+			await userEvent.type(screen.getByRole('searchbox'), keystrokes);
+
+			await waitFor(() =>
+				expect(requests).toHaveLength(requestCount + 1)
+			);
+
+			act(() => requests[requestCount].resolve(itemsResponse(names)));
+
+			await settle();
+		}
+
+		async function search(
+			requests: ReturnType<typeof mockPendingRequests>,
+			query: string,
+			names: Array<string>
+		) {
+			await typeAndSettle(requests, `${query}{Enter}`, names);
+		}
+
+		async function renderLoaded({
+			searchAsYouType = false,
+			searchSuggestionsEnabled = true,
+		} = {}) {
+			const requests = mockPendingRequests();
+
+			render(
+				<FrontendDataSet
+					apiURL="/o/products"
+					id={id}
+					searchAsYouType={searchAsYouType}
+					searchSuggestionsEnabled={searchSuggestionsEnabled}
+					views={VIEWS}
+				/>
+			);
+
+			await waitFor(() => expect(requests).toHaveLength(1));
+
+			act(() => requests[0].resolve(itemsResponse(['unfiltered'])));
+
+			expect(await screen.findByText('unfiltered')).toBeInTheDocument();
+
+			return requests;
+		}
+
+		it('remembers a query that returned results', async () => {
+			const requests = await renderLoaded();
+
+			await search(requests, 'nike', ['nike air']);
+
+			expect(recentSearches.get(id)).toEqual(['nike']);
+		});
+
+		it('remembers a query that arrived in the URL', async () => {
+			window.history.pushState({}, '', `/?${id}_fdsConfig=(q:nike)`);
+
+			const requests = mockPendingRequests();
+
+			render(
+				<FrontendDataSet
+					apiURL="/o/products"
+					id={id}
+					searchSuggestionsEnabled={true}
+					views={VIEWS}
+				/>
+			);
+
+			await waitFor(() => expect(requests.length).toBeGreaterThan(0));
+
+			act(() =>
+				requests.forEach((request) =>
+					request.resolve(itemsResponse(['nike air']))
+				)
+			);
+
+			expect(await screen.findByText('nike air')).toBeInTheDocument();
+
+			await settle();
+
+			expect(recentSearches.get(id)).toEqual(['nike']);
+		});
+
+		it('remembers nothing when the Data Set does not ask for search suggestions', async () => {
+			const requests = await renderLoaded({
+				searchSuggestionsEnabled: false,
+			});
+
+			await search(requests, 'nike', ['hit']);
+
+			expect(recentSearches.get(id)).toEqual([]);
+		});
+
+		it('does not remember a query that returned no results', async () => {
+			const requests = await renderLoaded();
+
+			await search(requests, 'reebok', []);
+
+			expect(recentSearches.get(id)).toEqual([]);
+		});
+
+		it('remembers one query for a burst of keystrokes when searching as you type', async () => {
+			const requests = await renderLoaded({searchAsYouType: true});
+
+			await typeAndSettle(requests, 'lego star wars', ['hit']);
+
+			expect(recentSearches.get(id)).toEqual(['lego star wars']);
+		});
+
+		it('keeps a remembered query when it is extended into one that finds nothing', async () => {
+			const requests = await renderLoaded();
+
+			await search(requests, 'nike', ['hit']);
+
+			expect(recentSearches.get(id)).toEqual(['nike']);
+
+			await search(requests, 'zzz', []);
+
+			expect(recentSearches.get(id)).toEqual(['nike']);
+		});
+
+		it('forgets a remembered query once it stops returning results', async () => {
+			const requests = await renderLoaded();
+
+			await search(requests, 'nike', ['nike air']);
+
+			expect(recentSearches.get(id)).toEqual(['nike']);
+
+			// The same query returning nothing is what a filter narrowing the
+			// results down to none looks like from here
+
+			refreshFromTheOutside(id);
+
+			await waitFor(() => expect(requests).toHaveLength(3));
+
+			act(() => requests[2].resolve(itemsResponse([])));
+
+			await settle();
+
+			expect(recentSearches.get(id)).toEqual([]);
+		});
+	});
+
+	describe('User views of a data set whose filtering is delegated', () => {
+		const APP_ID = 'sampleCustomElement';
+
+		const BLUE = "color eq 'Blue'";
+
+		const CUSTOM_CONFIG = {selections: {color: ['Blue']}};
+
+		const SAVED_VIEW = {
+			configuration: JSON.stringify({
+				activeView: VIEWS[0],
+				customConfigs: {[APP_ID]: CUSTOM_CONFIG},
+				filters: [],
+				paginationDelta: 20,
+				sorts: [],
+				visibleFieldNames: {},
+			}),
+			erc: 'blue-things',
+			id: 1,
+			label: 'Blue things',
+		};
+
+		let connection: FDSConnection;
+		let onApply: jest.Mock;
+
+		beforeEach(() => {
+			Liferay.FeatureFlags['LPS-164563'] = true;
+
+			// The connection detaches this handle as it disconnects
+
+			(Liferay.on as jest.Mock).mockReturnValue({detach: jest.fn()});
+		});
+
+		afterEach(() => {
+			connection?.disconnect();
+
+			delete Liferay.FeatureFlags['LPS-164563'];
+
+			(Liferay.on as jest.Mock).mockReturnValue(undefined);
+		});
+
+		async function renderWithSavedView() {
+			const requests = mockPendingRequests();
+
+			render(
+				<FrontendDataSet
+					apiURL="/o/products"
+					id={id}
+					snapshots={[
+						{
+							headerVisible: false,
+							items: [SAVED_VIEW],
+							label: 'owned',
+						},
+					]}
+					snapshotsEnabled={true}
+					views={VIEWS}
+				/>
+			);
+
+			await waitFor(() => expect(requests.length).toBeGreaterThan(0));
+
+			act(() =>
+				requests.forEach((request) =>
+					request.resolve(itemsResponse(['unfiltered']))
+				)
+			);
+
+			expect(await screen.findByText('unfiltered')).toBeInTheDocument();
+
+			return requests;
+		}
+
+		async function connectOwningFilters() {
+			const onStatus = jest.fn();
+
+			onApply = jest.fn((customConfig) =>
+				customConfig === null
+					? connection.clearFilters()
+					: connection.setFilters(
+							[{id: 'color', odataFilterString: BLUE}],
+							customConfig
+						)
+			);
+
+			connection = new FDSConnection(
+				id,
+				{apply: onApply, search: jest.fn()},
+				onStatus,
+				{appId: APP_ID, owns: ['filters', 'search']}
+			);
+
+			await waitFor(() =>
+				expect(onStatus).toHaveBeenCalledWith(
+					expect.objectContaining({status: 'ready'})
+				)
+			);
+		}
+
+		const lastRequestedFilter = (
+			requests: ReturnType<typeof mockPendingRequests>
+		) =>
+			new URL(requests[requests.length - 1].url).searchParams.get(
+				'filter'
+			) ?? '';
+
+		async function chooseView(label: string) {
+			await userEvent.click(screen.getByRole('button', {name: 'views'}));
+
+			await userEvent.click(await screen.findByText(label));
+		}
+
+		it('hands a restored view back to the connection that owns the filtering', async () => {
+			await renderWithSavedView();
+			await connectOwningFilters();
+
+			await chooseView('Blue things');
+
+			await waitFor(() =>
+				expect(onApply).toHaveBeenCalledWith(CUSTOM_CONFIG)
+			);
+		});
+
+		it('asks for what the restored view was showing', async () => {
+			const requests = await renderWithSavedView();
+			await connectOwningFilters();
+
+			const requestCount = requests.length;
+
+			await chooseView('Blue things');
+
+			await waitFor(() =>
+				expect(requests.length).toBeGreaterThan(requestCount)
+			);
+
+			expect(lastRequestedFilter(requests)).toContain(BLUE);
+		});
+
+		it('holds a restored view for a connection that has yet to arrive', async () => {
+			await renderWithSavedView();
+
+			await chooseView('Blue things');
+
+			await connectOwningFilters();
+
+			await waitFor(() =>
+				expect(onApply).toHaveBeenCalledWith(CUSTOM_CONFIG)
+			);
+		});
+
+		it('leaves the restored view in the address, so a reload brings it back', async () => {
+			await renderWithSavedView();
+			await connectOwningFilters();
+
+			await chooseView('Blue things');
+
+			await waitFor(() =>
+				expect(
+					readConfigFromURL(id)?.[EConfigInURLKeys.CUSTOM_CONFIGS]
+				).toEqual({
+					[APP_ID]: CUSTOM_CONFIG,
+				})
+			);
+		});
+
+		it('tells the owner to drop its filtering when the default view comes back', async () => {
+			const requests = await renderWithSavedView();
+			await connectOwningFilters();
+
+			await chooseView('Blue things');
+
+			await waitFor(() => expect(onApply).toHaveBeenCalled());
+
+			const requestCount = requests.length;
+
+			await chooseView('default-view');
+
+			await waitFor(() => expect(onApply).toHaveBeenLastCalledWith(null));
+
+			await waitFor(() =>
+				expect(requests.length).toBeGreaterThan(requestCount)
+			);
+
+			expect(lastRequestedFilter(requests)).not.toContain(BLUE);
+			expect(
+				readConfigFromURL(id)?.[EConfigInURLKeys.CUSTOM_CONFIGS]
+			).toBeUndefined();
+		});
+	});
+
+	describe('Search in the browser history', () => {
+		let pushState: jest.SpyInstance;
+		let replaceState: jest.SpyInstance;
+
+		beforeEach(() => {
+			pushState = jest.spyOn(window.history, 'pushState');
+			replaceState = jest.spyOn(window.history, 'replaceState');
+		});
+
+		afterEach(() => {
+			jest.restoreAllMocks();
+		});
+
+		async function renderLoaded(searchAsYouType: boolean) {
+			const requests = mockPendingRequests();
+
+			render(
+				<FrontendDataSet
+					apiURL="/o/products"
+					id={id}
+					searchAsYouType={searchAsYouType}
+					views={VIEWS}
+				/>
+			);
+
+			await waitFor(() => expect(requests).toHaveLength(1));
+
+			act(() => requests[0].resolve(itemsResponse(['unfiltered'])));
+
+			expect(await screen.findByText('unfiltered')).toBeInTheDocument();
+
+			return requests;
+		}
+
+		async function typeAndSettle(
+			requests: ReturnType<typeof mockPendingRequests>,
+			keystrokes: string
+		) {
+			const requestCount = requests.length;
+
+			await userEvent.type(screen.getByRole('searchbox'), keystrokes);
+
+			await waitFor(() =>
+				expect(requests).toHaveLength(requestCount + 1)
+			);
+
+			act(() => requests[requestCount].resolve(itemsResponse(['hit'])));
+
+			await settle();
+		}
+
+		function configInURL() {
+			return new URLSearchParams(window.location.search).get(
+				`${id}_fdsConfig`
+			);
+		}
+
+		it('keeps one entry for the queries committed while typing', async () => {
+			const requests = await renderLoaded(true);
+
+			await typeAndSettle(requests, 'lego');
+			await typeAndSettle(requests, 'land');
+
+			expect(pushState).not.toHaveBeenCalled();
+			expect(replaceState).toHaveBeenCalled();
+
+			// The query is still shareable and survives a reload
+
+			expect(configInURL()).toContain('q:legoland');
+		});
+
+		it('adds an entry for every query submitted with Enter', async () => {
+			const requests = await renderLoaded(false);
+
+			await typeAndSettle(requests, 'lego{Enter}');
+			await typeAndSettle(requests, 'land{Enter}');
+
+			expect(pushState).toHaveBeenCalledTimes(2);
+			expect(configInURL()).toContain('q:legoland');
+		});
 	});
 });

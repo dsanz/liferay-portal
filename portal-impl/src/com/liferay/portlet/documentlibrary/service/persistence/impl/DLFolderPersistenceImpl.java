@@ -2945,6 +2945,8 @@ public class DLFolderPersistenceImpl
 		}
 		else {
 			if (!Objects.equals(
+					dlFolder.getUuid(), dlFolder.getExternalReferenceCode()) &&
+				!Objects.equals(
 					dlFolderModelImpl.getColumnOriginalValue(
 						"externalReferenceCode"),
 					dlFolder.getExternalReferenceCode())) {
@@ -4286,4 +4288,4 @@ public class DLFolderPersistenceImpl
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:662178245
+// LIFERAY-SERVICE-BUILDER-HASH:-984304096

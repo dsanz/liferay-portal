@@ -1082,22 +1082,6 @@ public class AssetPublisherDisplayContext {
 		return portletURL;
 	}
 
-	public long[] getReferencedModelsGroupIds() throws PortalException {
-
-		// Referenced models are asset subtypes, tags or categories that
-		// are used to filter assets and can belong to a different scope of
-		// the asset they are associated to
-
-		if (_referencedModelsGroupIds != null) {
-			return _referencedModelsGroupIds;
-		}
-
-		_referencedModelsGroupIds = _portal.getCurrentAndAncestorSiteGroupIds(
-			getGroupIds(), true);
-
-		return _referencedModelsGroupIds;
-	}
-
 	public int getRSSDelta() {
 		if (_rssDelta != null) {
 			return _rssDelta;
@@ -1143,6 +1127,22 @@ public class AssetPublisherDisplayContext {
 			"rssName", portletDisplay.getTitle());
 
 		return _rssName;
+	}
+
+	public long[] getReferencedModelsGroupIds() throws PortalException {
+
+		// Referenced models are asset subtypes, tags or categories that
+		// are used to filter assets and can belong to a different scope of
+		// the asset they are associated to
+
+		if (_referencedModelsGroupIds != null) {
+			return _referencedModelsGroupIds;
+		}
+
+		_referencedModelsGroupIds = _portal.getCurrentAndAncestorSiteGroupIds(
+			getGroupIds(), true);
+
+		return _referencedModelsGroupIds;
 	}
 
 	public Map<Long, List<AssetPublisherAddItemHolder>>
@@ -1294,16 +1294,18 @@ public class AssetPublisherDisplayContext {
 			return _searchContainer;
 		}
 
-		SearchContainer<AssetEntry> searchContainer = new SearchContainer(
-			_portletRequest, null, null, SearchContainer.DEFAULT_CUR_PARAM,
-			getDelta(), getPortletURL(), null, null);
+		if (isPaginationTypeNone()) {
+			_searchContainer = new SearchContainer<>();
+		}
+		else {
+			_searchContainer = new SearchContainer<>(
+				_portletRequest, null, null, SearchContainer.DEFAULT_CUR_PARAM,
+				getDelta(), getPortletURL(), null, null);
 
-		if (!isPaginationTypeNone()) {
-			searchContainer.setDelta(getDelta());
-			searchContainer.setDeltaConfigurable(false);
+			_searchContainer.setDeltaConfigurable(false);
 		}
 
-		_searchContainer = searchContainer;
+		_searchContainer.setDelta(getDelta());
 
 		return _searchContainer;
 	}
@@ -1564,10 +1566,6 @@ public class AssetPublisherDisplayContext {
 		return _enableConversions;
 	}
 
-	public boolean isEnabledAutoscroll() {
-		return _assetPublisherWebConfiguration.enableAutoscroll();
-	}
-
 	public boolean isEnableFlags() {
 		if (_enableFlags != null) {
 			return _enableFlags;
@@ -1595,6 +1593,17 @@ public class AssetPublisherDisplayContext {
 		return _enablePrint;
 	}
 
+	public boolean isEnableRSS() {
+		if (_enableRSS != null) {
+			return _enableRSS;
+		}
+
+		_enableRSS = GetterUtil.getBoolean(
+			_portletPreferences.getValue("enableRss", null));
+
+		return _enableRSS;
+	}
+
 	public boolean isEnableRatings() {
 		if (_enableRatings != null) {
 			return _enableRatings;
@@ -1616,17 +1625,6 @@ public class AssetPublisherDisplayContext {
 			_isShowRelatedAssets());
 
 		return _enableRelatedAssets;
-	}
-
-	public boolean isEnableRSS() {
-		if (_enableRSS != null) {
-			return _enableRSS;
-		}
-
-		_enableRSS = GetterUtil.getBoolean(
-			_portletPreferences.getValue("enableRss", null));
-
-		return _enableRSS;
 	}
 
 	public boolean isEnableSetAsDefaultAssetPublisher() {
@@ -1691,6 +1689,10 @@ public class AssetPublisherDisplayContext {
 			_portletPreferences.getValue("enableViewCountIncrement", null));
 
 		return _enableViewCountIncrement;
+	}
+
+	public boolean isEnabledAutoscroll() {
+		return _assetPublisherWebConfiguration.enableAutoscroll();
 	}
 
 	public boolean isExcludeZeroViewCount() {
@@ -2513,9 +2515,9 @@ public class AssetPublisherDisplayContext {
 	private Boolean _enableConversions;
 	private Boolean _enableFlags;
 	private Boolean _enablePrint;
+	private Boolean _enableRSS;
 	private Boolean _enableRatings;
 	private Boolean _enableRelatedAssets;
-	private Boolean _enableRSS;
 	private Boolean _enableSubscriptions;
 	private Boolean _enableTagBasedNavigation;
 	private Boolean _enableViewCountIncrement;

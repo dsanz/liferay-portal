@@ -1,0 +1,687 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2026 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+import {ClayIconSpriteContext} from '@clayui/icon';
+import {fireEvent, render, screen, waitFor} from '@testing-library/react';
+import React, {useReducer, useState} from 'react';
+
+import '@testing-library/jest-dom';
+
+import {BottomBar} from '../../src/main/resources/META-INF/resources/js/chrome/BottomBar';
+import {EditorInstanceProvider} from '../../src/main/resources/META-INF/resources/js/chrome/instance';
+import {
+	ADJUSTMENT_KEYS,
+	FILTER_PRESETS,
+	FRAME_KINDS,
+	RATIO_PRESETS,
+} from '../../src/main/resources/META-INF/resources/js/editorConfig';
+import {LoadedImage} from '../../src/main/resources/META-INF/resources/js/imaging/loadImage';
+import {AdjustPanel} from '../../src/main/resources/META-INF/resources/js/panels/AdjustPanel';
+import {CropPanel} from '../../src/main/resources/META-INF/resources/js/panels/CropPanel';
+import {FilterGallery} from '../../src/main/resources/META-INF/resources/js/panels/FilterGallery';
+import {FramePanel} from '../../src/main/resources/META-INF/resources/js/panels/FramePanel';
+import {Workspace} from '../../src/main/resources/META-INF/resources/js/stage/Workspace';
+import {
+	editorReducer,
+	initialHistory,
+} from '../../src/main/resources/META-INF/resources/js/state/editorReducer';
+import {
+	RatioPreset,
+	rotatedSize,
+} from '../../src/main/resources/META-INF/resources/js/state/types';
+
+const IMAGE: LoadedImage = {
+	blob: new Blob(),
+	fileName: 'test.jpg',
+	height: 800,
+	pixelUrls: {coarse: 'c.png', fine: 'f.png', medium: 'm.png', tiny: 't.png'},
+	previewUrl: 'test.jpg',
+	thumbUrl: 'thumb.jpg',
+	type: 'image/jpeg',
+	width: 1200,
+};
+
+function EditorHarness() {
+	const [history, dispatch] = useReducer(editorReducer, undefined, () =>
+		initialHistory(IMAGE.width, IMAGE.height)
+	);
+	const [zoom, setZoom] = useState(0.5);
+
+	const [aspectLocked, setAspectLocked] = useState(false);
+
+	const [selectedOverlayId, setSelectedOverlayId] = useState<string | null>(
+		null
+	);
+
+	const zoomBy = (direction: -1 | 1) =>
+		setZoom((current) => current + direction * 0.25);
+
+	return (
+		<ClayIconSpriteContext.Provider value="/icons.svg">
+			<EditorInstanceProvider value="aie-">
+				<Workspace
+					aspectLocked={aspectLocked}
+					dispatch={dispatch}
+					image={IMAGE}
+					multiSelectedIds={[]}
+					onAnnounce={() => {}}
+					onCenterCrop={() => {}}
+					onCopyOverlay={() => {}}
+					onMultiSelectToggle={() => {}}
+					onPasteOverlay={() => {}}
+					onSelectOverlay={setSelectedOverlayId}
+					onZoom={zoomBy}
+					onZoomActual={() => setZoom(1)}
+					onZoomFit={() => setZoom(0.5)}
+					proportional={false}
+					selectedOverlayId={selectedOverlayId}
+					showCrop
+					showRecenter
+					state={history.present}
+					zoom={zoom}
+				/>
+
+				<CropPanel
+					angle={history.present.angle}
+					aspectLocked={aspectLocked}
+					bounds={rotatedSize(history.present)}
+					crop={history.present.crop}
+					dispatch={dispatch}
+					onAnnounce={() => {}}
+					onAspectLockedChange={setAspectLocked}
+					showStraighten
+				/>
+
+				<AdjustPanel
+					adjustments={history.present.adjustments}
+					dispatch={dispatch}
+					onAnnounce={() => {}}
+					sliders={ADJUSTMENT_KEYS}
+				/>
+
+				<FilterGallery
+					dispatch={dispatch}
+					filter={history.present.filter}
+					image={IMAGE}
+					onAnnounce={() => {}}
+					presets={FILTER_PRESETS}
+				/>
+
+				<FramePanel
+					dispatch={dispatch}
+					frame={history.present.frame}
+					image={IMAGE}
+					onAnnounce={() => {}}
+					presets={FRAME_KINDS}
+				/>
+
+				<button
+					onClick={() =>
+						dispatch({
+							overlay: {
+								color: '#ffffff',
+								fontFamily: 'sans-serif',
+								fontSize: 48,
+								id: 'text-1',
+								kind: 'text',
+								text: 'Hello',
+								x: 100,
+								y: 700,
+							},
+							type: 'add-overlay',
+						})
+					}
+				>
+					add-caption
+				</button>
+
+				<BottomBar
+					canRedo={!!history.future.length}
+					canUndo={!!history.past.length}
+					dispatch={dispatch}
+					onAnnounce={() => {}}
+					onCancel={() => {}}
+					onRedo={() => dispatch({type: 'redo'})}
+					onSave={() => {}}
+					onShowShortcuts={() => {}}
+					onUndo={() => dispatch({type: 'undo'})}
+					onZoom={zoomBy}
+					onZoomFit={() => setZoom(0.5)}
+					ratio={history.present.ratio}
+					ratios={RATIO_PRESETS}
+					saving={false}
+					showRotate
+					zoom={zoom}
+				/>
+			</EditorInstanceProvider>
+		</ClayIconSpriteContext.Provider>
+	);
+}
+
+describe('Editor workspace composition', () => {
+	it('exposes the stage as a described, focusable region', () => {
+		render(<EditorHarness />);
+
+		const workspace = screen.getByRole('region', {
+			name: 'image-workspace',
+		});
+
+		expect(workspace).toHaveAttribute('tabindex', '0');
+		expect(workspace).toHaveAccessibleDescription(
+			'scrollable-view-of-the-image-use-the-zoom-buttons-or-plus-and-minus-keys-to-zoom-tab-to-reach-the-crop-area-and-its-handles'
+		);
+	});
+
+	it('applies the color pipeline when an adjustment slider commits', () => {
+		const {container} = render(<EditorHarness />);
+
+		expect(container.querySelector('image')).not.toHaveAttribute('filter');
+
+		const slider = screen.getByLabelText('brightness');
+
+		fireEvent.change(slider, {target: {value: '40'}});
+		fireEvent.keyUp(slider, {key: 'ArrowRight'});
+
+		expect(container.querySelector('image')).toHaveAttribute(
+			'filter',
+			'url(#aie-preview-filter)'
+		);
+		expect(
+			container.querySelector('#aie-preview-filter feFuncR')
+		).toHaveAttribute('slope', '1.4');
+	});
+
+	it('clears the color pipeline when the adjustments are reset', () => {
+		const {container} = render(<EditorHarness />);
+
+		const slider = screen.getByLabelText('brightness');
+
+		fireEvent.change(slider, {target: {value: '40'}});
+		fireEvent.keyUp(slider, {key: 'ArrowRight'});
+
+		expect(container.querySelector('image')).toHaveAttribute('filter');
+
+		fireEvent.click(screen.getByRole('button', {name: 'reset-all'}));
+
+		expect(container.querySelector('image')).not.toHaveAttribute('filter');
+	});
+
+	it('hands the focus to the last slider when the reset control disappears', async () => {
+		render(<EditorHarness />);
+
+		const slider = screen.getByLabelText('brightness');
+
+		fireEvent.change(slider, {target: {value: '40'}});
+		fireEvent.keyUp(slider, {key: 'ArrowRight'});
+
+		const resetAll = screen.getByRole('button', {name: 'reset-all'});
+
+		resetAll.focus();
+		fireEvent.click(resetAll);
+
+		expect(resetAll).not.toBeInTheDocument();
+
+		await waitFor(() =>
+			expect(screen.getByLabelText('highlights')).toHaveFocus()
+		);
+	});
+
+	it('reverts a cancelled adjustment gesture without a history entry', () => {
+		const {container} = render(<EditorHarness />);
+
+		const slider = screen.getByLabelText('brightness');
+
+		fireEvent.change(slider, {target: {value: '40'}});
+
+		expect(slider).toHaveValue('40');
+		expect(container.querySelector('image')).toHaveAttribute('filter');
+
+		fireEvent.pointerCancel(slider);
+
+		expect(slider).toHaveValue('0');
+		expect(container.querySelector('image')).not.toHaveAttribute('filter');
+		expect(screen.getByRole('button', {name: 'undo'})).toBeDisabled();
+	});
+
+	it('applies a preset picked from the filter gallery', () => {
+		const {container} = render(<EditorHarness />);
+
+		expect(container.querySelector('image')).not.toHaveAttribute('filter');
+
+		fireEvent.click(screen.getByLabelText('sepia'));
+
+		expect(screen.getByLabelText('sepia')).toBeChecked();
+		expect(container.querySelector('.editor-stage image')).toHaveAttribute(
+			'filter',
+			'url(#aie-preview-filter)'
+		);
+		expect(
+			container.querySelector(
+				'#aie-preview-filter feColorMatrix[type="matrix"]'
+			)
+		).not.toBeNull();
+	});
+
+	it('draws the picked frame over the crop area and sizes it from there', () => {
+		const {container} = render(<EditorHarness />);
+
+		expect(
+			container.querySelector('.editor-stage .editor-frame')
+		).toBeNull();
+		expect(screen.queryByLabelText('frame-size')).toBeNull();
+
+		fireEvent.click(screen.getByLabelText('mat'));
+
+		expect(screen.getByLabelText('mat')).toBeChecked();
+
+		const frame = container.querySelector(
+			'.editor-stage .editor-frame rect'
+		);
+
+		expect(frame).toHaveAttribute('stroke-width', '32');
+		expect(frame).toHaveAttribute('x', '16');
+		expect(frame).toHaveAttribute('width', '1168');
+
+		const size = screen.getByLabelText('frame-size');
+
+		fireEvent.change(size, {target: {value: '10'}});
+		fireEvent.keyUp(size, {key: 'ArrowRight'});
+
+		expect(
+			container.querySelector('.editor-stage .editor-frame rect')
+		).toHaveAttribute('stroke-width', '80');
+	});
+
+	it('recolors the frame while the picker moves and commits it once', () => {
+		const {container} = render(<EditorHarness />);
+
+		fireEvent.click(screen.getByLabelText('mat'));
+
+		const frame = () =>
+			container.querySelector('.editor-stage .editor-frame rect');
+
+		expect(frame()).toHaveAttribute('stroke', '#ffffff');
+
+		const picker = screen.getByLabelText('frame-color');
+
+		fireEvent.change(picker, {target: {value: '#ff0000'}});
+
+		expect(frame()).toHaveAttribute('stroke', '#ff0000');
+
+		fireEvent.blur(picker);
+
+		fireEvent.click(screen.getByRole('button', {name: 'undo'}));
+
+		expect(frame()).toHaveAttribute('stroke', '#ffffff');
+		expect(screen.getByLabelText('mat')).toBeChecked();
+	});
+
+	it('lays the adjustment sliders out in the configured order', () => {
+		render(<EditorHarness />);
+
+		const labels = [...document.querySelectorAll('label')]
+			.map((label) => label.textContent)
+			.filter((label) => ADJUSTMENT_KEYS.includes(label as never));
+
+		expect(labels).toEqual(ADJUSTMENT_KEYS);
+	});
+
+	it('steps an adjustment slider by 10 with shift plus arrows', () => {
+		render(<EditorHarness />);
+
+		const slider = screen.getByLabelText('brightness');
+
+		fireEvent.keyDown(slider, {key: 'ArrowRight', shiftKey: true});
+		fireEvent.keyUp(slider, {key: 'ArrowRight', shiftKey: true});
+
+		expect(screen.getByText('10')).toBeInTheDocument();
+	});
+
+	it('scales the stage with the zoom', () => {
+		render(<EditorHarness />);
+
+		const stage = document.querySelector('.editor-stage')!;
+
+		expect(stage).toHaveAttribute('width', '600');
+		expect(stage).toHaveAttribute('height', '400');
+	});
+
+	it('zooms with plus and minus while the workspace has focus', () => {
+		render(<EditorHarness />);
+
+		const workspace = screen.getByRole('region', {
+			name: 'image-workspace',
+		});
+
+		fireEvent.keyDown(workspace, {key: '+'});
+
+		expect(screen.getByText('x-percent')).toBeInTheDocument();
+		expect(document.querySelector('.editor-stage')).toHaveAttribute(
+			'width',
+			'900'
+		);
+
+		fireEvent.click(screen.getByRole('button', {name: 'zoom-out'}));
+
+		expect(document.querySelector('.editor-stage')).toHaveAttribute(
+			'width',
+			'600'
+		);
+	});
+
+	it('rotates the stage and undoes it from the bar', () => {
+		render(<EditorHarness />);
+
+		fireEvent.click(
+			screen.getByRole('button', {name: 'rotate-90-degrees-clockwise'})
+		);
+
+		expect(document.querySelector('.editor-stage')).toHaveAttribute(
+			'width',
+			'400'
+		);
+
+		fireEvent.click(screen.getByRole('button', {name: 'undo'}));
+
+		expect(document.querySelector('.editor-stage')).toHaveAttribute(
+			'width',
+			'600'
+		);
+	});
+
+	it('exposes the crop area and all eight handles as labelled buttons', () => {
+		render(<EditorHarness />);
+
+		expect(
+			screen.getByRole('button', {name: 'crop-area'})
+		).toBeInTheDocument();
+
+		[
+			'crop-handle-top-left-corner',
+			'crop-handle-top-edge',
+			'crop-handle-top-right-corner',
+			'crop-handle-right-edge',
+			'crop-handle-bottom-right-corner',
+			'crop-handle-bottom-edge',
+			'crop-handle-bottom-left-corner',
+			'crop-handle-left-edge',
+		].forEach((name) => {
+			expect(screen.getByRole('button', {name})).toBeInTheDocument();
+		});
+	});
+
+	it('moves a crop handle with the keyboard', () => {
+		render(<EditorHarness />);
+
+		const rightHandle = screen.getByRole('button', {
+			name: 'crop-handle-right-edge',
+		});
+
+		fireEvent.keyDown(rightHandle, {key: 'ArrowLeft', shiftKey: true});
+		fireEvent.keyUp(rightHandle, {key: 'ArrowLeft', shiftKey: true});
+
+		const widthInput = screen.getByLabelText('width') as HTMLInputElement;
+
+		expect(widthInput.value).toBe('1190');
+	});
+
+	it('commits a numeric panel edit on Enter and keeps it inside the image', () => {
+		render(<EditorHarness />);
+
+		const xInput = screen.getByLabelText('x-position') as HTMLInputElement;
+		const widthInput = screen.getByLabelText('width') as HTMLInputElement;
+
+		fireEvent.change(widthInput, {target: {value: '600'}});
+		fireEvent.keyDown(widthInput, {key: 'Enter'});
+
+		expect(widthInput.value).toBe('600');
+
+		fireEvent.change(xInput, {target: {value: '900'}});
+		fireEvent.keyDown(xInput, {key: 'Enter'});
+
+		expect(xInput.value).toBe('600');
+	});
+
+	it('paints the dim layer above the crop area and the border above both', () => {
+		render(<EditorHarness />);
+
+		const classes = [
+			...(document.querySelectorAll(
+				'.editor-stage > g > *'
+			) as NodeListOf<Element>),
+		].map((node) => node.getAttribute('class') ?? node.tagName);
+
+		expect(classes.indexOf('crop-dim')).toBeGreaterThan(
+			classes.indexOf('crop-move')
+		);
+		expect(classes.indexOf('crop-border')).toBeGreaterThan(
+			classes.indexOf('crop-dim')
+		);
+	});
+
+	it('shows the thirds grid only while a crop gesture runs', () => {
+		render(<EditorHarness />);
+
+		const handle = screen.getByRole('button', {
+			name: 'crop-handle-right-edge',
+		});
+
+		expect(document.querySelectorAll('.crop-grid line')).toHaveLength(4);
+		expect(document.querySelector('.crop-grid-visible')).toBeNull();
+
+		fireEvent.keyDown(handle, {key: 'ArrowLeft'});
+
+		expect(
+			document.querySelector('.crop-grid-visible')
+		).toBeInTheDocument();
+
+		fireEvent.keyUp(handle, {key: 'ArrowLeft'});
+
+		expect(document.querySelector('.crop-grid-visible')).toBeNull();
+	});
+
+	it('offers the recenter control only once the crop is a selection', () => {
+		render(<EditorHarness />);
+
+		const recenter = () =>
+			screen.queryByRole('button', {
+				name: 'center-the-crop-in-the-view',
+			});
+
+		expect(recenter()).toBeNull();
+
+		const widthInput = screen.getByLabelText('width');
+
+		fireEvent.change(widthInput, {target: {value: '400'}});
+		fireEvent.keyDown(widthInput, {key: 'Enter'});
+
+		expect(recenter()).toBeInTheDocument();
+	});
+
+	it('keeps the proportions of a numeric edit while the aspect is locked', () => {
+		render(<EditorHarness />);
+
+		const widthInput = screen.getByLabelText('width') as HTMLInputElement;
+		const heightInput = screen.getByLabelText('height') as HTMLInputElement;
+
+		fireEvent.click(screen.getByLabelText('lock-aspect-ratio'));
+
+		fireEvent.change(widthInput, {target: {value: '600'}});
+		fireEvent.keyDown(widthInput, {key: 'Enter'});
+
+		expect(widthInput.value).toBe('600');
+		expect(heightInput.value).toBe('400');
+	});
+
+	it('offers only the corner handles while the aspect is locked', () => {
+		render(<EditorHarness />);
+
+		fireEvent.click(screen.getByLabelText('lock-aspect-ratio'));
+
+		expect(
+			screen.queryByRole('button', {name: 'crop-handle-right-edge'})
+		).toBeNull();
+		expect(
+			screen.getByRole('button', {name: 'crop-handle-top-left-corner'})
+		).toBeInTheDocument();
+	});
+
+	it('centers a square crop from the ratio select and drops back to custom on a free edit', () => {
+		render(<EditorHarness />);
+
+		const select = screen.getByLabelText('ratio') as HTMLSelectElement;
+
+		fireEvent.change(select, {target: {value: '1:1'}});
+
+		expect(select.value).toBe('1:1');
+		expect((screen.getByLabelText('width') as HTMLInputElement).value).toBe(
+			'800'
+		);
+		expect(
+			(screen.getByLabelText('x-position') as HTMLInputElement).value
+		).toBe('200');
+
+		const heightInput = screen.getByLabelText('height');
+
+		fireEvent.change(heightInput, {target: {value: '500'}});
+		fireEvent.keyDown(heightInput, {key: 'Enter'});
+
+		expect(select.value).toBe('custom');
+	});
+
+	it('clips the stage only while the image is straightened', () => {
+		render(<EditorHarness />);
+
+		const imageGroup = () =>
+			document.querySelector('.editor-stage > g:not(.crop-grid)')!;
+
+		expect(imageGroup()).not.toHaveAttribute('clip-path');
+
+		const slider = screen.getByLabelText('straighten');
+
+		fireEvent.change(slider, {target: {value: '8'}});
+		fireEvent.keyUp(slider, {key: 'ArrowRight'});
+
+		expect(imageGroup()).toHaveAttribute(
+			'clip-path',
+			'url(#aie-stage-clip)'
+		);
+		expect(document.querySelector('image')!.parentElement).toHaveAttribute(
+			'transform',
+			expect.stringContaining('rotate(8')
+		);
+
+		fireEvent.click(
+			screen.getByRole('button', {name: 'reset-the-straighten-angle'})
+		);
+
+		expect(imageGroup()).not.toHaveAttribute('clip-path');
+	});
+});
+
+describe('the controls agree with the state from the first render', () => {
+	const bar = (ratios: RatioPreset[]) => {
+		const history = initialHistory(IMAGE.width, IMAGE.height, {ratios});
+
+		render(
+			<ClayIconSpriteContext.Provider value="/icons.svg">
+				<EditorInstanceProvider value="aie-">
+					<BottomBar
+						canRedo={false}
+						canUndo={false}
+						dispatch={() => {}}
+						onAnnounce={() => {}}
+						onCancel={() => {}}
+						onRedo={() => {}}
+						onSave={() => {}}
+						onShowShortcuts={() => {}}
+						onUndo={() => {}}
+						onZoom={() => {}}
+						onZoomFit={() => {}}
+						ratio={history.present.ratio}
+						ratios={ratios}
+						saving={false}
+						showRotate
+						zoom={1}
+					/>
+				</EditorInstanceProvider>
+			</ClayIconSpriteContext.Provider>
+		);
+
+		return screen.getByLabelText('ratio') as HTMLSelectElement;
+	};
+
+	it('shows the forced ratio as the selected option', () => {
+		const select = bar(['1:1']);
+
+		expect(select.value).toBe('1:1');
+		expect(
+			Array.from(select.options).map((option) => option.value)
+		).toEqual(['1:1']);
+	});
+
+	it('starts a custom-plus-presets config on custom, never outside it', () => {
+		const select = bar(['custom', '16:9']);
+
+		expect(select.value).toBe('custom');
+		expect(
+			Array.from(select.options).map((option) => option.value)
+		).toEqual(['custom', '16:9']);
+	});
+});
+
+describe('the frame and the annotations', () => {
+	const stageOrder = (container: HTMLElement) =>
+		[
+			...(container.querySelectorAll(
+				'.editor-stage > g > *'
+			) as NodeListOf<Element>),
+		].map((node) =>
+			node.querySelector('.overlay-hit')
+				? 'annotations'
+				: node.getAttribute('class') ?? node.tagName
+		);
+
+	it('offers the placement only once there is a frame', () => {
+		render(<EditorHarness />);
+
+		expect(screen.queryByLabelText('placement')).toBeNull();
+
+		fireEvent.click(screen.getByLabelText('mat'));
+
+		expect(screen.getByLabelText('placement')).toHaveValue('over');
+	});
+
+	it('paints the frame over the annotations by default, and under them on request', () => {
+		const {container} = render(<EditorHarness />);
+
+		fireEvent.click(screen.getByLabelText('mat'));
+
+		const dispatchAdd = () =>
+			fireEvent.click(screen.getByRole('button', {name: 'add-caption'}));
+
+		dispatchAdd();
+
+		let order = stageOrder(container);
+
+		expect(order.indexOf('editor-frame')).toBeGreaterThan(
+			order.indexOf('annotations')
+		);
+		expect(order.indexOf('crop-dim')).toBeGreaterThan(
+			order.indexOf('editor-frame')
+		);
+
+		fireEvent.change(screen.getByLabelText('placement'), {
+			target: {value: 'under'},
+		});
+
+		order = stageOrder(container);
+
+		expect(order.indexOf('editor-frame')).toBeLessThan(
+			order.indexOf('annotations')
+		);
+		expect(order.indexOf('editor-frame')).toBeGreaterThan(-1);
+	});
+});

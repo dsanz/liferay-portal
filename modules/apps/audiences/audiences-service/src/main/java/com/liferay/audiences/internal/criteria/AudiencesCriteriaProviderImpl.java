@@ -100,6 +100,38 @@ public class AudiencesCriteriaProviderImpl
 		return customAudiencesCriteriaKeys;
 	}
 
+	private void _addSegmentsEntriesAudiencesCriteria(
+		List<AudiencesCriteria> audiencesCriterias, long companyId, String key,
+		String labelKey, Locale locale, int type) {
+
+		List<AudiencesCriteria.Option> options = TransformUtil.transform(
+			_segmentsEntryLocalService.getSegmentsEntriesBySource(
+				companyId, SegmentsEntryConstants.SOURCE_ASAH_FARO_BACKEND,
+				new int[] {type}, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null),
+			segmentsEntry -> new AudiencesCriteria.Option(
+				segmentsEntry.getName(locale),
+				segmentsEntry.getExternalReferenceCode()));
+
+		if (options.isEmpty()) {
+			return;
+		}
+
+		audiencesCriterias.add(
+			AudiencesCriteriaBuilder.setIcon(
+				"users"
+			).setInputType(
+				AudiencesCriteria.InputType.SELECT
+			).setKey(
+				key
+			).setLabel(
+				_language.get(locale, labelKey)
+			).setOptions(
+				options
+			).setType(
+				AudiencesCriteria.Type.SET
+			).build());
+	}
+
 	private List<CET> _getAudiencesCustomAttributesCETs(long companyId)
 		throws PortalException {
 
@@ -372,31 +404,13 @@ public class AudiencesCriteriaProviderImpl
 					AudiencesCriteria.Type.STRING
 				).build()));
 
-		List<AudiencesCriteria.Option> segmentsOptions =
-			TransformUtil.transform(
-				_segmentsEntryLocalService.getSegmentsEntriesBySource(
-					companyId, SegmentsEntryConstants.SOURCE_ASAH_FARO_BACKEND,
-					QueryUtil.ALL_POS, QueryUtil.ALL_POS, null),
-				segmentsEntry -> new AudiencesCriteria.Option(
-					segmentsEntry.getName(locale),
-					segmentsEntry.getExternalReferenceCode()));
-
-		if (!segmentsOptions.isEmpty()) {
-			audiencesCriterias.add(
-				AudiencesCriteriaBuilder.setIcon(
-					"users"
-				).setInputType(
-					AudiencesCriteria.InputType.SELECT
-				).setKey(
-					AudiencesCriteriaKeys.SEGMENTS
-				).setLabel(
-					_language.get(locale, "segments")
-				).setOptions(
-					segmentsOptions
-				).setType(
-					AudiencesCriteria.Type.SET
-				).build());
-		}
+		_addSegmentsEntriesAudiencesCriteria(
+			audiencesCriterias, companyId,
+			AudiencesCriteriaKeys.REAL_TIME_SEGMENTS, "real-time-segments",
+			locale, SegmentsEntryConstants.TYPE_REAL_TIME);
+		_addSegmentsEntriesAudiencesCriteria(
+			audiencesCriterias, companyId, AudiencesCriteriaKeys.BATCH_SEGMENTS,
+			"batch-segments", locale, SegmentsEntryConstants.TYPE_BATCH);
 
 		return new AudiencesCriteriaType(
 			audiencesCriterias, AudiencesCriteriaTypeKeys.GENERAL,

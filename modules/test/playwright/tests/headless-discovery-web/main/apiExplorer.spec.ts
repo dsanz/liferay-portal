@@ -58,7 +58,7 @@ test(
 );
 
 test(
-	'Rejects an endpoint that is not a published OpenAPI document',
+	'Rejects an endpoint served from another origin',
 	{tag: '@LPD-102660'},
 	async ({page}) => {
 		const {baseUrl} = liferayConfig.environment;
@@ -71,10 +71,6 @@ test(
 			[
 				'A host smuggled in the user information',
 				`${baseUrl}@attacker.test/openapi.json`,
-			],
-			[
-				'A document hosted on the portal itself',
-				`${baseUrl}/documents/0/0/attacker/openapi.json`,
 			],
 		];
 
@@ -100,6 +96,32 @@ test(
 		await expect(
 			apiExplorer.getOperationBlock('getSiteBlogPostingsPage')
 		).toBeVisible();
+	}
+);
+
+test(
+	'Renders the global OpenAPI document',
+	{tag: '@LPD-105213'},
+	async ({apiExplorer, page}) => {
+		const {baseUrl} = liferayConfig.environment;
+
+		await apiExplorer.goToApplication('openapi');
+
+		await expect(page.getByText('Forbidden access.')).toBeHidden();
+		await expect(
+			page.getByRole('heading', {name: 'Global REST API - OpenAPI'})
+		).toBeVisible({timeout: 60000});
+		await expect(page.locator('.servers select')).toHaveValue(
+			`${baseUrl}/o`
+		);
+
+		// The merged document keeps every application's operations
+
+		await expect(
+			page.getByText('HeadlessAdminWorkflow.v1.0.getOpenAPI', {
+				exact: true,
+			})
+		).toBeVisible({timeout: 60000});
 	}
 );
 

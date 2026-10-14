@@ -46,9 +46,35 @@ import org.osgi.annotation.versioning.ProviderType;
 @ProviderType
 public interface DisplayPageTemplateFolderResource {
 
+	public void deleteDesignLibraryDisplayPageTemplateFolder(
+			String designLibraryExternalReferenceCode,
+			String displayPageTemplateFolderExternalReferenceCode)
+		throws Exception;
+
 	public void deleteSiteDisplayPageTemplateFolder(
 			String siteExternalReferenceCode,
 			String displayPageTemplateFolderExternalReferenceCode)
+		throws Exception;
+
+	public DisplayPageTemplateFolder getDesignLibraryDisplayPageTemplateFolder(
+			String designLibraryExternalReferenceCode,
+			String displayPageTemplateFolderExternalReferenceCode)
+		throws Exception;
+
+	public Page<com.liferay.portal.vulcan.permission.Permission>
+			getDesignLibraryDisplayPageTemplateFolderPermissionsPage(
+				String designLibraryExternalReferenceCode,
+				String displayPageTemplateFolderExternalReferenceCode,
+				String roleNames)
+		throws Exception;
+
+	public Page<DisplayPageTemplateFolder>
+			getDesignLibraryDisplayPageTemplateFoldersPage(
+				String designLibraryExternalReferenceCode, String search,
+				com.liferay.portal.vulcan.aggregation.Aggregation aggregation,
+				com.liferay.portal.kernel.search.filter.Filter filter,
+				Pagination pagination,
+				com.liferay.portal.kernel.search.Sort[] sorts)
 		throws Exception;
 
 	public DisplayPageTemplateFolder getSiteDisplayPageTemplateFolder(
@@ -92,6 +118,13 @@ public interface DisplayPageTemplateFolderResource {
 			com.liferay.portal.kernel.search.filter.Filter filter,
 			com.liferay.portal.kernel.search.Sort[] sorts, String callbackURL,
 			String contentType, String fieldNames)
+		throws Exception;
+
+	public Page<com.liferay.portal.vulcan.permission.Permission>
+			putDesignLibraryDisplayPageTemplateFolderPermissionsPage(
+				String designLibraryExternalReferenceCode,
+				String displayPageTemplateFolderExternalReferenceCode,
+				com.liferay.portal.vulcan.permission.Permission[] permissions)
 		throws Exception;
 
 	public DisplayPageTemplateFolder putSiteDisplayPageTemplateFolder(
@@ -203,4 +236,4 @@ public interface DisplayPageTemplateFolderResource {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:503253970
+// LIFERAY-REST-BUILDER-HASH:-585907740

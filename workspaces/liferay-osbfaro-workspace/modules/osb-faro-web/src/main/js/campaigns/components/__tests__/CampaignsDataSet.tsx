@@ -69,10 +69,24 @@ describe('CampaignsDataSet', () => {
 		]);
 	});
 
-	it('should leave the columns unsortable while the endpoint ignores sort', () => {
+	it('should make every column sortable', () => {
 		renderDataSet();
 
-		expect(getFields().every(({sortable}: any) => !sortable)).toBe(true);
+		expect(getFields().every(({sortable}: any) => sortable)).toBe(true);
+	});
+
+	it('should sort by accounts touched descending by default', () => {
+		renderDataSet();
+
+		expect(lastFDSProps.sorts).toEqual([
+			{
+				active: true,
+				default: true,
+				direction: 'desc',
+				key: 'accountsTouched',
+				label: 'Accounts Touched',
+			},
+		]);
 	});
 
 	it('should paginate', () => {
@@ -81,11 +95,11 @@ describe('CampaignsDataSet', () => {
 		expect(lastFDSProps.showPagination).toBe(true);
 	});
 
-	it('should not offer a search box, nor the bar holding it', () => {
+	it('should offer a search box and the bar holding it', () => {
 		renderDataSet();
 
-		expect(lastFDSProps.showSearch).toBe(false);
-		expect(lastFDSProps.showManagementBar).toBe(false);
+		expect(lastFDSProps.showSearch).not.toBe(false);
+		expect(lastFDSProps.showManagementBar).not.toBe(false);
 	});
 
 	it('should link the campaign name at its detail screen', () => {
@@ -136,5 +150,29 @@ describe('CampaignsDataSet', () => {
 		);
 
 		expect(container).toHaveTextContent('0');
+	});
+
+	it('should tell the marketer that no campaigns were synced', () => {
+		renderDataSet();
+
+		expect(lastFDSProps.emptyState.title).toMatch(/no campaigns found/i);
+		expect(lastFDSProps.emptyState.description).toMatch(
+			/no campaigns were synced/i
+		);
+	});
+
+	it('should illustrate the empty state with the satellite', () => {
+		renderDataSet();
+
+		expect(lastFDSProps.emptyState.image).toBe('/states/satellite.svg');
+		expect(lastFDSProps.emptyState.imageReducedMotion).toBe(
+			'/states/satellite.svg'
+		);
+	});
+
+	it('should leave the search and filter empty states to the data set', () => {
+		renderDataSet();
+
+		expect(lastFDSProps.emptyState.filtered).toBeUndefined();
 	});
 });

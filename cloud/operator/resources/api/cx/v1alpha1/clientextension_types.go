@@ -1,0 +1,178 @@
+package v1alpha1
+
+import (
+	"fmt"
+
+	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	client "sigs.k8s.io/controller-runtime/pkg/client"
+)
+
+const AnnotationAllowedClientExtensionNamespaces = "cx.liferay.com/allowed-client-extension-namespaces"
+
+const (
+	ConditionConfigurationAccepted = "ConfigurationAccepted"
+	ConditionDelivered             = "Delivered"
+	ConditionMirrored              = "Mirrored"
+	ConditionProvisioned           = "Provisioned"
+	ConditionReady                 = "Ready"
+	ConditionWorkloadAccepted      = "WorkloadAccepted"
+)
+
+const (
+	PhaseDegraded = "Degraded"
+	PhasePending  = "Pending"
+	PhaseReady    = "Ready"
+)
+
+const (
+	WorkloadKindCronJob    WorkloadKind = "CronJob"
+	WorkloadKindDeployment WorkloadKind = "Deployment"
+	WorkloadKindJob        WorkloadKind = "Job"
+)
+
+func (workloadRef WorkloadRef) NewObject() (client.Object, error) {
+	switch workloadRef.Kind {
+	case WorkloadKindCronJob:
+		return &batchv1.CronJob{}, nil
+	case WorkloadKindDeployment:
+		return &appsv1.Deployment{}, nil
+	case WorkloadKindJob:
+		return &batchv1.Job{}, nil
+	}
+
+	return nil, fmt.Errorf("unsupported workload kind %q", workloadRef.Kind)
+}
+
+func init() {
+	SchemeBuilder.Register(&ClientExtension{}, &ClientExtensionList{})
+}
+
+// +kubebuilder:object:root=true
+// +kubebuilder:printcolumn:JSONPath=`.spec.dxpNamespace`,name="DXP-Namespace",type=string
+// +kubebuilder:printcolumn:JSONPath=`.spec.virtualInstanceId`,name="Virtual-Instance",type=string
+// +kubebuilder:printcolumn:JSONPath=`.spec.workloadRef.kind`,name="Workload",type=string
+// +kubebuilder:printcolumn:JSONPath=`.status.conditions[?(@.type=="Delivered")].status`,name="Delivered",type=string
+// +kubebuilder:printcolumn:JSONPath=`.status.conditions[?(@.type=="ConfigurationAccepted")].status`,name="Config-Accepted",type=string
+// +kubebuilder:printcolumn:JSONPath=`.status.conditions[?(@.type=="Provisioned")].status`,name="Provisioned",type=string
+// +kubebuilder:printcolumn:JSONPath=`.status.phase`,name="Phase",type=string
+// +kubebuilder:printcolumn:JSONPath=`.metadata.creationTimestamp`,name="Age",type=date
+// +kubebuilder:printcolumn:JSONPath=`.spec.serviceId`,name="Service-ID",priority=1,type=string
+// +kubebuilder:resource:shortName=cx
+// +kubebuilder:subresource:status
+type ClientExtension struct {
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+	metav1.TypeMeta   `json:",inline"`
+
+	Spec   ClientExtensionSpec   `json:"spec,omitempty"`
+	Status ClientExtensionStatus `json:"status,omitempty"`
+}
+
+// +kubebuilder:object:root=true
+type ClientExtensionList struct {
+	metav1.ListMeta `json:"metadata,omitempty"`
+	metav1.TypeMeta `json:",inline"`
+
+	Items []ClientExtension `json:"items"`
+}
+
+type ClientExtensionSpec struct {
+	// +kubebuilder:validation:MinProperties=1
+	// +kubebuilder:validation:Required
+	Configs map[string]Configuration `json:"configs"`
+
+	// +kubebuilder:validation:MaxLength=253
+	// +kubebuilder:validation:Pattern=`^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*(:[0-9]{1,5})?$`
+	// +optional
+	Domain string `json:"domain,omitempty"`
+
+	// +kubebuilder:validation:MaxLength=63
+	// +kubebuilder:validation:Pattern=`^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`
+	// +optional
+	DxpNamespace string `json:"dxpNamespace,omitempty"`
+
+	// +kubebuilder:validation:MaxLength=63
+	// +kubebuilder:validation:MinLength=1
+	// +kubebuilder:validation:Pattern=`^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`
+	// +kubebuilder:validation:Required
+	ServiceID string `json:"serviceId"`
+
+	// +kubebuilder:validation:MaxLength=63
+	// +kubebuilder:validation:MinLength=1
+	// +kubebuilder:validation:Pattern=`^[a-z0-9]([-a-z0-9.]*[a-z0-9])?$`
+	// +kubebuilder:validation:Required
+	VirtualInstanceID string `json:"virtualInstanceId"`
+
+	// +optional
+	WorkloadRef *WorkloadRef `json:"workloadRef,omitempty"`
+}
+
+type ClientExtensionStatus struct {
+	// +optional
+	AppliedConfigurationPIDs []string `json:"appliedConfigurationPids,omitempty"`
+
+	// +listMapKey=type
+	// +listType=map
+	// +optional
+	Conditions []metav1.Condition `json:"conditions,omitempty"`
+
+	// +optional
+	ConfigurationErrors []ConfigurationError `json:"configurationErrors,omitempty"`
+
+	// +optional
+	ExtInitSecretName string `json:"extInitSecretName,omitempty"`
+
+	// +optional
+	ExtProvisionObservedTime *metav1.Time `json:"extProvisionObservedTime,omitempty"`
+
+	// +optional
+	ExtProvisionResourceVersion string `json:"extProvisionResourceVersion,omitempty"`
+
+	// +optional
+	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
+
+	// +kubebuilder:validation:Enum=Degraded;Pending;Ready
+	// +optional
+	Phase string `json:"phase,omitempty"`
+
+	// +optional
+	WorkloadIssues []string `json:"workloadIssues,omitempty"`
+
+	// +optional
+	WorkloadName string `json:"workloadName,omitempty"`
+}
+
+// +kubebuilder:pruning:PreserveUnknownFields
+// +kubebuilder:validation:Type=object
+type Configuration struct {
+	apiextensionsv1.JSON
+}
+
+type ConfigurationError struct {
+	// +optional
+	ConfigMapName string `json:"configMapName,omitempty"`
+
+	// +optional
+	Message string `json:"message,omitempty"`
+
+	// +kubebuilder:validation:Enum=Apply;Parse
+	// +optional
+	Phase string `json:"phase,omitempty"`
+
+	// +optional
+	PID string `json:"pid,omitempty"`
+}
+
+// +kubebuilder:validation:Enum=CronJob;Deployment;Job
+type WorkloadKind string
+
+type WorkloadRef struct {
+	// +kubebuilder:validation:Required
+	Kind WorkloadKind `json:"kind"`
+
+	// +kubebuilder:validation:MinLength=1
+	// +kubebuilder:validation:Required
+	Name string `json:"name"`
+}

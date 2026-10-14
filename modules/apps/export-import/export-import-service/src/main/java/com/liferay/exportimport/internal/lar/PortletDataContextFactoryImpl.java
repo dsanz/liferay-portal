@@ -194,22 +194,18 @@ public class PortletDataContextFactoryImpl
 		PortletDataContext portletDataContext = _createPortletDataContext(
 			companyId, groupId);
 
+		portletDataContext.setEndDate(endDate);
+
 		Map<String, String[]> parameterMap = Collections.emptyMap();
 
 		if (range != null) {
 			parameterMap = HashMapBuilder.put(
 				ExportImportDateUtil.RANGE, new String[] {range}
 			).build();
-
-			if (ExportImportDateUtil.isRangeDateRange(parameterMap) ||
-				ExportImportDateUtil.isRangeFromLastPublishDate(parameterMap) ||
-				ExportImportDateUtil.isRangeLast(parameterMap)) {
-
-				portletDataContext.setEndDate(endDate);
-			}
 		}
 
 		portletDataContext.setParameterMap(parameterMap);
+
 		portletDataContext.setStartDate(startDate);
 
 		_setChangesetParameters(portletDataContext);

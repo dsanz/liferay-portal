@@ -1,15 +1,20 @@
 affinity: {}
+clientExtensions:
+    enabled: false
+customEnv: {}
 customLabels: {}
+customVolumeMounts: {}
+customVolumes: {}
 debug: false
 downloadPollInterval: 15s
+expirationGracePeriod: 2160h
 fullnameOverride: ""
-gracePeriod: 168h
 heartbeatInterval: 10m
 image:
     pullPolicy: IfNotPresent
     pullSecrets: []
     repository: us-central1-docker.pkg.dev/external-assets-prd/liferay-cloud-native/liferay-dxp-operator
-    tag: 0.1.0
+    tag: 0.1.1
 marketplace:
     claimName: ""
     csi:
@@ -49,6 +54,7 @@ probes:
     port: 8081
 provisioning:
     baseURL: https://api.one.liferay.com
+provisioningGracePeriod: 168h
 rbac:
     create: true
 replicaCount: 1

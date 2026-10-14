@@ -6,7 +6,6 @@
 package com.liferay.frontend.data.set.internal.serializer;
 
 import com.liferay.frontend.data.set.SystemFDSEntry;
-import com.liferay.frontend.data.set.action.FDSBulkActions;
 import com.liferay.frontend.data.set.action.FDSCreationMenu;
 import com.liferay.frontend.data.set.action.FDSItemsActions;
 import com.liferay.frontend.data.set.constants.FDSConstants;
@@ -19,7 +18,6 @@ import com.liferay.frontend.data.set.filter.FDSFilter;
 import com.liferay.frontend.data.set.filter.FDSFilterContextContributor;
 import com.liferay.frontend.data.set.filter.GroupedFDSFilters;
 import com.liferay.frontend.data.set.filter.SelectionFDSFilterItem;
-import com.liferay.frontend.data.set.internal.action.FDSBulkActionsRegistryImpl;
 import com.liferay.frontend.data.set.internal.filter.ClientExtensionFDSFilterContextContributor;
 import com.liferay.frontend.data.set.internal.filter.DateRangeFDSFilterContextContributor;
 import com.liferay.frontend.data.set.internal.filter.FDSFilterContextContributorRegistryImpl;
@@ -96,65 +94,6 @@ public class SystemFDSSerializerTest extends BaseFDSSerializerTestCase {
 		LiferayUnitTestRule.INSTANCE;
 
 	@Test
-	public void testSerializeAdditionalAPIURLParameters() throws Exception {
-
-		// No parameters
-
-		ServiceTrackerMap
-			<String,
-			 ServiceTrackerCustomizerFactory.ServiceWrapper<FDSAPIURLResolver>>
-				serviceTrackerMap = ServiceTrackerMapFactory.openSingleValueMap(
-					bundleContext, FDSAPIURLResolver.class,
-					"fds.rest.application.key",
-					ServiceTrackerCustomizerFactory.
-						<FDSAPIURLResolver>serviceWrapper(bundleContext));
-
-		systemFDSSerializer.fdsAPIURLResolverRegistry =
-			new FDSAPIURLResolverRegistryImpl(serviceTrackerMap);
-
-		ThemeDisplay themeDisplay = Mockito.mock(ThemeDisplay.class);
-
-		Mockito.when(
-			httpServletRequest.getAttribute(WebKeys.THEME_DISPLAY)
-		).thenReturn(
-			themeDisplay
-		);
-
-		Mockito.when(
-			themeDisplay.getUser()
-		).thenReturn(
-			Mockito.mock(User.class)
-		);
-
-		_registerServices(_registerSystemFDSEntry(FDS_NAMES[0]));
-
-		Assert.assertNull(
-			systemFDSSerializer.serializeAdditionalAPIURLParameters(
-				FDS_NAMES[0], httpServletRequest));
-
-		_unregisterServices();
-
-		// Parameters
-
-		_registerServices(
-			_registerSystemFDSEntry(
-				SystemFDSEntryFactory.create(
-					FDS_NAMES[0]
-				).withAdditionalURLParameters(
-					API_URL_PARAMETERS
-				)));
-
-		Assert.assertEquals(
-			API_URL_PARAMETERS,
-			systemFDSSerializer.serializeAdditionalAPIURLParameters(
-				FDS_NAMES[0], httpServletRequest));
-
-		_unregisterServices();
-
-		serviceTrackerMap.close();
-	}
-
-	@Test
 	public void testSerializeAPIURL() throws Exception {
 
 		// No parameters
@@ -215,21 +154,68 @@ public class SystemFDSSerializerTest extends BaseFDSSerializerTestCase {
 	}
 
 	@Test
-	public void testSerializeBulkActions() throws Exception {
+	public void testSerializeAdditionalAPIURLParameters() throws Exception {
 
-		// Different bulk actions
+		// No parameters
 
 		ServiceTrackerMap
 			<String,
-			 ServiceTrackerCustomizerFactory.ServiceWrapper<FDSBulkActions>>
+			 ServiceTrackerCustomizerFactory.ServiceWrapper<FDSAPIURLResolver>>
 				serviceTrackerMap = ServiceTrackerMapFactory.openSingleValueMap(
-					bundleContext, FDSBulkActions.class,
-					"frontend.data.set.name",
+					bundleContext, FDSAPIURLResolver.class,
+					"fds.rest.application.key",
 					ServiceTrackerCustomizerFactory.
-						<FDSBulkActions>serviceWrapper(bundleContext));
+						<FDSAPIURLResolver>serviceWrapper(bundleContext));
 
-		systemFDSSerializer.fdsBulkActionsRegistry =
-			new FDSBulkActionsRegistryImpl(serviceTrackerMap);
+		systemFDSSerializer.fdsAPIURLResolverRegistry =
+			new FDSAPIURLResolverRegistryImpl(serviceTrackerMap);
+
+		ThemeDisplay themeDisplay = Mockito.mock(ThemeDisplay.class);
+
+		Mockito.when(
+			httpServletRequest.getAttribute(WebKeys.THEME_DISPLAY)
+		).thenReturn(
+			themeDisplay
+		);
+
+		Mockito.when(
+			themeDisplay.getUser()
+		).thenReturn(
+			Mockito.mock(User.class)
+		);
+
+		_registerServices(_registerSystemFDSEntry(FDS_NAMES[0]));
+
+		Assert.assertNull(
+			systemFDSSerializer.serializeAdditionalAPIURLParameters(
+				FDS_NAMES[0], httpServletRequest));
+
+		_unregisterServices();
+
+		// Parameters
+
+		_registerServices(
+			_registerSystemFDSEntry(
+				SystemFDSEntryFactory.create(
+					FDS_NAMES[0]
+				).withAdditionalURLParameters(
+					API_URL_PARAMETERS
+				)));
+
+		Assert.assertEquals(
+			API_URL_PARAMETERS,
+			systemFDSSerializer.serializeAdditionalAPIURLParameters(
+				FDS_NAMES[0], httpServletRequest));
+
+		_unregisterServices();
+
+		serviceTrackerMap.close();
+	}
+
+	@Test
+	public void testSerializeBulkActions() throws Exception {
+
+		// Different bulk actions
 
 		List<FDSActionDropdownItem> fdsActionDropdownItems1 =
 			ListUtil.fromArray(
@@ -238,7 +224,7 @@ public class SystemFDSSerializerTest extends BaseFDSSerializerTestCase {
 					"headless"));
 
 		_registerServices(
-			_registerFDSBulkActions(fdsActionDropdownItems1, FDS_NAMES[0]),
+			registerFDSBulkActions(fdsActionDropdownItems1, FDS_NAMES[0]),
 			_registerSystemFDSEntry(FDS_NAMES[0]));
 
 		Assert.assertEquals(
@@ -253,7 +239,7 @@ public class SystemFDSSerializerTest extends BaseFDSSerializerTestCase {
 					"modal-permissions"));
 
 		_registerServices(
-			_registerFDSBulkActions(fdsActionDropdownItems2, FDS_NAMES[1]),
+			registerFDSBulkActions(fdsActionDropdownItems2, FDS_NAMES[1]),
 			_registerSystemFDSEntry(FDS_NAMES[0]));
 
 		Assert.assertEquals(
@@ -288,8 +274,8 @@ public class SystemFDSSerializerTest extends BaseFDSSerializerTestCase {
 				"headless"));
 
 		_registerServices(
-			_registerFDSBulkActions(fdsActionDropdownItems1, FDS_NAMES[0]),
-			_registerFDSBulkActions(fdsActionDropdownItems1, FDS_NAMES[1]),
+			registerFDSBulkActions(fdsActionDropdownItems1, FDS_NAMES[0]),
+			registerFDSBulkActions(fdsActionDropdownItems1, FDS_NAMES[1]),
 			_registerSystemFDSEntry(FDS_NAMES[0]),
 			_registerSystemFDSEntry(FDS_NAMES[1]));
 
@@ -300,8 +286,6 @@ public class SystemFDSSerializerTest extends BaseFDSSerializerTestCase {
 				FDS_NAMES[1], httpServletRequest));
 
 		_unregisterServices();
-
-		serviceTrackerMap.close();
 	}
 
 	@Test
@@ -1231,6 +1215,40 @@ public class SystemFDSSerializerTest extends BaseFDSSerializerTestCase {
 	}
 
 	@Test
+	public void testSerializeSearchSuggestionsEnabled() throws Exception {
+		_registerServices(
+			_registerSystemFDSEntry(
+				SystemFDSEntryFactory.create(
+					FDS_NAMES[0]
+				).withSearchSuggestionsEnabled(
+					false
+				)),
+			_registerSystemFDSEntry(
+				SystemFDSEntryFactory.create(
+					FDS_NAMES[1]
+				).withSearchSuggestionsEnabled(
+					true
+				)));
+
+		Assert.assertFalse(
+			systemFDSSerializer.serializeSearchSuggestionsEnabled(
+				FDS_NAMES[0], httpServletRequest));
+		Assert.assertTrue(
+			systemFDSSerializer.serializeSearchSuggestionsEnabled(
+				FDS_NAMES[1], httpServletRequest));
+
+		_unregisterServices();
+
+		_registerServices(_registerSystemFDSEntry(FDS_NAMES[0]));
+
+		Assert.assertFalse(
+			systemFDSSerializer.serializeSearchSuggestionsEnabled(
+				FDS_NAMES[0], httpServletRequest));
+
+		_unregisterServices();
+	}
+
+	@Test
 	public void testSerializeShowSearch() throws Exception {
 		_registerServices(
 			_registerSystemFDSEntry(
@@ -1820,24 +1838,6 @@ public class SystemFDSSerializerTest extends BaseFDSSerializerTestCase {
 		};
 	}
 
-	private ServiceRegistration<FDSBulkActions> _registerFDSBulkActions(
-		List<FDSActionDropdownItem> fdsActionDropdownItems, String fdsName) {
-
-		return bundleContext.registerService(
-			FDSBulkActions.class,
-			new FDSBulkActions() {
-
-				@Override
-				public List<FDSActionDropdownItem> getFDSActionDropdownItems(
-					HttpServletRequest httpServletRequest) {
-
-					return fdsActionDropdownItems;
-				}
-
-			},
-			MapUtil.singletonDictionary("frontend.data.set.name", fdsName));
-	}
-
 	private ServiceRegistration<FDSCreationMenu> _registerFDSCreationMenu(
 		CreationMenu creationMenu, String fdsName) {
 
@@ -2032,6 +2032,11 @@ public class SystemFDSSerializerTest extends BaseFDSSerializerTestCase {
 					}
 
 					@Override
+					public boolean getSearchSuggestionsEnabled() {
+						return _searchSuggestionsEnabled;
+					}
+
+					@Override
 					public boolean getShowSearch() {
 						return _showSearch;
 					}
@@ -2092,6 +2097,14 @@ public class SystemFDSSerializerTest extends BaseFDSSerializerTestCase {
 			return this;
 		}
 
+		public SystemFDSEntryWrapper withSearchSuggestionsEnabled(
+			boolean searchSuggestionsEnabled) {
+
+			_searchSuggestionsEnabled = searchSuggestionsEnabled;
+
+			return this;
+		}
+
 		public SystemFDSEntryWrapper withShowSearch(boolean showSearch) {
 			_showSearch = showSearch;
 
@@ -2113,6 +2126,7 @@ public class SystemFDSSerializerTest extends BaseFDSSerializerTestCase {
 		private int[] _listOfItemsPerPage;
 		private String _propsTransformer;
 		private boolean _searchAsYouType;
+		private boolean _searchSuggestionsEnabled;
 		private boolean _showSearch;
 		private boolean _snapshotsEnabled;
 

@@ -130,6 +130,51 @@ public class AssetStatistics implements Cloneable, Serializable {
 
 	protected Long inDraftCount;
 
+	public Long getLongStandingDraftsCount() {
+		return longStandingDraftsCount;
+	}
+
+	public void setLongStandingDraftsCount(Long longStandingDraftsCount) {
+		this.longStandingDraftsCount = longStandingDraftsCount;
+	}
+
+	public void setLongStandingDraftsCount(
+		UnsafeSupplier<Long, Exception> longStandingDraftsCountUnsafeSupplier) {
+
+		try {
+			longStandingDraftsCount =
+				longStandingDraftsCountUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Long longStandingDraftsCount;
+
+	public Long getOverdueWorkflowTasksCount() {
+		return overdueWorkflowTasksCount;
+	}
+
+	public void setOverdueWorkflowTasksCount(Long overdueWorkflowTasksCount) {
+		this.overdueWorkflowTasksCount = overdueWorkflowTasksCount;
+	}
+
+	public void setOverdueWorkflowTasksCount(
+		UnsafeSupplier<Long, Exception>
+			overdueWorkflowTasksCountUnsafeSupplier) {
+
+		try {
+			overdueWorkflowTasksCount =
+				overdueWorkflowTasksCountUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Long overdueWorkflowTasksCount;
+
 	public Long getPendingCount() {
 		return pendingCount;
 	}
@@ -193,6 +238,31 @@ public class AssetStatistics implements Cloneable, Serializable {
 
 	protected Long scheduledCount;
 
+	public Long getSlaBreachedWorkflowTasksCount() {
+		return slaBreachedWorkflowTasksCount;
+	}
+
+	public void setSlaBreachedWorkflowTasksCount(
+		Long slaBreachedWorkflowTasksCount) {
+
+		this.slaBreachedWorkflowTasksCount = slaBreachedWorkflowTasksCount;
+	}
+
+	public void setSlaBreachedWorkflowTasksCount(
+		UnsafeSupplier<Long, Exception>
+			slaBreachedWorkflowTasksCountUnsafeSupplier) {
+
+		try {
+			slaBreachedWorkflowTasksCount =
+				slaBreachedWorkflowTasksCountUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Long slaBreachedWorkflowTasksCount;
+
 	public Long getTotalCount() {
 		return totalCount;
 	}
@@ -235,6 +305,27 @@ public class AssetStatistics implements Cloneable, Serializable {
 
 	protected Long upcomingReviewCount;
 
+	public Long getWorkflowTasksCount() {
+		return workflowTasksCount;
+	}
+
+	public void setWorkflowTasksCount(Long workflowTasksCount) {
+		this.workflowTasksCount = workflowTasksCount;
+	}
+
+	public void setWorkflowTasksCount(
+		UnsafeSupplier<Long, Exception> workflowTasksCountUnsafeSupplier) {
+
+		try {
+			workflowTasksCount = workflowTasksCountUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Long workflowTasksCount;
+
 	@Override
 	public AssetStatistics clone() throws CloneNotSupportedException {
 		return (AssetStatistics)super.clone();
@@ -267,4 +358,4 @@ public class AssetStatistics implements Cloneable, Serializable {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:-614999884
+// LIFERAY-REST-BUILDER-HASH:-1389555501

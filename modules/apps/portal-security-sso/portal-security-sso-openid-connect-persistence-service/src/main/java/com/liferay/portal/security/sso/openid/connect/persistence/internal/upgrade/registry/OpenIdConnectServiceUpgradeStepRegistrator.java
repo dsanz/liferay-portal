@@ -8,6 +8,7 @@ package com.liferay.portal.security.sso.openid.connect.persistence.internal.upgr
 import com.liferay.oauth.client.persistence.service.OAuthClientEntryLocalService;
 import com.liferay.portal.kernel.upgrade.UpgradeProcessFactory;
 import com.liferay.portal.security.sso.openid.connect.persistence.internal.upgrade.v2_3_0.util.OpenIdConnectUserTable;
+import com.liferay.portal.security.sso.openid.connect.persistence.internal.upgrade.v3_0_0.OpenIdConnectSessionIndexedColumnSizeUpgradeProcess;
 import com.liferay.portal.upgrade.registry.UpgradeStepRegistrator;
 
 import org.osgi.service.cm.ConfigurationAdmin;
@@ -65,6 +66,27 @@ public class OpenIdConnectServiceUpgradeStepRegistrator
 			UpgradeProcessFactory.addColumns(
 				"OpenIdConnectSession", "issuer VARCHAR(75) null",
 				"sessionId VARCHAR(75) null"));
+
+		registry.register(
+			"2.5.0", "2.5.1",
+			UpgradeProcessFactory.alterColumnType(
+				"OpenIdConnectSession", "issuer", "VARCHAR(255) null"),
+			UpgradeProcessFactory.alterColumnType(
+				"OpenIdConnectUser", "issuer", "VARCHAR(255) null"));
+
+		registry.register(
+			"2.5.1", "2.5.2",
+			UpgradeProcessFactory.alterColumnType(
+				"OpenIdConnectSession", "sessionId", "VARCHAR(255) null"));
+
+		registry.register(
+			"2.5.2", "2.5.3",
+			new com.liferay.portal.security.sso.openid.connect.persistence.
+				internal.upgrade.v2_5_3.OpenIdConnectSessionUpgradeProcess());
+
+		registry.register(
+			"2.5.3", "3.0.0",
+			new OpenIdConnectSessionIndexedColumnSizeUpgradeProcess());
 	}
 
 	@Reference

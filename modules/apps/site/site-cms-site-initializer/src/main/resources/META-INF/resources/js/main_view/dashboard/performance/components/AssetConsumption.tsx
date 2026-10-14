@@ -12,6 +12,7 @@ import {toThousands} from '@liferay/analytics-reports-js-components-web';
 import {sub} from 'frontend-js-web';
 import React, {useContext, useEffect, useMemo, useState} from 'react';
 
+import {PAGINATION_BAR_LABELS} from '../../../../common/utils/constants';
 import {BaseCard} from '../../common/BaseCard';
 import PickerTrigger from '../../common/PickerTrigger';
 import {AllCategoriesDropdown} from '../../common/filters/AllCategoriesDropdown';
@@ -47,7 +48,7 @@ const VIEW_OPTIONS: {icon: string; label: string; value: ViewType}[] = [
 ];
 
 export function AssetConsumption() {
-	const {constants, range, space} = useContext(PerformanceContext);
+	const {constants, project, range, space} = useContext(PerformanceContext);
 
 	const [assetConsumption, setAssetConsumption] =
 		useState<AssetConsumptionData>();
@@ -63,6 +64,11 @@ export function AssetConsumption() {
 	const [pageSize, setPageSize] = useState(20);
 	const [viewType, setViewType] = useState<ViewType>('chart');
 
+	const cmpProjectIds = useMemo(
+		() => (project.value === 'all' ? undefined : [project.value]),
+		[project.value]
+	);
+
 	const depotEntryIds = useMemo(
 		() => (space.value === 'all' ? undefined : [space.value]),
 		[space.value]
@@ -71,7 +77,7 @@ export function AssetConsumption() {
 	useEffect(() => {
 		setFilters(initialFilters);
 		setPage(1);
-	}, [space.value]);
+	}, [project.value, space.value]);
 
 	useEffect(() => {
 		async function fetchData() {
@@ -79,6 +85,7 @@ export function AssetConsumption() {
 
 			const {data, error} = await PerformanceService.getAssetConsumption({
 				categoryId: toFilterParam(filters.category.value),
+				cmpProjectIds,
 				depotEntryIds,
 				groupBy,
 				page,
@@ -101,7 +108,15 @@ export function AssetConsumption() {
 		}
 
 		fetchData();
-	}, [depotEntryIds, filters, groupBy, page, pageSize, range.rangeKey]);
+	}, [
+		cmpProjectIds,
+		depotEntryIds,
+		filters,
+		groupBy,
+		page,
+		pageSize,
+		range.rangeKey,
+	]);
 
 	const groupByLabel =
 		GROUP_BY_OPTIONS.find(({value}) => value === groupBy)?.label ?? '';
@@ -128,6 +143,7 @@ export function AssetConsumption() {
 						'there-are-no-assets-created-in-the-space'
 					)}
 					imgSrc={`${Liferay.ThemeDisplay.getPathThemeImages()}/states/cms_empty_state.svg`}
+					imgSrcReducedMotion={`${Liferay.ThemeDisplay.getPathThemeImages()}/states/cms_empty_state.svg`}
 					title={Liferay.Language.get('no-assets-yet')}
 				/>
 			);
@@ -248,6 +264,7 @@ export function AssetConsumption() {
 					className="mt-3"
 					deltas={DELTAS}
 					ellipsisBuffer={3}
+					labels={PAGINATION_BAR_LABELS}
 					onActiveChange={setPage}
 					onDeltaChange={(delta) => {
 						setPage(1);

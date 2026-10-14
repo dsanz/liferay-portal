@@ -277,7 +277,7 @@ public class MCPProfileUpgradeProcess extends UpgradeProcess {
 				listTypeDefinition.getListTypeDefinitionId(),
 				objectDefinition.getObjectDefinitionId(),
 				ObjectFieldConstants.BUSINESS_TYPE_PICKLIST, null, null,
-				ObjectFieldConstants.DB_TYPE_STRING, true, false, null,
+				ObjectFieldConstants.DB_TYPE_STRING, null, true, false, null,
 				Collections.singletonMap(LocaleUtil.US, "Status"), false,
 				"profileStatus", ObjectFieldConstants.READ_ONLY_FALSE, null,
 				true, false,
@@ -390,8 +390,8 @@ public class MCPProfileUpgradeProcess extends UpgradeProcess {
 							EXTERNAL_REFERENCE_CODE_MCP_SERVER_PROFILE_TOOL,
 						userId, objectFolder.getObjectFolderId(),
 						"com.liferay.object.model.ObjectDefinition#T4L8", null,
-						true, false, true, false, false, false, false, false,
-						false, false, null,
+						null, true, false, true, false, false, false, false,
+						false, false, false, null,
 						Collections.singletonMap(
 							LocaleUtil.US, "MCP Server Profile Tool"),
 						true, "MCPServerProfileTool", null,
@@ -482,7 +482,7 @@ public class MCPProfileUpgradeProcess extends UpgradeProcess {
 				mcpServerProfileObjectDefinition.getUserId(),
 				mcpServerProfileObjectDefinition.getObjectDefinitionId(),
 				mcpServerProfileToolObjectDefinition.getObjectDefinitionId(), 0,
-				ObjectRelationshipConstants.DELETION_TYPE_CASCADE, false,
+				ObjectRelationshipConstants.DELETION_TYPE_CASCADE, null, false,
 				Collections.singletonMap(
 					LocaleUtil.US,
 					"MCP Server Profile to MCP Server Profile Tools"),
@@ -510,7 +510,9 @@ public class MCPProfileUpgradeProcess extends UpgradeProcess {
 		}
 	}
 
-	private void _updateObjectEntries(ObjectDefinition objectDefinition)
+	private void _updateObjectEntries(
+			ObjectDefinition objectDefinition,
+			ObjectRelationship objectRelationship)
 		throws PortalException {
 
 		for (ObjectEntry objectEntry :
@@ -525,7 +527,17 @@ public class MCPProfileUpgradeProcess extends UpgradeProcess {
 				continue;
 			}
 
-			values.put("profileStatus", "active");
+			int toolsCount =
+				_objectEntryLocalService.getOneToManyObjectEntriesCount(
+					0, objectRelationship.getObjectRelationshipId(), null,
+					objectEntry.getObjectEntryId(), true, null);
+
+			if (toolsCount > 0) {
+				values.put("profileStatus", "active");
+			}
+			else {
+				values.put("profileStatus", "inactive");
+			}
 
 			_objectEntryLocalService.updateObjectEntry(
 				objectEntry.getUserId(), objectEntry.getObjectEntryId(),
@@ -552,6 +564,11 @@ public class MCPProfileUpgradeProcess extends UpgradeProcess {
 
 			_addProfileStatusObjectField(mcpServerProfileObjectDefinition);
 
+			ObjectRelationship objectRelationship = _getOrAddObjectRelationship(
+				mcpServerProfileObjectDefinition,
+				_getOrAddMCPServerProfileToolObjectDefinition(
+					companyId, mcpServerProfileObjectDefinition.getUserId()));
+
 			ObjectField toolsObjectField =
 				_objectFieldLocalService.fetchObjectField(
 					mcpServerProfileObjectDefinition.getObjectDefinitionId(),
@@ -559,12 +576,7 @@ public class MCPProfileUpgradeProcess extends UpgradeProcess {
 
 			if (toolsObjectField != null) {
 				_addMCPServerProfileToolObjectEntries(
-					mcpServerProfileObjectDefinition,
-					_getOrAddObjectRelationship(
-						mcpServerProfileObjectDefinition,
-						_getOrAddMCPServerProfileToolObjectDefinition(
-							companyId,
-							mcpServerProfileObjectDefinition.getUserId())));
+					mcpServerProfileObjectDefinition, objectRelationship);
 
 				_deleteToolsObjectField(
 					mcpServerProfileObjectDefinition, toolsObjectField);
@@ -574,7 +586,8 @@ public class MCPProfileUpgradeProcess extends UpgradeProcess {
 			// Updating the object entries against a stale field list silently
 			// drops the "profileStatus" value.
 
-			_updateObjectEntries(mcpServerProfileObjectDefinition);
+			_updateObjectEntries(
+				mcpServerProfileObjectDefinition, objectRelationship);
 		}
 	}
 

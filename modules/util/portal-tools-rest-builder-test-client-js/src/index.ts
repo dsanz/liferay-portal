@@ -9,6 +9,7 @@
  */
 
 	export {AssetLibraryTestEntityAPI} from './apis/AssetLibraryTestEntityAPI';
+	export {BatchTestEntityActionAPI} from './apis/BatchTestEntityActionAPI';
 	export {BatchTestEntityAPI} from './apis/BatchTestEntityAPI';
 	export {CompanyTestEntityAPI} from './apis/CompanyTestEntityAPI';
 	export {EntityModelResourceTestEntity1API} from './apis/EntityModelResourceTestEntity1API';
@@ -18,6 +19,7 @@
 	export {ERCSiteTestEntityAPI} from './apis/ERCSiteTestEntityAPI';
 	export {FilterAPI} from './apis/FilterAPI';
 	export {MultipartTestEntityAPI} from './apis/MultipartTestEntityAPI';
+	export {ReferencingTestEntityAPI} from './apis/ReferencingTestEntityAPI';
 	export {SchemaAPI} from './apis/SchemaAPI';
 	export {ScopedTestEntityAPI} from './apis/ScopedTestEntityAPI';
 	export {SharedInternalModelBatchTestEntityAPI} from './apis/SharedInternalModelBatchTestEntityAPI';
@@ -28,6 +30,7 @@
 
 	export {AssetLibraryTestEntity} from './models/AssetLibraryTestEntity';
 	export {BatchTestEntity} from './models/BatchTestEntity';
+	export {BatchTestEntityAction} from './models/BatchTestEntityAction';
 	export {ChildTestEntity1} from './models/ChildTestEntity1';
 	export {ChildTestEntity2} from './models/ChildTestEntity2';
 	export {ChildTestEntity3} from './models/ChildTestEntity3';
@@ -45,6 +48,8 @@
 	export {MultipartTestEntity} from './models/MultipartTestEntity';
 	export {NestedArrayItemsTestEntity} from './models/NestedArrayItemsTestEntity';
 	export {NestedTestEntity} from './models/NestedTestEntity';
+	export {ObjectArrayPropertyTestEntity} from './models/ObjectArrayPropertyTestEntity';
+	export {OneOfPropertyTestEntity} from './models/OneOfPropertyTestEntity';
 	export {PageAssetLibraryTestEntity} from './models/PageAssetLibraryTestEntity';
 	export {PageBatchTestEntity} from './models/PageBatchTestEntity';
 	export {PageCompanyTestEntity} from './models/PageCompanyTestEntity';
@@ -61,6 +66,7 @@
 	export {PageSort} from './models/PageSort';
 	export {PageTestEntity} from './models/PageTestEntity';
 	export {Permission} from './models/Permission';
+	export {ReferencingTestEntity} from './models/ReferencingTestEntity';
 	export {Schema} from './models/Schema';
 	export {ScopedTestEntity} from './models/ScopedTestEntity';
 	export {SharedInternalModelBatchTestEntity} from './models/SharedInternalModelBatchTestEntity';

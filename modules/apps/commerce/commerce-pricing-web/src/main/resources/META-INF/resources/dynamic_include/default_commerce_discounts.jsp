@@ -40,7 +40,6 @@ AccountEntry accountEntry = commerceChannelAccountEntryRelDisplayContext.getAcco
 			creationMenu="<%= commerceChannelAccountEntryRelDisplayContext.getCreationMenu(CommerceChannelAccountEntryRelConstants.TYPE_DISCOUNT) %>"
 			dataProviderKey="<%= CommercePricingFDSNames.ACCOUNT_ENTRY_DISCOUNTS %>"
 			id="<%= CommercePricingFDSNames.ACCOUNT_ENTRY_DISCOUNTS %>"
-			showSearch="<%= false %>"
 			style="fluid"
 		/>
 	</div>

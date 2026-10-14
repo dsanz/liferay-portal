@@ -29,7 +29,7 @@ import {createABTest, createVariant, openABTesSidebar} from './utils/ab-test';
 const test = mergeTests(
 	apiHelpersTest,
 	featureFlagsTest({
-		'LPD-78863': {enabled: true, system: true},
+		'LPD-78863': {enabled: true},
 		'LPS-178052': {enabled: true},
 	}),
 	isolatedChannelTest,
@@ -51,7 +51,7 @@ test(
 		await openABTesSidebar(page);
 
 		await expect(
-			page.getByText('Sync to Liferay Analytics Cloud')
+			page.getByText('Sync to Liferay Data Platform')
 		).toBeVisible();
 
 		await expect(
@@ -155,7 +155,7 @@ test(
 
 		await clickOnLink({
 			baseUrl: faroConfig.environment.baseUrl,
-			name: 'View Data in Analytics Cloud',
+			name: 'View Data in Liferay Data Platform',
 			page,
 		});
 

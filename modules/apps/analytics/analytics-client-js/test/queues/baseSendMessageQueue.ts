@@ -28,13 +28,15 @@ describe('BaseSendMessageQueue', () => {
 	let baseSendMessageQueue: BaseSendMessageQueue;
 
 	afterEach(() => {
-		fetchMock.restore();
+		fetchMock.hardReset();
 
 		baseSendMessageQueue.reset();
 	});
 
 	beforeEach(() => {
-		fetchMock.mock(/ac-server/i, () => {
+		fetchMock.mockGlobal();
+
+		fetchMock.route(/ac-server/i, () => {
 			return Promise.resolve(200);
 		});
 
@@ -60,8 +62,10 @@ describe('BaseSendMessageQueue', () => {
 	});
 
 	it('dequeues the message and does not retry when the response status is 403', async () => {
-		fetchMock.restore();
-		fetchMock.mock(/ac-server/i, 403);
+		fetchMock.hardReset();
+		fetchMock.mockGlobal();
+
+		fetchMock.route(/ac-server/i, 403);
 
 		await baseSendMessageQueue.addItem(
 			getMockItem(1) as unknown as AnalyticsType.Event
@@ -75,8 +79,10 @@ describe('BaseSendMessageQueue', () => {
 	});
 
 	it('dequeues the message and does not retry when the response status is 400', async () => {
-		fetchMock.restore();
-		fetchMock.mock(/ac-server/i, 400);
+		fetchMock.hardReset();
+		fetchMock.mockGlobal();
+
+		fetchMock.route(/ac-server/i, 400);
 
 		await baseSendMessageQueue.addItem(
 			getMockItem(1) as unknown as AnalyticsType.Event
@@ -90,8 +96,10 @@ describe('BaseSendMessageQueue', () => {
 	});
 
 	it('keeps the message in the queue to retry when the response status is 500', async () => {
-		fetchMock.restore();
-		fetchMock.mock(/ac-server/i, 500);
+		fetchMock.hardReset();
+		fetchMock.mockGlobal();
+
+		fetchMock.route(/ac-server/i, 500);
 
 		await baseSendMessageQueue.addItem(
 			getMockItem(1) as unknown as AnalyticsType.Event

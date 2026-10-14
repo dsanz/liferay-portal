@@ -4,6 +4,12 @@
  */
 
 import {
+	isCompleteDateTime,
+	isCompleteTime,
+	toDateTimeParts,
+	toTimeParts,
+} from '../../../../utils/dateTime';
+import {
 	IntervalUnit,
 	LAST_WEEKDAY_ORDINAL,
 	RepeatType,
@@ -12,9 +18,19 @@ import {
 } from './types';
 import {WEEKDAY_ORDINAL_OPTIONS, getInitialScheduleValues} from './utils';
 
-const DATE_TIME_PATTERN = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/;
+enum CronField {
+	Second,
+	Minute,
+	Hour,
+	DayOfMonth,
+	Month,
+	DayOfWeek,
+	Year,
+}
 
 const DAY_OF_WEEK_NAMES = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+
+const DEFAULT_WEEKDAY = 2;
 
 const MONTH_NAMES = [
 	'JAN',
@@ -41,78 +57,259 @@ const FIELD_BOUNDS = [
 	{maximum: 2099, minimum: 1970, names: []},
 ];
 
-type DateTimeParts = {
-	day: number;
-	hour: number;
-	minute: number;
-	month: number;
-	year: number;
-};
+export function fromCronExpression(
+	cronExpression: string,
+	startDateTime: string
+): Partial<ScheduleValues> {
+	const canonicalCronExpression = toCanonicalCronExpression(cronExpression);
 
-export function toDateTimeParts(dateTime: string): DateTimeParts {
-	const [date, time = '00:00'] = dateTime.split(' ');
-
-	const [year, month, day] = date.split('-').map(Number);
-	const [hour, minute] = time.split(':').map(Number);
-
-	return {day, hour, minute, month, year};
-}
-
-export function isCompleteDateTime(dateTime: string): boolean {
-	if (!DATE_TIME_PATTERN.test(dateTime)) {
-		return false;
+	if (canonicalCronExpression === null) {
+		return {cronExpression, unit: IntervalUnit.Custom};
 	}
 
-	const {day, hour, minute, month, year} = toDateTimeParts(dateTime);
+	const scheduleValues = {
+		...fromSupportedCronExpression(cronExpression),
+		...toRepeatOnTimeFields(cronExpression, startDateTime),
+	};
 
-	const date = new Date(Date.UTC(year, month - 1, day, hour, minute));
+	if (
+		toCanonicalCronExpression(
+			toCronExpression({
+				...getInitialScheduleValues('UTC'),
+				startDateTime,
+				...scheduleValues,
+			})
+		) !== canonicalCronExpression
+	) {
+		return {cronExpression, unit: IntervalUnit.Custom};
+	}
 
-	return (
-		date.getUTCDate() === day &&
-		date.getUTCFullYear() === year &&
-		date.getUTCHours() === hour &&
-		date.getUTCMinutes() === minute &&
-		date.getUTCMonth() === month - 1
-	);
+	return {...scheduleValues, storedCronExpression: cronExpression};
 }
 
-export function toZonedDate(dateTime: string, timeZoneId: string): Date {
-	const wallClockDate = new Date(`${dateTime.replace(' ', 'T')}:00Z`);
+export function toCronExpression(scheduleValues: ScheduleValues): string {
+	if (scheduleValues.unit === IntervalUnit.Custom) {
+		return scheduleValues.cronExpression;
+	}
 
-	const timeZoneDate = new Date(
-		wallClockDate.toLocaleString('en-US', {timeZone: timeZoneId})
-	);
-	const utcDate = new Date(
-		wallClockDate.toLocaleString('en-US', {timeZone: 'UTC'})
+	const {day, hour, minute, month, year} = toDateTimeParts(
+		scheduleValues.startDateTime
 	);
 
-	return new Date(
-		wallClockDate.getTime() - (timeZoneDate.getTime() - utcDate.getTime())
-	);
+	if (scheduleValues.unit === IntervalUnit.Never) {
+		return `0 ${minute} ${hour} ${day} ${month} ? ${year}`;
+	}
+
+	const repeatOnTimeParts =
+		scheduleValues.repeatOnTimeSynced ||
+		!isCompleteTime(scheduleValues.repeatOnTime)
+			? {hour, minute}
+			: toTimeParts(scheduleValues.repeatOnTime);
+
+	if (scheduleValues.unit === IntervalUnit.Week) {
+		const weekdays = scheduleValues.weekdays.length
+			? scheduleValues.weekdays
+			: [DEFAULT_WEEKDAY];
+
+		const dayOfWeek = [...weekdays]
+			.sort((first, second) => first - second)
+			.map((weekday) => DAY_OF_WEEK_NAMES[weekday - 1])
+			.join(',');
+
+		return `0 ${repeatOnTimeParts.minute} ${repeatOnTimeParts.hour} ? * ${dayOfWeek} *`;
+	}
+
+	if (scheduleValues.unit === IntervalUnit.Day) {
+		return `0 ${repeatOnTimeParts.minute} ${repeatOnTimeParts.hour} * * ? *`;
+	}
+
+	if (scheduleValues.unit === IntervalUnit.Year) {
+		const repeatMonth = scheduleValues.months[0] ?? 1;
+
+		const yearField = `${year}/${
+			scheduleValues.yearInterval > 0 ? scheduleValues.yearInterval : 1
+		}`;
+
+		if (scheduleValues.repeatType === RepeatType.DayOfWeek) {
+			return `0 ${repeatOnTimeParts.minute} ${
+				repeatOnTimeParts.hour
+			} ? ${repeatMonth} ${toDayOfWeekExpression(scheduleValues)} ${yearField}`;
+		}
+
+		return `0 ${repeatOnTimeParts.minute} ${repeatOnTimeParts.hour} ${scheduleValues.monthDays[0] ?? 1} ${repeatMonth} ? ${yearField}`;
+	}
+
+	const monthsField = toNumberListField(scheduleValues.months, 12);
+
+	if (scheduleValues.repeatType === RepeatType.DayOfWeek) {
+		return `0 ${repeatOnTimeParts.minute} ${
+			repeatOnTimeParts.hour
+		} ? ${monthsField} ${toDayOfWeekExpression(scheduleValues)} *`;
+	}
+
+	return `0 ${repeatOnTimeParts.minute} ${repeatOnTimeParts.hour} ${toNumberListField(
+		scheduleValues.monthDays,
+		31
+	)} ${monthsField} ? *`;
 }
 
-export function toWallClockDateTime(
-	isoDateTime: string,
-	timeZoneId: string
-): string {
-	const dateTimeFormatParts = new Intl.DateTimeFormat('en-CA', {
-		day: '2-digit',
-		hour: '2-digit',
-		hourCycle: 'h23',
-		minute: '2-digit',
-		month: '2-digit',
-		timeZone: timeZoneId,
-		year: 'numeric',
-	} as Intl.DateTimeFormatOptions).formatToParts(new Date(isoDateTime));
+export function toCustomCronExpression(scheduleValues: ScheduleValues): string {
+	if (
+		scheduleValues.cronExpression ||
+		!isCompleteDateTime(scheduleValues.startDateTime) ||
+		!scheduleValues.storedCronExpression
+	) {
+		return scheduleValues.cronExpression;
+	}
 
-	const getPart = (type: string) =>
-		dateTimeFormatParts.find(
-			(dateTimeFormatPart) => dateTimeFormatPart.type === type
-		)?.value ?? '';
+	const cronExpression = toCronExpression(scheduleValues);
 
-	return `${getPart('year')}-${getPart('month')}-${getPart(
-		'day'
-	)} ${getPart('hour')}:${getPart('minute')}`;
+	if (
+		toCanonicalCronExpression(cronExpression) ===
+		toCanonicalCronExpression(scheduleValues.storedCronExpression)
+	) {
+		return scheduleValues.storedCronExpression;
+	}
+
+	return cronExpression;
+}
+
+function fromDayOfWeekExpression(
+	dayOfWeekExpression: string
+): Partial<ScheduleValues> {
+	let dayOfWeekAbbreviation = dayOfWeekExpression;
+	let weekdayOrdinal = '1';
+
+	if (dayOfWeekExpression.includes('#')) {
+		[dayOfWeekAbbreviation, weekdayOrdinal] =
+			dayOfWeekExpression.split('#');
+
+		if (
+			!WEEKDAY_ORDINAL_OPTIONS.some(({value}) => value === weekdayOrdinal)
+		) {
+			weekdayOrdinal = '1';
+		}
+	}
+	else if (dayOfWeekExpression.endsWith('L')) {
+		dayOfWeekAbbreviation = dayOfWeekExpression.slice(0, -1);
+		weekdayOrdinal = LAST_WEEKDAY_ORDINAL;
+	}
+
+	return {
+		repeatType: RepeatType.DayOfWeek,
+		weekday:
+			toFieldNumber(dayOfWeekAbbreviation, DAY_OF_WEEK_NAMES) ||
+			DEFAULT_WEEKDAY,
+		weekdayOrdinal,
+	};
+}
+
+function fromSupportedCronExpression(
+	cronExpression: string
+): Partial<ScheduleValues> {
+	const [, , , dayOfMonth, month, dayOfWeek, year] =
+		toCronFields(cronExpression);
+
+	if (year !== '*' && !year.includes('/')) {
+		return {unit: IntervalUnit.Never};
+	}
+
+	const months = toFieldNumbers(month, CronField.Month) ?? [];
+
+	let yearInterval = Number(year.split('/')[1]) || 1;
+
+	if (!YEAR_INTERVALS.includes(yearInterval)) {
+		yearInterval = 1;
+	}
+
+	if (dayOfWeek !== '?' && dayOfWeek !== '*') {
+		if (isOrdinalDayOfWeek(dayOfWeek)) {
+			return {
+				...fromDayOfWeekExpression(dayOfWeek),
+				months,
+				unit: year.includes('/')
+					? IntervalUnit.Year
+					: IntervalUnit.Month,
+				yearInterval,
+			};
+		}
+
+		return {
+			unit: IntervalUnit.Week,
+			weekdays: toFieldNumbers(dayOfWeek, CronField.DayOfWeek) ?? [
+				DEFAULT_WEEKDAY,
+			],
+		};
+	}
+
+	const monthDays = toFieldNumbers(dayOfMonth, CronField.DayOfMonth) ?? [];
+
+	if (year.includes('/')) {
+		return {
+			monthDays,
+			months,
+			repeatType: RepeatType.DayOfMonth,
+			unit: IntervalUnit.Year,
+			yearInterval,
+		};
+	}
+
+	if (!months.length && !monthDays.length) {
+		return {monthDays, months, unit: IntervalUnit.Day};
+	}
+
+	return {
+		monthDays,
+		months,
+		repeatType: RepeatType.DayOfMonth,
+		unit: IntervalUnit.Month,
+	};
+}
+
+function isOrdinalDayOfWeek(dayOfWeek: string): boolean {
+	return dayOfWeek.includes('#') || /[A-Z0-9]L$/i.test(dayOfWeek);
+}
+
+function toCanonicalCronExpression(cronExpression: string): string | null {
+	const fields = toCronFields(cronExpression);
+
+	if (fields.length !== 7) {
+		return null;
+	}
+
+	return fields.reduce((canonical: string | null, field, cronField) => {
+		if (canonical === null) {
+			return null;
+		}
+
+		if (cronField === CronField.DayOfWeek && isOrdinalDayOfWeek(field)) {
+			return `${canonical} ${field}`;
+		}
+
+		const numbers = toFieldNumbers(field, cronField);
+
+		if (numbers === null) {
+			return null;
+		}
+
+		return `${canonical} ${numbers.join(',') || '*'}`;
+	}, '');
+}
+
+function toCronFields(cronExpression: string): string[] {
+	const fields = cronExpression.trim().toUpperCase().split(/\s+/);
+
+	return fields.length === 6 ? [...fields, '*'] : fields;
+}
+
+function toDayOfWeekExpression(scheduleValues: ScheduleValues): string {
+	const dayOfWeekAbbreviation = DAY_OF_WEEK_NAMES[scheduleValues.weekday - 1];
+
+	if (scheduleValues.weekdayOrdinal === LAST_WEEKDAY_ORDINAL) {
+		return `${dayOfWeekAbbreviation}L`;
+	}
+
+	return `${dayOfWeekAbbreviation}#${scheduleValues.weekdayOrdinal}`;
 }
 
 function toFieldNumber(value: string, names: string[]): number {
@@ -125,28 +322,28 @@ function toFieldNumber(value: string, names: string[]): number {
 	return Number(value);
 }
 
-function toFieldNumbers(field: string, fieldIndex: number): number[] | null {
+function toFieldNumbers(field: string, cronField: CronField): number[] | null {
 	if (field === '*' || field === '?') {
 		return [];
 	}
 
-	const {maximum, minimum, names} = FIELD_BOUNDS[fieldIndex];
+	const {maximum, minimum, names} = FIELD_BOUNDS[cronField];
 
 	const numbers = new Set<number>();
 
 	for (const term of field.split(',')) {
-		const [range, stepValue] = term.split('/');
-		const [startValue, endValue] = range.split('-');
+		const [range, stepString] = term.split('/');
+		const [startString, endString] = range.split('-');
 
-		const start = toFieldNumber(startValue, names);
-		const step = stepValue ? Number(stepValue) : 1;
+		const start = toFieldNumber(startString, names);
+		const step = stepString ? Number(stepString) : 1;
 
 		let end = start;
 
-		if (endValue !== undefined) {
-			end = toFieldNumber(endValue, names);
+		if (endString !== undefined) {
+			end = toFieldNumber(endString, names);
 		}
-		else if (stepValue) {
+		else if (stepString) {
 			end = maximum;
 		}
 
@@ -178,223 +375,26 @@ function toNumberListField(numbers: number[], maximum: number): string {
 	return [...numbers].sort((first, second) => first - second).join(',');
 }
 
-function toDayOfWeekExpression(scheduleValues: ScheduleValues): string {
-	const dayOfWeekAbbreviation = DAY_OF_WEEK_NAMES[scheduleValues.weekday - 1];
-
-	if (scheduleValues.weekdayOrdinal === LAST_WEEKDAY_ORDINAL) {
-		return `${dayOfWeekAbbreviation}L`;
-	}
-
-	return `${dayOfWeekAbbreviation}#${scheduleValues.weekdayOrdinal}`;
-}
-
-function fromDayOfWeekExpression(
-	dayOfWeekExpression: string
-): Partial<ScheduleValues> {
-	let dayOfWeekAbbreviation = dayOfWeekExpression;
-	let weekdayOrdinal = '1';
-
-	if (dayOfWeekExpression.includes('#')) {
-		[dayOfWeekAbbreviation, weekdayOrdinal] =
-			dayOfWeekExpression.split('#');
-
-		if (
-			!WEEKDAY_ORDINAL_OPTIONS.some(({value}) => value === weekdayOrdinal)
-		) {
-			weekdayOrdinal = '1';
-		}
-	}
-	else if (dayOfWeekExpression.endsWith('L')) {
-		dayOfWeekAbbreviation = dayOfWeekExpression.slice(0, -1);
-		weekdayOrdinal = LAST_WEEKDAY_ORDINAL;
-	}
-
-	return {
-		repeatType: RepeatType.DayOfWeek,
-		weekday: toFieldNumber(dayOfWeekAbbreviation, DAY_OF_WEEK_NAMES) || 2,
-		weekdayOrdinal,
-	};
-}
-
-function isOrdinalDayOfWeek(dayOfWeek: string): boolean {
-	return dayOfWeek.includes('#') || /[A-Z0-9]L$/i.test(dayOfWeek);
-}
-
-function toCanonicalCronExpression(cronExpression: string): string | null {
-	const fields = cronExpression.trim().toUpperCase().split(/\s+/);
-
-	if (fields.length < 6 || fields.length > 7) {
-		return null;
-	}
-
-	if (fields.length === 6) {
-		fields.push('*');
-	}
-
-	return fields.reduce((canonical: string | null, field, fieldIndex) => {
-		if (canonical === null) {
-			return null;
-		}
-
-		if (fieldIndex === 5 && isOrdinalDayOfWeek(field)) {
-			return `${canonical} ${field}`;
-		}
-
-		const numbers = toFieldNumbers(field, fieldIndex);
-
-		if (numbers === null) {
-			return null;
-		}
-
-		return `${canonical} ${numbers.join(',') || '*'}`;
-	}, '');
-}
-
-export function fromCronExpression(
+function toRepeatOnTimeFields(
 	cronExpression: string,
 	startDateTime: string
 ): Partial<ScheduleValues> {
-	const canonicalCronExpression = toCanonicalCronExpression(cronExpression);
+	const [, minute, hour] = toCronFields(cronExpression);
 
-	if (canonicalCronExpression === null) {
-		return {cronExpression, unit: IntervalUnit.Custom};
+	const hours = toFieldNumbers(hour, CronField.Hour);
+	const minutes = toFieldNumbers(minute, CronField.Minute);
+
+	if (hours?.length !== 1 || minutes?.length !== 1) {
+		return {};
 	}
 
-	const scheduleValues = fromSupportedCronExpression(cronExpression);
+	const repeatOnTime = `${String(hours[0]).padStart(2, '0')}:${String(
+		minutes[0]
+	).padStart(2, '0')}`;
 
-	if (
-		toCanonicalCronExpression(
-			toCronExpression({
-				...getInitialScheduleValues('UTC'),
-				startDateTime,
-				...scheduleValues,
-			})
-		) !== canonicalCronExpression
-	) {
-		return {cronExpression, unit: IntervalUnit.Custom};
+	if (startDateTime.split(' ')[1] === repeatOnTime) {
+		return {};
 	}
 
-	return scheduleValues;
-}
-
-function fromSupportedCronExpression(
-	cronExpression: string
-): Partial<ScheduleValues> {
-	const [, , , dayOfMonth, month, dayOfWeek, year = '*'] = cronExpression
-		.trim()
-		.toUpperCase()
-		.split(/\s+/);
-
-	if (year !== '*' && !year.includes('/')) {
-		return {unit: IntervalUnit.Never};
-	}
-
-	const months = toFieldNumbers(month, 4) ?? [];
-
-	let yearInterval = Number(year.split('/')[1]) || 1;
-
-	if (!YEAR_INTERVALS.includes(yearInterval)) {
-		yearInterval = 1;
-	}
-
-	if (dayOfWeek !== '?' && dayOfWeek !== '*') {
-		if (isOrdinalDayOfWeek(dayOfWeek)) {
-			return {
-				...fromDayOfWeekExpression(dayOfWeek),
-				months,
-				unit: year.includes('/')
-					? IntervalUnit.Year
-					: IntervalUnit.Month,
-				yearInterval,
-			};
-		}
-
-		return {
-			unit: IntervalUnit.Week,
-			weekdays: toFieldNumbers(dayOfWeek, 5) ?? [2],
-		};
-	}
-
-	const monthDays = toFieldNumbers(dayOfMonth, 3) ?? [];
-
-	if (year.includes('/')) {
-		return {
-			monthDays,
-			months,
-			repeatType: RepeatType.DayOfMonth,
-			unit: IntervalUnit.Year,
-			yearInterval,
-		};
-	}
-
-	if (!months.length && !monthDays.length) {
-		return {monthDays, months, unit: IntervalUnit.Day};
-	}
-
-	return {
-		monthDays,
-		months,
-		repeatType: RepeatType.DayOfMonth,
-		unit: IntervalUnit.Month,
-	};
-}
-
-export function toCronExpression(scheduleValues: ScheduleValues): string {
-	if (scheduleValues.unit === IntervalUnit.Custom) {
-		return scheduleValues.cronExpression;
-	}
-
-	const {day, hour, minute, month, year} = toDateTimeParts(
-		scheduleValues.startDateTime
-	);
-
-	if (scheduleValues.unit === IntervalUnit.Never) {
-		return `0 ${minute} ${hour} ${day} ${month} ? ${year}`;
-	}
-
-	if (scheduleValues.unit === IntervalUnit.Week) {
-		const days = scheduleValues.weekdays.length
-			? scheduleValues.weekdays
-			: [2];
-
-		const dayOfWeek = [...days]
-			.sort((first, second) => first - second)
-			.map((weekday) => DAY_OF_WEEK_NAMES[weekday - 1])
-			.join(',');
-
-		return `0 ${minute} ${hour} ? * ${dayOfWeek} *`;
-	}
-
-	if (scheduleValues.unit === IntervalUnit.Day) {
-		return `0 ${minute} ${hour} * * ? *`;
-	}
-
-	if (scheduleValues.unit === IntervalUnit.Year) {
-		const month = scheduleValues.months[0] ?? 1;
-
-		const yearField = `${year}/${
-			scheduleValues.yearInterval > 0 ? scheduleValues.yearInterval : 1
-		}`;
-
-		if (scheduleValues.repeatType === RepeatType.DayOfWeek) {
-			return `0 ${minute} ${hour} ? ${month} ${toDayOfWeekExpression(
-				scheduleValues
-			)} ${yearField}`;
-		}
-
-		return `0 ${minute} ${hour} ${scheduleValues.monthDays[0] ?? 1} ${month} ? ${yearField}`;
-	}
-
-	const monthsField = toNumberListField(scheduleValues.months, 12);
-
-	if (scheduleValues.repeatType === RepeatType.DayOfWeek) {
-		return `0 ${minute} ${hour} ? ${monthsField} ${toDayOfWeekExpression(
-			scheduleValues
-		)} *`;
-	}
-
-	return `0 ${minute} ${hour} ${toNumberListField(
-		scheduleValues.monthDays,
-		31
-	)} ${monthsField} ? *`;
+	return {repeatOnTime, repeatOnTimeSynced: false};
 }

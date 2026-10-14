@@ -4,8 +4,6 @@
 		"parameters": {
 			"containsHeaders": "true",
 			"createStrategy": "UPSERT",
-			"externalReferenceCode": "L_ACCOUNT",
-			"onErrorFail": "false",
 			"taskItemDelegateName": "DEFAULT",
 			"updateStrategy": "UPDATE"
 		}
@@ -20,6 +18,17 @@
 			"name": "accountEntryToAccountNote",
 			"objectDefinitionExternalReferenceCode1": "L_ACCOUNT",
 			"objectDefinitionExternalReferenceCode2": "C_ACCOUNT_NOTE",
+			"type": "oneToMany"
+		},
+		{
+			"deletionType": "prevent",
+			"externalReferenceCode": "R_ACCOUNT_ENTRY_TO_ACTIVATION_KEY",
+			"label": {
+				"en_US": "Account Entry to Activation Key"
+			},
+			"name": "accountEntryToActivationKey",
+			"objectDefinitionExternalReferenceCode1": "L_ACCOUNT",
+			"objectDefinitionExternalReferenceCode2": "C_ACTIVATION_KEY",
 			"type": "oneToMany"
 		},
 		{
@@ -46,6 +55,17 @@
 		},
 		{
 			"deletionType": "disassociate",
+			"externalReferenceCode": "R_ACCOUNT_ENTRY_TO_ENVIRONMENT",
+			"label": {
+				"en_US": "Account Entry to Environment"
+			},
+			"name": "accountEntryToEnvironment",
+			"objectDefinitionExternalReferenceCode1": "L_ACCOUNT",
+			"objectDefinitionExternalReferenceCode2": "C_ENVIRONMENT",
+			"type": "oneToMany"
+		},
+		{
+			"deletionType": "prevent",
 			"externalReferenceCode": "R_ACCOUNT_ENTRY_TO_LICENSE_KEY",
 			"label": {
 				"en_US": "Account Entry to License Key"
@@ -155,6 +175,28 @@
 			"type": "oneToMany"
 		},
 		{
+			"deletionType": "cascade",
+			"externalReferenceCode": "R_ACCOUNT_TO_AI_HUB_APPLICATION",
+			"label": {
+				"en_US": "Account to AI Hub Application"
+			},
+			"name": "accountToAIHubApplication",
+			"objectDefinitionExternalReferenceCode1": "L_ACCOUNT",
+			"objectDefinitionExternalReferenceCode2": "C_AI_HUB_APPLICATION",
+			"type": "oneToMany"
+		},
+		{
+			"deletionType": "disassociate",
+			"externalReferenceCode": "R_ACTIVATION_KEY_TO_LICENSE_KEY",
+			"label": {
+				"en_US": "Activation Key to License Key"
+			},
+			"name": "activationKeyToLicenseKey",
+			"objectDefinitionExternalReferenceCode1": "C_ACTIVATION_KEY",
+			"objectDefinitionExternalReferenceCode2": "C_LICENSE_KEY",
+			"type": "oneToMany"
+		},
+		{
 			"deletionType": "disassociate",
 			"externalReferenceCode": "R_COMMERCE_ORDER_ITEM_TO_ENTITLEMENT",
 			"label": {
@@ -178,17 +220,6 @@
 		},
 		{
 			"deletionType": "disassociate",
-			"externalReferenceCode": "R_COMMERCE_PRODUCT_TO_ENTITLEMENT_DEFINITION",
-			"label": {
-				"en_US": "Commerce Product to Entitlement Definition"
-			},
-			"name": "commerceProductToEntitlementDefinition",
-			"objectDefinitionExternalReferenceCode1": "L_COMMERCE_PRODUCT_DEFINITION",
-			"objectDefinitionExternalReferenceCode2": "C_ENTITLEMENT_DEFINITION",
-			"type": "oneToMany"
-		},
-		{
-			"deletionType": "disassociate",
 			"externalReferenceCode": "R_COMMERCE_PRODUCT_TO_LICENSE_KEY",
 			"label": {
 				"en_US": "Commerce Product to License Key"
@@ -196,17 +227,6 @@
 			"name": "commerceProductToLicenseKey",
 			"objectDefinitionExternalReferenceCode1": "L_COMMERCE_PRODUCT_DEFINITION",
 			"objectDefinitionExternalReferenceCode2": "C_LICENSE_KEY",
-			"type": "oneToMany"
-		},
-		{
-			"deletionType": "disassociate",
-			"externalReferenceCode": "R_CONTRACT_TO_COMMERCE_ORDER",
-			"label": {
-				"en_US": "Contract to Commerce Order"
-			},
-			"name": "contractToCommerceOrder",
-			"objectDefinitionExternalReferenceCode1": "C_CONTRACT",
-			"objectDefinitionExternalReferenceCode2": "L_COMMERCE_ORDER",
 			"type": "oneToMany"
 		},
 		{
@@ -218,6 +238,17 @@
 			"name": "contractToEntitlement",
 			"objectDefinitionExternalReferenceCode1": "C_CONTRACT",
 			"objectDefinitionExternalReferenceCode2": "C_ENTITLEMENT",
+			"type": "oneToMany"
+		},
+		{
+			"deletionType": "cascade",
+			"externalReferenceCode": "R_CONTRACT_TO_ENVIRONMENT",
+			"label": {
+				"en_US": "Contract to Environment"
+			},
+			"name": "contractToEnvironment",
+			"objectDefinitionExternalReferenceCode1": "C_CONTRACT",
+			"objectDefinitionExternalReferenceCode2": "C_ENVIRONMENT",
 			"type": "oneToMany"
 		},
 		{
@@ -240,6 +271,50 @@
 			"name": "entitlementToLicenseKey",
 			"objectDefinitionExternalReferenceCode1": "C_ENTITLEMENT",
 			"objectDefinitionExternalReferenceCode2": "C_LICENSE_KEY",
+			"type": "oneToMany"
+		},
+		{
+			"deletionType": "cascade",
+			"externalReferenceCode": "R_ENTITLEMENT_TO_USAGE_EVENT",
+			"label": {
+				"en_US": "Entitlement to Usage Event"
+			},
+			"name": "entitlementToUsageEvent",
+			"objectDefinitionExternalReferenceCode1": "C_ENTITLEMENT",
+			"objectDefinitionExternalReferenceCode2": "C_USAGE_EVENT",
+			"type": "oneToMany"
+		},
+		{
+			"deletionType": "cascade",
+			"externalReferenceCode": "R_ENVIRONMENT_TO_ENVIRONMENT_ADMIN",
+			"label": {
+				"en_US": "Environment to Environment Admin"
+			},
+			"name": "environmentToEnvironmentAdmin",
+			"objectDefinitionExternalReferenceCode1": "C_ENVIRONMENT",
+			"objectDefinitionExternalReferenceCode2": "C_ENVIRONMENT_ADMIN",
+			"type": "oneToMany"
+		},
+		{
+			"deletionType": "cascade",
+			"externalReferenceCode": "R_ENVIRONMENT_TO_USAGE_EVENT",
+			"label": {
+				"en_US": "Environment to Usage Event"
+			},
+			"name": "environmentToUsageEvent",
+			"objectDefinitionExternalReferenceCode1": "C_ENVIRONMENT",
+			"objectDefinitionExternalReferenceCode2": "C_USAGE_EVENT",
+			"type": "oneToMany"
+		},
+		{
+			"deletionType": "disassociate",
+			"externalReferenceCode": "R_ORDER_TO_AI_HUB_APPLICATION",
+			"label": {
+				"en_US": "Order to AI Hub Application"
+			},
+			"name": "orderToAIHubApplication",
+			"objectDefinitionExternalReferenceCode1": "L_COMMERCE_ORDER",
+			"objectDefinitionExternalReferenceCode2": "C_AI_HUB_APPLICATION",
 			"type": "oneToMany"
 		},
 		{
@@ -299,6 +374,17 @@
 		},
 		{
 			"deletionType": "disassociate",
+			"externalReferenceCode": "R_ORGANIZATION_TO_PROJECT",
+			"label": {
+				"en_US": "Organization to Project"
+			},
+			"name": "organizationToProject",
+			"objectDefinitionExternalReferenceCode1": "L_ORGANIZATION",
+			"objectDefinitionExternalReferenceCode2": "C_PROJECT",
+			"type": "oneToMany"
+		},
+		{
+			"deletionType": "disassociate",
 			"externalReferenceCode": "R_ORIGINAL_CONTRACT_TO_CONTRACT",
 			"label": {
 				"en_US": "Original Contract to Contract"
@@ -332,6 +418,17 @@
 		},
 		{
 			"deletionType": "disassociate",
+			"externalReferenceCode": "R_PROJECT_TO_ACTIVATION_KEY",
+			"label": {
+				"en_US": "Project to Activation Key"
+			},
+			"name": "projectToActivationKey",
+			"objectDefinitionExternalReferenceCode1": "C_PROJECT",
+			"objectDefinitionExternalReferenceCode2": "C_ACTIVATION_KEY",
+			"type": "oneToMany"
+		},
+		{
+			"deletionType": "disassociate",
 			"externalReferenceCode": "R_PROJECT_TO_CONTRACT",
 			"label": {
 				"en_US": "Project to Contract"
@@ -339,6 +436,39 @@
 			"name": "projectToContract",
 			"objectDefinitionExternalReferenceCode1": "C_PROJECT",
 			"objectDefinitionExternalReferenceCode2": "C_CONTRACT",
+			"type": "oneToMany"
+		},
+		{
+			"deletionType": "disassociate",
+			"externalReferenceCode": "R_PROJECT_TO_ENTITLEMENT",
+			"label": {
+				"en_US": "Project to Entitlement"
+			},
+			"name": "projectToEntitlement",
+			"objectDefinitionExternalReferenceCode1": "C_PROJECT",
+			"objectDefinitionExternalReferenceCode2": "C_ENTITLEMENT",
+			"type": "oneToMany"
+		},
+		{
+			"deletionType": "disassociate",
+			"externalReferenceCode": "R_PROJECT_TO_ENVIRONMENT",
+			"label": {
+				"en_US": "Project to Environment"
+			},
+			"name": "projectToEnvironment",
+			"objectDefinitionExternalReferenceCode1": "C_PROJECT",
+			"objectDefinitionExternalReferenceCode2": "C_ENVIRONMENT",
+			"type": "oneToMany"
+		},
+		{
+			"deletionType": "disassociate",
+			"externalReferenceCode": "R_PROJECT_TO_LICENSE_KEY",
+			"label": {
+				"en_US": "Project to License Key"
+			},
+			"name": "projectToLicenseKey",
+			"objectDefinitionExternalReferenceCode1": "C_PROJECT",
+			"objectDefinitionExternalReferenceCode2": "C_LICENSE_KEY",
 			"type": "oneToMany"
 		},
 		{
@@ -350,6 +480,26 @@
 			"name": "projectToProjectMembership",
 			"objectDefinitionExternalReferenceCode1": "C_PROJECT",
 			"objectDefinitionExternalReferenceCode2": "C_PROJECT_MEMBERSHIP",
+			"objectField": {
+				"externalReferenceCode": "C_PROJECT_MEMBERSHIP_PROJECT_ID",
+				"label": {
+					"en_US": "Project to Project Membership"
+				},
+				"readOnly": "false",
+				"readOnlyConditionExpression": "",
+				"required": false
+			},
+			"type": "oneToMany"
+		},
+		{
+			"deletionType": "cascade",
+			"externalReferenceCode": "R_PROJECT_TO_USAGE_REPORT",
+			"label": {
+				"en_US": "Project to Usage Report"
+			},
+			"name": "projectToUsageReport",
+			"objectDefinitionExternalReferenceCode1": "C_PROJECT",
+			"objectDefinitionExternalReferenceCode2": "C_USAGE_REPORT",
 			"type": "oneToMany"
 		},
 		{
@@ -372,6 +522,39 @@
 			"name": "publisherToCommerceOrder",
 			"objectDefinitionExternalReferenceCode1": "C_PUBLISHER_SALES_SUMMARY",
 			"objectDefinitionExternalReferenceCode2": "L_COMMERCE_ORDER",
+			"type": "oneToMany"
+		},
+		{
+			"deletionType": "prevent",
+			"externalReferenceCode": "R_USAGE_DEFINITION_TO_ENTITLEMENT_DEFINITION",
+			"label": {
+				"en_US": "Usage Definition to Entitlement Definition"
+			},
+			"name": "usageDefinitionToEntitlementDefinition",
+			"objectDefinitionExternalReferenceCode1": "C_USAGE_DEFINITION",
+			"objectDefinitionExternalReferenceCode2": "C_ENTITLEMENT_DEFINITION",
+			"type": "oneToMany"
+		},
+		{
+			"deletionType": "disassociate",
+			"externalReferenceCode": "R_USAGE_DEFINITION_TO_USAGE_EVENT",
+			"label": {
+				"en_US": "Usage Definition to Usage Event"
+			},
+			"name": "usageDefinitionToUsageEvent",
+			"objectDefinitionExternalReferenceCode1": "C_USAGE_DEFINITION",
+			"objectDefinitionExternalReferenceCode2": "C_USAGE_EVENT",
+			"type": "oneToMany"
+		},
+		{
+			"deletionType": "cascade",
+			"externalReferenceCode": "R_USAGE_DEFINITION_TO_USAGE_REPORT",
+			"label": {
+				"en_US": "Usage Definition to Usage Report"
+			},
+			"name": "usageDefinitionToUsageReport",
+			"objectDefinitionExternalReferenceCode1": "C_USAGE_DEFINITION",
+			"objectDefinitionExternalReferenceCode2": "C_USAGE_REPORT",
 			"type": "oneToMany"
 		},
 		{
@@ -405,6 +588,15 @@
 			"name": "userToProjectMembership",
 			"objectDefinitionExternalReferenceCode1": "L_USER",
 			"objectDefinitionExternalReferenceCode2": "C_PROJECT_MEMBERSHIP",
+			"objectField": {
+				"externalReferenceCode": "C_PROJECT_MEMBERSHIP_USER_ID",
+				"label": {
+					"en_US": "User to Project Membership"
+				},
+				"readOnly": "false",
+				"readOnlyConditionExpression": "",
+				"required": false
+			},
 			"type": "oneToMany"
 		}
 	]

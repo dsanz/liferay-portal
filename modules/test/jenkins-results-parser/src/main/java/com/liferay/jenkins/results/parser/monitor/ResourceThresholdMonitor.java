@@ -38,14 +38,17 @@ public class ResourceThresholdMonitor extends BaseMonitor {
 		_masterName = getRequiredParameter("master.name", parameters);
 
 		if (_metric.equals("disk")) {
-			_selector = getRequiredParameter("file.store", parameters);
+			_device = getRequiredParameter("device", parameters);
+			_selector = getRequiredParameter("mount", parameters);
 		}
 		else if (_metric.equals("executor.utilization") ||
 				 _metric.equals("queue.depth")) {
 
+			_device = null;
 			_selector = getRequiredParameter("label", parameters);
 		}
 		else {
+			_device = null;
 			_selector = null;
 		}
 
@@ -71,13 +74,21 @@ public class ResourceThresholdMonitor extends BaseMonitor {
 			JenkinsResultsParserUtil.getCurrentTimeMillis();
 
 		try {
+			MonitorResult monitorResult = _getFileStoreMonitorResult(
+				currentTimeMillis);
+
+			if (monitorResult != null) {
+				return monitorResult;
+			}
+
 			value = _getValue();
 		}
 		catch (Exception exception) {
 			return new MonitorResult(
 				JenkinsResultsParserUtil.combine(
 					"Unable to read the ", _getMetricDescription(), " for ",
-					_masterName, ": ", exception.getMessage()),
+					_masterName, ": ",
+					JenkinsResultsParserUtil.getMessage(exception)),
 				null, MonitorResult.Status.CRITICAL, currentTimeMillis);
 		}
 
@@ -116,10 +127,11 @@ public class ResourceThresholdMonitor extends BaseMonitor {
 	}
 
 	private Double _getDiskUsedPercentage() throws IOException {
+		String expectedFileStore = _getExpectedFileStore();
 		PrometheusScrape prometheusScrape = _getPrometheusScrape();
 
 		Double capacity = prometheusScrape.getValue(
-			"file_store", _selector,
+			"file_store", expectedFileStore,
 			"default_jenkins_file_store_capacity_bytes");
 
 		if ((capacity == null) || (capacity >= _BYTES_CAPACITY_MAXIMUM)) {
@@ -127,7 +139,7 @@ public class ResourceThresholdMonitor extends BaseMonitor {
 		}
 
 		Double available = prometheusScrape.getValue(
-			"file_store", _selector,
+			"file_store", expectedFileStore,
 			"default_jenkins_file_store_available_bytes");
 
 		if (available == null) {
@@ -156,6 +168,48 @@ public class ResourceThresholdMonitor extends BaseMonitor {
 		}
 
 		return _toUsedPercentage(defined, busy);
+	}
+
+	private String _getExpectedFileStore() {
+		return JenkinsResultsParserUtil.combine(_selector, " (", _device, ")");
+	}
+
+	private MonitorResult _getFileStoreMonitorResult(long currentTimeMillis)
+		throws IOException {
+
+		if (!_metric.equals("disk")) {
+			return null;
+		}
+
+		String fileStorePrefix = _selector + " (";
+		PrometheusScrape prometheusScrape = _getPrometheusScrape();
+
+		PrometheusScrape.Sample sample = prometheusScrape.getSample(
+			"file_store", fileStorePrefix,
+			"default_jenkins_file_store_capacity_bytes");
+
+		if (sample == null) {
+			return new MonitorResult(
+				JenkinsResultsParserUtil.combine(
+					"No file store is mounted at ", _selector, " on ",
+					_masterName),
+				null, MonitorResult.Status.CRITICAL, currentTimeMillis);
+		}
+
+		String fileStore = sample.getLabelValue("file_store");
+
+		if (fileStore.equals(_getExpectedFileStore())) {
+			return null;
+		}
+
+		return new MonitorResult(
+			JenkinsResultsParserUtil.combine(
+				"The file store mounted at ", _selector, " on ", _masterName,
+				" is on ",
+				fileStore.substring(
+					fileStorePrefix.length(), fileStore.length() - 1),
+				", expected ", _device),
+			null, MonitorResult.Status.CRITICAL, currentTimeMillis);
 	}
 
 	private String _getIndeterminateMessage() {
@@ -223,7 +277,8 @@ public class ResourceThresholdMonitor extends BaseMonitor {
 		MasterResourceReader masterResourceReader =
 			MasterResourceReader.getInstance(_masterName);
 
-		String memoryInfo = masterResourceReader.getMemoryInfo();
+		String memoryInfo = masterResourceReader.getMemoryInfo(
+			getAttemptTimeoutMillis(0));
 
 		if (JenkinsResultsParserUtil.isNullOrEmpty(memoryInfo)) {
 			return null;
@@ -310,6 +365,7 @@ public class ResourceThresholdMonitor extends BaseMonitor {
 		"(?<name>[A-Za-z_()]+):\\s+(?<kilobytes>\\d+) kB");
 
 	private final long _criticalThreshold;
+	private final String _device;
 	private final String _masterName;
 	private final String _metric;
 	private final String _selector;

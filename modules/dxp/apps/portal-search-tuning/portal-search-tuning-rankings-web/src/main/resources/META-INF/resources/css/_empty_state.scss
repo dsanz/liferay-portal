@@ -1,26 +1,13 @@
-.empty-state-root {
-	margin: 40px auto;
-	max-width: 340px;
-	text-align: center;
+.c-empty-state-image img {
+	// Interim Dark Mode fix copied from the admin theme's empty-state rule in
+	// frontend-theme-admin/src/css/_custom.scss. That rule only targets the legacy
+	// .taglib-* classes, so Clay empty states need their own copy. Keep the filter
+	// values in sync with it, and remove this once the admin theme covers
+	// .c-empty-state-image or native dark illustrations exist.
 
-	.empty-state-action {
-		margin-top: 16px;
-	}
-
-	.empty-state-description {
-		color: $mainLighten28;
-		font-size: 16px;
-	}
-
-	.empty-state-image {
-		margin-bottom: 40px;
-		max-width: 250px;
-	}
-
-	.empty-state-title {
-		color: $main;
-		font-size: 20px;
-		font-weight: 600;
-		margin-bottom: 8px;
+	[data-color-scheme='dark'] &,
+	[data-color-scheme='dark-high-contrast'] & {
+		filter: invert(0.8) sepia(0.8) hue-rotate(198deg) saturate(1)
+			brightness(0.52);
 	}
 }

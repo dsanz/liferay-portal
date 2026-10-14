@@ -9,7 +9,6 @@ import {collectionsPagesTest} from '../../../../fixtures/collectionsPagesTest';
 import {dataApiHelpersTest} from '../../../../fixtures/dataApiHelpersTest';
 import {isolatedSiteTest} from '../../../../fixtures/isolatedSiteTest';
 import {loginTest} from '../../../../fixtures/loginTest';
-import {clickAndExpectToBeVisible} from '../../../../utils/clickAndExpectToBeVisible';
 import getRandomString from '../../../../utils/getRandomString';
 import {PORTLET_URLS} from '../../../../utils/portletUrls';
 import {waitForAlert} from '../../../../utils/waitForAlert';
@@ -140,11 +139,18 @@ test(
 		});
 
 		await test.step('CMS tag is available in the tag filter selector', async () => {
-			await clickAndExpectToBeVisible({
-				autoClick: true,
-				target: page.getByRole('button', {name: 'Select Tags'}),
-				trigger: page.getByRole('button', {name: 'Filter'}),
-			});
+			await collectionsPage.addFilterConditions([
+				{
+					field: 'Tags',
+					operator: 'Contains',
+					quantifier: 'Any of the Following',
+				},
+			]);
+
+			await collectionsPage
+				.getFilterConditionRow(0)
+				.getByRole('button', {name: 'Select Tags'})
+				.click();
 
 			const tagFrame = page.frameLocator('iframe[title="Tags"]');
 
@@ -154,20 +160,17 @@ test(
 		});
 
 		await test.step('CMS category is available in the category filter selector', async () => {
-			const filterFieldSelect = page.getByLabel('of the following');
+			await collectionsPage.openFilterSection();
 
-			await expect(async () => {
-				if (!(await filterFieldSelect.isVisible())) {
-					await page.getByRole('button', {name: 'Filter'}).click();
-				}
+			await collectionsPage.fillFilterCondition(0, {
+				field: 'Categories',
+				operator: 'Contains',
+				quantifier: 'Any of the Following',
+			});
 
-				await expect(filterFieldSelect).toBeVisible({timeout: 2000});
-			}).toPass({timeout: 2000});
-
-			await filterFieldSelect.selectOption('assetCategories');
-
-			await page
-				.getByRole('button', {exact: true, name: 'Select'})
+			await collectionsPage
+				.getFilterConditionRow(0)
+				.getByRole('button', {name: /^Select/})
 				.click();
 
 			await expect(

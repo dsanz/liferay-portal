@@ -10,6 +10,7 @@ import com.liferay.headless.commerce.admin.pricing.client.json.BaseJSONParser;
 
 import jakarta.annotation.Generated;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -131,6 +132,25 @@ public class PriceModifierCategorySerDes {
 			sb.append(priceModifierCategory.getPriceModifierId());
 		}
 
+		if (priceModifierCategory.getVocabularyExternalReferenceCode() !=
+				null) {
+
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"vocabularyExternalReferenceCode\": ");
+
+			sb.append("\"");
+
+			sb.append(
+				_escape(
+					priceModifierCategory.
+						getVocabularyExternalReferenceCode()));
+
+			sb.append("\"");
+		}
+
 		sb.append("}");
 
 		return sb.toString();
@@ -220,6 +240,19 @@ public class PriceModifierCategorySerDes {
 				String.valueOf(priceModifierCategory.getPriceModifierId()));
 		}
 
+		if (priceModifierCategory.getVocabularyExternalReferenceCode() ==
+				null) {
+
+			map.put("vocabularyExternalReferenceCode", null);
+		}
+		else {
+			map.put(
+				"vocabularyExternalReferenceCode",
+				String.valueOf(
+					priceModifierCategory.
+						getVocabularyExternalReferenceCode()));
+		}
+
 		return map;
 	}
 
@@ -264,6 +297,12 @@ public class PriceModifierCategorySerDes {
 				return false;
 			}
 			else if (Objects.equals(jsonParserFieldName, "priceModifierId")) {
+				return false;
+			}
+			else if (Objects.equals(
+						jsonParserFieldName,
+						"vocabularyExternalReferenceCode")) {
+
 				return false;
 			}
 
@@ -324,6 +363,15 @@ public class PriceModifierCategorySerDes {
 						Long.valueOf((String)jsonParserFieldValue));
 				}
 			}
+			else if (Objects.equals(
+						jsonParserFieldName,
+						"vocabularyExternalReferenceCode")) {
+
+				if (jsonParserFieldValue != null) {
+					priceModifierCategory.setVocabularyExternalReferenceCode(
+						(String)jsonParserFieldValue);
+				}
+			}
 		}
 
 	}
@@ -373,6 +421,12 @@ public class PriceModifierCategorySerDes {
 			return "null";
 		}
 
+		if (value instanceof Collection) {
+			Collection<?> collection = (Collection<?>)value;
+
+			return _toJSON(collection.toArray());
+		}
+
 		if (value instanceof Map) {
 			return _toJSON((Map)value);
 		}
@@ -405,4 +459,4 @@ public class PriceModifierCategorySerDes {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:1562151273
+// LIFERAY-REST-BUILDER-HASH:1588106833

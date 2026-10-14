@@ -13,6 +13,7 @@ import com.liferay.fragment.service.FragmentEntryLinkLocalService;
 import com.liferay.layout.content.page.editor.constants.ContentPageEditorPortletKeys;
 import com.liferay.layout.content.page.editor.web.internal.util.layout.structure.LayoutStructureUtil;
 import com.liferay.layout.page.template.service.LayoutPageTemplateStructureRelElementVariationService;
+import com.liferay.layout.responsive.ViewportSize;
 import com.liferay.layout.util.structure.FragmentStyledLayoutStructureItem;
 import com.liferay.layout.util.structure.LayoutStructure;
 import com.liferay.layout.util.structure.LayoutStructureItem;
@@ -25,6 +26,7 @@ import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.service.LayoutLocalService;
@@ -33,6 +35,7 @@ import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.JavaConstants;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -51,8 +54,11 @@ import jakarta.portlet.WindowState;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -98,6 +104,8 @@ public class EditElementVariationsDisplayContext {
 						"_variation")
 		).put(
 			"audiences", _getAudiencesEntries()
+		).put(
+			"availableViewportSizes", _getAvailableViewportSizes()
 		).put(
 			"createAudienceURL", _getCreateAudienceURL()
 		).put(
@@ -177,15 +185,29 @@ public class EditElementVariationsDisplayContext {
 
 	private List<Map<String, Object>> _getAudiencesEntries() {
 		try {
+			Group siteGroup = _themeDisplay.getSiteGroup();
+
+			String siteGroupERC = siteGroup.getExternalReferenceCode();
+
 			return TransformUtil.transform(
 				_audiencesEntryService.getAudiencesEntries(
 					_themeDisplay.getCompanyId(), QueryUtil.ALL_POS,
 					QueryUtil.ALL_POS, null),
-				audiencesEntry -> HashMapBuilder.<String, Object>put(
-					"label", audiencesEntry.getName()
-				).put(
-					"value", audiencesEntry.getExternalReferenceCode()
-				).build());
+				audiencesEntry -> {
+					List<String> groupERCs = audiencesEntry.getGroupERCs();
+
+					if (!groupERCs.isEmpty() &&
+						!groupERCs.contains(siteGroupERC)) {
+
+						return null;
+					}
+
+					return HashMapBuilder.<String, Object>put(
+						"label", audiencesEntry.getName()
+					).put(
+						"value", audiencesEntry.getExternalReferenceCode()
+					).build();
+				});
 		}
 		catch (Exception exception) {
 			_log.error(exception);
@@ -217,6 +239,35 @@ public class EditElementVariationsDisplayContext {
 		}
 
 		return availableLocalesJSONArray;
+	}
+
+	private Map<String, Map<String, Object>> _getAvailableViewportSizes() {
+		Map<String, Map<String, Object>> availableViewportSizesMap =
+			new LinkedHashMap<>();
+
+		for (ViewportSize viewportSize :
+				ListUtil.sort(
+					Arrays.asList(ViewportSize.values()),
+					Comparator.comparingInt(ViewportSize::getOrder))) {
+
+			availableViewportSizesMap.put(
+				viewportSize.getViewportSizeId(),
+				HashMapBuilder.<String, Object>put(
+					"icon", viewportSize.getIcon()
+				).put(
+					"label",
+					LanguageUtil.get(
+						_httpServletRequest, viewportSize.getLabel())
+				).put(
+					"maxWidth", viewportSize.getMaxWidth()
+				).put(
+					"minWidth", viewportSize.getMinWidth()
+				).put(
+					"sizeId", viewportSize.getViewportSizeId()
+				).build());
+		}
+
+		return availableViewportSizesMap;
 	}
 
 	private String _getCreateAudienceURL() {

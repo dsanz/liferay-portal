@@ -27,7 +27,7 @@ describe('Client', () => {
 	let client: ClientAdapter;
 
 	afterEach(() => {
-		fetchMock.restore();
+		fetchMock.hardReset();
 
 		jest.restoreAllMocks();
 	});
@@ -52,10 +52,12 @@ describe('Client', () => {
 	});
 
 	it('send', () => {
+		fetchMock.mockGlobal();
+
 		const sentItems: string[] = [];
 
-		fetchMock.mock(/ac-server/i, (_url: string, {body}: {body: string}) => {
-			sentItems.push(JSON.parse(body));
+		fetchMock.route(/ac-server/i, ({options: {body}}) => {
+			sentItems.push(JSON.parse(body as string));
 
 			return Promise.resolve(200);
 		});

@@ -110,47 +110,6 @@ public class CustomFDSSerializer
 	}
 
 	@Override
-	public String serializeAdditionalAPIURLParameters(
-		String fdsName, HttpServletRequest httpServletRequest,
-		boolean interpolate, JSONObject tokenResolutionsJSONObject) {
-
-		Map<String, Object> properties = getDataSetObjectEntryProperties(
-			fdsName, httpServletRequest);
-
-		String additionalAPIURLParameters = String.valueOf(
-			properties.get("additionalAPIURLParameters"));
-
-		String systemAdditionalAPIURLParameters =
-			_systemFDSSerializer.serializeAdditionalAPIURLParameters(
-				fdsName, httpServletRequest, interpolate,
-				tokenResolutionsJSONObject);
-
-		if (Validator.isNotNull(systemAdditionalAPIURLParameters)) {
-			if (Validator.isNotNull(additionalAPIURLParameters)) {
-				additionalAPIURLParameters =
-					systemAdditionalAPIURLParameters + StringPool.AMPERSAND +
-						additionalAPIURLParameters;
-			}
-			else {
-				additionalAPIURLParameters = systemAdditionalAPIURLParameters;
-			}
-		}
-
-		return createFDSAPIURLBuilder(
-			httpServletRequest,
-			String.valueOf(properties.get("restApplication")),
-			String.valueOf(properties.get("restEndpoint")),
-			String.valueOf(properties.get("restSchema"))
-		).addQueryString(
-			additionalAPIURLParameters
-		).setTokenResolutions(
-			tokenResolutionsJSONObject
-		).buildQueryString(
-			interpolate
-		);
-	}
-
-	@Override
 	public String serializeAPIURL(
 		String fdsName, HttpServletRequest httpServletRequest,
 		boolean interpolate, JSONObject tokenResolutionsJSONObject) {
@@ -218,12 +177,52 @@ public class CustomFDSSerializer
 	}
 
 	@Override
+	public String serializeAdditionalAPIURLParameters(
+		String fdsName, HttpServletRequest httpServletRequest,
+		boolean interpolate, JSONObject tokenResolutionsJSONObject) {
+
+		Map<String, Object> properties = getDataSetObjectEntryProperties(
+			fdsName, httpServletRequest);
+
+		String additionalAPIURLParameters = String.valueOf(
+			properties.get("additionalAPIURLParameters"));
+
+		String systemAdditionalAPIURLParameters =
+			_systemFDSSerializer.serializeAdditionalAPIURLParameters(
+				fdsName, httpServletRequest, interpolate,
+				tokenResolutionsJSONObject);
+
+		if (Validator.isNotNull(systemAdditionalAPIURLParameters)) {
+			if (Validator.isNotNull(additionalAPIURLParameters)) {
+				additionalAPIURLParameters =
+					systemAdditionalAPIURLParameters + StringPool.AMPERSAND +
+						additionalAPIURLParameters;
+			}
+			else {
+				additionalAPIURLParameters = systemAdditionalAPIURLParameters;
+			}
+		}
+
+		return createFDSAPIURLBuilder(
+			httpServletRequest,
+			String.valueOf(properties.get("restApplication")),
+			String.valueOf(properties.get("restEndpoint")),
+			String.valueOf(properties.get("restSchema"))
+		).addQueryString(
+			additionalAPIURLParameters
+		).setTokenResolutions(
+			tokenResolutionsJSONObject
+		).buildQueryString(
+			interpolate
+		);
+	}
+
+	@Override
 	public List<FDSActionDropdownItem> serializeBulkActions(
 		String fdsName, HttpServletRequest httpServletRequest) {
 
-		// TODO
-
-		return Collections.emptyList();
+		return _systemFDSSerializer.serializeBulkActions(
+			fdsName, httpServletRequest);
 	}
 
 	@Override
@@ -496,6 +495,17 @@ public class CustomFDSSerializer
 	}
 
 	@Override
+	public boolean serializeSearchSuggestionsEnabled(
+		String fdsName, HttpServletRequest httpServletRequest) {
+
+		Map<String, Object> properties = getDataSetObjectEntryProperties(
+			fdsName, httpServletRequest);
+
+		return GetterUtil.getBoolean(
+			properties.get("searchSuggestionsEnabled"));
+	}
+
+	@Override
 	public boolean serializeShowSearch(
 		String fdsName, HttpServletRequest httpServletRequest) {
 
@@ -509,16 +519,9 @@ public class CustomFDSSerializer
 	public JSONArray serializeSnapshots(
 		String fdsName, HttpServletRequest httpServletRequest) {
 
-		try {
-			return serializeSnapshots(
-				fdsName, httpServletRequest, _objectDefinitionLocalService,
-				_objectEntryManagerRegistry);
-		}
-		catch (Exception exception) {
-			_log.error("Unable to serialize snapshots", exception);
-
-			return _jsonFactory.createJSONArray();
-		}
+		return serializeSnapshots(
+			fdsName, httpServletRequest, _objectDefinitionLocalService,
+			_objectEntryManagerRegistry);
 	}
 
 	@Override
@@ -599,6 +602,14 @@ public class CustomFDSSerializer
 		}
 
 		return fdsSortItems;
+	}
+
+	@Override
+	public JSONObject serializeUserConfiguration(
+		String fdsName, HttpServletRequest httpServletRequest) {
+
+		return serializeUserConfiguration(
+			fdsName, httpServletRequest, _objectDefinitionLocalService);
 	}
 
 	@Override
@@ -1179,21 +1190,6 @@ public class CustomFDSSerializer
 		);
 	}
 
-	private JSONArray _serializeFilters(
-			String fdsName, HttpServletRequest httpServletRequest)
-		throws Exception {
-
-		return JSONUtil.toJSONArray(
-			getSortedRelatedObjectEntries(
-				fdsName, httpServletRequest,
-				(ObjectEntry objectEntry) -> _isActive(objectEntry),
-				"filtersOrder", "dataSetToDataSetClientExtensionFilters",
-				"dataSetToDataSetDateFilters",
-				"dataSetToDataSetSelectionFilters"),
-			(ObjectEntry objectEntry) -> _serializeFilter(
-				httpServletRequest, objectEntry));
-	}
-
 	private JSONObject _serializeFilterSelection(
 			String fieldName, HttpServletRequest httpServletRequest,
 			Map<String, Object> properties, String sourceType)
@@ -1371,6 +1367,21 @@ public class CustomFDSSerializer
 				);
 			}
 		);
+	}
+
+	private JSONArray _serializeFilters(
+			String fdsName, HttpServletRequest httpServletRequest)
+		throws Exception {
+
+		return JSONUtil.toJSONArray(
+			getSortedRelatedObjectEntries(
+				fdsName, httpServletRequest,
+				(ObjectEntry objectEntry) -> _isActive(objectEntry),
+				"filtersOrder", "dataSetToDataSetClientExtensionFilters",
+				"dataSetToDataSetDateFilters",
+				"dataSetToDataSetSelectionFilters"),
+			(ObjectEntry objectEntry) -> _serializeFilter(
+				httpServletRequest, objectEntry));
 	}
 
 	private JSONObject _serializeViewSchema(

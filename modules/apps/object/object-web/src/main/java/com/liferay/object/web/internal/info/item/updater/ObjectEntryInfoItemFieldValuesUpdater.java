@@ -40,6 +40,7 @@ import com.liferay.portal.kernel.exception.InfoFormException;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
@@ -66,12 +67,10 @@ public class ObjectEntryInfoItemFieldValuesUpdater
 
 	public ObjectEntryInfoItemFieldValuesUpdater(
 		InfoItemFormProvider<ObjectEntry> infoItemFormProvider,
-		ObjectDefinition objectDefinition,
 		ObjectEntryManagerRegistry objectEntryManagerRegistry,
 		ObjectScopeProviderRegistry objectScopeProviderRegistry) {
 
 		_infoItemFormProvider = infoItemFormProvider;
-		_objectDefinition = objectDefinition;
 		_objectEntryManagerRegistry = objectEntryManagerRegistry;
 		_objectScopeProviderRegistry = objectScopeProviderRegistry;
 	}
@@ -92,10 +91,12 @@ public class ObjectEntryInfoItemFieldValuesUpdater
 			int statusInt)
 		throws InfoFormException {
 
+		ObjectDefinition objectDefinition = objectEntry.getObjectDefinition();
+
 		ObjectEntryManager objectEntryManager =
 			_objectEntryManagerRegistry.getObjectEntryManager(
-				_objectDefinition.getCompanyId(),
-				_objectDefinition.getStorageType());
+				objectDefinition.getCompanyId(),
+				objectDefinition.getStorageType());
 
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
@@ -111,10 +112,10 @@ public class ObjectEntryInfoItemFieldValuesUpdater
 						_objectScopeProviderRegistry, serviceContext);
 
 			Map<String, Object> curProperties = _getProperties(
-				objectEntry, infoItemFieldValues);
+				infoItemFieldValues, objectDefinition, objectEntry);
 
 			String scopeKey = ObjectEntryInfoItemUtil.getScopeKey(
-				objectEntry.getGroupId(), _objectDefinition,
+				objectEntry.getGroupId(), objectDefinition,
 				_objectScopeProviderRegistry);
 
 			DTOConverterContext dtoConverterContext =
@@ -132,17 +133,17 @@ public class ObjectEntryInfoItemFieldValuesUpdater
 					DefaultObjectEntryManager defaultObjectEntryManager) {
 
 				dtoObjectEntry = defaultObjectEntryManager.getObjectEntry(
-					dtoConverterContext, _objectDefinition, objectEntry);
+					dtoConverterContext, objectDefinition, objectEntry);
 			}
 			else {
 				dtoObjectEntry = objectEntryManager.getObjectEntry(
 					objectEntry.getCompanyId(), dtoConverterContext,
-					objectEntry.getExternalReferenceCode(), _objectDefinition,
+					objectEntry.getExternalReferenceCode(), objectDefinition,
 					scopeKey);
 			}
 
 			dtoObjectEntry = ObjectEntryManagerUtil.partialUpdateObjectEntry(
-				dtoObjectEntry, _objectDefinition.getObjectDefinitionId(),
+				dtoObjectEntry, objectDefinition.getObjectDefinitionId(),
 				new com.liferay.object.rest.dto.v1_0.ObjectEntry() {
 					{
 						setFriendlyUrlPath(
@@ -152,7 +153,7 @@ public class ObjectEntryInfoItemFieldValuesUpdater
 						setFriendlyUrlPath_i18n(
 							() -> (Map<String, String>)curProperties.get(
 								"objectEntryFriendlyURL_i18n"));
-						setKeywords(serviceContext::getAssetTagNames);
+						setKeywords(() -> _getKeywords(serviceContext));
 						setProperties(() -> curProperties);
 						setStatus(
 							() -> new Status() {
@@ -161,9 +162,8 @@ public class ObjectEntryInfoItemFieldValuesUpdater
 								}
 							});
 						setTaxonomyCategoryBriefs(
-							() -> _toTaxonomyCategoryBriefs(
-								serviceContext.getAssetCategoryIds(),
-								themeDisplay.getLocale()));
+							() -> _getTaxonomyCategoryBriefs(
+								themeDisplay.getLocale(), serviceContext));
 					}
 				});
 
@@ -212,18 +212,30 @@ public class ObjectEntryInfoItemFieldValuesUpdater
 					});
 			}
 
+			DTOConverterContext updateDTOConverterContext =
+				new DefaultDTOConverterContext(
+					false, null, null, null, null, themeDisplay.getLocale(),
+					null, themeDisplay.getUser());
+
+			if (objectEntryManager instanceof
+					DefaultObjectEntryManager defaultObjectEntryManager) {
+
+				dtoObjectEntry = defaultObjectEntryManager.updateObjectEntry(
+					updateDTOConverterContext, objectDefinition, dtoObjectEntry,
+					scopeKey, objectEntry);
+			}
+			else {
+				dtoObjectEntry = objectEntryManager.updateObjectEntry(
+					objectEntry.getCompanyId(), updateDTOConverterContext,
+					dtoObjectEntry.getExternalReferenceCode(), objectDefinition,
+					dtoObjectEntry, scopeKey);
+			}
+
 			ObjectEntry updatedObjectEntry = ObjectEntryUtil.toObjectEntry(
-				_objectDefinition,
-				objectEntryManager.updateObjectEntry(
-					objectEntry.getCompanyId(),
-					new DefaultDTOConverterContext(
-						false, null, null, null, null, themeDisplay.getLocale(),
-						null, themeDisplay.getUser()),
-					dtoObjectEntry.getExternalReferenceCode(),
-					_objectDefinition, dtoObjectEntry, scopeKey));
+				objectDefinition, dtoObjectEntry);
 
 			_relateMainObjectEntry(
-				infoItemFieldValues, _objectDefinition, updatedObjectEntry,
+				infoItemFieldValues, objectDefinition, updatedObjectEntry,
 				serviceContext, themeDisplay.getUserId());
 
 			_relateNestedObjectEntries(
@@ -235,7 +247,7 @@ public class ObjectEntryInfoItemFieldValuesUpdater
 		catch (Exception exception) {
 			ObjectEntryInfoItemExceptionRequestHandler.handleInfoFormException(
 				exception, objectEntry.getGroupId(), _infoItemFormProvider,
-				_objectDefinition);
+				objectDefinition.getObjectDefinitionId());
 		}
 
 		return null;
@@ -276,7 +288,7 @@ public class ObjectEntryInfoItemFieldValuesUpdater
 
 			ObjectEntryManager objectEntryManager =
 				_objectEntryManagerRegistry.getObjectEntryManager(
-					_objectDefinition.getCompanyId(),
+					objectDefinition.getCompanyId(),
 					objectDefinition.getStorageType());
 
 			String externalReferenceCode = split[1];
@@ -287,15 +299,26 @@ public class ObjectEntryInfoItemFieldValuesUpdater
 		}
 	}
 
+	private String[] _getKeywords(ServiceContext serviceContext) {
+		String[] assetTagNames = serviceContext.getAssetTagNames();
+
+		if (ArrayUtil.isEmpty(assetTagNames)) {
+			return null;
+		}
+
+		return assetTagNames;
+	}
+
 	private Map<String, Object> _getProperties(
-		ObjectEntry objectEntry, InfoItemFieldValues infoItemFieldValues) {
+		InfoItemFieldValues infoItemFieldValues,
+		ObjectDefinition objectDefinition, ObjectEntry objectEntry) {
 
 		for (InfoFieldValue<Object> infoFieldValue :
 				infoItemFieldValues.getInfoFieldValues()) {
 
 			if (infoFieldValue.getValue() instanceof RelatedInfoFieldValue) {
 				return ObjectEntryUtil.toProperties(
-					infoItemFieldValues, _objectDefinition,
+					infoItemFieldValues, objectDefinition,
 					objectEntry.getValues());
 			}
 		}
@@ -303,6 +326,18 @@ public class ObjectEntryInfoItemFieldValuesUpdater
 		return ObjectEntryUtil.toProperties(
 			objectEntry.getCompanyId(), infoItemFieldValues,
 			objectEntry.getValues());
+	}
+
+	private TaxonomyCategoryBrief[] _getTaxonomyCategoryBriefs(
+		Locale locale, ServiceContext serviceContext) {
+
+		long[] assetCategoryIds = serviceContext.getAssetCategoryIds();
+
+		if (ArrayUtil.isEmpty(assetCategoryIds)) {
+			return null;
+		}
+
+		return _toTaxonomyCategoryBriefs(assetCategoryIds, locale);
 	}
 
 	private void _relateMainObjectEntry(
@@ -521,7 +556,6 @@ public class ObjectEntryInfoItemFieldValuesUpdater
 		DateFormatFactoryUtil.getSimpleDateFormat("yyyy-MM-dd HH:mm");
 
 	private final InfoItemFormProvider<ObjectEntry> _infoItemFormProvider;
-	private final ObjectDefinition _objectDefinition;
 	private final ObjectEntryManagerRegistry _objectEntryManagerRegistry;
 	private final ObjectScopeProviderRegistry _objectScopeProviderRegistry;
 

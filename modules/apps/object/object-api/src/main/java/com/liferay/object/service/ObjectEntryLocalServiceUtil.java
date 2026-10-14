@@ -689,6 +689,18 @@ public class ObjectEntryLocalServiceUtil {
 		return getService().getValues(objectEntry);
 	}
 
+	public static Map<String, Serializable> getValues(
+			ObjectEntry objectEntry,
+			Map<String, Object> dynamicObjectDefinitionTableValues,
+			java.util.function.Consumer<Map<String, Object>>
+				dynamicObjectDefinitionTableValuesConsumer)
+		throws PortalException {
+
+		return getService().getValues(
+			objectEntry, dynamicObjectDefinitionTableValues,
+			dynamicObjectDefinitionTableValuesConsumer);
+	}
+
 	public static List<Map<String, Serializable>> getValuesList(
 			long groupId, long companyId, long userId, long objectDefinitionId,
 			com.liferay.petra.sql.dsl.expression.Predicate predicate,
@@ -729,6 +741,14 @@ public class ObjectEntryLocalServiceUtil {
 
 		getService().insertIntoOrUpdateExtensionTable(
 			userId, objectDefinitionId, primaryKey, values);
+	}
+
+	public static void loadValues(
+			com.liferay.object.model.ObjectDefinition objectDefinition,
+			List<ObjectEntry> objectEntries)
+		throws PortalException {
+
+		getService().loadValues(objectDefinition, objectEntries);
 	}
 
 	public static void moveObjectEntriesToTrash(
@@ -830,13 +850,6 @@ public class ObjectEntryLocalServiceUtil {
 			assetLinkEntryIds, priority);
 	}
 
-	public static ObjectEntry updateModifiedDate(
-			long objectEntryId, java.util.Date modifiedDate)
-		throws PortalException {
-
-		return getService().updateModifiedDate(objectEntryId, modifiedDate);
-	}
-
 	public static ObjectEntry updateObjectEntry(
 			long userId, long objectEntryId, long objectEntryFolderId,
 			Map<String, Serializable> values,
@@ -910,4 +923,4 @@ public class ObjectEntryLocalServiceUtil {
 			ObjectEntryLocalServiceUtil.class, ObjectEntryLocalService.class);
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:481668498
+// LIFERAY-SERVICE-BUILDER-HASH:1455848682

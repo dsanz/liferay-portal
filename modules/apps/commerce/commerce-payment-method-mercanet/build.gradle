@@ -1,9 +1,9 @@
 dependencies {
 	compileInclude group: "com.fasterxml.jackson.datatype", name: "jackson-datatype-jsr310", version: "2.18.2"
 	compileInclude group: "com.worldline.sips", name: "payment-sdk-common", version: "1.4.1"
-	compileOnly group: "com.fasterxml.jackson.core", name: "jackson-annotations", version: "2.18.9"
-	compileOnly group: "com.fasterxml.jackson.core", name: "jackson-core", version: "2.18.9"
-	compileOnly group: "com.fasterxml.jackson.core", name: "jackson-databind", version: "2.18.9"
+	compileOnly group: "com.fasterxml.jackson.core", name: "jackson-annotations", version: "2.18.11"
+	compileOnly group: "com.fasterxml.jackson.core", name: "jackson-core", version: "2.18.11"
+	compileOnly group: "com.fasterxml.jackson.core", name: "jackson-databind", version: "2.18.11"
 	compileOnly group: "com.liferay", name: "biz.aQute.bnd.annotation", version: "4.2.0.LIFERAY-PATCHED-2"
 	compileOnly group: "com.liferay.jakarta.portlet", name: "com.liferay.jakarta.portlet-api", version: "4.0.0"
 	compileOnly group: "com.liferay.portal", name: "com.liferay.portal.impl", version: "default"
@@ -22,8 +22,10 @@ dependencies {
 	compileOnly project(":apps:commerce:commerce-product-api")
 	compileOnly project(":apps:frontend-taglib:frontend-taglib")
 	compileOnly project(":apps:portal-configuration:portal-configuration-module-configuration-api")
+	compileOnly project(":apps:portal-security:portal-security-key-api")
 	compileOnly project(":apps:static:portal-configuration:portal-configuration-metatype-api")
 	compileOnly project(":core:petra:petra-io")
 	compileOnly project(":core:petra:petra-lang")
+	compileOnly project(":core:petra:petra-reflect")
 	compileOnly project(":core:petra:petra-string")
 }

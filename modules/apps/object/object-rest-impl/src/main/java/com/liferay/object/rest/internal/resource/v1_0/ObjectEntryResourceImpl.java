@@ -47,6 +47,7 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.Filter;
@@ -113,8 +114,7 @@ public class ObjectEntryResourceImpl
 	public ObjectEntryResourceImpl(
 		DTOConverterRegistry dtoConverterRegistry,
 		EntityModelProvider entityModelProvider,
-		ObjectDefinition objectDefinition,
-		Map<Long, ObjectDefinition> objectDefinitions,
+		ObjectDefinition objectDefinition, Map<Long, Long> objectDefinitionIds,
 		ObjectDefinitionLocalService objectDefinitionLocalService,
 		ObjectEntryLocalService objectEntryLocalService,
 		ObjectEntryManagerRegistry objectEntryManagerRegistry,
@@ -128,7 +128,7 @@ public class ObjectEntryResourceImpl
 		_dtoConverterRegistry = dtoConverterRegistry;
 		_entityModelProvider = entityModelProvider;
 		_objectDefinition = objectDefinition;
-		_objectDefinitions = objectDefinitions;
+		_objectDefinitionIds = objectDefinitionIds;
 		_objectDefinitionLocalService = objectDefinitionLocalService;
 		_objectEntryLocalService = objectEntryLocalService;
 		_objectEntryManagerRegistry = objectEntryManagerRegistry;
@@ -467,7 +467,7 @@ public class ObjectEntryResourceImpl
 		}
 
 		return _entityModelProvider.getEntityModel(
-			_objectDefinitions.get(contextCompany.getCompanyId()));
+			_fetchObjectDefinition(contextCompany.getCompanyId()));
 	}
 
 	@Override
@@ -1433,6 +1433,15 @@ public class ObjectEntryResourceImpl
 		return getObjectEntriesPage(search, null, filter, pagination, sorts);
 	}
 
+	@Override
+	public void setContextCompany(Company contextCompany) {
+		super.setContextCompany(contextCompany);
+
+		if (_objectDefinition != null) {
+			_objectDefinition = (ObjectDefinition)_objectDefinition.clone();
+		}
+	}
+
 	public void setObjectDefinition(ObjectDefinition objectDefinition) {
 		_objectDefinition = objectDefinition;
 	}
@@ -1515,8 +1524,12 @@ public class ObjectEntryResourceImpl
 			restContextPath = _objectDefinition.getRESTContextPath();
 		}
 		else {
-			ObjectDefinition objectDefinition = _objectDefinitions.get(
+			ObjectDefinition objectDefinition = _fetchObjectDefinition(
 				contextCompany.getCompanyId());
+
+			if (objectDefinition == null) {
+				return null;
+			}
 
 			restContextPath = objectDefinition.getRESTContextPath();
 		}
@@ -1675,6 +1688,17 @@ public class ObjectEntryResourceImpl
 
 			parentFile.delete();
 		}
+	}
+
+	private ObjectDefinition _fetchObjectDefinition(long companyId) {
+		Long objectDefinitionId = _objectDefinitionIds.get(companyId);
+
+		if (objectDefinitionId == null) {
+			return null;
+		}
+
+		return _objectDefinitionLocalService.fetchObjectDefinition(
+			objectDefinitionId);
 	}
 
 	private DefaultDTOConverterContext _getDTOConverterContext(
@@ -1894,10 +1918,10 @@ public class ObjectEntryResourceImpl
 	private final EntityModelProvider _entityModelProvider;
 
 	@Context
-	private ObjectDefinition _objectDefinition;
+	private volatile ObjectDefinition _objectDefinition;
 
+	private final Map<Long, Long> _objectDefinitionIds;
 	private final ObjectDefinitionLocalService _objectDefinitionLocalService;
-	private final Map<Long, ObjectDefinition> _objectDefinitions;
 	private final ObjectEntryLocalService _objectEntryLocalService;
 	private final ObjectEntryManagerRegistry _objectEntryManagerRegistry;
 	private final ObjectEntryService _objectEntryService;

@@ -44,6 +44,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import org.osgi.service.component.annotations.Component;
@@ -78,23 +79,6 @@ public class PicklistObjectFieldBusinessType
 	}
 
 	@Override
-	public String getDescription(Locale locale) {
-		return _language.get(locale, "choose-from-a-picklist");
-	}
-
-	@Override
-	public Object getDisplayContextValue(
-			ObjectField objectField, long userId, Map<String, Object> values)
-		throws PortalException {
-
-		if (objectField.isLocalized()) {
-			return getLocalizedValues(objectField, userId, values);
-		}
-
-		return super.getDisplayContextValue(objectField, userId, values);
-	}
-
-	@Override
 	public Serializable getDTOValue(
 			DTOConverterContext dtoConverterContext,
 			ObjectDefinition objectDefinition, ObjectEntry objectEntry,
@@ -123,17 +107,35 @@ public class PicklistObjectFieldBusinessType
 	}
 
 	@Override
+	public String getDescription(Locale locale) {
+		return _language.get(locale, "choose-from-a-picklist");
+	}
+
+	@Override
+	public Object getDisplayContextValue(
+			ObjectField objectField, long userId, Map<String, Object> values)
+		throws PortalException {
+
+		if (objectField.isLocalized()) {
+			return getLocalizedValues(null, objectField, userId, values);
+		}
+
+		return super.getDisplayContextValue(objectField, userId, values);
+	}
+
+	@Override
 	public String getLabel(Locale locale) {
 		return _language.get(locale, "picklist");
 	}
 
 	@Override
 	public Map<String, Object> getLocalizedValues(
-			ObjectField objectField, Long userId, Map<String, Object> values)
+			Long groupId, ObjectField objectField, Long userId,
+			Map<String, Object> values)
 		throws PortalException {
 
 		Map<String, Object> localizedValues = super.getLocalizedValues(
-			objectField, userId, values);
+			groupId, objectField, userId, values);
 
 		if (localizedValues == null) {
 			return null;
@@ -358,9 +360,20 @@ public class PicklistObjectFieldBusinessType
 			listEntryKey = listEntry.getKey();
 		}
 
-		ListTypeEntry listTypeEntry =
-			_listTypeEntryLocalService.fetchListTypeEntry(
-				objectField.getListTypeDefinitionId(), listEntryKey);
+		Map<Long, ListTypeEntry> listTypeEntriesMap = new HashMap<>();
+		ListTypeEntry listTypeEntry = null;
+
+		for (ListTypeEntry curListTypeEntry :
+				_listTypeEntryLocalService.getListTypeEntries(
+					objectField.getListTypeDefinitionId())) {
+
+			if (Objects.equals(curListTypeEntry.getKey(), listEntryKey)) {
+				listTypeEntry = curListTypeEntry;
+			}
+
+			listTypeEntriesMap.put(
+				curListTypeEntry.getListTypeEntryId(), curListTypeEntry);
+		}
 
 		if (listTypeEntry == null) {
 			return Collections.emptyList();
@@ -378,12 +391,10 @@ public class PicklistObjectFieldBusinessType
 		List<ListTypeEntry> listTypeEntries = TransformUtil.transform(
 			_objectStateLocalService.getNextObjectStates(
 				objectState.getObjectStateId()),
-			nextObjectState -> _listTypeEntryLocalService.getListTypeEntry(
+			nextObjectState -> listTypeEntriesMap.get(
 				nextObjectState.getListTypeEntryId()));
 
-		listTypeEntries.add(
-			_listTypeEntryLocalService.getListTypeEntry(
-				objectState.getListTypeEntryId()));
+		listTypeEntries.add(listTypeEntry);
 
 		return listTypeEntries;
 	}

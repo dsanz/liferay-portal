@@ -15,6 +15,7 @@ import React from 'react';
 
 import '@testing-library/jest-dom';
 
+import {open} from '../../../src/main/resources/META-INF/resources/js/AIAssistantChat/AIAssistant';
 import AIAssistantHost from '../../../src/main/resources/META-INF/resources/js/AIAssistantChat/AIAssistantHost';
 import AIAssistantTriggerButton from '../../../src/main/resources/META-INF/resources/js/AIAssistantChat/AIAssistantTriggerButton';
 import {
@@ -947,6 +948,8 @@ describe('AIAssistantHost', () => {
 	});
 
 	describe('scrolling', () => {
+		const CONTAINER_TOP = 100;
+		const MESSAGE_HEIGHT = 300;
 		const SCROLL_HEIGHT = 900;
 
 		let scrollTo: jest.Mock;
@@ -960,10 +963,23 @@ describe('AIAssistantHost', () => {
 				{configurable: true, value: SCROLL_HEIGHT}
 			);
 
+			window.HTMLElement.prototype.getBoundingClientRect = function (
+				this: HTMLElement
+			) {
+				return {
+					top: this.classList.contains('ai-assistant-chat__message')
+						? CONTAINER_TOP + getMessageOffset(this)
+						: CONTAINER_TOP,
+				} as DOMRect;
+			};
 			window.HTMLElement.prototype.scrollTo = scrollTo;
 		});
 
 		afterEach(() => {
+			Reflect.deleteProperty(
+				window.HTMLElement.prototype,
+				'getBoundingClientRect'
+			);
 			Reflect.deleteProperty(
 				window.HTMLElement.prototype,
 				'scrollHeight'
@@ -971,7 +987,34 @@ describe('AIAssistantHost', () => {
 			Reflect.deleteProperty(window.HTMLElement.prototype, 'scrollTo');
 		});
 
-		it('scrolls the conversation to the bottom when a message arrives', async () => {
+		function emitImage(
+			fakeEventSource: ReturnType<typeof createFakeEventSource>
+		) {
+			fakeEventSource.emit(
+				'Chat Message Sent',
+				JSON.stringify({
+					data: 'BASE64',
+					mimeType: 'image/png',
+					type: 'image',
+				})
+			);
+		}
+
+		function getMessageOffset(element: Element | null) {
+			const messageWrappers = Array.from(
+				document.querySelectorAll('.ai-assistant-chat__message')
+			);
+
+			return MESSAGE_HEIGHT * (messageWrappers.indexOf(element!) + 1);
+		}
+
+		function getMessageWrapper(text: string) {
+			return screen
+				.getByText(text)
+				.closest('.ai-assistant-chat__message');
+		}
+
+		it('scrolls the conversation to the bottom when an image arrives without text', async () => {
 			const fakeEventSource = createFakeEventSource();
 
 			mockCreateEventSource.mockResolvedValue(fakeEventSource as never);
@@ -981,10 +1024,7 @@ describe('AIAssistantHost', () => {
 			scrollTo.mockClear();
 
 			await act(async () => {
-				fakeEventSource.emit(
-					'Chat Message Sent',
-					JSON.stringify({data: 'Here are your tags'})
-				);
+				emitImage(fakeEventSource);
 			});
 
 			expect(scrollTo).toHaveBeenCalledWith({
@@ -1036,6 +1076,102 @@ describe('AIAssistantHost', () => {
 				behavior: 'smooth',
 				top: SCROLL_HEIGHT,
 			});
+		});
+
+		it('scrolls the conversation to the start of the reply when a message arrives', async () => {
+			const fakeEventSource = createFakeEventSource();
+
+			mockCreateEventSource.mockResolvedValue(fakeEventSource as never);
+
+			await renderAndOpen();
+
+			scrollTo.mockClear();
+
+			await act(async () => {
+				fakeEventSource.emit(
+					'Chat Message Sent',
+					JSON.stringify({data: 'Here are your tags'})
+				);
+			});
+
+			expect(scrollTo).toHaveBeenCalledWith({
+				behavior: 'smooth',
+				top: getMessageOffset(getMessageWrapper('Here are your tags')),
+			});
+		});
+
+		it('scrolls the conversation to the start of the text when an image arrives after it', async () => {
+			const fakeEventSource = createFakeEventSource();
+
+			mockCreateEventSource.mockResolvedValue(fakeEventSource as never);
+
+			await renderAndOpen();
+
+			await act(async () => {
+				fakeEventSource.emit(
+					'Chat Message Sent',
+					JSON.stringify({data: 'Here is your image'})
+				);
+			});
+
+			scrollTo.mockClear();
+
+			await act(async () => {
+				emitImage(fakeEventSource);
+			});
+
+			expect(scrollTo).toHaveBeenCalledWith({
+				behavior: 'smooth',
+				top: getMessageOffset(getMessageWrapper('Here is your image')),
+			});
+		});
+
+		it('shows the scroll to bottom button only when not scrolled to the bottom', async () => {
+			await renderAndOpen();
+
+			const messagesContainer = document.querySelector(
+				'.ai-assistant-chat__messages-container'
+			) as HTMLElement;
+
+			function scrollMessagesContainer(scrollTop: number) {
+				Object.defineProperty(messagesContainer, 'clientHeight', {
+					configurable: true,
+					value: 300,
+				});
+				Object.defineProperty(messagesContainer, 'scrollTop', {
+					configurable: true,
+					value: scrollTop,
+				});
+
+				fireEvent.scroll(messagesContainer);
+			}
+
+			expect(
+				screen.queryByRole('button', {name: 'scroll-to-bottom'})
+			).not.toBeInTheDocument();
+
+			act(() => {
+				scrollMessagesContainer(0);
+			});
+
+			scrollTo.mockClear();
+
+			fireEvent.click(
+				screen.getByRole('button', {name: 'scroll-to-bottom'})
+			);
+
+			expect(scrollTo).toHaveBeenCalledWith({
+				behavior: 'smooth',
+				top: SCROLL_HEIGHT,
+			});
+
+			act(() => {
+				scrollMessagesContainer(SCROLL_HEIGHT - 300);
+			});
+
+			expect(
+				screen.queryByRole('button', {name: 'scroll-to-bottom'})
+			).not.toBeInTheDocument();
 		});
 	});
 
@@ -1198,5 +1334,194 @@ describe('AIAssistantHost', () => {
 		);
 		expect(screen.queryByLabelText('space')).toBeNull();
 		expect(screen.getByLabelText('content-type')).toBeInTheDocument();
+	});
+
+	describe('newSession command', () => {
+		it('keeps the conversation open when a later command omits newSession', async () => {
+			const fakeEventSource1 = createFakeEventSource();
+			const fakeEventSource2 = createFakeEventSource();
+
+			mockCreateEventSource
+				.mockResolvedValueOnce(fakeEventSource1 as never)
+				.mockResolvedValueOnce(fakeEventSource2 as never);
+
+			await act(async () => {
+				renderHost();
+			});
+
+			await act(async () => {
+				open({
+					initialMessage: 'first message',
+					instructionDefinitionScope: 'test-scope',
+					triggerId: 'trigger-1',
+				});
+			});
+
+			await act(async () => {
+				fakeEventSource1.emit('Subscribe', 'ref-1');
+			});
+
+			await act(async () => {
+				fakeEventSource1.emit(
+					'Chat Message Sent',
+					JSON.stringify({data: 'First response'})
+				);
+			});
+
+			expect(screen.getByText('First response')).toBeInTheDocument();
+			expect(mockPostChat).toHaveBeenCalledTimes(1);
+
+			await act(async () => {
+				open({
+					initialMessage: 'second message',
+					instructionDefinitionScope: 'test-scope',
+					triggerId: 'trigger-2',
+				});
+			});
+
+			expect(screen.getByText('First response')).toBeInTheDocument();
+			expect(mockCreateEventSource).toHaveBeenCalledTimes(1);
+			expect(mockPostChat).toHaveBeenCalledTimes(1);
+		});
+
+		it('resets the conversation when a later command sets newSession', async () => {
+			const fakeEventSource1 = createFakeEventSource();
+			const fakeEventSource2 = createFakeEventSource();
+
+			mockCreateEventSource
+				.mockResolvedValueOnce(fakeEventSource1 as never)
+				.mockResolvedValueOnce(fakeEventSource2 as never);
+
+			await act(async () => {
+				renderHost();
+			});
+
+			await act(async () => {
+				open({
+					initialMessage: 'first message',
+					instructionDefinitionScope: 'test-scope',
+					triggerId: 'trigger-1',
+				});
+			});
+
+			await act(async () => {
+				fakeEventSource1.emit('Subscribe', 'ref-1');
+			});
+
+			await act(async () => {
+				fakeEventSource1.emit(
+					'Chat Message Sent',
+					JSON.stringify({data: 'First response'})
+				);
+			});
+
+			expect(screen.getByText('First response')).toBeInTheDocument();
+
+			await act(async () => {
+				open({
+					initialMessage: 'second message',
+					instructionDefinitionScope: 'test-scope',
+					newSession: true,
+					triggerId: 'trigger-2',
+				});
+			});
+
+			expect(
+				screen.queryByText('First response')
+			).not.toBeInTheDocument();
+			expect(mockCreateEventSource).toHaveBeenCalledTimes(2);
+			expect(mockPostChat).toHaveBeenCalledTimes(1);
+
+			await act(async () => {
+				fakeEventSource2.emit('Subscribe', 'ref-2');
+			});
+
+			expect(mockPostChat).toHaveBeenCalledTimes(2);
+			expect(mockPostChat).toHaveBeenLastCalledWith(
+				expect.objectContaining({message: 'second message'})
+			);
+		});
+
+		it('starts the new session with only the new command context', async () => {
+			const fakeEventSource1 = createFakeEventSource();
+			const fakeEventSource2 = createFakeEventSource();
+			const fakeEventSource3 = createFakeEventSource();
+
+			mockCreateEventSource
+				.mockResolvedValueOnce(fakeEventSource1 as never)
+				.mockResolvedValueOnce(fakeEventSource2 as never)
+				.mockResolvedValueOnce(fakeEventSource3 as never);
+
+			await act(async () => {
+				renderHost();
+			});
+
+			await act(async () => {
+				open({
+					context: {scope: 'old'},
+					initialMessage: 'first message',
+					instructionDefinitionScope: 'test-scope',
+					triggerId: 'trigger-1',
+				});
+			});
+
+			await act(async () => {
+				fakeEventSource1.emit('Subscribe', 'ref-1');
+			});
+
+			await act(async () => {
+				getLiferayHandler('openAIAssistantChat')?.({
+					context: {live: 'old'},
+					message: 'follow up',
+				});
+			});
+
+			expect(mockPostChat).toHaveBeenLastCalledWith(
+				expect.objectContaining({
+					chatContext: {live: 'old', scope: 'old'},
+				})
+			);
+
+			await act(async () => {
+				open({
+					context: {scope: 'new'},
+					initialMessage: 'second message',
+					instructionDefinitionScope: 'test-scope',
+					newSession: true,
+					triggerId: 'trigger-2',
+				});
+			});
+
+			await act(async () => {
+				fakeEventSource2.emit('Subscribe', 'ref-2');
+			});
+
+			expect(mockPostChat).toHaveBeenLastCalledWith(
+				expect.objectContaining({
+					chatContext: {scope: 'new'},
+					message: 'second message',
+				})
+			);
+
+			await act(async () => {
+				open({
+					initialMessage: 'third message',
+					instructionDefinitionScope: 'test-scope',
+					newSession: true,
+					triggerId: 'trigger-3',
+				});
+			});
+
+			await act(async () => {
+				fakeEventSource3.emit('Subscribe', 'ref-3');
+			});
+
+			expect(mockPostChat).toHaveBeenLastCalledWith(
+				expect.objectContaining({
+					chatContext: {},
+					message: 'third message',
+				})
+			);
+		});
 	});
 });

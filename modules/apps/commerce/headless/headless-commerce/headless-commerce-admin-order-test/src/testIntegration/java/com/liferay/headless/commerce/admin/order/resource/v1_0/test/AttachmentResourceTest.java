@@ -27,13 +27,13 @@ import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.Base64;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 
 import java.math.BigDecimal;
 
 import java.util.HashMap;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,7 +41,6 @@ import org.junit.runner.RunWith;
 /**
  * @author Stefano Motta
  */
-@FeatureFlag("LPD-6252")
 @RunWith(Arquillian.class)
 public class AttachmentResourceTest extends BaseAttachmentResourceTestCase {
 
@@ -88,6 +87,23 @@ public class AttachmentResourceTest extends BaseAttachmentResourceTestCase {
 
 		_commerceOrder = _commerceOrderLocalService.updateCommerceOrder(
 			_commerceOrder);
+	}
+
+	@Override
+	@Test
+	public void testGetOrderAttachment() throws Exception {
+		super.testGetOrderAttachment();
+
+		Attachment postAttachment = testGetOrderAttachment_addAttachment();
+
+		Attachment getAttachment = attachmentResource.getOrderAttachment(
+			testGetOrderAttachment_getOrderId(), postAttachment.getId());
+
+		Assert.assertEquals(
+			"commerce-order-attachment/" + getAttachment.getId(),
+			StringUtil.extractLast(getAttachment.getUrl(), "/o/"));
+		Assert.assertTrue(
+			StringUtil.startsWith(getAttachment.getUrl(), "http"));
 	}
 
 	@Override

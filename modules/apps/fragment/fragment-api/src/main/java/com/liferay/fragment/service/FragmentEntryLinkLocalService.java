@@ -36,6 +36,7 @@ import com.liferay.portal.kernel.util.OrderByComparator;
 import java.io.Serializable;
 
 import java.util.List;
+import java.util.Map;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -281,6 +282,31 @@ public interface FragmentEntryLinkLocalService
 			FragmentEntry fragmentEntry)
 		throws PortalException;
 
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<FragmentEntryLink>
+			getAllLayoutFragmentEntryLinksByFragmentEntry(
+				FragmentEntry fragmentEntry, int start, int end,
+				OrderByComparator<FragmentEntryLink> orderByComparator)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int getAllLayoutFragmentEntryLinksCountByFragmentEntry(
+			FragmentEntry fragmentEntry)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<FragmentEntryLink>
+			getAllLayoutPageTemplateFragmentEntryLinksByFragmentEntry(
+				FragmentEntry fragmentEntry, int layoutPageTemplateType,
+				int start, int end,
+				OrderByComparator<FragmentEntryLink> orderByComparator)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int getAllLayoutPageTemplateFragmentEntryLinksCountByFragmentEntry(
+			FragmentEntry fragmentEntry, int layoutPageTemplateType)
+		throws PortalException;
+
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
 	 #getFragmentEntryLinksCountByPlid(long, long)}
@@ -439,32 +465,12 @@ public interface FragmentEntryLinkLocalService
 	public int getFragmentEntryLinksCountByPlid(long groupId, long plid);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public Map<Long, Integer> getGroupFragmentEntryUsageCounts(
+			FragmentEntry fragmentEntry)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public IndexableActionableDynamicQuery getIndexableActionableDynamicQuery();
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<FragmentEntryLink> getLayoutFragmentEntryLinksByFragmentEntry(
-			long groupId, FragmentEntry fragmentEntry, int start, int end,
-			OrderByComparator<FragmentEntryLink> orderByComparator)
-		throws PortalException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public int getLayoutFragmentEntryLinksCountByFragmentEntry(
-			long groupId, FragmentEntry fragmentEntry)
-		throws PortalException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<FragmentEntryLink>
-			getLayoutPageTemplateFragmentEntryLinksByFragmentEntry(
-				long groupId, FragmentEntry fragmentEntry,
-				int layoutPageTemplateType, int start, int end,
-				OrderByComparator<FragmentEntryLink> orderByComparator)
-		throws PortalException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public int getLayoutPageTemplateFragmentEntryLinksCountByFragmentEntry(
-			long groupId, FragmentEntry fragmentEntry,
-			int layoutPageTemplateType)
-		throws PortalException;
 
 	/**
 	 * Returns the OSGi service identifier.
@@ -538,4 +544,4 @@ public interface FragmentEntryLinkLocalService
 		throws E;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:1523302530
+// LIFERAY-SERVICE-BUILDER-HASH:36831486

@@ -1,5 +1,5 @@
 {
-	"@generated": "620c99b0e83b15961d1a06408bbd749874694555",
+	"@generated": "aeb683f178b76c673300e29863604b7e5c88b163",
 	"@readonly": "** AUTO-GENERATED: DO NOT EDIT **",
 	"compilerOptions": {
 		"allowSyntheticDefaultImports": true,
@@ -28,6 +28,9 @@
 			],
 			"@liferay/frontend-js-charts-web": [
 				"../../../frontend-js/frontend-js-charts-web/src/main/resources/META-INF/resources/js/index.ts"
+			],
+			"@liferay/frontend-js-image-editor-web": [
+				"../../../frontend-js/frontend-js-image-editor-web/src/main/resources/META-INF/resources/js/index.ts"
 			],
 			"@liferay/frontend-js-item-selector-web": [
 				"../../../frontend-js/frontend-js-item-selector-web/src/main/resources/META-INF/resources/index.ts"
@@ -68,6 +71,9 @@
 			"frontend-js-web": [
 				"../../../frontend-js/frontend-js-web/src/main/resources/META-INF/resources/main/index.d.ts"
 			],
+			"frontend-js-web/auto_fields": [
+				"../../../frontend-js/frontend-js-web/src/main/resources/META-INF/resources/auto_fields/index.js"
+			],
 			"frontend-js-web/legacy": [
 				"../../../frontend-js/frontend-js-web/src/main/resources/META-INF/resources/legacy/index.ts"
 			],
@@ -104,6 +110,9 @@
 		},
 		{
 			"path": "../../../frontend-js/frontend-js-charts-web/src/main/resources/META-INF/resources/tsconfig.json"
+		},
+		{
+			"path": "../../../frontend-js/frontend-js-image-editor-web/src/main/resources/META-INF/resources/tsconfig.json"
 		},
 		{
 			"path": "../../../frontend-js/frontend-js-item-selector-web/src/main/resources/META-INF/resources/tsconfig.json"

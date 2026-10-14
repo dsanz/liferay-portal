@@ -5,12 +5,16 @@
 
 package com.liferay.headless.commerce.admin.pricing.dto.v2_0;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonValue;
 
 import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
@@ -20,12 +24,13 @@ import jakarta.annotation.Generated;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotNull;
 
 import jakarta.xml.bind.annotation.XmlRootElement;
 
 import java.io.Serializable;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -42,8 +47,7 @@ import java.util.function.Supplier;
 	value = "DiscountAccount"
 )
 @io.swagger.v3.oas.annotations.media.Schema(
-	description = "Account binding that restricts a discount's eligibility to a specific Account. Backed by discount account link.",
-	requiredProperties = {"accountId"}
+	description = "Account binding that restricts a discount's eligibility to a specific Account. Backed by discount account link."
 )
 @JsonFilter("Liferay.Vulcan")
 @XmlRootElement(name = "DiscountAccount")
@@ -191,11 +195,68 @@ public class DiscountAccount implements Serializable {
 		description = "Reference to the account entity (FK identifier)."
 	)
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
-	@NotNull
 	protected Long accountId;
 
 	@JsonIgnore
 	private Supplier<Long> _accountIdSupplier;
+
+	@io.swagger.v3.oas.annotations.media.Schema(
+		description = "Type of the account named by `accountExternalReferenceCode`. An import needs it to create the account as an empty stub when the account does not exist yet, because the type cannot be changed after an account is created."
+	)
+	@JsonGetter("accountType")
+	@Valid
+	public AccountType getAccountType() {
+		if (_accountTypeSupplier != null) {
+			accountType = _accountTypeSupplier.get();
+
+			_accountTypeSupplier = null;
+		}
+
+		return accountType;
+	}
+
+	@JsonIgnore
+	public String getAccountTypeAsString() {
+		AccountType accountType = getAccountType();
+
+		if (accountType == null) {
+			return null;
+		}
+
+		return accountType.toString();
+	}
+
+	public void setAccountType(AccountType accountType) {
+		this.accountType = accountType;
+
+		_accountTypeSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setAccountType(
+		UnsafeSupplier<AccountType, Exception> accountTypeUnsafeSupplier) {
+
+		_accountTypeSupplier = () -> {
+			try {
+				return accountTypeUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField(
+		description = "Type of the account named by `accountExternalReferenceCode`. An import needs it to create the account as an empty stub when the account does not exist yet, because the type cannot be changed after an account is created."
+	)
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected AccountType accountType;
+
+	@JsonIgnore
+	private Supplier<AccountType> _accountTypeSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema(
 		description = "Map of HATEOAS actions available to the current user, keyed by action name. Each value carries the href template and HTTP method, computed dynamically from user permissions. Read-only."
@@ -455,6 +516,20 @@ public class DiscountAccount implements Serializable {
 			sb.append(accountId);
 		}
 
+		AccountType accountType = getAccountType();
+
+		if (accountType != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"accountType\": ");
+
+			sb.append("\"");
+			sb.append(accountType);
+			sb.append("\"");
+		}
+
 		Map<String, Map<String, String>> actions = getActions();
 
 		if (actions != null) {
@@ -519,6 +594,45 @@ public class DiscountAccount implements Serializable {
 		name = "x-class-name"
 	)
 	public String xClassName;
+
+	@GraphQLName("AccountType")
+	public static enum AccountType {
+
+		BUSINESS("business"), GUEST("guest"), PERSON("person"),
+		SUPPLIER("supplier");
+
+		@JsonCreator
+		public static AccountType create(String value) {
+			if ((value == null) || value.equals("")) {
+				return null;
+			}
+
+			for (AccountType accountType : values()) {
+				if (Objects.equals(accountType.getValue(), value)) {
+					return accountType;
+				}
+			}
+
+			throw new IllegalArgumentException("Invalid enum value: " + value);
+		}
+
+		@JsonValue
+		public String getValue() {
+			return _value;
+		}
+
+		@Override
+		public String toString() {
+			return _value;
+		}
+
+		private AccountType(String value) {
+			_value = value;
+		}
+
+		private final String _value;
+
+	}
 
 	private static String _escape(Object object) {
 		return StringUtil.replace(
@@ -601,6 +715,27 @@ public class DiscountAccount implements Serializable {
 		return sb.toString();
 	}
 
+	private static String _toJSON(Object value) {
+		if (value instanceof Collection) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONArray((Collection<?>)value));
+		}
+		else if (value instanceof Map) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONObject((Map<?, ?>)value));
+		}
+		else if (value instanceof Object[]) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONArray(
+					Arrays.asList((Object[])value)));
+		}
+		else if (value instanceof String) {
+			return StringBundler.concat("\"", _escape(value), "\"");
+		}
+
+		return String.valueOf(value);
+	}
+
 	private static final String[][] _JSON_ESCAPE_STRINGS = {
 		{"\\", "\"", "\b", "\f", "\n", "\r", "\t"},
 		{"\\\\", "\\\"", "\\b", "\\f", "\\n", "\\r", "\\t"}
@@ -609,4 +744,4 @@ public class DiscountAccount implements Serializable {
 	private Map<String, Serializable> _extendedProperties;
 
 }
-// LIFERAY-REST-BUILDER-HASH:1858545787
+// LIFERAY-REST-BUILDER-HASH:944829459

@@ -18,12 +18,12 @@ import type {
 
 // Global state variables for Audiences module
 
-const audiencePriorities: Map<AudienceId, number> = new Map();
+const audienceIndexes: Map<AudienceId, number> = new Map();
 const detectedAudiences = new Set<AudienceId>();
 const handlers: Map<AudienceId, Handler[]> = new Map();
 
 export function clear(): void {
-	audiencePriorities.clear();
+	audienceIndexes.clear();
 	detectedAudiences.clear();
 }
 
@@ -35,8 +35,8 @@ export function get(): Set<AudienceId> {
 	return new Set(detectedAudiences);
 }
 
-export function getPriority(audienceId: AudienceId): number {
-	return audiencePriorities.get(audienceId) ?? Infinity;
+export function getAudienceIndex(audienceId: AudienceId): number | undefined {
+	return audienceIndexes.get(audienceId);
 }
 
 export async function runDetection(
@@ -64,13 +64,17 @@ export async function runDetection(
 			signal
 		);
 
-		for (let i = 0; i < audiencesDefinition.audiences.length; i++) {
-			audiencePriorities.set(audiencesDefinition.audiences[i].id, i);
+		const audiences = options?.filterAudiences
+			? audiencesDefinition.audiences.filter(options.filterAudiences)
+			: audiencesDefinition.audiences;
+
+		for (let i = 0; i < audiences.length; i++) {
+			audienceIndexes.set(audiences[i].id, i);
 		}
 
 		// Run the detection and update detected audiences
 
-		const detection = new Detection(audiencesDefinition);
+		const detection = new Detection({...audiencesDefinition, audiences});
 
 		const matches: AudienceId[] = [];
 
@@ -149,6 +153,15 @@ export async function runHandlers(): Promise<void> {
 	finally {
 		clearHandlers();
 	}
+}
+
+export function set(audienceIds: AudienceId[]): void {
+	clear();
+
+	audienceIds.forEach((audienceId, index) => {
+		audienceIndexes.set(audienceId, index);
+		detectedAudiences.add(audienceId);
+	});
 }
 
 export function setLogEnabled(enabled: boolean) {

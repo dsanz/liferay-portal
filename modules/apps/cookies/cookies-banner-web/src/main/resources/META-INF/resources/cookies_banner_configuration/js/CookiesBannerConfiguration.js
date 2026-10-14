@@ -40,10 +40,10 @@ export default function ({
 			notifyStoreConsentPreferenceUpdate
 		);
 
-		storeConsentCheckbox.removeAttribute('disabled');
-
 		hasPreviouslyStoredConsent().then((storeConsent) => {
 			storeConsentCheckbox.checked = storeConsent;
+
+			storeConsentCheckbox.removeAttribute('disabled');
 		});
 	}
 
@@ -54,29 +54,21 @@ export default function ({
 	);
 
 	toggleSwitches.forEach((toggleSwitch) => {
-		const cookieKey = toggleSwitch.dataset.cookieKey;
-
-		const notifyCookiePreferenceUpdate = () =>
-			getOpener().Liferay.fire('cookiePreferenceUpdate', {
-				key: cookieKey,
-				value: toggleSwitch.checked ? 'true' : 'false',
-			});
-
-		toggleSwitch.addEventListener('click', notifyCookiePreferenceUpdate);
-
 		toggleSwitch.checked = toggleSwitch.dataset.prechecked === 'true';
 
-		getCookie(userConfigCookieName).then((cookie) => {
-			if (cookie) {
-				getCookie(cookieKey).then((cookie) => {
+		getCookie(userConfigCookieName)
+			.then((userConfigCookie) =>
+				userConfigCookie
+					? getCookie(toggleSwitch.dataset.cookieKey)
+					: undefined
+			)
+			.then((cookie) => {
+				if (cookie !== undefined) {
 					toggleSwitch.checked = cookie === 'true';
-				});
-			}
-		});
+				}
 
-		notifyCookiePreferenceUpdate();
-
-		toggleSwitch.removeAttribute('disabled');
+				toggleSwitch.removeAttribute('disabled');
+			});
 	});
 
 	if (showButtons) {
@@ -131,6 +123,25 @@ export default function ({
 					toggleSwitch.checked ? 'true' : 'false'
 				);
 			});
+
+			optionalConsentCookieTypeNames
+				.filter(
+					(optionalConsentCookieTypeName) =>
+						!toggleSwitches.some(
+							(toggleSwitch) =>
+								toggleSwitch.dataset.cookieKey ===
+								optionalConsentCookieTypeName
+						)
+				)
+				.forEach((optionalConsentCookieTypeName) => {
+					setCookie(
+						dissentRenewalPeriod,
+						optionalConsentCookieTypeName,
+						storeConsentCheckbox?.checked,
+						dissentRenewalPeriodTimeUnit,
+						'false'
+					);
+				});
 
 			requiredConsentCookieTypeNames.forEach(
 				(requiredConsentCookieTypeName) => {

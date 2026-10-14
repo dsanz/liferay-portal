@@ -25,6 +25,5 @@ CommerceTaxCategoryMappingsDisplayContext commerceTaxCategoryMappingsDisplayCont
 		creationMenu="<%= commerceTaxCategoryMappingsDisplayContext.getCreationMenu() %>"
 		dataProviderKey="<%= FunctionCommerceTaxEngineFDSNames.FUNCTION_COMMERCE_TAX_ENGINE_TAX_CATEGORY_MAPPINGS %>"
 		id="<%= FunctionCommerceTaxEngineFDSNames.FUNCTION_COMMERCE_TAX_ENGINE_TAX_CATEGORY_MAPPINGS %>"
-		showSearch="<%= false %>"
 	/>
 </commerce-ui:panel>

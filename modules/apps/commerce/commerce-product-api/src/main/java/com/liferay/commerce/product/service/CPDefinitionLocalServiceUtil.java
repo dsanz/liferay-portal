@@ -105,6 +105,18 @@ public class CPDefinitionLocalServiceUtil {
 			serviceContext);
 	}
 
+	public static com.liferay.commerce.product.model.CPDefinitionLocalization
+			addCPDefinitionLocalization(
+				CPDefinition cpDefinition, String languageId,
+				String description, String metaDescription, String metaKeywords,
+				String metaTitle, String name, String shortDescription)
+		throws PortalException {
+
+		return getService().addCPDefinitionLocalization(
+			cpDefinition, languageId, description, metaDescription,
+			metaKeywords, metaTitle, name, shortDescription);
+	}
+
 	public static CPDefinition addOrUpdateCPDefinition(
 			String externalReferenceCode, long userId, long groupId,
 			long cpDefinitionId, long cpTaxCategoryId,
@@ -693,12 +705,14 @@ public class CPDefinitionLocalServiceUtil {
 	}
 
 	public static CPDefinition getOrAddEmptyCPDefinition(
-			String externalReferenceCode, String productTypeName,
-			long companyId, long userId, long groupId)
+			String externalReferenceCode, long companyId, long userId,
+			long groupId, Map<java.util.Locale, String> nameMap,
+			String productTypeName)
 		throws PortalException {
 
 		return getService().getOrAddEmptyCPDefinition(
-			externalReferenceCode, productTypeName, companyId, userId, groupId);
+			externalReferenceCode, companyId, userId, groupId, nameMap,
+			productTypeName);
 	}
 
 	/**
@@ -999,4 +1013,4 @@ public class CPDefinitionLocalServiceUtil {
 			CPDefinitionLocalServiceUtil.class, CPDefinitionLocalService.class);
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:762569692
+// LIFERAY-SERVICE-BUILDER-HASH:-157006335

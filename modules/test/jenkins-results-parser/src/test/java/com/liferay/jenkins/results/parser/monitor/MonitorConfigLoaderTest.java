@@ -166,7 +166,7 @@ public class MonitorConfigLoaderTest
 		try {
 			MonitorConfigLoader.getMonitorConfigs(buildProperties);
 
-			Assert.fail("Expected IllegalArgumentException");
+			Assert.fail();
 		}
 		catch (IllegalArgumentException illegalArgumentException) {
 		}

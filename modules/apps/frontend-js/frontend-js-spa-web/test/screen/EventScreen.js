@@ -83,6 +83,22 @@ describe('EventScreen', () => {
 		expect(screen.isContentSecurityPolicyMismatch()).toBe(true);
 	});
 
+	it('does not detect a mismatch when both pages enforce a policy without a nonce', () => {
+		Liferay.CSP = {nonce: 'abc123'};
+
+		const screen = createScreen("img-src 'self';");
+
+		expect(screen.isContentSecurityPolicyMismatch()).toBe(false);
+	});
+
+	it('detects a mismatch when navigating from an excluded page to a CSP page whose policy has no nonce', () => {
+		Liferay.CSP = {nonce: ''};
+
+		const screen = createScreen("img-src 'self';");
+
+		expect(screen.isContentSecurityPolicyMismatch()).toBe(true);
+	});
+
 	it('does not detect a mismatch when neither page enforces CSP', () => {
 		Liferay.CSP = {nonce: ''};
 

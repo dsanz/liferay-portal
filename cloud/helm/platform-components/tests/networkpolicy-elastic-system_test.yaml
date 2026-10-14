@@ -1,0 +1,69 @@
+release:
+    name: my-release
+    namespace: argocd-system
+set:
+    networkPolicy.apiServerSources:
+        -   ipBlock:
+                cidr: 10.0.0.0/16
+        -   namespaceSelector:
+                matchLabels:
+                    kubernetes.io/metadata.name: kube-system
+            podSelector:
+                matchLabels:
+                    k8s-app: konnectivity-agent
+suite: Elastic System NetworkPolicies
+templates:
+    -   templates/networkpolicy-elastic-system.yaml
+tests:
+    -   asserts:
+            -   equal:
+                    path: spec.ingress[0].from
+                    value:
+                        -   ipBlock:
+                                cidr: 10.0.0.0/16
+                        -   namespaceSelector:
+                                matchLabels:
+                                    kubernetes.io/metadata.name: kube-system
+                            podSelector:
+                                matchLabels:
+                                    k8s-app: konnectivity-agent
+        documentSelector:
+            path: metadata.name
+            value: elastic-operator-webhook-ingress
+        it: Admits the API server sources to the operator's webhook
+    -   asserts:
+            -   failedTemplate:
+                    errorMessage: The value "networkPolicy.apiServerSources" must not be empty when "operatorApplications.eckOperator.enabled" is true
+        it: Fails without API server sources rather than admitting everyone
+        set:
+            networkPolicy.apiServerSources: []
+    -   asserts:
+            -   documentSelector:
+                    path: metadata.name
+                    value: default-deny-ingress
+                equal:
+                    path: metadata.namespace
+                    value: search-system
+            -   documentSelector:
+                    path: metadata.name
+                    value: elastic-operator-webhook-ingress
+                equal:
+                    path: metadata.namespace
+                    value: search-system
+            -   documentSelector:
+                    path: metadata.name
+                    value: elastic-operator-webhook-ingress
+                equal:
+                    path: spec.podSelector.matchLabels["app.kubernetes.io/instance"]
+                    value: search-operator
+        it: Follows the operator application's name and namespace
+        set:
+            operatorApplications.eckOperator.name: search-operator
+            operatorApplications.eckOperator.namespace: search-system
+    -   asserts:
+            -   hasDocuments:
+                    count: 0
+        it: Omits both NetworkPolicies when the ECK operator is disabled
+        set:
+            networkPolicy.apiServerSources: []
+            operatorApplications.eckOperator.enabled: false

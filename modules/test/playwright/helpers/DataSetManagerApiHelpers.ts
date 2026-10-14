@@ -472,6 +472,7 @@ export class DataSetManagerApiHelpers extends ApiHelpers {
 		label,
 		listOfItemsPerPage,
 		searchAsYouType,
+		searchSuggestionsEnabled,
 		showSearch,
 		snapshotsEnabled,
 	}: {
@@ -484,6 +485,7 @@ export class DataSetManagerApiHelpers extends ApiHelpers {
 		label?: string;
 		listOfItemsPerPage?: string;
 		searchAsYouType?: boolean;
+		searchSuggestionsEnabled?: boolean;
 		showSearch?: boolean;
 		snapshotsEnabled?: boolean;
 	}) {
@@ -500,6 +502,7 @@ export class DataSetManagerApiHelpers extends ApiHelpers {
 			label,
 			listOfItemsPerPage,
 			searchAsYouType,
+			searchSuggestionsEnabled,
 			showSearch,
 			snapshotsEnabled,
 		};

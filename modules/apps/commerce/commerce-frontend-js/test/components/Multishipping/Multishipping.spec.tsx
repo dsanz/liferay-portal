@@ -91,13 +91,15 @@ const getLocators = (
 
 describe('Multishipping', () => {
 	afterEach(() => {
-		fetchMock.restore();
+		fetchMock.hardReset();
 		jest.clearAllMocks();
 
 		cleanup();
 	});
 
 	it('Must display order items with no delivery groups', async () => {
+		fetchMock.mockGlobal();
+
 		const orderItems = Array(2)
 			.fill(0)
 			.map((_, currentIndex) => {
@@ -159,6 +161,8 @@ describe('Multishipping', () => {
 	});
 
 	it('Must paginate the order items', async () => {
+		fetchMock.mockGlobal();
+
 		const orderItems = Array(5)
 			.fill(0)
 			.map((_, currentIndex) => {
@@ -265,12 +269,12 @@ describe('Multishipping', () => {
 		await act(async () => {
 			expect(
 				renderedComponent.queryByRole('button', {
-					name: 'Go to the next page, 2',
+					name: 'Go to the Next Page, 2',
 				})
 			).not.toBeNull();
 			(
 				renderedComponent.queryByRole('button', {
-					name: 'Go to the next page, 2',
+					name: 'Go to the Next Page, 2',
 				}) as HTMLButtonElement
 			).click();
 		});
@@ -293,6 +297,8 @@ describe('Multishipping', () => {
 	});
 
 	it('Table must be searchable', async () => {
+		fetchMock.mockGlobal();
+
 		const orderItems = Array(2)
 			.fill(0)
 			.map((_, currentIndex) => {
@@ -373,6 +379,8 @@ describe('Multishipping', () => {
 	});
 
 	it('Must disable add delivery group if 20 are already available', async () => {
+		fetchMock.mockGlobal();
+
 		const orderItems = Array(20)
 			.fill(0)
 			.map((_, currentIndex) => {
@@ -421,6 +429,8 @@ describe('Multishipping', () => {
 	});
 
 	it('Must disable and hide everything if readonly', async () => {
+		fetchMock.mockGlobal();
+
 		const orderItems = Array(2)
 			.fill(0)
 			.map((_, currentIndex) => {
@@ -476,6 +486,8 @@ describe('Multishipping', () => {
 	});
 
 	it('Table should not display delivery group columns', async () => {
+		fetchMock.mockGlobal();
+
 		const orderItems = Array(2)
 			.fill(0)
 			.map((_, currentIndex) => {
@@ -521,6 +533,8 @@ describe('Multishipping', () => {
 	});
 
 	it('Table should display delivery group column with correct quantities', async () => {
+		fetchMock.mockGlobal();
+
 		const orderItems = Array(3)
 			.fill(0)
 			.map((_, currentIndex) => {
@@ -574,6 +588,8 @@ describe('Multishipping', () => {
 	});
 
 	it('Table should display same product in multiple delivery groups', async () => {
+		fetchMock.mockGlobal();
+
 		const orderItems = [
 			{
 				deliveryGroupName: `DeliveryGroupName1`,
@@ -665,6 +681,8 @@ describe('Multishipping', () => {
 	});
 
 	it('Must fix missing delivery groups', async () => {
+		fetchMock.mockGlobal();
+
 		const orderItems = [
 			{
 				deliveryGroupName: `DeliveryGroupName1`,
@@ -767,16 +785,23 @@ describe('Multishipping', () => {
 
 		expect(
 			isArrayEqual(
-				JSON.parse(fetchMock.calls().matched[1][1].body).cartItems,
+				JSON.parse(
+					fetchMock.callHistory.calls('matched')[1].options
+						.body as string
+				).cartItems,
 				JSON.parse(
 					'[{"deliveryGroupName":"DeliveryGroupName1","id":1000,"options":"[]","quantity":3,"replacedSkuId":0,"requestedDeliveryDate":"","shippingAddressId":1000,"skuId":100},{"deliveryGroupName":"DeliveryGroupName1","id":1001,"options":"[]","quantity":5,"replacedSkuId":0,"requestedDeliveryDate":"","shippingAddressId":1000,"skuId":100},{"deliveryGroupName":"DeliveryGroupName1","id":1002,"options":"[]","quantity":8,"replacedSkuId":0,"requestedDeliveryDate":"","shippingAddressId":1000,"skuId":102}]'
 				)
 			)
 		).toBeTruthy();
-		expect(fetchMock.calls().matched[1][1].method).toBe('PATCH');
+		expect(fetchMock.callHistory.calls('matched')[1].options.method).toBe(
+			'patch'
+		);
 	});
 
 	it('Must show correct display groups for different products', async () => {
+		fetchMock.mockGlobal();
+
 		const orderItems = [
 			{
 				deliveryGroupName: `DeliveryGroupName1`,
@@ -932,6 +957,8 @@ describe('Multishipping', () => {
 	});
 
 	it('Must show correct display groups for same product', async () => {
+		fetchMock.mockGlobal();
+
 		const orderItems = [
 			{
 				deliveryGroupName: `DeliveryGroupName1`,
@@ -1087,6 +1114,8 @@ describe('Multishipping', () => {
 	});
 
 	it('Must create the default delivery group if address is passed and no delivery groups are there', async () => {
+		fetchMock.mockGlobal();
+
 		const orderItems = [
 			{
 				deliveryGroupName: '',
@@ -1179,18 +1208,25 @@ describe('Multishipping', () => {
 
 		expect(
 			isArrayEqual(
-				JSON.parse(fetchMock.calls().matched[1][1].body).cartItems,
+				JSON.parse(
+					fetchMock.callHistory.calls('matched')[1].options
+						.body as string
+				).cartItems,
 				JSON.parse(
 					'[{"deliveryGroupName":"Default","options":"[]","quantity":3,"replacedSkuId":0,"requestedDeliveryDate":"","shippingAddressId":1000,"skuId":100},{"deliveryGroupName":"Default","options":"[]","quantity":8,"replacedSkuId":0,"requestedDeliveryDate":"","shippingAddressId":1000,"skuId":101}]'
 				)
 			)
 		).toBeTruthy();
-		expect(fetchMock.calls().matched[1][1].method).toBe('PATCH');
+		expect(fetchMock.callHistory.calls('matched')[1].options.method).toBe(
+			'patch'
+		);
 	});
 });
 
 describe('MultiShipping - bulk actions', () => {
 	beforeEach(() => {
+		fetchMock.mockGlobal();
+
 		(window as any).Liferay = {
 			...(window as any).Liferay,
 			CustomDialogs: {},
@@ -1200,7 +1236,7 @@ describe('MultiShipping - bulk actions', () => {
 	});
 
 	afterEach(() => {
-		fetchMock.restore();
+		fetchMock.hardReset();
 		jest.clearAllMocks();
 
 		cleanup();
@@ -1746,13 +1782,18 @@ describe('MultiShipping - bulk actions', () => {
 
 		expect(
 			isArrayEqual(
-				JSON.parse(fetchMock.calls().matched[1][1].body).cartItems,
+				JSON.parse(
+					fetchMock.callHistory.calls('matched')[1].options
+						.body as string
+				).cartItems,
 				JSON.parse(
 					'[{"deliveryGroupName":"DeliveryGroupName2","id":0,"options":"[]","quantity":1,"replacedSkuId":0,"requestedDeliveryDate":"2024-12-13","shippingAddressId":1000,"skuId":100},{"deliveryGroupName":"DeliveryGroupName1","id":1000,"options":"[]","quantity":2,"replacedSkuId":0,"requestedDeliveryDate":"2024-12-12","shippingAddressId":1000,"skuId":100},{"deliveryGroupName":"DeliveryGroupName1","id":1002,"options":"[]","quantity":4,"replacedSkuId":0,"requestedDeliveryDate":"2024-12-12","shippingAddressId":1000,"skuId":101},{"deliveryGroupName":"DeliveryGroupName2","id":0,"options":"[]","quantity":4,"replacedSkuId":0,"requestedDeliveryDate":"2024-12-13","shippingAddressId":1000,"skuId":101},{"deliveryGroupName":"DeliveryGroupName2","id":1003,"options":"[]","quantity":8,"replacedSkuId":0,"requestedDeliveryDate":"2024-12-13","shippingAddressId":1000,"skuId":102}]'
 				)
 			)
 		).toBeTruthy();
-		expect(fetchMock.calls().matched[1][1].method).toBe('PATCH');
+		expect(fetchMock.callHistory.calls('matched')[1].options.method).toBe(
+			'patch'
+		);
 	});
 
 	it('Bulk split action error', async () => {
@@ -1831,7 +1872,7 @@ describe('MultiShipping - bulk actions', () => {
 
 		userEvent.click(bulkSplitActionButton);
 
-		expect(spyOnShowError).toBeCalledWith({
+		expect(spyOnShowError).toHaveBeenCalledWith({
 			detail: 'the-item-s-quantity-is-not-valid-for-the-number-of-delivery-groups',
 		});
 	});
@@ -1946,13 +1987,18 @@ describe('MultiShipping - bulk actions', () => {
 
 		expect(
 			isArrayEqual(
-				JSON.parse(fetchMock.calls().matched[1][1].body).cartItems,
+				JSON.parse(
+					fetchMock.callHistory.calls('matched')[1].options
+						.body as string
+				).cartItems,
 				JSON.parse(
 					'[{"deliveryGroupName":"DeliveryGroupName2","id":0,"options":"[]","quantity":3,"replacedSkuId":0,"requestedDeliveryDate":"2024-12-13","shippingAddressId":1000,"skuId":100},{"deliveryGroupName":"DeliveryGroupName1","id":1000,"options":"[]","quantity":3,"replacedSkuId":0,"requestedDeliveryDate":"2024-12-12","shippingAddressId":1000,"skuId":100},{"deliveryGroupName":"DeliveryGroupName2","id":0,"options":"[]","quantity":8,"replacedSkuId":0,"requestedDeliveryDate":"2024-12-13","shippingAddressId":1000,"skuId":101},{"deliveryGroupName":"DeliveryGroupName1","id":1002,"options":"[]","quantity":8,"replacedSkuId":0,"requestedDeliveryDate":"2024-12-12","shippingAddressId":1000,"skuId":101},{"deliveryGroupName":"DeliveryGroupName2","id":1003,"options":"[]","quantity":8,"replacedSkuId":0,"requestedDeliveryDate":"2024-12-13","shippingAddressId":1000,"skuId":102}]'
 				)
 			)
 		).toBeTruthy();
-		expect(fetchMock.calls().matched[1][1].method).toBe('PATCH');
+		expect(fetchMock.callHistory.calls('matched')[1].options.method).toBe(
+			'patch'
+		);
 	});
 
 	it('Bulk copy action error', async () => {
@@ -2031,7 +2077,7 @@ describe('MultiShipping - bulk actions', () => {
 
 		userEvent.click(bulkCopyActionButton);
 
-		expect(spyOnShowError).toBeCalledWith({
+		expect(spyOnShowError).toHaveBeenCalledWith({
 			detail: 'the-item-s-quantity-is-not-valid-for-the-number-of-delivery-groups',
 		});
 	});
@@ -2146,13 +2192,18 @@ describe('MultiShipping - bulk actions', () => {
 
 		expect(
 			isArrayEqual(
-				JSON.parse(fetchMock.calls().matched[1][1].body).cartItems,
+				JSON.parse(
+					fetchMock.callHistory.calls('matched')[1].options
+						.body as string
+				).cartItems,
 				JSON.parse(
 					'[{"deliveryGroupName":"DeliveryGroupName1","id":1000,"options":"[]","quantity":1,"replacedSkuId":0,"requestedDeliveryDate":"2024-12-12","shippingAddressId":1000,"skuId":100},{"deliveryGroupName":"DeliveryGroupName1","id":0,"options":"[]","quantity":1,"replacedSkuId":0,"requestedDeliveryDate":"2024-12-12","shippingAddressId":1000,"skuId":102}]'
 				)
 			)
 		).toBeTruthy();
-		expect(fetchMock.calls().matched[1][1].method).toBe('PATCH');
+		expect(fetchMock.callHistory.calls('matched')[1].options.method).toBe(
+			'patch'
+		);
 	});
 
 	it('Bulk remove action', async () => {
@@ -2243,12 +2294,17 @@ describe('MultiShipping - bulk actions', () => {
 
 		expect(
 			isArrayEqual(
-				JSON.parse(fetchMock.calls().matched[1][1].body).cartItems,
+				JSON.parse(
+					fetchMock.callHistory.calls('matched')[1].options
+						.body as string
+				).cartItems,
 				JSON.parse(
 					'[{"deliveryGroupName":"DeliveryGroupName2","id":1003,"options":"[]","quantity":8,"replacedSkuId":0,"requestedDeliveryDate":"2024-12-13","shippingAddressId":1000,"skuId":102}]'
 				)
 			)
 		).toBeTruthy();
-		expect(fetchMock.calls().matched[1][1].method).toBe('PATCH');
+		expect(fetchMock.callHistory.calls('matched')[1].options.method).toBe(
+			'patch'
+		);
 	});
 });

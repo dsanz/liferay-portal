@@ -13,23 +13,29 @@ import com.liferay.commerce.product.exception.RequiredCPOptionException;
 import com.liferay.commerce.product.model.CPDefinition;
 import com.liferay.commerce.product.model.CPDefinitionOptionRel;
 import com.liferay.commerce.product.model.CPOption;
+import com.liferay.commerce.product.model.CPOptionCategory;
 import com.liferay.commerce.product.model.CommerceCatalog;
 import com.liferay.commerce.product.service.CPDefinitionOptionRelLocalService;
+import com.liferay.commerce.product.service.CPOptionCategoryLocalService;
 import com.liferay.commerce.product.service.CPOptionLocalService;
 import com.liferay.commerce.product.service.CommerceCatalogLocalService;
 import com.liferay.commerce.product.test.util.CPTestUtil;
 import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.portal.kernel.lazy.referencing.LazyReferencingThreadLocal;
+import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
+import com.liferay.portal.kernel.test.util.CompanyTestUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
@@ -38,6 +44,8 @@ import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import org.frutilla.FrutillaRule;
 
@@ -210,6 +218,23 @@ public class CPOptionLocalServiceTest {
 			true, RandomTestUtil.randomString(), _serviceContext);
 	}
 
+	@Test
+	public void testDeleteCompany() throws Exception {
+		Company company = CompanyTestUtil.addCompany();
+
+		CPOption cpOption = CPTestUtil.addCPOption(company.getGroupId(), false);
+		CPOptionCategory cpOptionCategory = CPTestUtil.addCPOptionCategory(
+			company.getGroupId());
+
+		_companyLocalService.deleteCompany(company.getCompanyId());
+
+		Assert.assertNull(
+			_cpOptionLocalService.fetchCPOption(cpOption.getCPOptionId()));
+		Assert.assertNull(
+			_cpOptionCategoryLocalService.fetchCPOptionCategory(
+				cpOptionCategory.getCPOptionCategoryId()));
+	}
+
 	@Test(expected = RequiredCPOptionException.class)
 	public void testDeleteOptionUsedByProduct() throws Exception {
 		frutillaRule.scenario(
@@ -235,7 +260,8 @@ public class CPOptionLocalServiceTest {
 
 		CPDefinitionOptionRel cpDefinitionOptionRel =
 			_cpDefinitionOptionRelLocalService.addCPDefinitionOptionRel(
-				cpDefinition.getCPDefinitionId(), cpOption.getCPOptionId(),
+				null, cpDefinition.getCPDefinitionId(),
+				cpOption.getCPOptionId(),
 				RandomTestUtil.randomLocaleStringMap(),
 				RandomTestUtil.randomLocaleStringMap(),
 				CPConstants.PRODUCT_OPTION_SELECT_DATE_KEY,
@@ -252,27 +278,33 @@ public class CPOptionLocalServiceTest {
 		frutillaRule.scenario(
 			"Get or add an empty product option"
 		).given(
-			"A company and an external reference code"
+			"A company, an external reference code, and a commerce option type"
 		).when(
 			"An empty product option is requested"
 		).then(
 			"A NoSuchCPOptionException is thrown while lazy referencing is " +
 				"disabled"
 		).and(
-			"An empty stub with the given external reference code is " +
-				"returned while lazy referencing is enabled"
+			"An empty stub with the given external reference code, name, " +
+				"commerce option type, SKU contributor attribute, and key is " +
+					"returned while lazy referencing is enabled"
 		).and(
 			"The same product option is resolved on subsequent requests"
 		).and(
 			"The empty status is cleared once the stub is updated"
 		);
 
+		String defaultCommerceOptionTypeKey =
+			CPTestUtil.getDefaultCommerceOptionTypeKey(true);
 		String externalReferenceCode = RandomTestUtil.randomString();
+		String key = StringUtil.toLowerCase(RandomTestUtil.randomString());
+		Map<Locale, String> nameMap = RandomTestUtil.randomLocaleStringMap();
 
 		try {
 			_cpOptionLocalService.getOrAddEmptyCPOption(
 				externalReferenceCode, _serviceContext.getCompanyId(),
-				_serviceContext.getUserId());
+				_serviceContext.getUserId(), nameMap,
+				defaultCommerceOptionTypeKey, true, key);
 
 			Assert.fail();
 		}
@@ -287,17 +319,25 @@ public class CPOptionLocalServiceTest {
 
 			cpOption = _cpOptionLocalService.getOrAddEmptyCPOption(
 				externalReferenceCode, _serviceContext.getCompanyId(),
-				_serviceContext.getUserId());
+				_serviceContext.getUserId(), nameMap,
+				defaultCommerceOptionTypeKey, true, key);
 
 			Assert.assertEquals(
-				WorkflowConstants.STATUS_EMPTY, cpOption.getStatus());
+				defaultCommerceOptionTypeKey,
+				cpOption.getCommerceOptionTypeKey());
 			Assert.assertEquals(
 				externalReferenceCode, cpOption.getExternalReferenceCode());
+			Assert.assertEquals(key, cpOption.getKey());
+			Assert.assertEquals(nameMap, cpOption.getNameMap());
+			Assert.assertTrue(cpOption.isSkuContributor());
+			Assert.assertEquals(
+				WorkflowConstants.STATUS_EMPTY, cpOption.getStatus());
 
 			CPOption resolvedCPOption =
 				_cpOptionLocalService.getOrAddEmptyCPOption(
 					externalReferenceCode, _serviceContext.getCompanyId(),
-					_serviceContext.getUserId());
+					_serviceContext.getUserId(), nameMap,
+					defaultCommerceOptionTypeKey, true, key);
 
 			Assert.assertEquals(
 				cpOption.getCPOptionId(), resolvedCPOption.getCPOptionId());
@@ -313,6 +353,32 @@ public class CPOptionLocalServiceTest {
 
 		Assert.assertNotEquals(
 			WorkflowConstants.STATUS_EMPTY, cpOption.getStatus());
+	}
+
+	@Test(expected = CPOptionSKUContributorException.class)
+	public void testGetOrAddEmptyCPOptionIfSKUContributorOptionTypeIsInvalid()
+		throws Exception {
+
+		frutillaRule.scenario(
+			"Get or add an empty SKU contributor product option with a " +
+				"commerce option type that does not contribute to the SKU"
+		).given(
+			"A company and an external reference code"
+		).when(
+			"An empty SKU contributor product option is requested with a " +
+				"checkbox commerce option type"
+		).then(
+			"The product option creation fails"
+		);
+
+		try (SafeCloseable safeCloseable =
+				LazyReferencingThreadLocal.setEnabledWithSafeCloseable(true)) {
+
+			_cpOptionLocalService.getOrAddEmptyCPOption(
+				RandomTestUtil.randomString(), _serviceContext.getCompanyId(),
+				_serviceContext.getUserId(), null, "checkbox", true,
+				RandomTestUtil.randomString());
+		}
 	}
 
 	@Rule
@@ -337,11 +403,17 @@ public class CPOptionLocalServiceTest {
 	private CommerceCatalogLocalService _commerceCatalogLocalService;
 
 	@Inject
+	private CompanyLocalService _companyLocalService;
+
+	@Inject
 	private CPDefinitionOptionRelLocalService
 		_cpDefinitionOptionRelLocalService;
 
 	private final List<CPDefinitionOptionRel> _cpDefinitionOptionRels =
 		new ArrayList<>();
+
+	@Inject
+	private CPOptionCategoryLocalService _cpOptionCategoryLocalService;
 
 	@Inject
 	private CPOptionLocalService _cpOptionLocalService;

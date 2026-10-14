@@ -871,8 +871,6 @@ public class ObjectEntryDisplayContextImpl
 		ddmFormRenderingContext.addProperty(
 			"availableLocales", LanguageUtil.getAvailableLocales(groupId));
 
-		ddmFormRenderingContext.setContainerId("editObjectEntry");
-
 		if (objectEntry != null) {
 			ddmFormRenderingContext.addProperty(
 				"objectEntryId", objectEntry.getId());
@@ -898,6 +896,8 @@ public class ObjectEntryDisplayContextImpl
 		LiferayPortletResponse liferayPortletResponse =
 			_objectRequestHelper.getLiferayPortletResponse();
 
+		ddmFormRenderingContext.setContainerId(
+			liferayPortletResponse.getNamespace() + "editObjectEntry");
 		ddmFormRenderingContext.setPortletNamespace(
 			liferayPortletResponse.getNamespace());
 
@@ -1380,6 +1380,17 @@ public class ObjectEntryDisplayContextImpl
 
 			ddmFormField.setProperty("objectEntryId", objectEntry.getId());
 		}
+		else if (StringUtil.equals(
+					objectField.getBusinessType(),
+					ObjectFieldConstants.BUSINESS_TYPE_LOCATION)) {
+
+			ddmFormField.setProperty("groupId", _getGroupId());
+
+			ObjectDefinition objectDefinition = getObjectDefinition1();
+
+			ddmFormField.setProperty(
+				"objectDefinitionId", objectDefinition.getObjectDefinitionId());
+		}
 
 		ddmFormField.setReadOnly(readOnly);
 
@@ -1481,6 +1492,13 @@ public class ObjectEntryDisplayContextImpl
 		return ddmFormValues;
 	}
 
+	private DTOConverterContext _getDTOConverterContext() {
+		return new DefaultDTOConverterContext(
+			false, null, null, _objectRequestHelper.getRequest(), null,
+			_themeDisplay.getSiteDefaultLocale(), null,
+			_themeDisplay.getUser());
+	}
+
 	private Object _getDisplayContextValue(
 			ObjectField objectField, Map<String, Object> values)
 		throws PortalException {
@@ -1490,13 +1508,6 @@ public class ObjectEntryDisplayContextImpl
 
 		return objectFieldBusinessType.getDisplayContextValue(
 			objectField, _objectRequestHelper.getUserId(), values);
-	}
-
-	private DTOConverterContext _getDTOConverterContext() {
-		return new DefaultDTOConverterContext(
-			false, null, null, _objectRequestHelper.getRequest(), null,
-			_themeDisplay.getSiteDefaultLocale(), null,
-			_themeDisplay.getUser());
 	}
 
 	private long _getGroupId() {

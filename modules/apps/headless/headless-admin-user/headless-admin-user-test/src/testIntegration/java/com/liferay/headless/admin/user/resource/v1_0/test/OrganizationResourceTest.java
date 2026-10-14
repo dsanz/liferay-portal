@@ -5,6 +5,7 @@
 
 package com.liferay.headless.admin.user.resource.v1_0.test;
 
+import com.liferay.account.constants.AccountActionKeys;
 import com.liferay.account.constants.AccountConstants;
 import com.liferay.account.model.AccountEntry;
 import com.liferay.account.model.AccountEntryOrganizationRel;
@@ -21,6 +22,7 @@ import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.asset.kernel.service.AssetTagLocalService;
 import com.liferay.asset.kernel.service.AssetVocabularyLocalService;
 import com.liferay.asset.test.util.AssetTestUtil;
+import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.expando.kernel.model.ExpandoColumn;
 import com.liferay.expando.kernel.model.ExpandoColumnConstants;
@@ -42,10 +44,13 @@ import com.liferay.headless.admin.user.client.dto.v1_0.RoleBrief;
 import com.liferay.headless.admin.user.client.dto.v1_0.TaxonomyCategoryBrief;
 import com.liferay.headless.admin.user.client.dto.v1_0.TaxonomyCategoryReference;
 import com.liferay.headless.admin.user.client.dto.v1_0.WebUrl;
+import com.liferay.headless.admin.user.client.http.HttpInvoker;
 import com.liferay.headless.admin.user.client.pagination.Page;
 import com.liferay.headless.admin.user.client.pagination.Pagination;
 import com.liferay.headless.admin.user.client.permission.Permission;
+import com.liferay.headless.admin.user.client.problem.Problem;
 import com.liferay.headless.admin.user.client.resource.v1_0.OrganizationResource;
+import com.liferay.petra.function.UnsafeRunnable;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.io.unsync.UnsyncByteArrayInputStream;
 import com.liferay.petra.string.StringPool;
@@ -87,6 +92,8 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.util.PropsValues;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
@@ -95,6 +102,8 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.SynchronousMailTestRule;
 import com.liferay.portal.vulcan.permission.PermissionUtil;
+
+import jakarta.ws.rs.core.Response;
 
 import java.io.InputStream;
 
@@ -147,35 +156,10 @@ public class OrganizationResourceTest extends BaseOrganizationResourceTestCase {
 
 	@Override
 	@Test
-	public void testDeleteAccountByExternalReferenceCodeOrganization()
-		throws Exception {
-
-		Organization organization =
-			testDeleteAccountByExternalReferenceCodeOrganization_addOrganization();
-
-		assertHttpResponseStatusCode(
-			204,
-			organizationResource.
-				deleteAccountByExternalReferenceCodeOrganizationHttpResponse(
-					_accountEntry.getExternalReferenceCode(),
-					organization.getId()));
-	}
-
-	@Override
-	@Test
 	public void testDeleteAccountOrganization() throws Exception {
-		com.liferay.portal.kernel.model.Organization organization =
-			OrganizationTestUtil.addOrganization();
+		super.testDeleteAccountOrganization();
 
-		_accountEntryOrganizationRelLocalService.addAccountEntryOrganizationRel(
-			_accountEntry.getAccountEntryId(),
-			organization.getOrganizationId());
-
-		Assert.assertNotNull(
-			_accountEntryOrganizationRelLocalService.
-				fetchAccountEntryOrganizationRel(
-					_accountEntry.getAccountEntryId(),
-					organization.getOrganizationId()));
+		_testDeleteAccountOrganizationWithPermission();
 	}
 
 	@Override
@@ -304,41 +288,6 @@ public class OrganizationResourceTest extends BaseOrganizationResourceTestCase {
 				_userLocalService.hasOrganizationUser(
 					organizationId, user.getUserId()));
 		}
-	}
-
-	@Override
-	@Test
-	public void testGetAccountByExternalReferenceCodeOrganization()
-		throws Exception {
-
-		testGetAccountOrganization();
-	}
-
-	@Override
-	@Test
-	public void testGetAccountOrganization() throws Exception {
-		com.liferay.portal.kernel.model.Organization organization =
-			OrganizationTestUtil.addOrganization();
-
-		_accountEntryOrganizationRelLocalService.addAccountEntryOrganizationRel(
-			_accountEntry.getAccountEntryId(),
-			organization.getOrganizationId());
-
-		Assert.assertNotNull(
-			_accountEntryOrganizationRelLocalService.
-				fetchAccountEntryOrganizationRel(
-					_accountEntry.getAccountEntryId(),
-					organization.getOrganizationId()));
-
-		organizationResource.deleteAccountOrganization(
-			_accountEntry.getAccountEntryId(),
-			String.valueOf(organization.getOrganizationId()));
-
-		Assert.assertNull(
-			_accountEntryOrganizationRelLocalService.
-				fetchAccountEntryOrganizationRel(
-					_accountEntry.getAccountEntryId(),
-					organization.getOrganizationId()));
 	}
 
 	@Override
@@ -476,18 +425,8 @@ public class OrganizationResourceTest extends BaseOrganizationResourceTestCase {
 	@Override
 	@Test
 	public void testPostAccountOrganization() throws Exception {
-		Organization organization =
-			testPostAccountOrganization_addOrganization();
-
-		assertHttpResponseStatusCode(
-			204,
-			organizationResource.postAccountOrganizationHttpResponse(
-				_accountEntry.getAccountEntryId(), organization.getId()));
-
-		assertHttpResponseStatusCode(
-			404,
-			organizationResource.postAccountOrganizationHttpResponse(
-				_accountEntry.getAccountEntryId(), "-"));
+		_testPostAccountOrganization();
+		_testPostAccountOrganizationWithPermission();
 	}
 
 	@LazyReferencing
@@ -497,10 +436,10 @@ public class OrganizationResourceTest extends BaseOrganizationResourceTestCase {
 		super.testPostOrganization();
 
 		_testPostOrganizationBatch();
-		_testPostOrganizationWithCustomFields();
 		_testPostOrganizationWithCommentOverMaximumLength();
+		_testPostOrganizationWithCustomFields();
+		_testPostOrganizationWithImage();
 		_testPostOrganizationWithNameOverMaximumLength();
-		_testPostOrganizationWithImageExternalReferenceCode();
 	}
 
 	@Override
@@ -650,6 +589,15 @@ public class OrganizationResourceTest extends BaseOrganizationResourceTestCase {
 	}
 
 	@Override
+	protected String
+			testDeleteAccountByExternalReferenceCodeOrganization_getExternalReferenceCode(
+				Organization organization)
+		throws Exception {
+
+		return _accountEntry.getExternalReferenceCode();
+	}
+
+	@Override
 	protected Organization testDeleteAccountOrganization_addOrganization()
 		throws Exception {
 
@@ -682,6 +630,29 @@ public class OrganizationResourceTest extends BaseOrganizationResourceTestCase {
 
 	@Override
 	protected Organization
+			testGetAccountByExternalReferenceCodeOrganization_addOrganization()
+		throws Exception {
+
+		Organization organization = organizationResource.postOrganization(
+			randomOrganization());
+
+		organizationResource.postAccountByExternalReferenceCodeOrganization(
+			_accountEntry.getExternalReferenceCode(), organization.getId());
+
+		return organization;
+	}
+
+	@Override
+	protected String
+			testGetAccountByExternalReferenceCodeOrganization_getExternalReferenceCode(
+				Organization organization)
+		throws Exception {
+
+		return _accountEntry.getExternalReferenceCode();
+	}
+
+	@Override
+	protected Organization
 			testGetAccountByExternalReferenceCodeOrganizationsPage_addOrganization(
 				String externalReferenceCode, Organization organization)
 		throws Exception {
@@ -700,6 +671,18 @@ public class OrganizationResourceTest extends BaseOrganizationResourceTestCase {
 		throws Exception {
 
 		return _accountEntry.getExternalReferenceCode();
+	}
+
+	@Override
+	protected Organization testGetAccountOrganization_addOrganization()
+		throws Exception {
+
+		return testGetAccountByExternalReferenceCodeOrganization_addOrganization();
+	}
+
+	@Override
+	protected Long testGetAccountOrganization_getAccountId() throws Exception {
+		return _accountEntry.getAccountEntryId();
 	}
 
 	@Override
@@ -971,14 +954,23 @@ public class OrganizationResourceTest extends BaseOrganizationResourceTestCase {
 			randomOrganization());
 	}
 
-	private FileEntry _addImageFileEntry() throws Exception {
+	private FileEntry _addImageFileEntry(boolean addPermissions)
+		throws Exception {
+
 		Company company = _companyLocalService.getCompany(
 			TestPropsValues.getCompanyId());
 
 		Group group = company.getGroup();
 
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(group.getGroupId());
+
+		serviceContext.setAddGroupPermissions(addPermissions);
+		serviceContext.setAddGuestPermissions(addPermissions);
+
 		LocalRepository localRepository =
-			RepositoryProviderUtil.getLocalRepository(group.getGroupId());
+			RepositoryProviderUtil.getLocalRepository(
+				serviceContext.getScopeGroupId());
 
 		byte[] bytes = FileUtil.getBytes(getClass(), "/images/liferay.png");
 
@@ -990,8 +982,7 @@ public class OrganizationResourceTest extends BaseOrganizationResourceTestCase {
 			RandomTestUtil.randomString(), ContentTypes.IMAGE_PNG,
 			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
 			StringPool.BLANK, StringPool.BLANK, inputStream, bytes.length, null,
-			null, null,
-			ServiceContextTestUtil.getServiceContext(group.getGroupId()));
+			null, null, serviceContext);
 	}
 
 	private Organization _addOrganization(
@@ -1012,6 +1003,60 @@ public class OrganizationResourceTest extends BaseOrganizationResourceTestCase {
 			});
 
 		return organizationResource.postOrganization(organization);
+	}
+
+	private void _addRoleUsers(User user, String... actionIds)
+		throws Exception {
+
+		Role role = RoleTestUtil.addRole(RoleConstants.TYPE_REGULAR);
+
+		_resourcePermissionLocalService.setResourcePermissions(
+			TestPropsValues.getCompanyId(), AccountEntry.class.getName(),
+			ResourceConstants.SCOPE_INDIVIDUAL,
+			String.valueOf(_accountEntry.getAccountEntryId()), role.getRoleId(),
+			actionIds);
+
+		_userLocalService.addRoleUsers(
+			role.getRoleId(), new long[] {user.getUserId()});
+	}
+
+	private User _addUser() throws Exception {
+		User user = UserTestUtil.addUser();
+
+		_userLocalService.updatePassword(
+			user.getUserId(), _PASSWORD, _PASSWORD, false, true);
+
+		return user;
+	}
+
+	private void _assertProblemException(
+			UnsafeRunnable<Exception> unsafeRunnable)
+		throws Exception {
+
+		try {
+			unsafeRunnable.run();
+
+			Assert.fail();
+		}
+		catch (Problem.ProblemException problemException) {
+			Problem problem = problemException.getProblem();
+
+			Assert.assertEquals("FORBIDDEN", problem.getStatus());
+		}
+	}
+
+	private OrganizationResource _getOrganizationResource(
+		String password, User user) {
+
+		return OrganizationResource.builder(
+		).authentication(
+			user.getEmailAddress(), password
+		).endpoint(
+			testCompany.getVirtualHostname(),
+			PortalUtil.getPortalServerPort(false), "http"
+		).locale(
+			LocaleUtil.getDefault()
+		).build();
 	}
 
 	private OrganizationContactInformation
@@ -1070,6 +1115,192 @@ public class OrganizationResourceTest extends BaseOrganizationResourceTestCase {
 					});
 			}
 		};
+	}
+
+	private void _testDeleteAccountOrganizationWithPermission()
+		throws Exception {
+
+		User user = _addUser();
+
+		OrganizationResource organizationResource = _getOrganizationResource(
+			_PASSWORD, user);
+
+		com.liferay.portal.kernel.model.Organization
+			serviceBuilderOrganization = OrganizationTestUtil.addOrganization();
+
+		_accountEntryOrganizationRelLocalService.addAccountEntryOrganizationRel(
+			_accountEntry.getAccountEntryId(),
+			serviceBuilderOrganization.getOrganizationId());
+
+		_assertProblemException(
+			() -> organizationResource.deleteAccountOrganization(
+				_accountEntry.getAccountEntryId(),
+				String.valueOf(
+					serviceBuilderOrganization.getOrganizationId())));
+
+		_addRoleUsers(user, AccountActionKeys.UPDATE_ORGANIZATIONS);
+
+		organizationResource.deleteAccountOrganization(
+			_accountEntry.getAccountEntryId(),
+			String.valueOf(serviceBuilderOrganization.getOrganizationId()));
+	}
+
+	private void _testGetOrganizationWithNestedFields() throws Exception {
+		Organization postOrganization = randomOrganization();
+
+		postOrganization.setImageBase64(
+			Base64.encode(
+				FileUtil.getBytes(getClass(), "/images/liferay.png")));
+		postOrganization.setKeywords(
+			new String[] {RandomTestUtil.randomString()});
+		postOrganization.setOrganizationContactInformation(
+			_getRandomOrganizationContactInformation());
+
+		postOrganization = _addOrganization(postOrganization, "0");
+
+		AccountEntry accountEntry1 = _accountEntryLocalService.addAccountEntry(
+			StringPool.BLANK, TestPropsValues.getUserId(),
+			AccountConstants.ACCOUNT_ENTRY_ID_DEFAULT,
+			RandomTestUtil.randomString(), RandomTestUtil.randomString(), null,
+			null, null, null, AccountConstants.ACCOUNT_ENTRY_TYPE_BUSINESS,
+			WorkflowConstants.STATUS_APPROVED,
+			ServiceContextTestUtil.getServiceContext());
+
+		organizationResource.postAccountOrganization(
+			accountEntry1.getAccountEntryId(), postOrganization.getId());
+
+		AccountEntry accountEntry2 = _accountEntryLocalService.addAccountEntry(
+			StringPool.BLANK, TestPropsValues.getUserId(),
+			AccountConstants.ACCOUNT_ENTRY_ID_DEFAULT,
+			RandomTestUtil.randomString(), RandomTestUtil.randomString(), null,
+			null, null, null, AccountConstants.ACCOUNT_ENTRY_TYPE_BUSINESS,
+			WorkflowConstants.STATUS_APPROVED,
+			ServiceContextTestUtil.getServiceContext());
+
+		AssetEntry assetEntry = _assetEntryLocalService.fetchEntry(
+			com.liferay.portal.kernel.model.Organization.class.getName(),
+			GetterUtil.getLong(postOrganization.getId()));
+
+		AssetTag assetTag = _assetTagLocalService.addTag(
+			RandomTestUtil.randomString(), assetEntry.getUserId(),
+			assetEntry.getGroupId(), RandomTestUtil.randomString(),
+			new ServiceContext());
+
+		_assetTagLocalService.addAssetEntryAssetTag(
+			assetEntry.getEntryId(), assetTag);
+
+		AssetVocabulary assetVocabulary = AssetTestUtil.addVocabulary(
+			TestPropsValues.getGroupId());
+
+		AssetCategory assetCategory = AssetTestUtil.addCategory(
+			TestPropsValues.getGroupId(), assetVocabulary.getVocabularyId());
+
+		_assetEntryAssetCategoryRelLocalService.addAssetEntryAssetCategoryRel(
+			assetEntry.getEntryId(), assetCategory.getCategoryId());
+
+		Role role = RoleTestUtil.addRole(RoleConstants.TYPE_REGULAR);
+
+		com.liferay.portal.kernel.model.Organization
+			serviceBuilderOrganization =
+				_organizationLocalService.getOrganization(
+					GetterUtil.getLong(postOrganization.getId()));
+
+		_roleLocalService.addGroupRole(
+			serviceBuilderOrganization.getGroupId(), role.getRoleId());
+
+		_resourcePermissionLocalService.setResourcePermissions(
+			TestPropsValues.getCompanyId(),
+			com.liferay.portal.kernel.model.Organization.class.getName(),
+			ResourceConstants.SCOPE_INDIVIDUAL, postOrganization.getId(),
+			role.getRoleId(), new String[] {ActionKeys.DELETE});
+
+		User user1 = UserTestUtil.addUser();
+
+		organizationResource.postUserAccountsByEmailAddress(
+			String.valueOf(serviceBuilderOrganization.getOrganizationId()),
+			null, new String[] {user1.getEmailAddress()});
+
+		User user2 = UserTestUtil.addUser();
+
+		OrganizationResource organizationResource =
+			OrganizationResource.builder(
+			).authentication(
+				"test@liferay.com", PropsValues.DEFAULT_ADMIN_PASSWORD
+			).endpoint(
+				testCompany.getVirtualHostname(),
+				PortalUtil.getPortalServerPort(false), "http"
+			).locale(
+				LocaleUtil.getDefault()
+			).parameters(
+				"nestedFields",
+				"accountBriefs,creator,imageBase64,permissions,roleBriefs," +
+					"taxonomyCategoryBriefs,userAccountBriefs"
+			).build();
+
+		Organization getOrganization = organizationResource.getOrganization(
+			String.valueOf(serviceBuilderOrganization.getOrganizationId()));
+
+		Assert.assertTrue(
+			ArrayUtil.exists(
+				getOrganization.getAccountBriefs(),
+				accountBrief ->
+					accountBrief.getId() == accountEntry1.getAccountEntryId()));
+		Assert.assertFalse(
+			ArrayUtil.exists(
+				getOrganization.getAccountBriefs(),
+				accountBrief ->
+					accountBrief.getId() == accountEntry2.getAccountEntryId()));
+
+		Creator creator = getOrganization.getCreator();
+
+		Assert.assertTrue(creator.getId() == TestPropsValues.getUserId());
+
+		User user3 = TestPropsValues.getUser();
+
+		Assert.assertTrue(
+			Objects.equals(
+				creator.getExternalReferenceCode(),
+				user3.getExternalReferenceCode()));
+
+		Assert.assertNotNull(getOrganization.getImageBase64());
+		Assert.assertNotEquals(
+			0, GetterUtil.getLong(getOrganization.getImageId()));
+		Assert.assertTrue(
+			ArrayUtil.exists(
+				postOrganization.getKeywords(),
+				keyword -> Objects.equals(
+					keyword, getOrganization.getKeywords()[0])));
+		Assert.assertTrue(
+			Objects.equals(
+				getOrganization.getOrganizationContactInformation(),
+				postOrganization.getOrganizationContactInformation()));
+		Assert.assertTrue(
+			ArrayUtil.exists(
+				getOrganization.getPermissions(),
+				permission ->
+					Objects.equals(permission.getRoleName(), role.getName()) &&
+					(permission.getActionIds().length == 1) &&
+					Objects.equals(permission.getActionIds()[0], "DELETE")));
+		Assert.assertTrue(
+			ArrayUtil.exists(
+				getOrganization.getRoleBriefs(),
+				groupRole -> groupRole.getId() == role.getRoleId()));
+		Assert.assertTrue(
+			ArrayUtil.exists(
+				getOrganization.getTaxonomyCategoryBriefs(),
+				taxonomyCategoryBrief -> Objects.equals(
+					taxonomyCategoryBrief.getTaxonomyCategoryId(),
+					assetCategory.getCategoryId())));
+		Assert.assertTrue(
+			ArrayUtil.exists(
+				getOrganization.getUserAccountBriefs(),
+				userAccountBrief ->
+					userAccountBrief.getId() == user1.getUserId()));
+		Assert.assertFalse(
+			ArrayUtil.exists(
+				getOrganization.getUserAccountBriefs(),
+				userAccountBrief ->
+					userAccountBrief.getId() == user2.getUserId()));
 	}
 
 	private void _testGetOrganizationsPageWithFilter() throws Exception {
@@ -1145,160 +1376,6 @@ public class OrganizationResourceTest extends BaseOrganizationResourceTestCase {
 		assertContains(organization2, (List<Organization>)page.getItems());
 	}
 
-	private void _testGetOrganizationWithNestedFields() throws Exception {
-		Organization postOrganization = randomOrganization();
-
-		postOrganization.setImageBase64(
-			Base64.encode(
-				FileUtil.getBytes(getClass(), "/images/liferay.png")));
-		postOrganization.setKeywords(
-			new String[] {RandomTestUtil.randomString()});
-		postOrganization.setOrganizationContactInformation(
-			_getRandomOrganizationContactInformation());
-
-		postOrganization = _addOrganization(postOrganization, "0");
-
-		AccountEntry accountEntry1 = _accountEntryLocalService.addAccountEntry(
-			StringPool.BLANK, TestPropsValues.getUserId(),
-			AccountConstants.ACCOUNT_ENTRY_ID_DEFAULT,
-			RandomTestUtil.randomString(), RandomTestUtil.randomString(), null,
-			null, null, null, AccountConstants.ACCOUNT_ENTRY_TYPE_BUSINESS,
-			WorkflowConstants.STATUS_APPROVED,
-			ServiceContextTestUtil.getServiceContext());
-
-		organizationResource.postAccountOrganization(
-			accountEntry1.getAccountEntryId(), postOrganization.getId());
-
-		AccountEntry accountEntry2 = _accountEntryLocalService.addAccountEntry(
-			StringPool.BLANK, TestPropsValues.getUserId(),
-			AccountConstants.ACCOUNT_ENTRY_ID_DEFAULT,
-			RandomTestUtil.randomString(), RandomTestUtil.randomString(), null,
-			null, null, null, AccountConstants.ACCOUNT_ENTRY_TYPE_BUSINESS,
-			WorkflowConstants.STATUS_APPROVED,
-			ServiceContextTestUtil.getServiceContext());
-
-		AssetEntry assetEntry = _assetEntryLocalService.fetchEntry(
-			com.liferay.portal.kernel.model.Organization.class.getName(),
-			GetterUtil.getLong(postOrganization.getId()));
-
-		AssetTag assetTag = _assetTagLocalService.addTag(
-			RandomTestUtil.randomString(), assetEntry.getUserId(),
-			assetEntry.getGroupId(), RandomTestUtil.randomString(),
-			new ServiceContext());
-
-		_assetTagLocalService.addAssetEntryAssetTag(
-			assetEntry.getEntryId(), assetTag);
-
-		AssetVocabulary assetVocabulary = AssetTestUtil.addVocabulary(
-			TestPropsValues.getGroupId());
-
-		AssetCategory assetCategory = AssetTestUtil.addCategory(
-			TestPropsValues.getGroupId(), assetVocabulary.getVocabularyId());
-
-		_assetEntryAssetCategoryRelLocalService.addAssetEntryAssetCategoryRel(
-			assetEntry.getEntryId(), assetCategory.getCategoryId());
-
-		Role role = RoleTestUtil.addRole(RoleConstants.TYPE_REGULAR);
-
-		com.liferay.portal.kernel.model.Organization organization =
-			_organizationLocalService.getOrganization(
-				GetterUtil.getLong(postOrganization.getId()));
-
-		_roleLocalService.addGroupRole(
-			organization.getGroupId(), role.getRoleId());
-
-		_resourcePermissionLocalService.setResourcePermissions(
-			TestPropsValues.getCompanyId(),
-			com.liferay.portal.kernel.model.Organization.class.getName(),
-			ResourceConstants.SCOPE_INDIVIDUAL, postOrganization.getId(),
-			role.getRoleId(), new String[] {ActionKeys.DELETE});
-
-		User user1 = UserTestUtil.addUser();
-
-		organizationResource.postUserAccountsByEmailAddress(
-			String.valueOf(organization.getOrganizationId()), null,
-			new String[] {user1.getEmailAddress()});
-
-		User user2 = UserTestUtil.addUser();
-
-		OrganizationResource organizationResource =
-			OrganizationResource.builder(
-			).authentication(
-				"test@liferay.com", PropsValues.DEFAULT_ADMIN_PASSWORD
-			).locale(
-				LocaleUtil.getDefault()
-			).parameters(
-				"nestedFields",
-				"accountBriefs,creator,imageBase64,permissions,roleBriefs," +
-					"taxonomyCategoryBriefs,userAccountBriefs"
-			).build();
-
-		Organization getOrganization = organizationResource.getOrganization(
-			String.valueOf(organization.getOrganizationId()));
-
-		Assert.assertTrue(
-			ArrayUtil.exists(
-				getOrganization.getAccountBriefs(),
-				accountBrief ->
-					accountBrief.getId() == accountEntry1.getAccountEntryId()));
-		Assert.assertFalse(
-			ArrayUtil.exists(
-				getOrganization.getAccountBriefs(),
-				accountBrief ->
-					accountBrief.getId() == accountEntry2.getAccountEntryId()));
-
-		Creator creator = getOrganization.getCreator();
-
-		Assert.assertTrue(creator.getId() == TestPropsValues.getUserId());
-
-		User user3 = TestPropsValues.getUser();
-
-		Assert.assertTrue(
-			Objects.equals(
-				creator.getExternalReferenceCode(),
-				user3.getExternalReferenceCode()));
-
-		Assert.assertNotNull(getOrganization.getImageBase64());
-		Assert.assertNotEquals(
-			0, GetterUtil.getLong(getOrganization.getImageId()));
-		Assert.assertTrue(
-			ArrayUtil.exists(
-				postOrganization.getKeywords(),
-				keyword -> Objects.equals(
-					keyword, getOrganization.getKeywords()[0])));
-		Assert.assertTrue(
-			Objects.equals(
-				getOrganization.getOrganizationContactInformation(),
-				postOrganization.getOrganizationContactInformation()));
-		Assert.assertTrue(
-			ArrayUtil.exists(
-				getOrganization.getPermissions(),
-				permission ->
-					Objects.equals(permission.getRoleName(), role.getName()) &&
-					(permission.getActionIds().length == 1) &&
-					Objects.equals(permission.getActionIds()[0], "DELETE")));
-		Assert.assertTrue(
-			ArrayUtil.exists(
-				getOrganization.getRoleBriefs(),
-				groupRole -> groupRole.getId() == role.getRoleId()));
-		Assert.assertTrue(
-			ArrayUtil.exists(
-				getOrganization.getTaxonomyCategoryBriefs(),
-				taxonomyCategoryBrief -> Objects.equals(
-					taxonomyCategoryBrief.getTaxonomyCategoryId(),
-					assetCategory.getCategoryId())));
-		Assert.assertTrue(
-			ArrayUtil.exists(
-				getOrganization.getUserAccountBriefs(),
-				userAccountBrief ->
-					userAccountBrief.getId() == user1.getUserId()));
-		Assert.assertFalse(
-			ArrayUtil.exists(
-				getOrganization.getUserAccountBriefs(),
-				userAccountBrief ->
-					userAccountBrief.getId() == user2.getUserId()));
-	}
-
 	private void _testPatchOrganizationByExternalReferenceCodeWithImageExternalReferenceCode()
 		throws Exception {
 
@@ -1307,7 +1384,7 @@ public class OrganizationResourceTest extends BaseOrganizationResourceTestCase {
 
 		Organization randomPatchOrganization = randomPatchOrganization();
 
-		FileEntry fileEntry = _addImageFileEntry();
+		FileEntry fileEntry = _addImageFileEntry(true);
 
 		randomPatchOrganization.setImageExternalReferenceCode(
 			fileEntry.getExternalReferenceCode());
@@ -1329,7 +1406,7 @@ public class OrganizationResourceTest extends BaseOrganizationResourceTestCase {
 
 		Organization randomPatchOrganization = randomPatchOrganization();
 
-		FileEntry fileEntry = _addImageFileEntry();
+		FileEntry fileEntry = _addImageFileEntry(true);
 
 		randomPatchOrganization.setImageExternalReferenceCode(
 			fileEntry.getExternalReferenceCode());
@@ -1358,6 +1435,40 @@ public class OrganizationResourceTest extends BaseOrganizationResourceTestCase {
 
 		Assert.assertTrue(
 			ArrayUtil.containsAll(patchOrganization.getKeywords(), keywords));
+	}
+
+	private void _testPostAccountOrganization() throws Exception {
+		Organization organization =
+			testPostAccountOrganization_addOrganization();
+
+		assertHttpResponseStatusCode(
+			204,
+			organizationResource.postAccountOrganizationHttpResponse(
+				_accountEntry.getAccountEntryId(), organization.getId()));
+
+		assertHttpResponseStatusCode(
+			404,
+			organizationResource.postAccountOrganizationHttpResponse(
+				_accountEntry.getAccountEntryId(), "-"));
+	}
+
+	private void _testPostAccountOrganizationWithPermission() throws Exception {
+		User user = _addUser();
+
+		OrganizationResource organizationResource = _getOrganizationResource(
+			_PASSWORD, user);
+
+		Organization organization =
+			testPostAccountOrganization_addOrganization();
+
+		_assertProblemException(
+			() -> organizationResource.postAccountOrganization(
+				_accountEntry.getAccountEntryId(), organization.getId()));
+
+		_addRoleUsers(user, AccountActionKeys.UPDATE_ORGANIZATIONS);
+
+		organizationResource.postAccountOrganization(
+			_accountEntry.getAccountEntryId(), organization.getId());
 	}
 
 	private void _testPostOrganizationBatch() throws Exception {
@@ -1762,22 +1873,71 @@ public class OrganizationResourceTest extends BaseOrganizationResourceTestCase {
 			expandoColumn.getName(), postOrganizationCustomField.getName());
 	}
 
-	private void _testPostOrganizationWithImageExternalReferenceCode()
-		throws Exception {
+	private void _testPostOrganizationWithImage() throws Exception {
+		Role role = RoleTestUtil.addRole(RoleConstants.TYPE_REGULAR);
 
-		Organization randomOrganization = randomOrganization();
+		_resourcePermissionLocalService.setResourcePermissions(
+			TestPropsValues.getCompanyId(), PortletKeys.PORTAL,
+			ResourceConstants.SCOPE_COMPANY,
+			String.valueOf(TestPropsValues.getCompanyId()), role.getRoleId(),
+			new String[] {ActionKeys.ADD_ORGANIZATION});
 
-		FileEntry fileEntry = _addImageFileEntry();
+		User user = _addUser();
 
-		randomOrganization.setImageExternalReferenceCode(
+		_userLocalService.addRoleUsers(
+			role.getRoleId(), new long[] {user.getUserId()});
+
+		OrganizationResource organizationResource = _getOrganizationResource(
+			_PASSWORD, user);
+
+		FileEntry fileEntry = _addImageFileEntry(false);
+
+		Organization organization = randomOrganization();
+
+		organization.setImageExternalReferenceCode(
 			fileEntry.getExternalReferenceCode());
 
-		randomOrganization.setImageId(0L);
+		HttpInvoker.HttpResponse httpResponse =
+			organizationResource.postOrganizationHttpResponse(organization);
 
-		Organization postOrganization = organizationResource.postOrganization(
-			randomOrganization);
+		Assert.assertEquals(
+			Response.Status.FORBIDDEN.getStatusCode(),
+			httpResponse.getStatusCode());
 
-		Assert.assertTrue(postOrganization.getImageId() > 0);
+		organization = randomOrganization();
+
+		organization.setImageId(fileEntry.getFileEntryId());
+
+		httpResponse = organizationResource.postOrganizationHttpResponse(
+			organization);
+
+		Assert.assertEquals(
+			Response.Status.FORBIDDEN.getStatusCode(),
+			httpResponse.getStatusCode());
+
+		_resourcePermissionLocalService.setResourcePermissions(
+			TestPropsValues.getCompanyId(), DLFileEntry.class.getName(),
+			ResourceConstants.SCOPE_INDIVIDUAL,
+			String.valueOf(fileEntry.getFileEntryId()), role.getRoleId(),
+			new String[] {ActionKeys.VIEW});
+
+		organization = randomOrganization();
+
+		organization.setImageExternalReferenceCode(
+			fileEntry.getExternalReferenceCode());
+		organization.setImageId(0L);
+
+		organization = organizationResource.postOrganization(organization);
+
+		Assert.assertTrue(organization.getImageId() > 0);
+
+		organization = randomOrganization();
+
+		organization.setImageId(fileEntry.getFileEntryId());
+
+		organization = organizationResource.postOrganization(organization);
+
+		Assert.assertTrue(organization.getImageId() > 0);
 	}
 
 	private void _testPostOrganizationWithNameOverMaximumLength()
@@ -1818,7 +1978,7 @@ public class OrganizationResourceTest extends BaseOrganizationResourceTestCase {
 
 		Organization randomPutOrganization = randomOrganization();
 
-		FileEntry fileEntry = _addImageFileEntry();
+		FileEntry fileEntry = _addImageFileEntry(true);
 
 		randomPutOrganization.setImageExternalReferenceCode(
 			fileEntry.getExternalReferenceCode());
@@ -1840,7 +2000,7 @@ public class OrganizationResourceTest extends BaseOrganizationResourceTestCase {
 
 		Organization randomPutOrganization = randomOrganization();
 
-		FileEntry fileEntry = _addImageFileEntry();
+		FileEntry fileEntry = _addImageFileEntry(true);
 
 		randomPutOrganization.setImageExternalReferenceCode(
 			fileEntry.getExternalReferenceCode());
@@ -1857,6 +2017,8 @@ public class OrganizationResourceTest extends BaseOrganizationResourceTestCase {
 		return TransformUtil.transformToArray(
 			users, User::getEmailAddress, String.class);
 	}
+
+	private static final String _PASSWORD = RandomTestUtil.randomString();
 
 	private AccountEntry _accountEntry;
 

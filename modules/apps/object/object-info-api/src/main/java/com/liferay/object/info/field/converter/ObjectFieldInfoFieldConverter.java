@@ -36,7 +36,6 @@ import com.liferay.object.info.item.util.ObjectEntryInfoItemUtil;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.model.ObjectField;
-import com.liferay.object.model.ObjectFieldSetting;
 import com.liferay.object.model.ObjectRelationship;
 import com.liferay.object.model.ObjectState;
 import com.liferay.object.model.ObjectStateFlow;
@@ -46,12 +45,13 @@ import com.liferay.object.scope.ObjectScopeProvider;
 import com.liferay.object.scope.ObjectScopeProviderRegistry;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectFieldLocalService;
-import com.liferay.object.service.ObjectFieldSettingLocalService;
 import com.liferay.object.service.ObjectRelationshipLocalService;
 import com.liferay.object.service.ObjectStateFlowLocalService;
 import com.liferay.object.service.ObjectStateLocalService;
 import com.liferay.object.system.SystemObjectDefinitionManager;
 import com.liferay.object.system.SystemObjectDefinitionManagerRegistry;
+import com.liferay.petra.function.UnsafeSupplier;
+import com.liferay.petra.function.UnsafeSupplierValue;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -76,9 +76,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * @author Lourdes Fernández Besada
@@ -91,7 +94,6 @@ public class ObjectFieldInfoFieldConverter {
 		ObjectConfiguration objectConfiguration,
 		ObjectDefinitionLocalService objectDefinitionLocalService,
 		ObjectFieldLocalService objectFieldLocalService,
-		ObjectFieldSettingLocalService objectFieldSettingLocalService,
 		ObjectRelationshipLocalService objectRelationshipLocalService,
 		ObjectScopeProviderRegistry objectScopeProviderRegistry,
 		ObjectStateFlowLocalService objectStateFlowLocalService,
@@ -106,7 +108,6 @@ public class ObjectFieldInfoFieldConverter {
 		_objectConfiguration = objectConfiguration;
 		_objectDefinitionLocalService = objectDefinitionLocalService;
 		_objectFieldLocalService = objectFieldLocalService;
-		_objectFieldSettingLocalService = objectFieldSettingLocalService;
 		_objectRelationshipLocalService = objectRelationshipLocalService;
 		_objectScopeProviderRegistry = objectScopeProviderRegistry;
 		_objectStateFlowLocalService = objectStateFlowLocalService;
@@ -121,18 +122,21 @@ public class ObjectFieldInfoFieldConverter {
 	public InfoField<?> addRelationshipInfoFieldAttributes(
 		InfoField.FinalStep finalStep, ObjectRelationship objectRelationship) {
 
+		ObjectDefinition relatedObjectDefinition =
+			_fetchRelatedObjectDefinition(objectRelationship);
+
 		return finalStep.attribute(
 			RelationshipInfoFieldType.INHERITANCE, objectRelationship.isEdge()
 		).attribute(
 			RelationshipInfoFieldType.LABEL_FIELD_NAME,
-			_getRelationshipLabelFieldName(objectRelationship)
+			_getRelationshipLabelFieldName(relatedObjectDefinition)
 		).attribute(
 			RelationshipInfoFieldType.MULTIPLE,
 			objectRelationship.compareType(
 				ObjectRelationshipConstants.TYPE_MANY_TO_MANY)
 		).attribute(
 			RelationshipInfoFieldType.URL,
-			_getRelationshipURL(objectRelationship)
+			_getRelationshipURL(relatedObjectDefinition)
 		).attribute(
 			RelationshipInfoFieldType.VALUE_FIELD_NAME, "id"
 		).build();
@@ -152,7 +156,8 @@ public class ObjectFieldInfoFieldConverter {
 			).editable(
 				editable
 			).labelInfoLocalizedValue(
-				_getLabelInfoLocalizedValue(objectField)
+				new LazyInfoLocalizedValue(
+					() -> _getLabelInfoLocalizedValue(objectField))
 			).localizable(
 				objectField.isLocalized()
 			).readOnly(
@@ -320,46 +325,52 @@ public class ObjectFieldInfoFieldConverter {
 		return finalStep.build();
 	}
 
-	private String _getAcceptedFileExtensions(ObjectField objectField) {
-		ObjectFieldSetting acceptedFileExtensionsObjectFieldSetting =
-			_objectFieldSettingLocalService.fetchObjectFieldSetting(
-				objectField.getObjectFieldId(),
-				ObjectFieldSettingConstants.NAME_ACCEPTED_FILE_EXTENSIONS);
+	private ObjectDefinition _fetchRelatedObjectDefinition(
+		ObjectRelationship objectRelationship) {
 
-		if (acceptedFileExtensionsObjectFieldSetting == null) {
+		if (objectRelationship.compareType(
+				ObjectRelationshipConstants.TYPE_MANY_TO_MANY)) {
+
+			return _objectDefinitionLocalService.fetchObjectDefinition(
+				objectRelationship.getObjectDefinitionId2());
+		}
+
+		return _objectDefinitionLocalService.fetchObjectDefinition(
+			objectRelationship.getObjectDefinitionId1());
+	}
+
+	private String _getAcceptedFileExtensions(ObjectField objectField) {
+		String acceptedFileExtensions = ObjectFieldSettingUtil.getValue(
+			ObjectFieldSettingConstants.NAME_ACCEPTED_FILE_EXTENSIONS,
+			objectField);
+
+		if (acceptedFileExtensions == null) {
 			return StringPool.BLANK;
 		}
 
-		return acceptedFileExtensionsObjectFieldSetting.getValue();
+		return acceptedFileExtensions;
 	}
 
 	private FileInfoFieldType.FileSourceType _getFileSourceType(
 		ObjectField objectField) {
 
-		ObjectFieldSetting objectFieldSetting =
-			_objectFieldSettingLocalService.fetchObjectFieldSetting(
-				objectField.getObjectFieldId(),
-				ObjectFieldSettingConstants.NAME_FILE_SOURCE);
-
-		if (objectFieldSetting == null) {
-			return null;
-		}
+		String fileSource = ObjectFieldSettingUtil.getValue(
+			ObjectFieldSettingConstants.NAME_FILE_SOURCE, objectField);
 
 		if (Objects.equals(
-				objectFieldSetting.getValue(),
+				fileSource,
 				ObjectFieldSettingConstants.VALUE_CMS_BASIC_DOCUMENT) ||
 			Objects.equals(
-				objectFieldSetting.getValue(),
-				ObjectFieldSettingConstants.VALUE_DOCS_AND_MEDIA)) {
+				fileSource, ObjectFieldSettingConstants.VALUE_DOCS_AND_MEDIA)) {
 
 			return FileInfoFieldType.FileSourceType.DOCUMENTS_AND_MEDIA;
 		}
 		else if (Objects.equals(
-					objectFieldSetting.getValue(),
+					fileSource,
 					ObjectFieldSettingConstants.
 						VALUE_USER_COMPUTER_TO_CMS_BASIC_DOCUMENT) ||
 				 Objects.equals(
-					 objectFieldSetting.getValue(),
+					 fileSource,
 					 ObjectFieldSettingConstants.
 						 VALUE_USER_COMPUTER_TO_DOCS_AND_MEDIA)) {
 
@@ -417,21 +428,25 @@ public class ObjectFieldInfoFieldConverter {
 		).build();
 	}
 
-	private long _getMaximumFileSize(ObjectField objectField) {
-		ObjectFieldSetting objectFieldSetting =
-			_objectFieldSettingLocalService.fetchObjectFieldSetting(
-				objectField.getObjectFieldId(),
-				ObjectFieldSettingConstants.NAME_MAX_FILE_SIZE);
+	private long _getMaxLength(ObjectField objectField, long defaultMaxLength) {
+		return GetterUtil.getLong(
+			ObjectFieldSettingUtil.getValue(
+				ObjectFieldSettingConstants.NAME_MAX_LENGTH, objectField),
+			defaultMaxLength);
+	}
 
+	private long _getMaximumFileSize(ObjectField objectField) {
 		long maximumFileSizeForGuestUsers =
 			_objectConfiguration.maximumFileSizeForGuestUsers();
 
-		if (objectFieldSetting == null) {
+		String maximumFileSizeValue = ObjectFieldSettingUtil.getValue(
+			ObjectFieldSettingConstants.NAME_MAX_FILE_SIZE, objectField);
+
+		if (maximumFileSizeValue == null) {
 			return maximumFileSizeForGuestUsers;
 		}
 
-		long maximumFileSize = GetterUtil.getLong(
-			objectFieldSetting.getValue());
+		long maximumFileSize = GetterUtil.getLong(maximumFileSizeValue);
 
 		if ((maximumFileSizeForGuestUsers < maximumFileSize) &&
 			_isGuestUser()) {
@@ -440,20 +455,6 @@ public class ObjectFieldInfoFieldConverter {
 		}
 
 		return maximumFileSize;
-	}
-
-	private long _getMaxLength(ObjectField objectField, long defaultMaxLength) {
-		ObjectFieldSetting objectFieldSetting =
-			_objectFieldSettingLocalService.fetchObjectFieldSetting(
-				objectField.getObjectFieldId(),
-				ObjectFieldSettingConstants.NAME_MAX_LENGTH);
-
-		if (objectFieldSetting == null) {
-			return defaultMaxLength;
-		}
-
-		return GetterUtil.getLong(
-			objectFieldSetting.getValue(), defaultMaxLength);
 	}
 
 	private ObjectEntry _getObjectEntry() {
@@ -526,9 +527,20 @@ public class ObjectFieldInfoFieldConverter {
 				listTypeEntryKey);
 		}
 
-		ListTypeEntry listTypeEntry =
-			_listTypeEntryLocalService.fetchListTypeEntry(
-				objectField.getListTypeDefinitionId(), listTypeEntryKey);
+		Map<Long, ListTypeEntry> listTypeEntries = new HashMap<>();
+		ListTypeEntry listTypeEntry = null;
+
+		for (ListTypeEntry curListTypeEntry :
+				_listTypeEntryLocalService.getListTypeEntries(
+					objectField.getListTypeDefinitionId())) {
+
+			if (Objects.equals(curListTypeEntry.getKey(), listTypeEntryKey)) {
+				listTypeEntry = curListTypeEntry;
+			}
+
+			listTypeEntries.put(
+				curListTypeEntry.getListTypeEntryId(), curListTypeEntry);
+		}
 
 		if (listTypeEntry == null) {
 			return Collections.emptyList();
@@ -550,9 +562,8 @@ public class ObjectFieldInfoFieldConverter {
 				TransformUtil.transform(
 					_objectStateLocalService.getNextObjectStates(
 						objectState.getObjectStateId()),
-					nextObjectState ->
-						_listTypeEntryLocalService.fetchListTypeEntry(
-							nextObjectState.getListTypeEntryId()))));
+					nextObjectState -> listTypeEntries.get(
+						nextObjectState.getListTypeEntryId()))));
 	}
 
 	private List<OptionInfoFieldType> _getOptionInfoFieldTypes(
@@ -584,22 +595,7 @@ public class ObjectFieldInfoFieldConverter {
 	}
 
 	private String _getRelationshipLabelFieldName(
-		ObjectRelationship objectRelationship) {
-
-		ObjectDefinition relatedObjectDefinition = null;
-
-		if (objectRelationship.compareType(
-				ObjectRelationshipConstants.TYPE_MANY_TO_MANY)) {
-
-			relatedObjectDefinition =
-				_objectDefinitionLocalService.fetchObjectDefinition(
-					objectRelationship.getObjectDefinitionId2());
-		}
-		else {
-			relatedObjectDefinition =
-				_objectDefinitionLocalService.fetchObjectDefinition(
-					objectRelationship.getObjectDefinitionId1());
-		}
+		ObjectDefinition relatedObjectDefinition) {
 
 		if (relatedObjectDefinition == null) {
 			return "id";
@@ -622,30 +618,15 @@ public class ObjectFieldInfoFieldConverter {
 		return titleObjectField.getName();
 	}
 
-	private String _getRelationshipURL(ObjectRelationship objectRelationship) {
+	private String _getRelationshipURL(
+		ObjectDefinition relatedObjectDefinition) {
+
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
-		if ((serviceContext == null) || (serviceContext.getRequest() == null)) {
-			return StringPool.BLANK;
-		}
+		if ((serviceContext == null) || (serviceContext.getRequest() == null) ||
+			(relatedObjectDefinition == null)) {
 
-		ObjectDefinition relatedObjectDefinition = null;
-
-		if (objectRelationship.compareType(
-				ObjectRelationshipConstants.TYPE_MANY_TO_MANY)) {
-
-			relatedObjectDefinition =
-				_objectDefinitionLocalService.fetchObjectDefinition(
-					objectRelationship.getObjectDefinitionId2());
-		}
-		else {
-			relatedObjectDefinition =
-				_objectDefinitionLocalService.fetchObjectDefinition(
-					objectRelationship.getObjectDefinitionId1());
-		}
-
-		if (relatedObjectDefinition == null) {
 			return StringPool.BLANK;
 		}
 
@@ -743,8 +724,6 @@ public class ObjectFieldInfoFieldConverter {
 	private final ObjectConfiguration _objectConfiguration;
 	private final ObjectDefinitionLocalService _objectDefinitionLocalService;
 	private final ObjectFieldLocalService _objectFieldLocalService;
-	private final ObjectFieldSettingLocalService
-		_objectFieldSettingLocalService;
 	private final ObjectRelationshipLocalService
 		_objectRelationshipLocalService;
 	private final ObjectScopeProviderRegistry _objectScopeProviderRegistry;
@@ -756,5 +735,87 @@ public class ObjectFieldInfoFieldConverter {
 	private final SystemObjectDefinitionManagerRegistry
 		_systemObjectDefinitionManagerRegistry;
 	private final UserLocalService _userLocalService;
+
+	private static class LazyInfoLocalizedValue
+		implements InfoLocalizedValue<String> {
+
+		@Override
+		public boolean equals(Object object) {
+			if (this == object) {
+				return true;
+			}
+
+			InfoLocalizedValue<String> infoLocalizedValue =
+				_unsafeSupplierValue.getValue();
+
+			if (object instanceof
+					LazyInfoLocalizedValue lazyInfoLocalizedValue) {
+
+				return infoLocalizedValue.equals(
+					lazyInfoLocalizedValue._unsafeSupplierValue.getValue());
+			}
+
+			return infoLocalizedValue.equals(object);
+		}
+
+		@Override
+		public Set<Locale> getAvailableLocales() {
+			InfoLocalizedValue<String> infoLocalizedValue =
+				_unsafeSupplierValue.getValue();
+
+			return infoLocalizedValue.getAvailableLocales();
+		}
+
+		@Override
+		public Locale getDefaultLocale() {
+			InfoLocalizedValue<String> infoLocalizedValue =
+				_unsafeSupplierValue.getValue();
+
+			return infoLocalizedValue.getDefaultLocale();
+		}
+
+		@Override
+		public String getValue() {
+			InfoLocalizedValue<String> infoLocalizedValue =
+				_unsafeSupplierValue.getValue();
+
+			return infoLocalizedValue.getValue();
+		}
+
+		@Override
+		public String getValue(Locale locale) {
+			InfoLocalizedValue<String> infoLocalizedValue =
+				_unsafeSupplierValue.getValue();
+
+			return infoLocalizedValue.getValue(locale);
+		}
+
+		@Override
+		public Map<Locale, String> getValues() {
+			InfoLocalizedValue<String> infoLocalizedValue =
+				_unsafeSupplierValue.getValue();
+
+			return infoLocalizedValue.getValues();
+		}
+
+		@Override
+		public int hashCode() {
+			InfoLocalizedValue<String> infoLocalizedValue =
+				_unsafeSupplierValue.getValue();
+
+			return infoLocalizedValue.hashCode();
+		}
+
+		private LazyInfoLocalizedValue(
+			UnsafeSupplier<InfoLocalizedValue<String>, RuntimeException>
+				unsafeSupplier) {
+
+			_unsafeSupplierValue = new UnsafeSupplierValue<>(unsafeSupplier);
+		}
+
+		private final UnsafeSupplierValue
+			<InfoLocalizedValue<String>, RuntimeException> _unsafeSupplierValue;
+
+	}
 
 }

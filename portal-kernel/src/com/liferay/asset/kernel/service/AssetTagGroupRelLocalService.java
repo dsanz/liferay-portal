@@ -79,7 +79,8 @@ public interface AssetTagGroupRelLocalService
 	public AssetTagGroupRel addAssetTagGroupRel(
 		AssetTagGroupRel assetTagGroupRel);
 
-	public AssetTagGroupRel addAssetTagGroupRel(long groupId, long tagId)
+	public AssetTagGroupRel addAssetTagGroupRel(
+			long groupId, long tagId, int depotEntryType)
 		throws PortalException;
 
 	/**
@@ -265,10 +266,19 @@ public interface AssetTagGroupRelLocalService
 	public List<AssetTagGroupRel> getAssetTagGroupRels(int start, int end);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<AssetTagGroupRel> getAssetTagGroupRelsByGroupyId(long groupId);
+	public List<AssetTagGroupRel> getAssetTagGroupRelsByGroupId(long groupId);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<AssetTagGroupRel>
+		getAssetTagGroupRelsByGroupIdAndDepotEntryType(
+			long groupId, int depotEntryType);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<AssetTagGroupRel> getAssetTagGroupRelsByTagId(long tagId);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<AssetTagGroupRel> getAssetTagGroupRelsByTagIdAndDepotEntryType(
+		long tagId, int depotEntryType);
 
 	/**
 	 * Returns all the asset tag group rels matching the UUID and company.
@@ -322,7 +332,8 @@ public interface AssetTagGroupRelLocalService
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException;
 
-	public void setAssetTagGroupRels(long tagId, long[] groupIds)
+	public void setAssetTagGroupRels(
+			long tagId, long[] groupIds, int depotEntryType)
 		throws PortalException;
 
 	/**
@@ -355,4 +366,4 @@ public interface AssetTagGroupRelLocalService
 		throws E;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:1264920504
+// LIFERAY-SERVICE-BUILDER-HASH:96965117

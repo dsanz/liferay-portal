@@ -10,7 +10,9 @@ import com.liferay.batch.engine.internal.security.permission.LiberalPermissionCh
 import com.liferay.batch.engine.internal.util.ItemIndexThreadLocal;
 import com.liferay.batch.engine.jaxrs.uri.BatchEngineUriInfo;
 import com.liferay.petra.function.UnsafeSupplier;
-import com.liferay.portal.kernel.audit.AuditRequestThreadLocal;
+import com.liferay.petra.lang.SafeCloseable;
+import com.liferay.portal.kernel.audit.AuditRequestContext;
+import com.liferay.portal.kernel.audit.AuditRequestContextThreadLocal;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskStatusMessageSender;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskThreadLocal;
 import com.liferay.portal.kernel.backgroundtask.constants.BackgroundTaskConstants;
@@ -37,11 +39,11 @@ public class BatchEngineTaskExecutorUtil {
 			UnsafeSupplier<T, Throwable> unsafeSupplier, User user)
 		throws Throwable {
 
-		AuditRequestThreadLocal auditRequestThreadLocal =
-			AuditRequestThreadLocal.getAuditThreadLocal();
+		AuditRequestContext auditRequestContext =
+			AuditRequestContextThreadLocal.getAuditRequestContext();
 
-		auditRequestThreadLocal.setRealUserEmailAddress(user.getEmailAddress());
-		auditRequestThreadLocal.setRealUserId(user.getUserId());
+		auditRequestContext.setRealUserEmailAddress(user.getEmailAddress());
+		auditRequestContext.setRealUserId(user.getUserId());
 
 		PermissionChecker permissionChecker =
 			PermissionThreadLocal.getPermissionChecker();
@@ -59,11 +61,12 @@ public class BatchEngineTaskExecutorUtil {
 
 		PrincipalThreadLocal.setName(user.getUserId());
 
-		try {
+		try (SafeCloseable safeCloseable =
+				ItemIndexThreadLocal.pushIndexQueueWithSafeCloseable()) {
+
 			return unsafeSupplier.get();
 		}
 		finally {
-			ItemIndexThreadLocal.clear();
 			PermissionThreadLocal.setPermissionChecker(permissionChecker);
 			PrincipalThreadLocal.setName(name);
 		}

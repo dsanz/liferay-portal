@@ -79,6 +79,15 @@ public class CommerceCatalogServiceUtil {
 		return getService().getCommerceCatalogs(companyId, start, end);
 	}
 
+	public static CommerceCatalog getOrAddEmptyCommerceCatalog(
+			String externalReferenceCode, String name,
+			String commerceCurrencyCode)
+		throws PortalException {
+
+		return getService().getOrAddEmptyCommerceCatalog(
+			externalReferenceCode, name, commerceCurrencyCode);
+	}
+
 	/**
 	 * Returns the OSGi service identifier.
 	 *
@@ -130,4 +139,4 @@ public class CommerceCatalogServiceUtil {
 			CommerceCatalogServiceUtil.class, CommerceCatalogService.class);
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:478913678
+// LIFERAY-SERVICE-BUILDER-HASH:2008369175

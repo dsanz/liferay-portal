@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
@@ -25,6 +26,8 @@ import jakarta.xml.bind.annotation.XmlRootElement;
 
 import java.io.Serializable;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -37,11 +40,11 @@ import java.util.function.Supplier;
  */
 @Generated("")
 @GraphQLName(
-	description = "A tool exposed by a tool-set, including its input schema.",
+	description = "A tool exposed by a tool set, including its input and output schemas.",
 	value = "Tool"
 )
 @io.swagger.v3.oas.annotations.media.Schema(
-	description = "A tool exposed by a tool-set, including its input schema.",
+	description = "A tool exposed by a tool set, including its input and output schemas.",
 	requiredProperties = {"name"}
 )
 @JsonFilter("Liferay.Vulcan")
@@ -148,7 +151,7 @@ public class Tool implements Serializable {
 	private Supplier<Map<String, ?>> _inputSchemaSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema(
-		description = "Stable identifier of the tool within its tool-set."
+		description = "Stable identifier of the tool within its tool set."
 	)
 	public String getName() {
 		if (_nameSupplier != null) {
@@ -182,7 +185,7 @@ public class Tool implements Serializable {
 	}
 
 	@GraphQLField(
-		description = "Stable identifier of the tool within its tool-set."
+		description = "Stable identifier of the tool within its tool set."
 	)
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	@NotEmpty
@@ -190,6 +193,52 @@ public class Tool implements Serializable {
 
 	@JsonIgnore
 	private Supplier<String> _nameSupplier;
+
+	@io.swagger.v3.oas.annotations.media.Schema(
+		description = "JSON Schema describing the body the tool returns. Read it to learn which fields the response carries, for example to narrow `fields` in the input. Absent when the tool returns no JSON body."
+	)
+	@Valid
+	public Map<String, ?> getOutputSchema() {
+		if (_outputSchemaSupplier != null) {
+			outputSchema = _outputSchemaSupplier.get();
+
+			_outputSchemaSupplier = null;
+		}
+
+		return outputSchema;
+	}
+
+	public void setOutputSchema(Map<String, ?> outputSchema) {
+		this.outputSchema = outputSchema;
+
+		_outputSchemaSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setOutputSchema(
+		UnsafeSupplier<Map<String, ?>, Exception> outputSchemaUnsafeSupplier) {
+
+		_outputSchemaSupplier = () -> {
+			try {
+				return outputSchemaUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField(
+		description = "JSON Schema describing the body the tool returns. Read it to learn which fields the response carries, for example to narrow `fields` in the input. Absent when the tool returns no JSON body."
+	)
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected Map<String, ?> outputSchema;
+
+	@JsonIgnore
+	private Supplier<Map<String, ?>> _outputSchemaSupplier;
 
 	@Override
 	public boolean equals(Object object) {
@@ -260,6 +309,18 @@ public class Tool implements Serializable {
 			sb.append(_escape(name));
 
 			sb.append("\"");
+		}
+
+		Map<String, ?> outputSchema = getOutputSchema();
+
+		if (outputSchema != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"outputSchema\": ");
+
+			sb.append(_toJSON(outputSchema));
 		}
 
 		sb.append("}");
@@ -355,6 +416,27 @@ public class Tool implements Serializable {
 		return sb.toString();
 	}
 
+	private static String _toJSON(Object value) {
+		if (value instanceof Collection) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONArray((Collection<?>)value));
+		}
+		else if (value instanceof Map) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONObject((Map<?, ?>)value));
+		}
+		else if (value instanceof Object[]) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONArray(
+					Arrays.asList((Object[])value)));
+		}
+		else if (value instanceof String) {
+			return StringBundler.concat("\"", _escape(value), "\"");
+		}
+
+		return String.valueOf(value);
+	}
+
 	private static final String[][] _JSON_ESCAPE_STRINGS = {
 		{"\\", "\"", "\b", "\f", "\n", "\r", "\t"},
 		{"\\\\", "\\\"", "\\b", "\\f", "\\n", "\\r", "\\t"}
@@ -363,4 +445,4 @@ public class Tool implements Serializable {
 	private Map<String, Serializable> _extendedProperties;
 
 }
-// LIFERAY-REST-BUILDER-HASH:600198104
+// LIFERAY-REST-BUILDER-HASH:1313738219

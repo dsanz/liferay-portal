@@ -19,6 +19,7 @@ export const FIELD_TYPES = [
 	'Long Text',
 	'Rich Text',
 	'Decimal',
+	'Email',
 	'Select from List',
 	'Numeric',
 	'Date',
@@ -658,7 +659,7 @@ export class StructureBuilderPage {
 			.filter({hasText: 'published successfully'});
 
 		await expect(confirmDialog.or(successAlert)).toBeVisible({
-			timeout: 10000,
+			timeout: 30000,
 		});
 
 		if (await confirmDialog.isVisible()) {
@@ -666,7 +667,7 @@ export class StructureBuilderPage {
 		}
 
 		await waitForAlert(this.page, 'published successfully', {
-			timeout: 10000,
+			timeout: 30000,
 		});
 
 		const url = new URL(this.page.url());

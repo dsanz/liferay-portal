@@ -19,7 +19,6 @@ import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 /**
  * @author Adam Brandizzi
@@ -33,20 +32,29 @@ public class ElasticsearchExceptionHandlerTest {
 
 	@Test
 	public void testDeleteIndexNotFoundLogExceptionsOnlyFalse()
-		throws Throwable {
+		throws SearchException {
 
-		ElasticsearchExceptionHandler elasticsearchExceptionHandler =
-			new ElasticsearchExceptionHandler(_log, false);
+		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
+				ElasticsearchExceptionHandlerTest.class.getName(),
+				LoggerTestUtil.INFO)) {
 
-		elasticsearchExceptionHandler.handleDeleteDocumentException(
-			new SearchException(
+			ElasticsearchExceptionHandler elasticsearchExceptionHandler =
+				new ElasticsearchExceptionHandler(_log, false);
+
+			SearchException searchException = new SearchException(
 				ElasticsearchExceptionHandler.
-					INDEX_NOT_FOUND_EXCEPTION_MESSAGE));
+					INDEX_NOT_FOUND_EXCEPTION_MESSAGE);
+
+			elasticsearchExceptionHandler.handleDeleteDocumentException(
+				searchException);
+
+			_assertLogCapture(logCapture, LoggerTestUtil.INFO, searchException);
+		}
 	}
 
 	@Test
 	public void testDeleteIndexNotFoundLogExceptionsOnlyTrue()
-		throws Throwable {
+		throws SearchException {
 
 		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
 				ElasticsearchExceptionHandlerTest.class.getName(),
@@ -62,25 +70,31 @@ public class ElasticsearchExceptionHandlerTest {
 			elasticsearchExceptionHandler.handleDeleteDocumentException(
 				searchException);
 
-			_assertLogCapture(logCapture, searchException, LoggerTestUtil.INFO);
+			_assertLogCapture(logCapture, LoggerTestUtil.INFO, searchException);
 		}
 	}
 
 	@Test
-	public void testDeleteLogExceptionsOnlyFalse() throws Throwable {
-		expectedException.expect(SearchException.class);
-		expectedException.expectMessage(
-			"deletion failed and results in exception");
-
+	public void testDeleteLogExceptionsOnlyFalse() {
 		ElasticsearchExceptionHandler elasticsearchExceptionHandler =
 			new ElasticsearchExceptionHandler(_log, false);
 
-		elasticsearchExceptionHandler.handleDeleteDocumentException(
-			new SearchException("deletion failed and results in exception"));
+		SearchException searchException1 = new SearchException(
+			"deletion failed and results in exception");
+
+		try {
+			elasticsearchExceptionHandler.handleDeleteDocumentException(
+				searchException1);
+
+			Assert.fail();
+		}
+		catch (SearchException searchException2) {
+			Assert.assertSame(searchException1, searchException2);
+		}
 	}
 
 	@Test
-	public void testDeleteLogExceptionsOnlyTrue() throws Throwable {
+	public void testDeleteLogExceptionsOnlyTrue() throws SearchException {
 		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
 				ElasticsearchExceptionHandlerTest.class.getName(),
 				LoggerTestUtil.ERROR)) {
@@ -95,24 +109,30 @@ public class ElasticsearchExceptionHandlerTest {
 				searchException);
 
 			_assertLogCapture(
-				logCapture, searchException, LoggerTestUtil.ERROR);
+				logCapture, LoggerTestUtil.ERROR, searchException);
 		}
 	}
 
 	@Test
-	public void testLogExceptionsOnlyFalse() throws Throwable {
-		expectedException.expect(SearchException.class);
-		expectedException.expectMessage("some other random message");
-
+	public void testLogExceptionsOnlyFalse() {
 		ElasticsearchExceptionHandler elasticsearchExceptionHandler =
 			new ElasticsearchExceptionHandler(_log, false);
 
-		elasticsearchExceptionHandler.logOrThrow(
-			new SearchException("some other random message"));
+		SearchException searchException1 = new SearchException(
+			"some other random message");
+
+		try {
+			elasticsearchExceptionHandler.logOrThrow(searchException1);
+
+			Assert.fail();
+		}
+		catch (SearchException searchException2) {
+			Assert.assertSame(searchException1, searchException2);
+		}
 	}
 
 	@Test
-	public void testLogExceptionsOnlyTrue() throws Throwable {
+	public void testLogExceptionsOnlyTrue() throws SearchException {
 		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
 				ElasticsearchExceptionHandlerTest.class.getName(),
 				LoggerTestUtil.ERROR)) {
@@ -126,16 +146,13 @@ public class ElasticsearchExceptionHandlerTest {
 			elasticsearchExceptionHandler.logOrThrow(searchException);
 
 			_assertLogCapture(
-				logCapture, searchException, LoggerTestUtil.ERROR);
+				logCapture, LoggerTestUtil.ERROR, searchException);
 		}
 	}
 
-	@Rule
-	public ExpectedException expectedException = ExpectedException.none();
-
 	private void _assertLogCapture(
-		LogCapture logCapture, SearchException searchException,
-		String logLevel) {
+		LogCapture logCapture, String logLevel,
+		SearchException searchException) {
 
 		List<LogEntry> logEntries = logCapture.getLogEntries();
 
@@ -144,7 +161,7 @@ public class ElasticsearchExceptionHandlerTest {
 		LogEntry logEntry = logEntries.get(0);
 
 		Assert.assertEquals(logLevel, logEntry.getPriority());
-
+		Assert.assertEquals(searchException.toString(), logEntry.getMessage());
 		Assert.assertSame(searchException, logEntry.getThrowable());
 	}
 

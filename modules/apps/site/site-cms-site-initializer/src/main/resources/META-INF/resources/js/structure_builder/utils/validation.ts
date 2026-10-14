@@ -13,12 +13,13 @@ import {State, useSelector, useStateDispatch} from '../contexts/StateContext';
 import selectState from '../selectors/selectState';
 import selectStructureChildren from '../selectors/selectStructureChildren';
 import {
+	Group,
 	RelatedContent,
-	RepeatableGroup,
 	Structure,
 	StructureChild,
 } from '../types/Structure';
 import {Field, SelectFromListField} from './field';
+import getOwnFields from './getOwnFields';
 
 const NAME_MAX_LENGTH = 41;
 const ERC_MAX_LENGTH = 75;
@@ -41,6 +42,8 @@ export type ValidationError =
 	| 'lowercase'
 	| 'max-length'
 	| 'default-language-label'
+	| 'no-children'
+	| 'no-fields'
 	| 'prefix-reserved'
 	| 'unexpected'
 	| 'uppercase';
@@ -175,14 +178,14 @@ export function validateRelatedContent({
 	return errors;
 }
 
-export function validateRepeatableGroup({
+export function validateGroup({
 	currentErrors,
 	data,
 }: {
 	currentErrors?: ErrorMap;
-	data: Partial<RepeatableGroup>;
+	data: Partial<Group>;
 }): ErrorMap {
-	const {label} = data;
+	const {children, isRepeatable, label} = data;
 
 	const errors = new Map(currentErrors);
 
@@ -190,6 +193,19 @@ export function validateRepeatableGroup({
 		Object.values(label ?? {}).every(Boolean)
 			? errors.delete('label')
 			: errors.set('label', 'empty');
+	}
+
+	if (children) {
+		if (isRepeatable) {
+			getOwnFields(children).length
+				? errors.delete('global')
+				: errors.set('global', 'no-fields');
+		}
+		else {
+			children.size
+				? errors.delete('global')
+				: errors.set('global', 'no-children');
+		}
 	}
 
 	return errors;
@@ -280,8 +296,8 @@ export function getErrorMessage(
 	property: ValidationProperty,
 	error: ValidationError,
 	values: {
-		erc: string;
-		name: string;
+		erc?: string;
+		name?: string;
 	}
 ) {
 	const {erc, name} = values;
@@ -299,6 +315,18 @@ export function getErrorMessage(
 					'please-enter-a-valid-label-for-the-default-language-x'
 				),
 				Liferay.ThemeDisplay.getDefaultLanguageId()
+			);
+		}
+
+		if (error === 'no-children') {
+			return Liferay.Language.get(
+				'this-group-needs-at-least-one-field-to-be-published'
+			);
+		}
+
+		if (error === 'no-fields') {
+			return Liferay.Language.get(
+				'this-group-needs-at-least-one-field-that-is-not-a-referenced-structure-or-select-related-content-to-be-published'
 			);
 		}
 	}
@@ -373,8 +401,7 @@ function getSiblingFieldNames(
 	const deletedFields =
 		deletedChildren?.filter(
 			(child) =>
-				child.type !== 'referenced-structure' &&
-				child.type !== 'repeatable-group'
+				child.type !== 'referenced-structure' && child.type !== 'group'
 		) || [];
 
 	const fields = [...deletedFields, ...children.values()];
@@ -383,7 +410,7 @@ function getSiblingFieldNames(
 		.filter(
 			(child) =>
 				child.type !== 'referenced-structure' &&
-				child.type !== 'repeatable-group' &&
+				child.type !== 'group' &&
 				child.uuid !== uuid
 		)
 		.map((child) => child.name);
@@ -420,12 +447,18 @@ export function useValidate() {
 				if (errors.size) {
 					invalids.set(child.uuid, errors);
 				}
+				else {
+					invalids.delete(child.uuid);
+				}
 			}
-			else if (child.type === 'repeatable-group') {
-				errors = validateRepeatableGroup({data: child});
+			else if (child.type === 'group') {
+				errors = validateGroup({data: child});
 
 				if (errors.size) {
 					invalids.set(child.uuid, errors);
+				}
+				else {
+					invalids.delete(child.uuid);
 				}
 
 				for (const grandChild of child.children.values()) {
@@ -444,6 +477,9 @@ export function useValidate() {
 
 				if (errors.size) {
 					invalids.set(child.uuid, errors);
+				}
+				else {
+					invalids.delete(child.uuid);
 				}
 			}
 		},

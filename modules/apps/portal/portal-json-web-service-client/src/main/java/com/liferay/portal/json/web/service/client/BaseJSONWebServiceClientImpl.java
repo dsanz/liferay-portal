@@ -902,6 +902,39 @@ public abstract class BaseJSONWebServiceClientImpl
 		return poolingNHttpClientConnectionManager;
 	}
 
+	protected SSLIOSessionStrategy getSSLIOSessionStrategy() {
+		SSLContextBuilder sslContextBuilder = SSLContexts.custom();
+
+		SSLContext sslContext = null;
+
+		try {
+			sslContext = sslContextBuilder.build();
+
+			sslContext.init(
+				null,
+				new TrustManager[] {
+					new X509TrustManagerImpl(
+						_keyStore, _trustSelfSignedCertificates)
+				},
+				null);
+		}
+		catch (SecurityException securityException) {
+			throw securityException;
+		}
+		catch (Exception exception) {
+			throw new RuntimeException(exception);
+		}
+
+		String[] httpsProtocols = _split(System.getProperty("https.protocols"));
+
+		String[] cipherSuites = _split(
+			System.getProperty("https.cipherSuites"));
+
+		return new SSLIOSessionStrategy(
+			sslContext, httpsProtocols, cipherSuites,
+			SSLIOSessionStrategy.getDefaultHostnameVerifier());
+	}
+
 	protected Registry<SchemeIOSessionStrategy>
 		getSchemeIOSessionStrategyRegistry() {
 
@@ -919,36 +952,6 @@ public abstract class BaseJSONWebServiceClientImpl
 		}
 
 		return registryBuilder.build();
-	}
-
-	protected SSLIOSessionStrategy getSSLIOSessionStrategy() {
-		SSLContextBuilder sslContextBuilder = SSLContexts.custom();
-
-		SSLContext sslContext = null;
-
-		try {
-			sslContext = sslContextBuilder.build();
-
-			sslContext.init(
-				null,
-				new TrustManager[] {
-					new X509TrustManagerImpl(
-						_keyStore, _trustSelfSignedCertificates)
-				},
-				null);
-		}
-		catch (Exception exception) {
-			throw new RuntimeException(exception);
-		}
-
-		String[] httpsProtocols = _split(System.getProperty("https.protocols"));
-
-		String[] cipherSuites = _split(
-			System.getProperty("https.cipherSuites"));
-
-		return new SSLIOSessionStrategy(
-			sslContext, httpsProtocols, cipherSuites,
-			SSLIOSessionStrategy.getDefaultHostnameVerifier());
 	}
 
 	protected int getStatus(String json) {

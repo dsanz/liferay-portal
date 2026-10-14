@@ -18,7 +18,7 @@ import org.json.JSONObject;
 public class BuildDatabaseTestUtil {
 
 	public static BuildDatabase newBuildDatabaseWithPullRequest() {
-		File buildDir = _newBuildDir();
+		File buildDir = newBuildDir();
 
 		File buildDatabaseFile = new File(
 			buildDir, BuildDatabase.FILE_NAME_BUILD_DATABASE_JSON);
@@ -40,7 +40,7 @@ public class BuildDatabaseTestUtil {
 		return new DefaultBuildDatabase(buildDir);
 	}
 
-	private static File _newBuildDir() {
+	public static File newBuildDir() {
 		try {
 			File buildDir = File.createTempFile("build-database-", null);
 
@@ -68,6 +68,8 @@ public class BuildDatabaseTestUtil {
 				"base",
 				new JSONObject(
 				).put(
+					"ref", "master"
+				).put(
 					"repo",
 					new JSONObject(
 					).put(
@@ -90,6 +92,8 @@ public class BuildDatabaseTestUtil {
 				"html_url", htmlURL
 			).put(
 				"number", index
+			).put(
+				"statuses_url", htmlURL + "/statuses"
 			)
 		);
 	}

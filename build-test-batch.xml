@@ -59,6 +59,99 @@
 		</sequential>
 	</macrodef>
 
+	<macrodef name="create-workspace-bundle">
+		<attribute name="database.type" />
+		<attribute name="workspace.dir" />
+		<attribute name="workspace.name" />
+
+		<sequential>
+			<loadproperties prefix="workspace.portal.env" srcFile="@{workspace.dir}/configs/local/portal-env.properties" />
+
+			<local name="workspace.database.type" />
+
+			<propertyregex
+				input="${workspace.portal.env.jdbc.default.url}"
+				property="workspace.database.type"
+				regexp="^jdbc:([^:]+):.*"
+				select="\1"
+			/>
+
+			<fail message="Unable to find &quot;jdbc.default.url&quot; in @{workspace.dir}/configs/local/portal-env.properties." unless="workspace.database.type" />
+
+			<fail message="Unable to run the @{workspace.name} workspace on a @{database.type} batch because it runs on ${workspace.database.type}.">
+				<condition>
+					<not>
+						<equals arg1="${workspace.database.type}" arg2="@{database.type}" />
+					</not>
+				</condition>
+			</fail>
+
+			<fail message="Unable to create an empty ${workspace.database.type} database for the @{workspace.name} workspace.">
+				<condition>
+					<not>
+						<equals arg1="${workspace.database.type}" arg2="postgresql" />
+					</not>
+				</condition>
+			</fail>
+
+			<exec executable="docker" failonerror="true">
+				<arg value="load" />
+				<arg value="--input" />
+				<arg value="${project.dir}/dist/liferay-docker-@{workspace.name}.tar" />
+			</exec>
+
+			<exec executable="docker" failonerror="true">
+				<arg value="exec" />
+				<arg value="${database.postgresql.host}" />
+				<arg value="psql" />
+				<arg value="--command" />
+				<arg value="DROP DATABASE IF EXISTS lportal_workspace;" />
+				<arg value="--command" />
+				<arg value="CREATE DATABASE lportal_workspace;" />
+				<arg value="--dbname" />
+				<arg value="postgres" />
+				<arg value="--username" />
+				<arg value="${database.postgresql.username}" />
+			</exec>
+
+			<echo file="@{workspace.dir}/docker-compose-ci.yaml"><![CDATA[services:
+    database:
+        profiles:
+            - workspace-database
+    liferay:
+        container_name: ${env.HOSTNAME}_liferay
+        depends_on: !reset {}
+        environment:
+            LIFERAY_JDBC_PERIOD_DEFAULT_PERIOD_DRIVER_UPPERCASEC_LASS_UPPERCASEN_AME: ${database.postgresql.driver}
+            LIFERAY_JDBC_PERIOD_DEFAULT_PERIOD_PASSWORD: "${database.postgresql.password}"
+            LIFERAY_JDBC_PERIOD_DEFAULT_PERIOD_URL: jdbc:postgresql://${database.postgresql.host}:5432/lportal_workspace
+            LIFERAY_JDBC_PERIOD_DEFAULT_PERIOD_USERNAME: ${database.postgresql.username}
+        network_mode: container:${env.NODE_NAME}
+        ports: !override []
+]]></echo>
+
+			<exec dir="@{workspace.dir}" executable="docker" failonerror="false">
+				<arg value="compose" />
+				<arg value="--file" />
+				<arg value="docker-compose.yaml" />
+				<arg value="--file" />
+				<arg value="docker-compose-ci.yaml" />
+				<arg value="down" />
+				<arg value="--volumes" />
+			</exec>
+
+			<exec dir="@{workspace.dir}" executable="docker" failonerror="true">
+				<arg value="compose" />
+				<arg value="--file" />
+				<arg value="docker-compose.yaml" />
+				<arg value="--file" />
+				<arg value="docker-compose-ci.yaml" />
+				<arg value="create" />
+				<arg value="liferay" />
+			</exec>
+		</sequential>
+	</macrodef>
+
 	<macrodef name="database-test-action">
 		<attribute name="database.type" />
 		<element name="action" />
@@ -638,6 +731,44 @@ mariadb.executable=${mariadb.executable}]]></echo>
 		</sequential>
 	</macrodef>
 
+	<macrodef name="format-js-unit-test-results">
+		<attribute name="portal.dir" />
+		<attribute name="test.dir" />
+
+		<sequential>
+			<local name="test.batch.report.type" />
+
+			<propertycopy from="test.batch.report.type[${test.batch.name}]" name="test.batch.report.type" silent="true" />
+
+			<if>
+				<or>
+					<equals arg1="${test.batch.report.type}" arg2="test-file" />
+					<isset property="js.unit.test.file.reported" />
+				</or>
+				<then>
+					<for param="test.results.file">
+						<path>
+							<fileset
+								dir="@{portal.dir}/@{test.dir}"
+								erroronmissingdir="false"
+								excludes="**/node_modules/**"
+								includes="**/TEST-frontend-js.xml"
+							/>
+						</path>
+						<sequential>
+							<beanshell>
+								<![CDATA[
+									import com.liferay.jenkins.results.parser.test.clazz.file.TestClassFileUtil;
+
+									TestClassFileUtil.formatTestResultsFile(new File("@{portal.dir}"), new File("@{test.results.file}"));
+								]]>
+							</beanshell>
+						</sequential>
+					</for>
+				</then>
+			</if>
+		</sequential>
+	</macrodef>
 	<macrodef name="get-console-log-failure-message">
 		<attribute name="console.log" />
 
@@ -849,6 +980,10 @@ mariadb.executable=${mariadb.executable}]]></echo>
 					}
 
 					public List getTestUtilModules() {
+						String standaloneBuildProfile = project.getProperty("env.TEST_PORTAL_RELEASE_BUILD_PROFILE");
+
+						boolean standaloneRelease = StringUtils.isNotEmpty(standaloneBuildProfile);
+
 						List appBndFiles = findFiles(new File(projectDir, "modules/apps"), ".+/app.bnd");
 
 						File dxpAppsDir = new File(projectDir, "modules/dxp/apps");
@@ -868,11 +1003,12 @@ mariadb.executable=${mariadb.executable}]]></echo>
 						for (File appBndFile : appBndFiles) {
 							String fileContent = new String(Files.readAllBytes(appBndFile.toPath()));
 
-							if (fileContent.contains("Liferay-Releng-Bundle: true")) {
+							if (standaloneRelease || fileContent.contains("Liferay-Releng-Bundle: true")) {
 								releasedAppDirs.add(appBndFile.getParentFile());
 							}
 						}
 
+						boolean standaloneTestUtilModuleFound = false;
 						List testUtilModules = new ArrayList();
 
 						for (File releasedAppDir : releasedAppDirs) {
@@ -880,6 +1016,18 @@ mariadb.executable=${mariadb.executable}]]></echo>
 
 							for (File testUtilModuleBuildGradleFile : testUtilModuleBuildGradleFiles) {
 								String testUtilModule = testUtilModuleBuildGradleFile.getParent();
+
+								if (standaloneRelease) {
+									File standaloneBuildProfileFile = new File(testUtilModule, ".lfrbuild-" + standaloneBuildProfile);
+
+									if (!standaloneBuildProfileFile.exists()) {
+										System.out.println("Ignoring " + testUtilModule.replace(projectDir + "/", ""));
+
+										continue;
+									}
+
+									standaloneTestUtilModuleFound = true;
+								}
 
 								File skipTestIntegrationCheckFile = new File(testUtilModule, ".lfrbuild-ci-skip-test-integration-check");
 
@@ -905,6 +1053,10 @@ mariadb.executable=${mariadb.executable}]]></echo>
 
 								testUtilModules.add(testUtilModule);
 							}
+						}
+
+						if (standaloneRelease && !standaloneTestUtilModuleFound) {
+							throw new RuntimeException("No test util module is marked .lfrbuild-" + standaloneBuildProfile);
 						}
 
 						return testUtilModules;
@@ -1562,6 +1714,42 @@ app.server.type=@{app.server.type}]]></echo>
 			/>
 
 			<delete file="${tstamp}.diff" />
+		</sequential>
+	</macrodef>
+
+	<macrodef name="report-js-unit-test-results">
+		<attribute name="failure.count" />
+
+		<element implicit="true" name="test.results.resources" />
+
+		<sequential>
+			<local name="js.unit.test.results.count" />
+
+			<resourcecount property="js.unit.test.results.count">
+				<union>
+					<test.results.resources />
+				</union>
+			</resourcecount>
+
+			<if>
+				<and>
+					<not>
+						<equals arg1="@{failure.count}" arg2="0" />
+					</not>
+					<equals arg1="${js.unit.test.results.count}" arg2="0" />
+				</and>
+				<then>
+					<fail message="@{failure.count} JS unit test tasks failed without writing a test result." />
+				</then>
+				<elseif>
+					<not>
+						<equals arg1="@{failure.count}" arg2="0" />
+					</not>
+					<then>
+						<echo>@{failure.count} JS unit test tasks failed. See the test results.</echo>
+					</then>
+				</elseif>
+			</if>
 		</sequential>
 	</macrodef>
 
@@ -2991,7 +3179,6 @@ ${poshi.runner.testsuite.testcase.name}</echo>
 								<matches pattern="(file|https?)://" string="${test.portal.bundle.war.url}" />
 								<matches pattern="(file|https?)://" string="${test.portal.bundle.zip.url}" />
 							</or>
-							<matches pattern="(file|https?)://" string="${test.sql.zip.url}" />
 							<contains string="${env.JOB_NAME}" substring="-release" />
 						</and>
 						<then>
@@ -3035,7 +3222,10 @@ ${poshi.runner.testsuite.testcase.name}</echo>
 							/>
 
 							<parallel failonany="true" threadcount="${parallel.thread.count}">
-								<ant dir="portal-test" inheritAll="false" target="jar" />
+								<ant dir="portal-test" inheritAll="false" target="jar">
+									<property name="baseline.jar.report.level" value="off" />
+								</ant>
+
 								<ant dir="support-tomcat" inheritAll="false" target="compile" />
 								<ant dir="util-bridges" inheritAll="false" target="compile" />
 
@@ -3371,7 +3561,7 @@ ${poshi.runner.testsuite.testcase.name}</echo>
 
 								System.out.println("\"gradle-execute-modules\" will timeout in " + timeout);
 
-								AntUtil.callTargetWithTimeout(projectDir, "build-common.xml", "gradle-execute-modules", parameters, timeout, true);
+								AntUtil.callTargetWithTimeout(projectDir, "build-test.xml", "gradle-execute-modules", parameters, timeout, true);
 							}
 							catch(Exception exception) {
 								System.out.println("Unable to run Gradle execute modules target for " + entry.getKey());
@@ -3531,13 +3721,32 @@ ${poshi.runner.testsuite.testcase.name}</echo>
 								replace="${java.jdk.home}/bin"
 							/>
 
+							<local name="workspace.dir" />
+
+							<if>
+								<isset property="env.PLAYWRIGHT_WORKSPACE_NAME" />
+								<then>
+									<condition else="${project.dir}/workspaces/${env.PLAYWRIGHT_WORKSPACE_NAME}" property="workspace.dir" value="${liferay.portal.private.dir}/workspaces/${env.PLAYWRIGHT_WORKSPACE_NAME}">
+										<available file="${liferay.portal.private.dir}/workspaces/${env.PLAYWRIGHT_WORKSPACE_NAME}" type="dir" />
+									</condition>
+								</then>
+							</if>
+
 							<local name="exception.message" />
 
 							<trycatch property="exception.message">
 								<try>
+									<if>
+										<isset property="env.PLAYWRIGHT_WORKSPACE_NAME" />
+										<then>
+											<create-workspace-bundle database.type="@{database.type}" workspace.dir="${workspace.dir}" workspace.name="${env.PLAYWRIGHT_WORKSPACE_NAME}" />
+										</then>
+									</if>
+
 									<exec executable="/bin/bash" failonerror="true" timeout="${test.class.playwright.setup.timeout}">
 										<arg value="modules/test/playwright/env/set_up.sh" />
 										<env key="APP_SERVER_TYPE" value="@{app.server.type}" />
+										<env if:set="ckeditor.dxp.license.key" key="CKEDITOR_DXP_LICENSE_KEY" unless:blank="${ckeditor.dxp.license.key}" value="${ckeditor.dxp.license.key}" />
 										<env key="DATABASE_TYPE" value="@{database.type}" />
 										<env key="JAVA_HOME" value="${java.jdk.home}" />
 										<env key="JAVA_OPTS" value="${java.jdk.opts}" />
@@ -3545,6 +3754,8 @@ ${poshi.runner.testsuite.testcase.name}</echo>
 										<env key="LIFERAY_PORTAL_URL" value="http://${env.NODE_NAME}:8080" />
 										<env key="PATH" value="${execute.path}" />
 										<env key="PLAYWRIGHT_PROJECT_NAME" value="${playwright.project.name}" />
+										<env if:set="env.PLAYWRIGHT_WORKSPACE_NAME" key="PLAYWRIGHT_WORKSPACE_DIR" value="${workspace.dir}" />
+										<env if:set="env.PLAYWRIGHT_WORKSPACE_NAME" key="PLAYWRIGHT_WORKSPACE_NAME" value="${env.PLAYWRIGHT_WORKSPACE_NAME}" />
 									</exec>
 
 									<start-docker-playwright />
@@ -3599,6 +3810,13 @@ ${poshi.runner.testsuite.testcase.name}</echo>
 								<finally>
 									<stop-docker-playwright />
 
+									<if>
+										<isset property="env.PLAYWRIGHT_WORKSPACE_NAME" />
+										<then>
+											<print-docker-logs container.name="${env.HOSTNAME}_liferay" />
+										</then>
+									</if>
+
 									<exec executable="/bin/bash" timeout="${test.class.playwright.teardown.timeout}">
 										<arg value="modules/test/playwright/env/tear_down.sh" />
 										<env key="APP_SERVER_TYPE" value="@{app.server.type}" />
@@ -3609,6 +3827,8 @@ ${poshi.runner.testsuite.testcase.name}</echo>
 										<env key="LIFERAY_PORTAL_URL" value="http://${env.HOSTNAME}:8080" />
 										<env key="PATH" value="${execute.path}" />
 										<env key="PLAYWRIGHT_PROJECT_NAME" value="${playwright.project.name}" />
+										<env if:set="env.PLAYWRIGHT_WORKSPACE_NAME" key="PLAYWRIGHT_WORKSPACE_DIR" value="${workspace.dir}" />
+										<env if:set="env.PLAYWRIGHT_WORKSPACE_NAME" key="PLAYWRIGHT_WORKSPACE_NAME" value="${env.PLAYWRIGHT_WORKSPACE_NAME}" />
 									</exec>
 
 									<split-testsuites-junit-report test.suites.report.filepath="${playwright.dir}/test-results/TEST-playwright.xml" />
@@ -3639,7 +3859,6 @@ ${poshi.runner.testsuite.testcase.name}</echo>
 								<matches pattern="(file|https?)://" string="${test.portal.bundle.war.url}" />
 								<matches pattern="(file|https?)://" string="${test.portal.bundle.zip.url}" />
 							</or>
-							<matches pattern="(file|https?)://" string="${test.sql.zip.url}" />
 							<contains string="${env.JOB_NAME}" substring="-release" />
 						</and>
 						<then>
@@ -4511,11 +4730,122 @@ ${poshi.runner.testsuite.testcase.name}</echo>
 		</sequential>
 	</macrodef>
 
+	<macrodef name="run-workspaces-integration-test">
+		<attribute default="" name="test.task.group" />
+		<attribute default="" name="workspace.bundle.mirror.dir" />
+		<attribute default="" name="workspace.license.xml.url" />
+
+		<sequential>
+			<local name="workspace.dir" />
+			<local name="workspace.name" />
+			<local name="workspace.path" />
+
+			<propertycopy from="workspaces.names[workspaces-integration][${env.CI_TEST_SUITE}]" name="workspace.name" silent="true" />
+
+			<fail message="Unable to find a workspace for the &quot;workspaces-integration&quot; batch in the &quot;${env.CI_TEST_SUITE}&quot; suite." unless="workspace.name" />
+
+			<condition else="workspaces/${workspace.name}" property="workspace.path" value="${liferay.portal.private.dir}/workspaces/${workspace.name}">
+				<available file="${liferay.portal.private.dir}/workspaces/${workspace.name}" />
+			</condition>
+
+			<property location="${workspace.path}" name="workspace.dir" />
+
+			<download-gradle-wrapper-binary workspace.dir="${workspace.dir}" />
+
+			<get-workspace-bundle-url mirror.dir="@{workspace.bundle.mirror.dir}" workspace.dir="${workspace.dir}" />
+
+			<mkdir dir="${workspace.dir}/build" />
+
+			<mirrors-get
+				dest="${workspace.dir}/build/license.xml"
+				src="@{workspace.license.xml.url}"
+			/>
+
+			<local name="gradle.args" />
+
+			<property name="gradle.args" value="--continue -Pintegration.test.target=bundle" />
+
+			<var if:set="workspace.bundle.url" name="gradle.args" value="${gradle.args} -Pliferay.workspace.bundle.url=${workspace.bundle.url}" />
+
+			<run-workspaces-junit-test gradle.target="gradle-execute-workspaces-integration" test.junit.args="${gradle.args}" test.task.group="@{test.task.group}" />
+		</sequential>
+	</macrodef>
+
+	<macrodef name="run-workspaces-js-unit-test">
+		<attribute name="test.class.group" />
+		<attribute default="" name="test.gradle.args" />
+
+		<sequential>
+			<beanshell>
+				<![CDATA[
+					import com.liferay.jenkins.results.parser.AntUtil;
+
+					import java.io.File;
+
+					import java.util.HashMap;
+					import java.util.Map;
+
+					File projectDir = new File(project.getProperty("project.dir"));
+
+					int failureCount = 0;
+
+					String testClassGroup = "@{test.class.group}";
+
+					for (String testTaskName : testClassGroup.split("\\s+")) {
+						testTaskName = testTaskName.trim();
+
+						if (testTaskName.isEmpty()) {
+							continue;
+						}
+
+						int index = testTaskName.indexOf(":");
+
+						if (index == -1) {
+							System.out.println("Unable to find a workspace directory in " + testTaskName);
+
+							continue;
+						}
+
+						Map parameters = new HashMap();
+
+						parameters.put("dir", testTaskName.substring(0, index));
+						parameters.put("gradle.jvm.args", "@{test.gradle.args}");
+						parameters.put("test.task", testTaskName.substring(index));
+
+						System.out.println("Executing Gradle task: " + testTaskName);
+
+						try {
+							AntUtil.callTarget(projectDir, "build-test.xml", "gradle-execute-workspaces-js-unit", parameters);
+						}
+						catch (Exception exception) {
+							System.out.println("Unable to run Gradle task " + testTaskName);
+
+							exception.printStackTrace();
+
+							failureCount++;
+						}
+					}
+
+					project.setProperty("js.unit.failure.count", String.valueOf(failureCount));
+				]]>
+			</beanshell>
+		</sequential>
+	</macrodef>
+
 	<macrodef name="run-workspaces-junit-test">
+		<attribute default="gradle-execute-workspaces" name="gradle.target" />
 		<attribute default="" name="test.junit.args" />
 		<attribute default="" name="test.task.group" />
 
 		<sequential>
+			<fail message="Unable to select tests. &quot;test.task.group&quot; resolved to &quot;@{test.task.group}&quot; rather than a task group.">
+				<condition>
+					<not>
+						<matches pattern="[^\[]+\[[^\]]+\]" string="@{test.task.group}" />
+					</not>
+				</condition>
+			</fail>
+
 			<beanshell>
 				<![CDATA[
 					import com.liferay.jenkins.results.parser.AntUtil;
@@ -4641,9 +4971,9 @@ ${poshi.runner.testsuite.testcase.name}</echo>
 						int timeout = Integer.parseInt(project.getProperty("test.class.timeout.minutes"));
 
 						try {
-							System.out.println("\"gradle-execute-workspaces\" will timeout in " + timeout);
+							System.out.println("\"@{gradle.target}\" will timeout in " + timeout);
 
-							AntUtil.callTargetWithTimeout(projectDir, "build-common.xml", "gradle-execute-workspaces", parameters, timeout, false);
+							AntUtil.callTargetWithTimeout(projectDir, "build-test.xml", "@{gradle.target}", parameters, timeout, false);
 						}
 						catch(Exception exception) {
 							System.out.println("Unable to run Gradle execute workspaces target for " + testTaskName);
@@ -5735,6 +6065,10 @@ information. Make sure to commit in all format-javadoc results.
 		<run-functional-test app.server.type="tomcat" database.type="mysql" database.version="8.4" test.portal.log.assert="true" />
 	</target>
 
+	<target name="functional-debian13-tomcat101-mysql84">
+		<run-functional-test app.server.type="tomcat" database.type="mysql" database.version="8.4" test.portal.log.assert="true" />
+	</target>
+
 	<target name="functional-fedora35-tomcat101-mysql">
 		<run-functional-test app.server.type="tomcat" database.type="mysql" test.portal.log.assert="true" />
 	</target>
@@ -6123,6 +6457,22 @@ information. Make sure to commit in all format-javadoc results.
 		<run-functional-test app.server.type="tomcat" database.type="postgresql" database.version="15.5" test.portal.log.assert="true" />
 	</target>
 
+	<target name="functional-orcllinux10-tomcat101-mysql">
+		<run-functional-test app.server.type="tomcat" database.type="mysql" test.portal.log.assert="true" />
+	</target>
+
+	<target name="functional-orcllinux10-tomcat101-mysql84">
+		<run-functional-test app.server.type="tomcat" database.type="mysql" database.version="8.4" test.portal.log.assert="true" />
+	</target>
+
+	<target name="functional-orcllinux10-tomcat101-postgresql">
+		<run-functional-test app.server.type="tomcat" database.type="postgresql" test.portal.log.assert="true" />
+	</target>
+
+	<target name="functional-orcllinux10-tomcat101-postgresql155">
+		<run-functional-test app.server.type="tomcat" database.type="postgresql" database.version="15.5" test.portal.log.assert="true" />
+	</target>
+
 	<target name="functional-redhat8-tomcat101-mysql">
 		<run-functional-test app.server.type="tomcat" database.type="mysql" test.portal.log.assert="true" />
 	</target>
@@ -6196,6 +6546,10 @@ information. Make sure to commit in all format-javadoc results.
 	</target>
 
 	<target name="functional-smoke-debian12-tomcat101-mysql84">
+		<run-functional-test app.server.type="tomcat" database.type="mysql" database.version="8.4" test.portal.log.assert="true" />
+	</target>
+
+	<target name="functional-smoke-debian13-tomcat101-mysql84">
 		<run-functional-test app.server.type="tomcat" database.type="mysql" database.version="8.4" test.portal.log.assert="true" />
 	</target>
 
@@ -6417,12 +6771,6 @@ information. Make sure to commit in all format-javadoc results.
 		<run-functional-test app.server.type="jboss" app.server.version="8.0.0" database.type="mysql" database.version="8.4" test.portal.log.assert="true" />
 	</target>
 
-	<target name="functional-smoke-jboss80-mysql84-jdk17_zulu">
-		<set-app-server-version-number app.server.type="jboss" app.server.version="8.0.0" />
-
-		<run-functional-test app.server.type="jboss" app.server.version="8.0.0" database.type="mysql" database.version="8.4" test.portal.log.assert="true" />
-	</target>
-
 	<target name="functional-smoke-jboss80-mysql84-jdk21_zulu">
 		<set-app-server-version-number app.server.type="jboss" app.server.version="8.0.0" />
 
@@ -6579,10 +6927,6 @@ information. Make sure to commit in all format-javadoc results.
 		/>
 	</target>
 
-	<target name="functional-smoke-tomcat-mysql-jdk17_zulu">
-		<antcall target="functional-tomcat-mysql-jdk17_zulu" />
-	</target>
-
 	<target name="functional-smoke-tomcat-mysql-jdk21_zulu">
 		<antcall target="functional-tomcat-mysql-jdk21_zulu" />
 	</target>
@@ -6604,10 +6948,6 @@ information. Make sure to commit in all format-javadoc results.
 			test.portal.log.assert="true"
 			test.sql.zip.url="${test.sql.zip.url}"
 		/>
-	</target>
-
-	<target name="functional-smoke-tomcat-mysql84-jdk17_zulu">
-		<antcall target="functional-tomcat-mysql84-jdk17_zulu" />
 	</target>
 
 	<target name="functional-smoke-tomcat-mysql84-jdk21_zulu">
@@ -6647,10 +6987,6 @@ information. Make sure to commit in all format-javadoc results.
 
 	<target name="functional-smoke-tomcat-postgresql">
 		<antcall target="functional-tomcat-postgresql" />
-	</target>
-
-	<target name="functional-smoke-tomcat-postgresql-jdk17_zulu">
-		<antcall target="functional-tomcat-postgresql-jdk17_zulu" />
 	</target>
 
 	<target name="functional-smoke-tomcat-postgresql-jdk21_zulu">
@@ -6698,10 +7034,6 @@ information. Make sure to commit in all format-javadoc results.
 			test.portal.log.assert="true"
 			test.sql.zip.url="${test.sql.zip.url}"
 		/>
-	</target>
-
-	<target name="functional-smoke-tomcat-postgresql155-jdk17_zulu">
-		<antcall target="functional-tomcat-postgresql155-jdk17_zulu" />
 	</target>
 
 	<target name="functional-smoke-tomcat-postgresql155-jdk21_zulu">
@@ -6803,7 +7135,7 @@ information. Make sure to commit in all format-javadoc results.
 		<run-functional-test app.server.type="tomcat" browser.type="chrome" database.type="mysql" database.version="8.4" test.portal.log.assert="true" />
 	</target>
 
-	<target name="functional-smoke-tomcat101-mysql84-jdk17_zulu">
+	<target name="functional-smoke-tomcat101-mysql84-jdk21_zulu">
 		<run-functional-test app.server.type="tomcat" database.type="mysql" database.version="8.4" test.portal.log.assert="true" />
 	</target>
 
@@ -6855,10 +7187,6 @@ information. Make sure to commit in all format-javadoc results.
 		<run-functional-test app.server.type="tomcat" browser.type="chrome" database.type="postgresql" database.version="15.5" test.portal.log.assert="true" />
 	</target>
 
-	<target name="functional-smoke-tomcat101-postgresql155-jdk17_zulu">
-		<run-functional-test app.server.type="tomcat" browser.type="chrome" database.type="postgresql" database.version="15.5" test.portal.log.assert="true" />
-	</target>
-
 	<target name="functional-smoke-tomcat101-postgresql155_stable">
 		<run-functional-test app.server.type="tomcat" database.type="postgresql" database.version="15.5" test.portal.log.assert="true" />
 	</target>
@@ -6904,12 +7232,6 @@ information. Make sure to commit in all format-javadoc results.
 	</target>
 
 	<target name="functional-smoke-weblogic151-mysql84">
-		<set-app-server-version-number app.server.type="weblogic" app.server.version="15.1.1" />
-
-		<run-functional-test app.server.type="weblogic" database.type="mysql" database.version="8.4" test.portal.log.assert="true" />
-	</target>
-
-	<target name="functional-smoke-weblogic151-mysql84-jdk17_zulu">
 		<set-app-server-version-number app.server.type="weblogic" app.server.version="15.1.1" />
 
 		<run-functional-test app.server.type="weblogic" database.type="mysql" database.version="8.4" test.portal.log.assert="true" />
@@ -7183,10 +7505,6 @@ information. Make sure to commit in all format-javadoc results.
 		<antcall target="functional-wildfly300-mysql84" />
 	</target>
 
-	<target name="functional-smoke-wildfly300-mysql84-jdk17_zulu">
-		<antcall target="functional-wildfly300-mysql84-jdk17_zulu" />
-	</target>
-
 	<target name="functional-smoke-wildfly300-mysql84-jdk21_zulu">
 		<antcall target="functional-wildfly300-mysql84-jdk21_zulu" />
 	</target>
@@ -7283,10 +7601,6 @@ information. Make sure to commit in all format-javadoc results.
 		<run-functional-test app.server.type="tomcat" database.type="mysql" />
 	</target>
 
-	<target name="functional-tomcat-mysql-jdk17_zulu">
-		<run-functional-test app.server.type="tomcat" database.type="mysql" />
-	</target>
-
 	<target name="functional-tomcat-mysql-jdk21_zulu">
 		<run-functional-test app.server.type="tomcat" database.type="mysql" />
 	</target>
@@ -7296,10 +7610,6 @@ information. Make sure to commit in all format-javadoc results.
 	</target>
 
 	<target name="functional-tomcat-mysql84">
-		<run-functional-test app.server.type="tomcat" database.type="mysql" database.version="8.4" />
-	</target>
-
-	<target name="functional-tomcat-mysql84-jdk17_zulu">
 		<run-functional-test app.server.type="tomcat" database.type="mysql" database.version="8.4" />
 	</target>
 
@@ -7324,10 +7634,6 @@ information. Make sure to commit in all format-javadoc results.
 	</target>
 
 	<target name="functional-tomcat-postgresql">
-		<run-functional-test app.server.type="tomcat" database.type="postgresql" />
-	</target>
-
-	<target name="functional-tomcat-postgresql-jdk17_zulu">
 		<run-functional-test app.server.type="tomcat" database.type="postgresql" />
 	</target>
 
@@ -7364,10 +7670,6 @@ information. Make sure to commit in all format-javadoc results.
 	</target>
 
 	<target name="functional-tomcat-postgresql155">
-		<run-functional-test app.server.type="tomcat" database.type="postgresql" database.version="15.5" />
-	</target>
-
-	<target name="functional-tomcat-postgresql155-jdk17_zulu">
 		<run-functional-test app.server.type="tomcat" database.type="postgresql" database.version="15.5" />
 	</target>
 
@@ -7538,10 +7840,6 @@ information. Make sure to commit in all format-javadoc results.
 	</target>
 
 	<target name="functional-tomcat101-mysql84-chrome100_stable">
-		<run-functional-test app.server.type="tomcat" database.type="mysql" database.version="8.4" />
-	</target>
-
-	<target name="functional-tomcat101-mysql84-jdk17_zulu">
 		<run-functional-test app.server.type="tomcat" database.type="mysql" database.version="8.4" />
 	</target>
 
@@ -7901,18 +8199,6 @@ information. Make sure to commit in all format-javadoc results.
 		<set-app-server-version-number app.server.type="wildfly" app.server.version="30.0.0" />
 
 		<run-functional-test app.server.type="wildfly" app.server.version="30.0.0" database.type="mariadb" />
-	</target>
-
-	<target name="functional-upgrade-wildfly300-mariadb104">
-		<set-app-server-version-number app.server.type="wildfly" app.server.version="30.0.0" />
-
-		<run-functional-test app.server.type="wildfly" app.server.version="30.0.0" database.type="mariadb" database.version="10.4" />
-	</target>
-
-	<target name="functional-upgrade-wildfly300-mariadb106">
-		<set-app-server-version-number app.server.type="wildfly" app.server.version="30.0.0" />
-
-		<run-functional-test app.server.type="wildfly" app.server.version="30.0.0" database.type="mariadb" database.version="10.6" />
 	</target>
 
 	<target name="functional-weblogic151-mysql">
@@ -8282,12 +8568,6 @@ information. Make sure to commit in all format-javadoc results.
 		<run-functional-test app.server.type="wildfly" app.server.version="30.0.0" database.type="mysql" database.version="8.4" />
 	</target>
 
-	<target name="functional-wildfly300-mysql84-jdk17_zulu">
-		<set-app-server-version-number app.server.type="wildfly" app.server.version="30.0.0" />
-
-		<run-functional-test app.server.type="wildfly" app.server.version="30.0.0" database.type="mysql" database.version="8.4" />
-	</target>
-
 	<target name="functional-wildfly300-mysql84-jdk21_zulu">
 		<set-app-server-version-number app.server.type="wildfly" app.server.version="30.0.0" />
 
@@ -8614,11 +8894,61 @@ information. Make sure to commit in all format-javadoc results.
 					<sequential>
 						<echo>Executing Gradle tasks: @{modules.test.class}.</echo>
 
+						<var name="modules.test.class.file.paths" unset="true" />
+						<var name="modules.test.class.file.paths.task" unset="true" />
+						<var name="modules.test.class.task" unset="true" />
+
+						<beanshell>
+							<![CDATA[
+								String modulesTestClass = "@{modules.test.class}";
+
+								int index = modulesTestClass.indexOf("#");
+
+								if (index == -1) {
+									project.setProperty("modules.test.class.file.paths", "");
+									project.setProperty("modules.test.class.task", modulesTestClass);
+								}
+								else {
+									String projectDirPath = project.getProperty("project.dir");
+
+									StringBuilder sb = new StringBuilder();
+
+									for (String testFilePath : modulesTestClass.substring(index + 1).split("#")) {
+										if (sb.length() > 0) {
+											sb.append(",");
+										}
+
+										sb.append(projectDirPath);
+										sb.append("/");
+										sb.append(testFilePath);
+									}
+
+									String testTask = modulesTestClass.substring(0, index);
+
+									project.setProperty("js.unit.test.file.reported", "true");
+									project.setProperty("modules.test.class.file.paths", sb.toString());
+									project.setProperty("modules.test.class.file.paths.task", testTask.replaceAll(":packageRunTest$", ":runJSUnitTestFilePaths"));
+									project.setProperty("modules.test.class.task", testTask);
+								}
+							]]>
+						</beanshell>
+
 						<trycatch property="gradle.failure">
 							<try>
-								<gradle-execute dir="modules" task="@{modules.test.class}">
-									<arg value="--continue" />
-								</gradle-execute>
+								<if>
+									<equals arg1="${modules.test.class.file.paths}" arg2="" />
+									<then>
+										<gradle-execute dir="modules" task="${modules.test.class.task}">
+											<arg value="--continue" />
+										</gradle-execute>
+									</then>
+									<else>
+										<gradle-execute dir="modules" task="${modules.test.class.file.paths.task}">
+											<arg value="--continue" />
+											<arg value="-Pjs.unit.test.file.paths=${modules.test.class.file.paths}" />
+										</gradle-execute>
+									</else>
+								</if>
 							</try>
 							<catch>
 								<echo>${gradle.failure}</echo>
@@ -8634,28 +8964,29 @@ information. Make sure to commit in all format-javadoc results.
 					</sequential>
 				</for>
 
-				<replace
-					dir="modules"
-					includes="**/TEST-frontend-js.xml"
-				>
-					<replacefilter>
-						<replacetoken><![CDATA[<testsuites>]]></replacetoken>
-						<replacevalue><![CDATA[]]></replacevalue>
-					</replacefilter>
-					<replacefilter>
-						<replacetoken><![CDATA[</testsuites>]]></replacetoken>
-						<replacevalue><![CDATA[]]></replacevalue>
-					</replacefilter>
-				</replace>
+				<format-js-unit-test-results portal.dir="${project.dir}" test.dir="modules" />
 
-				<if>
-					<not>
-						<equals arg1="${js.unit.failure.count}" arg2="0" />
-					</not>
-					<then>
-						<fail message="${js.unit.failure.count} JS unit tests failed." />
-					</then>
-				</if>
+				<for param="test.results.file">
+					<path>
+						<fileset
+							dir="modules"
+							erroronmissingdir="false"
+							excludes="**/node_modules/**"
+							includes="**/TEST-frontend-js.xml"
+						/>
+					</path>
+					<sequential>
+						<split-testsuites-junit-report test.suites.report.filepath="@{test.results.file}" />
+					</sequential>
+				</for>
+
+				<report-js-unit-test-results failure.count="${js.unit.failure.count}">
+					<fileset
+						dir="modules"
+						excludes="**/node_modules/**"
+						includes="**/TEST-frontend-js*.xml"
+					/>
+				</report-js-unit-test-results>
 			</test-action>
 
 			<test-set-up>
@@ -9264,10 +9595,6 @@ information. Make sure to commit in all format-javadoc results.
 		<run-modules-integration-test database.type="mysql" database.version="8.4" />
 	</target>
 
-	<target name="modules-integration-mysql84-jdk17_zulu">
-		<run-modules-integration-test database.type="mysql" database.version="8.4" />
-	</target>
-
 	<target name="modules-integration-mysql84-jdk21_zulu">
 		<run-modules-integration-test database.type="mysql" database.version="8.4" />
 	</target>
@@ -9324,10 +9651,6 @@ information. Make sure to commit in all format-javadoc results.
 		<run-modules-integration-test database.type="postgresql" database.version="15.5" />
 	</target>
 
-	<target name="modules-integration-postgresql155-jdk17_zulu">
-		<run-modules-integration-test database.type="postgresql" database.version="15.5" />
-	</target>
-
 	<target name="modules-integration-postgresql155-jdk21_zulu">
 		<run-modules-integration-test database.type="postgresql" database.version="15.5" />
 	</target>
@@ -9342,21 +9665,6 @@ information. Make sure to commit in all format-javadoc results.
 
 	<target name="modules-integration-project-templates">
 		<antcall target="modules-unit">
-			<param name="project.templates.test" value="true" />
-			<param name="project.templates.test.builds" value="true" />
-		</antcall>
-	</target>
-
-	<target name="modules-integration-project-templates-jdk17_zulu">
-		<get-java-jdk-home type="zulu" version="17" />
-
-		<echo append="true" file="build.${user.name}.properties">
-			junit.jvm.override=${java.jdk.home}/bin/java
-			junit.jvm.override.version=17</echo>
-
-		<antcall target="modules-unit">
-			<param name="junit.jvm.override" value="${java.jdk.home}/bin/java" />
-			<param name="junit.jvm.override.version" value="17" />
 			<param name="project.templates.test" value="true" />
 			<param name="project.templates.test.builds" value="true" />
 		</antcall>
@@ -9468,19 +9776,6 @@ information. Make sure to commit in all format-javadoc results.
 		</run-batch-test>
 	</target>
 
-	<target name="modules-unit-jdk17_zulu">
-		<get-java-jdk-home type="zulu" version="17" />
-
-		<echo append="true" file="build.${user.name}.properties">
-junit.jvm.override=${java.jdk.home}/bin/java
-junit.jvm.override.version=17</echo>
-
-		<antcall target="modules-unit">
-			<param name="junit.jvm.override" value="${java.jdk.home}/bin/java" />
-			<param name="junit.jvm.override.version" value="17" />
-		</antcall>
-	</target>
-
 	<target name="modules-unit-jdk21_zulu">
 		<get-java-jdk-home type="zulu" version="21" />
 
@@ -9502,21 +9797,6 @@ junit.jvm.override.version=21</echo>
 
 	<target name="modules-unit-project-templates">
 		<antcall target="modules-unit">
-			<param name="project.templates.test" value="true" />
-			<param name="project.templates.test.builds" value="false" />
-		</antcall>
-	</target>
-
-	<target name="modules-unit-project-templates-jdk17_zulu">
-		<get-java-jdk-home type="zulu" version="17" />
-
-		<echo append="true" file="build.${user.name}.properties">
-			junit.jvm.override=${java.jdk.home}/bin/java
-			junit.jvm.override.version=17</echo>
-
-		<antcall target="modules-unit">
-			<param name="junit.jvm.override" value="${java.jdk.home}/bin/java" />
-			<param name="junit.jvm.override.version" value="17" />
 			<param name="project.templates.test" value="true" />
 			<param name="project.templates.test.builds" value="false" />
 		</antcall>
@@ -9690,8 +9970,16 @@ ${output.content}</echo>
 		<run-playwright-js-test app.server.type="wildfly" database.type="mariadb" />
 	</target>
 
+	<target name="playwright-js-tomcat101-db2111">
+		<run-playwright-js-test database.type="db2" />
+	</target>
+
 	<target name="playwright-js-tomcat101-hypersonic20">
 		<run-playwright-js-test database.type="hypersonic" />
+	</target>
+
+	<target name="playwright-js-tomcat101-mariadb106">
+		<run-playwright-js-test database.type="mariadb" />
 	</target>
 
 	<target name="playwright-js-tomcat101-mysql84">
@@ -9706,6 +9994,10 @@ ${output.content}</echo>
 		<antcall target="playwright-js-tomcat101-mysql84" />
 	</target>
 
+	<target name="playwright-js-tomcat101-oracle193">
+		<run-playwright-js-test database.type="oracle" />
+	</target>
+
 	<target name="playwright-js-tomcat101-postgresql163">
 		<run-playwright-js-test database.type="postgresql" />
 	</target>
@@ -9716,6 +10008,38 @@ ${output.content}</echo>
 
 	<target name="playwright-js-tomcat101-postgresql163_stable">
 		<antcall target="playwright-js-tomcat101-postgresql163" />
+	</target>
+
+	<target name="playwright-js-tomcat101-sqlserver2022">
+		<run-playwright-js-test database.type="sqlserver" />
+	</target>
+
+	<target name="playwright-js-upgrade-tomcat101-db2111">
+		<run-playwright-js-test database.type="db2" />
+	</target>
+
+	<target name="playwright-js-upgrade-tomcat101-db2115">
+		<run-playwright-js-test database.type="db2" />
+	</target>
+
+	<target name="playwright-js-upgrade-tomcat101-mariadb106">
+		<run-playwright-js-test database.type="mariadb" />
+	</target>
+
+	<target name="playwright-js-upgrade-tomcat101-mysql84">
+		<run-playwright-js-test database.type="mysql" />
+	</target>
+
+	<target name="playwright-js-upgrade-tomcat101-oracle193">
+		<run-playwright-js-test database.type="oracle" />
+	</target>
+
+	<target name="playwright-js-upgrade-tomcat101-postgresql163">
+		<run-playwright-js-test database.type="postgresql" />
+	</target>
+
+	<target name="playwright-js-upgrade-tomcat101-sqlserver2022">
+		<run-playwright-js-test database.type="sqlserver" />
 	</target>
 
 	<target name="plugins-compile">
@@ -10742,19 +11066,6 @@ ${output.content}</echo>
 		</run-batch-test>
 	</target>
 
-	<target name="unit-jdk17_zulu">
-		<get-java-jdk-home type="zulu" version="17" />
-
-		<echo append="true" file="build.${user.name}.properties">
-junit.jvm.override=${java.jdk.home}/bin/java
-junit.jvm.override.version=17</echo>
-
-		<antcall target="unit">
-			<param name="junit.jvm.override" value="${java.jdk.home}/bin/java" />
-			<param name="junit.jvm.override.version" value="17" />
-		</antcall>
-	</target>
-
 	<target name="unit-jdk21_zulu">
 		<get-java-jdk-home type="zulu" version="21" />
 
@@ -10777,21 +11088,37 @@ junit.jvm.override.version=21</echo>
 			<test-action>
 				<local name="workspace.names" />
 
-				<propertycopy from="workspaces.names[workspaces-compile-jdk${batch.jdk.version}][${env.CI_TEST_SUITE}]" name="workspace.names" silent="true" />
-
 				<if>
-					<not>
-						<isset property="workspace.names" />
-					</not>
+					<isset property="modules.test.class.group" />
 					<then>
-						<propertycopy from="workspaces.names[workspaces-compile][${env.CI_TEST_SUITE}]" name="workspace.names" override="true" silent="true" />
+						<propertyregex
+							defaultValue="${modules.test.class.group}"
+							global="true"
+							input="${modules.test.class.group}"
+							override="true"
+							property="workspace.names"
+							regexp="\s+"
+							replace=","
+						/>
 					</then>
-				</if>
+					<else>
+						<beanshell>
+							<![CDATA[
+								import com.liferay.jenkins.results.parser.JenkinsResultsParserUtil;
 
-				<property name="workspace.names" value="${workspaces.names[workspaces-compile]}" />
+								Properties properties = new Properties();
+
+								properties.putAll(project.getProperties());
+
+								project.setProperty("workspace.names", JenkinsResultsParserUtil.getProperty(properties, "workspaces.names", false, new String[] {project.getProperty("test.batch.name"), project.getProperty("env.CI_TEST_SUITE")}));
+							]]>
+						</beanshell>
+					</else>
+				</if>
 
 				<for list="${workspace.names}" param="workspace.name">
 					<sequential>
+						<local name="workspace.absolute.dir" />
 						<local name="workspace.dir" />
 
 						<condition else="workspaces/@{workspace.name}" property="workspace.dir" value="${liferay.portal.private.dir}/workspaces/@{workspace.name}">
@@ -10799,6 +11126,8 @@ junit.jvm.override.version=21</echo>
 						</condition>
 
 						<property name="workspace.dir" value="workspaces/@{workspace.name}" />
+
+						<property location="${workspace.dir}" name="workspace.absolute.dir" />
 
 						<if>
 							<available file="${workspace.dir}" />
@@ -10809,13 +11138,13 @@ junit.jvm.override.version=21</echo>
 								<echo>##</echo>
 								<echo></echo>
 
-								<download-gradle-wrapper-binary workspace.dir="${project.dir}/${workspace.dir}" />
+								<download-gradle-wrapper-binary workspace.dir="${workspace.absolute.dir}" />
 
-								<execute-gradle-task gradle.task.module.dir="${workspace.dir}" gradle.task.name="build">
+								<execute-gradle-task gradle.task.module.dir="workspaces/@{workspace.name}" gradle.task.name="build">
 									<action>
-										<exec dir="${workspace.dir}" executable="${project.dir}/${workspace.dir}/gradlew" failonerror="true">
-											<arg value="build" />
-											<env key="GRADLE_USER_HOME" value="${project.dir}/workspaces/.gradle" />
+										<exec dir="${workspace.dir}" executable="${workspace.absolute.dir}/gradlew" failonerror="true">
+											<arg value="assemble" />
+											<env key="GRADLE_USER_HOME" value="${workspace.absolute.dir}/../.gradle" />
 											<env key="YARN_YARN_OFFLINE_MIRROR_PRUNING" value="false" />
 										</exec>
 									</action>
@@ -10832,6 +11161,94 @@ junit.jvm.override.version=21</echo>
 		<antcall target="workspaces-compile">
 			<param name="batch.jdk.version" value="11" />
 		</antcall>
+	</target>
+
+	<target name="workspaces-integration">
+		<run-batch-test>
+			<test-action>
+				<print-test-class-group test.class.group.index="${axis.variable}" />
+
+				<lstopwatch action="start" name="test.execution.duration" />
+
+				<mkdir dir="${project.dir}/workspaces/test-results" />
+
+				<run-workspaces-integration-test test.task.group="${test.task.group}" workspace.bundle.mirror.dir="${workspace.bundle.mirror.dir}" workspace.license.xml.url="${test.license.xml.url}" />
+
+				<lstopwatch action="total" name="test.execution.duration" />
+			</test-action>
+
+			<test-set-up>
+				<if>
+					<isset property="TEST_CLASS_GROUP_${axis.variable}" />
+					<then>
+						<local name="test.class.group" />
+
+						<propertycopy from="TEST_CLASS_GROUP_${axis.variable}" name="test.class.group" />
+
+						<echo file="${project.dir}/test.class.file.names.properties">TEST_CLASS_GROUP_${axis.variable}=${test.class.group}</echo>
+					</then>
+					<else>
+						<antcall inheritAll="false" target="record-test-class-file-names">
+							<param name="test.class.groups.size" value="${test.batch.size}" />
+						</antcall>
+					</else>
+				</if>
+			</test-set-up>
+		</run-batch-test>
+	</target>
+
+	<target name="workspaces-js-unit">
+		<run-batch-test>
+			<test-action>
+				<lstopwatch action="start" name="test.execution.duration" />
+
+				<run-workspaces-js-unit-test test.class.group="${modules.test.class.group}" test.gradle.args="--continue" />
+
+				<lstopwatch action="total" name="test.execution.duration" />
+
+				<format-js-unit-test-results portal.dir="${project.dir}" test.dir="workspaces" />
+
+				<format-js-unit-test-results portal.dir="${liferay.portal.private.dir}" test.dir="workspaces" />
+
+				<for param="test.results.file">
+					<path>
+						<fileset
+							dir="workspaces"
+							erroronmissingdir="false"
+							excludes="**/node_modules/**"
+							includes="**/TEST-frontend-js.xml"
+						/>
+						<fileset
+							dir="${liferay.portal.private.dir}/workspaces"
+							erroronmissingdir="false"
+							excludes="**/node_modules/**"
+							includes="**/TEST-frontend-js.xml"
+						/>
+					</path>
+					<sequential>
+						<split-testsuites-junit-report test.suites.report.filepath="@{test.results.file}" />
+					</sequential>
+				</for>
+
+				<report-js-unit-test-results failure.count="${js.unit.failure.count}">
+					<fileset
+						dir="workspaces"
+						excludes="**/node_modules/**"
+						includes="**/TEST-frontend-js*.xml"
+					/>
+					<fileset
+						dir="${liferay.portal.private.dir}/workspaces"
+						erroronmissingdir="false"
+						excludes="**/node_modules/**"
+						includes="**/TEST-frontend-js*.xml"
+					/>
+				</report-js-unit-test-results>
+			</test-action>
+
+			<test-set-up>
+				<setup-test-environment />
+			</test-set-up>
+		</run-batch-test>
 	</target>
 
 	<target name="workspaces-unit">

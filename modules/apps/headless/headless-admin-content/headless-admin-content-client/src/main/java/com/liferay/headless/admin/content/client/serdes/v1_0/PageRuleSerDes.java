@@ -12,6 +12,7 @@ import com.liferay.headless.admin.content.client.json.BaseJSONParser;
 
 import jakarta.annotation.Generated;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -96,7 +97,7 @@ public class PageRuleSerDes {
 			sb.append("[");
 
 			for (int i = 0; i < pageRule.getPageRuleActions().length; i++) {
-				sb.append(pageRule.getPageRuleActions()[i]);
+				sb.append(String.valueOf(pageRule.getPageRuleActions()[i]));
 
 				if ((i + 1) < pageRule.getPageRuleActions().length) {
 					sb.append(", ");
@@ -116,7 +117,7 @@ public class PageRuleSerDes {
 			sb.append("[");
 
 			for (int i = 0; i < pageRule.getPageRuleConditions().length; i++) {
-				sb.append(pageRule.getPageRuleConditions()[i]);
+				sb.append(String.valueOf(pageRule.getPageRuleConditions()[i]));
 
 				if ((i + 1) < pageRule.getPageRuleConditions().length) {
 					sb.append(", ");
@@ -328,6 +329,12 @@ public class PageRuleSerDes {
 			return "null";
 		}
 
+		if (value instanceof Collection) {
+			Collection<?> collection = (Collection<?>)value;
+
+			return _toJSON(collection.toArray());
+		}
+
 		if (value instanceof Map) {
 			return _toJSON((Map)value);
 		}
@@ -360,4 +367,4 @@ public class PageRuleSerDes {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:-1151185909
+// LIFERAY-REST-BUILDER-HASH:2007299396

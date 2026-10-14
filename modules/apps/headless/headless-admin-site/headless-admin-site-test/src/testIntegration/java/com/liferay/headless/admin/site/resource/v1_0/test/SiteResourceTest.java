@@ -9,6 +9,7 @@ import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.depot.constants.DepotConstants;
 import com.liferay.depot.constants.DepotRolesConstants;
 import com.liferay.depot.model.DepotEntry;
+import com.liferay.depot.service.DepotEntryGroupRelLocalService;
 import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.exportimport.kernel.configuration.ExportImportConfigurationSettingsMapFactoryUtil;
 import com.liferay.exportimport.kernel.configuration.constants.ExportImportConfigurationConstants;
@@ -37,9 +38,11 @@ import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutSet;
 import com.liferay.portal.kernel.model.LayoutSetPrototype;
+import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.role.RoleConstants;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.service.LayoutSetPrototypeLocalService;
@@ -63,9 +66,12 @@ import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
+import com.liferay.portal.kernel.zip.ZipWriter;
+import com.liferay.portal.kernel.zip.ZipWriterFactory;
 import com.liferay.portal.test.log.LogCapture;
 import com.liferay.portal.test.log.LoggerTestUtil;
 import com.liferay.portal.test.rule.FeatureFlag;
@@ -189,6 +195,10 @@ public class SiteResourceTest extends BaseSiteResourceTestCase {
 		_testGetSitesPageWithActiveOrSiteGroups(false, true);
 		_testGetSitesPageWithActiveOrSiteGroups(true, false);
 		_testGetSitesPageWithAssetLibraryMember();
+		_testGetSitesPageWithConnectedAssetLibraryRole(
+			DepotRolesConstants.ASSET_LIBRARY_ADMINISTRATOR);
+		_testGetSitesPageWithConnectedAssetLibraryRole(
+			DepotRolesConstants.ASSET_LIBRARY_OWNER);
 		_testGetSitesPageWithDepotEntry();
 		_testGetSitesPageWithExcludedExternalReferenceCodes();
 		_testGetSitesPageWithExternalReferenceCodes();
@@ -197,13 +207,7 @@ public class SiteResourceTest extends BaseSiteResourceTestCase {
 		_testGetSitesPageWithoutSiteMembership();
 		_testGetSitesPageWithSearch();
 		_testGetSitesPageWithUser(
-			_addUserWithDepotRole(
-				_addDepotEntry(),
-				DepotRolesConstants.ASSET_LIBRARY_ADMINISTRATOR));
-		_testGetSitesPageWithUser(
-			_addUserWithDepotRole(
-				_addDepotEntry(), DepotRolesConstants.ASSET_LIBRARY_OWNER));
-		_testGetSitesPageWithUser(
+			_testPostSite_addSite(randomSite()),
 			_addUserWithRegularRole(RoleConstants.CMS_ADMINISTRATOR));
 	}
 
@@ -284,6 +288,7 @@ public class SiteResourceTest extends BaseSiteResourceTestCase {
 
 		_testPutSiteSiteInitializerPreservesFriendlyUrlPath();
 		_testPutSiteSiteInitializerSystemSite();
+		_testPutSiteSiteInitializerWithoutPermission();
 	}
 
 	@Override
@@ -495,7 +500,7 @@ public class SiteResourceTest extends BaseSiteResourceTestCase {
 			site.getName(), group.getName(LocaleUtil.getDefault()));
 	}
 
-	private File _exportLayoutsAsFile(String... siteExternalReferenceCodes)
+	private File _exportLayoutsAsFile(String... groupExternalReferenceCodes)
 		throws Exception {
 
 		Group companyGroup = _stagingGroupHelper.fetchCompanyGroup(
@@ -511,12 +516,12 @@ public class SiteResourceTest extends BaseSiteResourceTestCase {
 							TestPropsValues.getUser(),
 							companyGroup.getGroupId(), false, new long[0],
 							HashMapBuilder.put(
+								PortletDataHandlerKeys.
+									GROUP_EXTERNAL_REFERENCE_CODES,
+								groupExternalReferenceCodes
+							).put(
 								PortletDataHandlerKeys.PORTLET_DATA,
 								new String[] {Boolean.TRUE.toString()}
-							).put(
-								PortletDataHandlerKeys.
-									SITE_EXTERNAL_REFERENCE_CODES,
-								siteExternalReferenceCodes
 							).build())));
 	}
 
@@ -549,17 +554,63 @@ public class SiteResourceTest extends BaseSiteResourceTestCase {
 							TestPropsValues.getUser(),
 							companyGroup.getGroupId(), false, new long[0],
 							HashMapBuilder.put(
+								PortletDataHandlerKeys.
+									GROUP_EXTERNAL_REFERENCE_CODES,
+								siteExternalReferenceCodes
+							).put(
 								PortletDataHandlerKeys.PORTLET_DATA,
 								new String[] {Boolean.TRUE.toString()}
 							).put(
 								PortletDataHandlerKeys.PORTLET_DATA_ALL,
 								new String[] {Boolean.TRUE.toString()}
-							).put(
-								PortletDataHandlerKeys.
-									SITE_EXTERNAL_REFERENCE_CODES,
-								siteExternalReferenceCodes
 							).build())),
 			larFile);
+	}
+
+	private void _testGetSiteWithDollar() throws Exception {
+		Site postSite = siteResource.putSiteSiteInitializer(
+			RandomTestUtil.randomString() + StringPool.DOLLAR, randomSite(),
+			getMultipartFiles());
+
+		Site getSite = siteResource.getSite(
+			postSite.getExternalReferenceCode());
+
+		assertEquals(postSite, getSite);
+		assertValid(getSite);
+	}
+
+	private void _testGetSiteWithoutViewPermission() throws Exception {
+		User user = UserTestUtil.addUser(false);
+
+		user = _userLocalService.updatePassword(
+			user.getUserId(), "test", "test", false, true);
+
+		SiteResource siteResource = SiteResource.builder(
+		).authentication(
+			user.getEmailAddress(), "test"
+		).endpoint(
+			testCompany.getVirtualHostname(),
+			PortalUtil.getPortalServerPort(false), "http"
+		).locale(
+			LocaleUtil.getDefault()
+		).build();
+
+		Site randomSite = randomSite();
+
+		randomSite.setMembershipType(Site.MembershipType.PRIVATE);
+
+		Site postSite = _testPostSite_addSite(randomSite);
+
+		try {
+			siteResource.getSite(postSite.getExternalReferenceCode());
+
+			Assert.fail();
+		}
+		catch (Problem.ProblemException problemException) {
+			Problem problem = problemException.getProblem();
+
+			Assert.assertEquals("NOT_FOUND", problem.getStatus());
+		}
 	}
 
 	private void _testGetSitesPageWithActiveAndInactiveSites()
@@ -624,6 +675,20 @@ public class SiteResourceTest extends BaseSiteResourceTestCase {
 			null, null, null, null, Pagination.of(1, 1));
 
 		Assert.assertEquals(totalCount, sitesPage2.getTotalCount());
+	}
+
+	private void _testGetSitesPageWithConnectedAssetLibraryRole(String roleName)
+		throws Exception {
+
+		DepotEntry depotEntry = _addDepotEntry();
+
+		Site site = _testPostSite_addSite(randomSite());
+
+		_depotEntryGroupRelLocalService.addDepotEntryGroupRel(
+			depotEntry.getDepotEntryId(), site.getId());
+
+		_testGetSitesPageWithUser(
+			site, _addUserWithDepotRole(depotEntry, roleName));
 	}
 
 	private void _testGetSitesPageWithDepotEntry() throws Exception {
@@ -735,6 +800,36 @@ public class SiteResourceTest extends BaseSiteResourceTestCase {
 		}
 	}
 
+	private void _testGetSitesPageWithSearch() throws Exception {
+		String name = RandomTestUtil.randomString();
+
+		Site randomSite = new Site();
+
+		randomSite.setName(name);
+
+		Site postSite = _testPostSite_addSite(randomSite);
+
+		Page<Site> sitesPage = siteResource.getSitesPage(
+			true, null, null, name, Pagination.of(1, 10));
+
+		List<Site> items = (List<Site>)sitesPage.getItems();
+
+		Assert.assertEquals(items.toString(), 1, items.size());
+
+		assertEquals(postSite, items.get(0));
+	}
+
+	private void _testGetSitesPageWithUser(Site site, User user)
+		throws Exception {
+
+		SiteResource siteResource = _getSiteResource(user);
+
+		Page<Site> sitesPage = siteResource.getSitesPage(
+			null, null, null, null, Pagination.of(1, 500));
+
+		assertContains(site, (List<Site>)sitesPage.getItems());
+	}
+
 	private void _testGetSitesPageWithoutAuthentication() throws Exception {
 		SiteResource.Builder builder = SiteResource.builder();
 
@@ -779,82 +874,6 @@ public class SiteResourceTest extends BaseSiteResourceTestCase {
 
 		Assert.assertEquals(
 			sites.toString(), sites.size(), page.getTotalCount());
-	}
-
-	private void _testGetSitesPageWithSearch() throws Exception {
-		String name = RandomTestUtil.randomString();
-
-		Site randomSite = new Site();
-
-		randomSite.setName(name);
-
-		Site postSite = _testPostSite_addSite(randomSite);
-
-		Page<Site> sitesPage = siteResource.getSitesPage(
-			true, null, null, name, Pagination.of(1, 10));
-
-		List<Site> items = (List<Site>)sitesPage.getItems();
-
-		Assert.assertEquals(items.toString(), 1, items.size());
-
-		assertEquals(postSite, items.get(0));
-	}
-
-	private void _testGetSitesPageWithUser(User user) throws Exception {
-		Site site = _testPostSite_addSite(randomSite());
-
-		SiteResource siteResource = _getSiteResource(user);
-
-		Page<Site> sitesPage = siteResource.getSitesPage(
-			null, null, null, null, Pagination.of(1, 500));
-
-		assertContains(site, (List<Site>)sitesPage.getItems());
-	}
-
-	private void _testGetSiteWithDollar() throws Exception {
-		Site postSite = siteResource.putSiteSiteInitializer(
-			RandomTestUtil.randomString() + StringPool.DOLLAR, randomSite(),
-			getMultipartFiles());
-
-		Site getSite = siteResource.getSite(
-			postSite.getExternalReferenceCode());
-
-		assertEquals(postSite, getSite);
-		assertValid(getSite);
-	}
-
-	private void _testGetSiteWithoutViewPermission() throws Exception {
-		User user = UserTestUtil.addUser(false);
-
-		user = _userLocalService.updatePassword(
-			user.getUserId(), "test", "test", false, true);
-
-		SiteResource siteResource = SiteResource.builder(
-		).authentication(
-			user.getEmailAddress(), "test"
-		).endpoint(
-			testCompany.getVirtualHostname(),
-			PortalUtil.getPortalServerPort(false), "http"
-		).locale(
-			LocaleUtil.getDefault()
-		).build();
-
-		Site randomSite = randomSite();
-
-		randomSite.setMembershipType(Site.MembershipType.PRIVATE);
-
-		Site postSite = _testPostSite_addSite(randomSite);
-
-		try {
-			siteResource.getSite(postSite.getExternalReferenceCode());
-
-			Assert.fail();
-		}
-		catch (Problem.ProblemException problemException) {
-			Problem problem = problemException.getProblem();
-
-			Assert.assertEquals("NOT_FOUND", problem.getStatus());
-		}
 	}
 
 	private Site _testPostSite_addSite(Site site) throws Exception {
@@ -1363,23 +1382,6 @@ public class SiteResourceTest extends BaseSiteResourceTestCase {
 		Assert.assertArrayEquals(postSite.getLocales(), locales);
 	}
 
-	private void _testPostSiteWithoutAuthentication() throws Exception {
-		SiteResource.Builder builder = SiteResource.builder();
-
-		SiteResource siteResource = builder.build();
-
-		try {
-			siteResource.postSite(randomSite());
-
-			Assert.fail();
-		}
-		catch (Problem.ProblemException problemException) {
-			Problem problem = problemException.getProblem();
-
-			Assert.assertEquals("403", problem.getStatus());
-		}
-	}
-
 	private void _testPostSiteWithParentSiteExternalReferenceCode()
 		throws Exception {
 
@@ -1522,6 +1524,23 @@ public class SiteResourceTest extends BaseSiteResourceTestCase {
 		Assert.assertNotNull(postSite.getLocales());
 
 		assertEquals(randomSite, postSite);
+	}
+
+	private void _testPostSiteWithoutAuthentication() throws Exception {
+		SiteResource.Builder builder = SiteResource.builder();
+
+		SiteResource siteResource = builder.build();
+
+		try {
+			siteResource.postSite(randomSite());
+
+			Assert.fail();
+		}
+		catch (Problem.ProblemException problemException) {
+			Problem problem = problemException.getProblem();
+
+			Assert.assertEquals("403", problem.getStatus());
+		}
 	}
 
 	private void _testPutSiteActivateParentSite() throws Exception {
@@ -1850,6 +1869,66 @@ public class SiteResourceTest extends BaseSiteResourceTestCase {
 		_groupLocalService.updateGroup(group);
 	}
 
+	private void _testPutSiteSiteInitializerWithoutPermission()
+		throws Exception {
+
+		User user = UserTestUtil.addUser(false);
+
+		user = _userLocalService.updatePassword(
+			user.getUserId(), "test", "test", false, true);
+
+		Role role = RoleTestUtil.addRole(RoleConstants.TYPE_REGULAR);
+
+		RoleTestUtil.addResourcePermission(
+			role, PortletKeys.PORTAL, ResourceConstants.SCOPE_COMPANY,
+			String.valueOf(TestPropsValues.getCompanyId()),
+			ActionKeys.ADD_COMMUNITY);
+
+		_userLocalService.addRoleUser(role.getRoleId(), user.getUserId());
+
+		ZipWriter zipWriter = _zipWriterFactory.getZipWriter();
+
+		zipWriter.addEntry(
+			"site-initializer/user-roles.json",
+			JSONUtil.putAll(
+				JSONUtil.put(
+					"emailAddress", user.getEmailAddress()
+				).put(
+					"roles", JSONUtil.putAll(RoleConstants.ADMINISTRATOR)
+				)
+			).toString());
+
+		SiteResource siteResource = SiteResource.builder(
+		).authentication(
+			user.getEmailAddress(), "test"
+		).endpoint(
+			testCompany.getVirtualHostname(),
+			PortalUtil.getPortalServerPort(false), "http"
+		).locale(
+			LocaleUtil.getDefault()
+		).build();
+
+		try {
+			siteResource.putSiteSiteInitializer(
+				RandomTestUtil.randomString(), randomSite(),
+				HashMapBuilder.<String, File>put(
+					"file", zipWriter.getFile()
+				).build());
+
+			Assert.fail();
+		}
+		catch (Problem.ProblemException problemException) {
+			Problem problem = problemException.getProblem();
+
+			Assert.assertEquals("FORBIDDEN", problem.getStatus());
+		}
+
+		Assert.assertFalse(
+			_userLocalService.hasRoleUser(
+				TestPropsValues.getCompanyId(), RoleConstants.ADMINISTRATOR,
+				user.getUserId(), true));
+	}
+
 	private void _testPutSiteWithExcludedTypeSettings() throws Exception {
 		Site postSite = testPutSite_addSite();
 
@@ -1900,6 +1979,33 @@ public class SiteResourceTest extends BaseSiteResourceTestCase {
 			putSiteUnicodeProperties.get("MAP_PROVIDER_KEY"));
 	}
 
+	private void _testPutSiteWithParentSiteExternalReferenceCode()
+		throws Exception {
+
+		Site postParentSite = testPutSite_addSite();
+
+		Site randomSite = randomSite();
+
+		randomSite.setExternalReferenceCode(RandomTestUtil.randomString());
+		randomSite.setParentSiteExternalReferenceCode(
+			postParentSite.getExternalReferenceCode());
+
+		Site putSite = siteResource.putSite(
+			randomSite.getExternalReferenceCode(), randomSite);
+
+		Assert.assertEquals(
+			postParentSite.getExternalReferenceCode(),
+			putSite.getParentSiteExternalReferenceCode());
+
+		randomSite.setParentSiteExternalReferenceCode(StringPool.BLANK);
+
+		putSite = siteResource.putSite(
+			randomSite.getExternalReferenceCode(), randomSite);
+
+		Assert.assertEquals(
+			StringPool.BLANK, putSite.getParentSiteExternalReferenceCode());
+	}
+
 	private void _testPutSiteWithoutUpdatePermission() throws Exception {
 		User user = UserTestUtil.addUser(false);
 
@@ -1931,39 +2037,15 @@ public class SiteResourceTest extends BaseSiteResourceTestCase {
 		}
 	}
 
-	private void _testPutSiteWithParentSiteExternalReferenceCode()
-		throws Exception {
-
-		Site postParentSite = testPutSite_addSite();
-
-		Site randomSite = randomSite();
-
-		randomSite.setExternalReferenceCode(RandomTestUtil.randomString());
-		randomSite.setParentSiteExternalReferenceCode(
-			postParentSite.getExternalReferenceCode());
-
-		Site putSite = siteResource.putSite(
-			randomSite.getExternalReferenceCode(), randomSite);
-
-		Assert.assertEquals(
-			postParentSite.getExternalReferenceCode(),
-			putSite.getParentSiteExternalReferenceCode());
-
-		randomSite.setParentSiteExternalReferenceCode(StringPool.BLANK);
-
-		putSite = siteResource.putSite(
-			randomSite.getExternalReferenceCode(), randomSite);
-
-		Assert.assertEquals(
-			StringPool.BLANK, putSite.getParentSiteExternalReferenceCode());
-	}
-
 	private static final String _CLASS_NAME_EXCEPTION_MAPPER =
 		"com.liferay.portal.vulcan.internal.jaxrs.exception.mapper." +
 			"ExceptionMapper";
 
 	@DeleteAfterTestRun
 	private DepotEntry _depotEntry;
+
+	@Inject
+	private DepotEntryGroupRelLocalService _depotEntryGroupRelLocalService;
 
 	@Inject
 	private DepotEntryLocalService _depotEntryLocalService;
@@ -1997,6 +2079,9 @@ public class SiteResourceTest extends BaseSiteResourceTestCase {
 
 	@Inject
 	private UserLocalService _userLocalService;
+
+	@Inject
+	private ZipWriterFactory _zipWriterFactory;
 
 	private class TestSiteInitializer implements SiteInitializer {
 

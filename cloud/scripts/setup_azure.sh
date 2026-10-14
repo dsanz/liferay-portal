@@ -6,6 +6,10 @@ set -o pipefail
 
 source "$(dirname "${BASH_SOURCE[0]}")/_azure_common.sh"
 
+_CONFIG_JSON_DEFAULTS_FILE="${SCRIPTS_DIR}/config.json.defaults"
+
+readonly _CONFIG_JSON_DEFAULTS_FILE
+
 function main {
 	if [ ${#} -eq 0 ]
 	then
@@ -20,20 +24,24 @@ function main {
 
 	validate_config_json "${1}"
 
-	generate_tfvars "${1}" "aks"
+	local configuration_json_file
 
-	generate_tfvars "${1}" "platform"
+	configuration_json_file=$(_resolve_config_json "${1}")
 
-	az_login "${1}"
+	generate_tfvars "azure" "${configuration_json_file}" "aks"
+
+	generate_tfvars "azure" "${configuration_json_file}" "platform"
+
+	az_login "${configuration_json_file}"
 
 	local terraform_args=()
 
 	while IFS= read -r terraform_arg
 	do
 		terraform_args+=("${terraform_arg}")
-	done < <(get_terraform_args "${1}")
+	done < <(get_terraform_args "${configuration_json_file}")
 
-	if jq --exit-status '.tfstate | objects' "${1}" &> /dev/null
+	if jq --exit-status '.tfstate | objects' "${configuration_json_file}" &> /dev/null
 	then
 		local container_name
 		local deployment_name
@@ -41,17 +49,19 @@ function main {
 		local resource_group_name
 		local storage_account_name
 
-		container_name="$(jq --raw-output '.tfstate.container_name' "${1}")"
-		deployment_name="$(jq --raw-output '.deployment_name' "${1}")"
-		region="$(jq --raw-output '.region' "${1}")"
-		resource_group_name="$(jq --raw-output '.tfstate.resource_group_name' "${1}")"
-		storage_account_name="$(jq --raw-output '.tfstate.storage_account_name' "${1}")"
+		container_name="$(jq --raw-output '.tfstate.container_name' "${configuration_json_file}")"
+		deployment_name="$(jq --raw-output '.deployment_name' "${configuration_json_file}")"
+		region="$(jq --raw-output '.region' "${configuration_json_file}")"
+		resource_group_name="$(jq --raw-output '.tfstate.resource_group_name' "${configuration_json_file}")"
+		storage_account_name="$(jq --raw-output '.tfstate.storage_account_name' "${configuration_json_file}")"
 
 		_create_tfstate_storage "${container_name}" "${region}" "${resource_group_name}" "${storage_account_name}"
 
+		_grant_tfstate_access "${container_name}" "${resource_group_name}" "${storage_account_name}"
+
 		generate_remote_backend_overrides "${container_name}" "${deployment_name}" "${region}" "${resource_group_name}" "${storage_account_name}"
 	else
-		generate_local_backend_overrides
+		generate_local_backend_overrides "azure" "aks" "platform"
 	fi
 
 	_set_up_azure_aks "${terraform_args[@]}"
@@ -60,7 +70,7 @@ function main {
 
 	_set_up_azure_platform "${terraform_args[@]}"
 
-	_install_liferay_platform_chart "${1}"
+	_install_liferay_platform_chart "${configuration_json_file}"
 }
 
 function _configure_storage_account {
@@ -154,6 +164,43 @@ function _create_tfstate_storage {
 	fi
 }
 
+function _get_artifact_values {
+	local configuration_json_file="${1}"
+
+	jq \
+		'.artifacts as $artifacts
+		| def field($type; $name; $key):
+			$artifacts[$type][$name][$key] // error("artifacts.\($type).\($name).\($key) is missing");
+		def chart($name):
+			{
+				repoURL: "oci://\(field("charts"; $name; "registry"))/\($name)",
+				targetRevision: field("charts"; $name; "version")
+			};
+		def image($name):
+			{
+				repository: "\(field("images"; $name; "registry"))/\($name)",
+				tag: field("images"; $name; "version")
+			};
+		{
+			platformComponents: (chart("liferay-platform-components") + {
+				values: {
+					infrastructure: chart("liferay-infrastructure"),
+					infrastructureProvider: chart("liferay-azure-infrastructure-provider"),
+					liferay: chart("liferay-azure"),
+					observability: chart("observability"),
+					operatorApplications: {
+						dxpOperator: (chart("liferay-dxp-operator") + {
+							values: {
+								image: image("liferay-dxp-operator")
+							}
+						})
+					}
+				}
+			})
+		}' \
+		"${configuration_json_file}"
+}
+
 function _get_keda_operator_application {
 	local platform_module_outputs=${1}
 	local tenant_id=${2}
@@ -210,6 +257,18 @@ function _get_observability_parameters {
 				value: ($platform_module_outputs.observability_identity_client_id.value // "")
 			},
 			{
+				name: "azure.location",
+				value: ($platform_module_outputs.deployment_context.value.region // "")
+			},
+			{
+				name: "azure.prometheusWorkspaceEndpoint",
+				value: ($platform_module_outputs.prometheus_workspace_endpoint.value // "")
+			},
+			{
+				name: "azure.prometheusWorkspaceId",
+				value: ($platform_module_outputs.prometheus_workspace_id.value // "")
+			},
+			{
 				name: "azure.remoteWrite.dataCollectionRuleId",
 				value: ($platform_module_outputs.prometheus_data_collection_rule_id.value // "")
 			},
@@ -222,11 +281,99 @@ function _get_observability_parameters {
 				value: $tenant_id
 			},
 			{
+				name: "azure.resourceGroupName",
+				value: ($platform_module_outputs.deployment_context.value.resourceGroupName // "")
+			},
+			{
+				name: "azure.subscriptionId",
+				value: ($platform_module_outputs.deployment_context.value.subscriptionId // "")
+			},
+			{
 				name: "cloudProvider",
 				value: "azure"
+			},
+			{
+				name: "grafana.grafana\\.ini.azure.workload_identity_client_id",
+				value: ($platform_module_outputs.observability_identity_client_id.value // "")
+			},
+			{
+				name: "grafana.grafana\\.ini.azure.workload_identity_tenant_id",
+				value: $tenant_id
+			},
+			{
+				name: "grafana.serviceAccount.annotations.azure\\.workload\\.identity/client-id",
+				value: ($platform_module_outputs.observability_identity_client_id.value // "")
 			}
 		]
 		| map(select(.value != ""))'
+}
+
+function _grant_tfstate_access {
+	local container_name="${1}"
+	local resource_group_name="${2}"
+	local storage_account_name="${3}"
+
+	if _has_tfstate_access "${container_name}" "${storage_account_name}"
+	then
+		return
+	fi
+
+	local storage_account_id
+
+	storage_account_id=$( \
+		az storage account show \
+			--name "${storage_account_name}" \
+			--output tsv \
+			--query id \
+			--resource-group "${resource_group_name}")
+
+	local user_id
+
+	user_id=$(az ad signed-in-user show --output tsv --query id)
+
+	_log "Assigning the Storage Blob Data Contributor role on the storage container ${container_name} to the current Azure user."
+
+	az role assignment create \
+		--assignee-object-id "${user_id}" \
+		--assignee-principal-type User \
+		--output none \
+		--role "Storage Blob Data Contributor" \
+		--scope "${storage_account_id}/blobServices/default/containers/${container_name}"
+
+	local timeout_minutes=5
+
+	_log "Waiting up to ${timeout_minutes} minutes for the role assignment to take effect."
+
+	local timeout
+
+	timeout=$(($(date +%s) + timeout_minutes * 60))
+
+	while [ $(date +%s) -lt ${timeout} ]
+	do
+		if _has_tfstate_access "${container_name}" "${storage_account_name}"
+		then
+			return
+		fi
+
+		sleep 10
+	done
+
+	_log "Unable to access the storage container ${container_name} after ${timeout_minutes} minutes." >&2
+
+	return 1
+}
+
+function _has_tfstate_access {
+	local container_name="${1}"
+	local storage_account_name="${2}"
+
+	az storage blob list \
+		--account-name "${storage_account_name}" \
+		--auth-mode login \
+		--container-name "${container_name}" \
+		--num-results 1 \
+		--output none \
+		&> /dev/null
 }
 
 function _install_liferay_platform_chart {
@@ -235,8 +382,8 @@ function _install_liferay_platform_chart {
 	local platform_repo_url
 	local platform_target_revision
 
-	platform_repo_url=$(jq --raw-output '.platform.repoURL // "oci://us-central1-docker.pkg.dev/external-assets-prd/liferay-helm-chart/liferay-platform"' "${configuration_json_file}")
-	platform_target_revision=$(jq --raw-output --slurpfile chart_versions "${SCRIPTS_DIR}/chart_versions.json" '.platform.targetRevision // $chart_versions[0]."liferay-platform"' "${configuration_json_file}")
+	platform_repo_url=$(jq --raw-output '"oci://\(.artifacts.charts."liferay-platform".registry // error("artifacts.charts.liferay-platform.registry is missing"))/liferay-platform"' "${configuration_json_file}")
+	platform_target_revision=$(jq --raw-output '.artifacts.charts."liferay-platform".version // error("artifacts.charts.liferay-platform.version is missing")' "${configuration_json_file}")
 
 	echo "Applying the Liferay platform root application."
 
@@ -252,6 +399,10 @@ function _install_liferay_platform_chart {
 
 	tenant_id=$(jq --raw-output '.tenant_id' "${configuration_json_file}")
 
+	local artifact_values
+
+	artifact_values=$(_get_artifact_values "${configuration_json_file}")
+
 	local keda_operator_application
 
 	keda_operator_application=$(_get_keda_operator_application "${platform_module_outputs}" "${tenant_id}")
@@ -265,15 +416,33 @@ function _install_liferay_platform_chart {
 	observability_parameters=$(_get_observability_parameters "${platform_module_outputs}" "${tenant_id}")
 
 	jq \
+		--argjson artifact_values "${artifact_values}" \
 		--argjson keda_operator_application "${keda_operator_application}" \
 		--argjson liferay_parameters "${liferay_parameters}" \
 		--argjson observability_parameters "${observability_parameters}" \
 		--argjson platform_module_outputs "${platform_module_outputs}" \
 		--null-input \
 		--slurpfile configuration "${configuration_json_file}" \
-		'($configuration[0].platform.values // {}) * {
+		'{
 			platformComponents: {
-				values: (($configuration[0].platformComponents.values // {}) * {
+				values: (({
+					networkPolicy: {
+						apiServerSources: [
+							{
+								namespaceSelector: {
+									matchLabels: {
+										"kubernetes.io/metadata.name": "kube-system"
+									}
+								},
+								podSelector: {
+									matchLabels: {
+										app: "konnectivity-agent"
+									}
+								}
+							}
+						]
+					}
+				} * ($configuration[0].platformComponents.values // {})) * {
 					clusterSecretStore: {
 						enabled: true,
 						name: ($platform_module_outputs.deployment_context.value.deploymentName + "-secret-store"),
@@ -308,7 +477,7 @@ function _install_liferay_platform_chart {
 					}
 				})
 			}
-		}' \
+		} * $artifact_values' \
 	| helm \
 		upgrade \
 		liferay-platform \
@@ -321,6 +490,18 @@ function _install_liferay_platform_chart {
 
 function _log {
 	echo "[Tfstate storage configuration] ${1}"
+}
+
+function _resolve_config_json {
+	local configuration_json_file="${1}"
+
+	local resolved_configuration_json_file
+
+	resolved_configuration_json_file=$(mktemp)
+
+	jq --slurp '.[0] * .[1]' "${_CONFIG_JSON_DEFAULTS_FILE}" "${configuration_json_file}" > "${resolved_configuration_json_file}"
+
+	echo "${resolved_configuration_json_file}"
 }
 
 function _set_up_azure_aks {

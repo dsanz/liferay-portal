@@ -44,6 +44,52 @@ public class SkuOption implements Cloneable, Serializable {
 
 	protected String key;
 
+	public String getOptionExternalReferenceCode() {
+		return optionExternalReferenceCode;
+	}
+
+	public void setOptionExternalReferenceCode(
+		String optionExternalReferenceCode) {
+
+		this.optionExternalReferenceCode = optionExternalReferenceCode;
+	}
+
+	public void setOptionExternalReferenceCode(
+		UnsafeSupplier<String, Exception>
+			optionExternalReferenceCodeUnsafeSupplier) {
+
+		try {
+			optionExternalReferenceCode =
+				optionExternalReferenceCodeUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected String optionExternalReferenceCode;
+
+	public String getOptionFieldType() {
+		return optionFieldType;
+	}
+
+	public void setOptionFieldType(String optionFieldType) {
+		this.optionFieldType = optionFieldType;
+	}
+
+	public void setOptionFieldType(
+		UnsafeSupplier<String, Exception> optionFieldTypeUnsafeSupplier) {
+
+		try {
+			optionFieldType = optionFieldTypeUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected String optionFieldType;
+
 	public Long getOptionId() {
 		return optionId;
 	}
@@ -65,6 +111,53 @@ public class SkuOption implements Cloneable, Serializable {
 
 	protected Long optionId;
 
+	public Boolean getOptionSkuContributor() {
+		return optionSkuContributor;
+	}
+
+	public void setOptionSkuContributor(Boolean optionSkuContributor) {
+		this.optionSkuContributor = optionSkuContributor;
+	}
+
+	public void setOptionSkuContributor(
+		UnsafeSupplier<Boolean, Exception> optionSkuContributorUnsafeSupplier) {
+
+		try {
+			optionSkuContributor = optionSkuContributorUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Boolean optionSkuContributor;
+
+	public String getOptionValueExternalReferenceCode() {
+		return optionValueExternalReferenceCode;
+	}
+
+	public void setOptionValueExternalReferenceCode(
+		String optionValueExternalReferenceCode) {
+
+		this.optionValueExternalReferenceCode =
+			optionValueExternalReferenceCode;
+	}
+
+	public void setOptionValueExternalReferenceCode(
+		UnsafeSupplier<String, Exception>
+			optionValueExternalReferenceCodeUnsafeSupplier) {
+
+		try {
+			optionValueExternalReferenceCode =
+				optionValueExternalReferenceCodeUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected String optionValueExternalReferenceCode;
+
 	public Long getOptionValueId() {
 		return optionValueId;
 	}
@@ -85,6 +178,78 @@ public class SkuOption implements Cloneable, Serializable {
 	}
 
 	protected Long optionValueId;
+
+	public String getParentOptionExternalReferenceCode() {
+		return parentOptionExternalReferenceCode;
+	}
+
+	public void setParentOptionExternalReferenceCode(
+		String parentOptionExternalReferenceCode) {
+
+		this.parentOptionExternalReferenceCode =
+			parentOptionExternalReferenceCode;
+	}
+
+	public void setParentOptionExternalReferenceCode(
+		UnsafeSupplier<String, Exception>
+			parentOptionExternalReferenceCodeUnsafeSupplier) {
+
+		try {
+			parentOptionExternalReferenceCode =
+				parentOptionExternalReferenceCodeUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected String parentOptionExternalReferenceCode;
+
+	public String getParentOptionFieldType() {
+		return parentOptionFieldType;
+	}
+
+	public void setParentOptionFieldType(String parentOptionFieldType) {
+		this.parentOptionFieldType = parentOptionFieldType;
+	}
+
+	public void setParentOptionFieldType(
+		UnsafeSupplier<String, Exception> parentOptionFieldTypeUnsafeSupplier) {
+
+		try {
+			parentOptionFieldType = parentOptionFieldTypeUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected String parentOptionFieldType;
+
+	public Boolean getParentOptionSkuContributor() {
+		return parentOptionSkuContributor;
+	}
+
+	public void setParentOptionSkuContributor(
+		Boolean parentOptionSkuContributor) {
+
+		this.parentOptionSkuContributor = parentOptionSkuContributor;
+	}
+
+	public void setParentOptionSkuContributor(
+		UnsafeSupplier<Boolean, Exception>
+			parentOptionSkuContributorUnsafeSupplier) {
+
+		try {
+			parentOptionSkuContributor =
+				parentOptionSkuContributorUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Boolean parentOptionSkuContributor;
 
 	public String getValue() {
 		return value;
@@ -139,4 +304,4 @@ public class SkuOption implements Cloneable, Serializable {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:1519871843
+// LIFERAY-REST-BUILDER-HASH:5553177

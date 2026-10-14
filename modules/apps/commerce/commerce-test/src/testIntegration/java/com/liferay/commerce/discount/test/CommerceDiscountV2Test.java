@@ -48,6 +48,7 @@ import com.liferay.commerce.test.util.CommerceInventoryTestUtil;
 import com.liferay.commerce.test.util.CommerceTestUtil;
 import com.liferay.commerce.test.util.context.TestCommerceContext;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.UserLocalService;
@@ -121,8 +122,14 @@ public class CommerceDiscountV2Test {
 			_commerceOrderLocalService.deleteCommerceOrder(commerceOrder);
 		}
 
-		_commercePriceListLocalService.deleteCommercePriceLists(
-			_group.getCompanyId());
+		List<CommercePriceList> commercePriceLists =
+			_commercePriceListLocalService.getCommercePriceLists(
+				_group.getCompanyId(), QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+
+		for (CommercePriceList commercePriceList : commercePriceLists) {
+			_commercePriceListLocalService.forceDeleteCommercePriceList(
+				commercePriceList);
+		}
 	}
 
 	@Test
@@ -257,6 +264,92 @@ public class CommerceDiscountV2Test {
 				_group.getGroupId(), 10,
 				CommerceDiscountConstants.TARGET_PRODUCTS,
 				cpDefinition.getCPDefinitionId());
+
+		CommerceContext commerceContext = new TestCommerceContext(
+			_accountEntry, _commerceCurrency, _commerceChannel, _user, _group,
+			null);
+
+		CommerceProductPrice commerceProductPrice =
+			_commerceProductPriceCalculation.getCommerceProductPrice(
+				cpInstance.getCPInstanceId(), BigDecimal.ONE, StringPool.BLANK,
+				commerceContext);
+
+		BigDecimal price = commercePriceEntry.getPrice();
+
+		BigDecimal expectedPrice = price.subtract(commerceDiscount.getLevel1());
+
+		BigDecimal actualPrice = BigDecimal.ZERO;
+
+		if (commerceProductPrice != null) {
+			CommerceMoney finalPriceCommerceMoney =
+				commerceProductPrice.getFinalPrice();
+
+			actualPrice = finalPriceCommerceMoney.getPrice();
+		}
+
+		Assert.assertEquals(
+			expectedPrice.stripTrailingZeros(),
+			actualPrice.stripTrailingZeros());
+	}
+
+	@Test
+	public void testCommerceFixedDiscountWithUnitOfMeasure() throws Exception {
+		frutillaRule.scenario(
+			"Apply a fixed price discount"
+		).given(
+			"A product with a base price"
+		).and(
+			"A discount with fixed value"
+		).when(
+			"I try to get the final price of the product"
+		).then(
+			"The final price will be calculated taking into consideration " +
+				"the discount"
+		);
+
+		CommerceCatalog commerceCatalog =
+			_commerceCatalogLocalService.addCommerceCatalog(
+				null, RandomTestUtil.randomString(),
+				_commerceCurrency.getCode(), LocaleUtil.US.getDisplayLanguage(),
+				ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
+
+		CPInstance cpInstance = CPTestUtil.addCPInstanceFromCatalog(
+			commerceCatalog.getGroupId());
+
+		CPDefinition cpDefinition = cpInstance.getCPDefinition();
+
+		CommercePriceList commercePriceList =
+			_commercePriceListLocalService.fetchCatalogBaseCommercePriceList(
+				commerceCatalog.getGroupId());
+
+		CPInstanceUnitOfMeasure cpInstanceUnitOfMeasure =
+			_cpInstanceUnitOfMeasureLocalService.addCPInstanceUnitOfMeasure(
+				_user.getUserId(), cpInstance.getCPInstanceId(), true,
+				BigDecimal.ONE, "KEY",
+				HashMapBuilder.put(
+					LocaleUtil.getDefault(), "NOME"
+				).build(),
+				0, BigDecimal.ZERO, true, 0.0, BigDecimal.ONE,
+				cpInstance.getSku());
+
+		CommercePriceEntry commercePriceEntry =
+			CommercePriceEntryTestUtil.addCommercePriceEntry(
+				StringPool.BLANK, cpDefinition.getCProductId(),
+				cpInstance.getCPInstanceUuid(),
+				commercePriceList.getCommercePriceListId(),
+				BigDecimal.valueOf(35), cpInstanceUnitOfMeasure.getKey());
+
+		CommerceDiscount commerceDiscount =
+			CommerceDiscountTestUtil.addFixedCommerceDiscount(
+				_user.getGroupId(), BigDecimal.TEN,
+				CommerceDiscountConstants.TARGET_SKUS,
+				UnicodePropertiesBuilder.create(
+					HashMapBuilder.put(
+						"unitOfMeasureKey", cpInstanceUnitOfMeasure.getKey()
+					).build(),
+					true
+				).build(),
+				cpInstance.getCPInstanceId());
 
 		CommerceContext commerceContext = new TestCommerceContext(
 			_accountEntry, _commerceCurrency, _commerceChannel, _user, _group,
@@ -508,9 +601,12 @@ public class CommerceDiscountV2Test {
 	}
 
 	@Test
-	public void testCommerceFixedDiscountWithUnitOfMeasure() throws Exception {
+	public void testCommercePercentageDiscountWithMaximumAmount()
+		throws Exception {
+
 		frutillaRule.scenario(
-			"Apply a fixed price discount"
+			"Apply a percentage price discount with a maximum amount lower " +
+				"than the discount amount"
 		).given(
 			"A product with a base price"
 		).and(
@@ -537,34 +633,23 @@ public class CommerceDiscountV2Test {
 			_commercePriceListLocalService.fetchCatalogBaseCommercePriceList(
 				commerceCatalog.getGroupId());
 
-		CPInstanceUnitOfMeasure cpInstanceUnitOfMeasure =
-			_cpInstanceUnitOfMeasureLocalService.addCPInstanceUnitOfMeasure(
-				_user.getUserId(), cpInstance.getCPInstanceId(), true,
-				BigDecimal.ONE, "KEY",
-				HashMapBuilder.put(
-					LocaleUtil.getDefault(), "NOME"
-				).build(),
-				0, BigDecimal.ZERO, true, 0.0, BigDecimal.ONE,
-				cpInstance.getSku());
-
 		CommercePriceEntry commercePriceEntry =
 			CommercePriceEntryTestUtil.addCommercePriceEntry(
 				StringPool.BLANK, cpDefinition.getCProductId(),
 				cpInstance.getCPInstanceUuid(),
 				commercePriceList.getCommercePriceListId(),
-				BigDecimal.valueOf(35), cpInstanceUnitOfMeasure.getKey());
+				BigDecimal.valueOf(25));
 
 		CommerceDiscount commerceDiscount =
-			CommerceDiscountTestUtil.addFixedCommerceDiscount(
-				_user.getGroupId(), BigDecimal.TEN,
-				CommerceDiscountConstants.TARGET_SKUS,
-				UnicodePropertiesBuilder.create(
-					HashMapBuilder.put(
-						"unitOfMeasureKey", cpInstanceUnitOfMeasure.getKey()
-					).build(),
-					true
-				).build(),
-				cpInstance.getCPInstanceId());
+			CommerceDiscountTestUtil.addPercentageCommerceDiscount(
+				_group.getGroupId(), BigDecimal.valueOf(25),
+				CommerceDiscountConstants.LEVEL_L1,
+				CommerceDiscountConstants.TARGET_PRODUCTS,
+				cpDefinition.getCPDefinitionId());
+
+		commerceDiscount.setMaximumDiscountAmount(BigDecimal.ONE);
+
+		_commerceDiscountLocalService.updateCommerceDiscount(commerceDiscount);
 
 		CommerceContext commerceContext = new TestCommerceContext(
 			_accountEntry, _commerceCurrency, _commerceChannel, _user, _group,
@@ -577,7 +662,7 @@ public class CommerceDiscountV2Test {
 
 		BigDecimal price = commercePriceEntry.getPrice();
 
-		BigDecimal expectedPrice = price.subtract(commerceDiscount.getLevel1());
+		BigDecimal expectedPrice = price.subtract(BigDecimal.ONE);
 
 		BigDecimal actualPrice = BigDecimal.ZERO;
 
@@ -867,84 +952,6 @@ public class CommerceDiscountV2Test {
 		Assert.assertEquals(
 			expectedPrice5.stripTrailingZeros(),
 			actualPrice5.stripTrailingZeros());
-	}
-
-	@Test
-	public void testCommercePercentageDiscountWithMaximumAmount()
-		throws Exception {
-
-		frutillaRule.scenario(
-			"Apply a percentage price discount with a maximum amount lower " +
-				"than the discount amount"
-		).given(
-			"A product with a base price"
-		).and(
-			"A discount with fixed value"
-		).when(
-			"I try to get the final price of the product"
-		).then(
-			"The final price will be calculated taking into consideration " +
-				"the discount"
-		);
-
-		CommerceCatalog commerceCatalog =
-			_commerceCatalogLocalService.addCommerceCatalog(
-				null, RandomTestUtil.randomString(),
-				_commerceCurrency.getCode(), LocaleUtil.US.getDisplayLanguage(),
-				ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
-
-		CPInstance cpInstance = CPTestUtil.addCPInstanceFromCatalog(
-			commerceCatalog.getGroupId());
-
-		CPDefinition cpDefinition = cpInstance.getCPDefinition();
-
-		CommercePriceList commercePriceList =
-			_commercePriceListLocalService.fetchCatalogBaseCommercePriceList(
-				commerceCatalog.getGroupId());
-
-		CommercePriceEntry commercePriceEntry =
-			CommercePriceEntryTestUtil.addCommercePriceEntry(
-				StringPool.BLANK, cpDefinition.getCProductId(),
-				cpInstance.getCPInstanceUuid(),
-				commercePriceList.getCommercePriceListId(),
-				BigDecimal.valueOf(25));
-
-		CommerceDiscount commerceDiscount =
-			CommerceDiscountTestUtil.addPercentageCommerceDiscount(
-				_group.getGroupId(), BigDecimal.valueOf(25),
-				CommerceDiscountConstants.LEVEL_L1,
-				CommerceDiscountConstants.TARGET_PRODUCTS,
-				cpDefinition.getCPDefinitionId());
-
-		commerceDiscount.setMaximumDiscountAmount(BigDecimal.ONE);
-
-		_commerceDiscountLocalService.updateCommerceDiscount(commerceDiscount);
-
-		CommerceContext commerceContext = new TestCommerceContext(
-			_accountEntry, _commerceCurrency, _commerceChannel, _user, _group,
-			null);
-
-		CommerceProductPrice commerceProductPrice =
-			_commerceProductPriceCalculation.getCommerceProductPrice(
-				cpInstance.getCPInstanceId(), BigDecimal.ONE, StringPool.BLANK,
-				commerceContext);
-
-		BigDecimal price = commercePriceEntry.getPrice();
-
-		BigDecimal expectedPrice = price.subtract(BigDecimal.ONE);
-
-		BigDecimal actualPrice = BigDecimal.ZERO;
-
-		if (commerceProductPrice != null) {
-			CommerceMoney finalPriceCommerceMoney =
-				commerceProductPrice.getFinalPrice();
-
-			actualPrice = finalPriceCommerceMoney.getPrice();
-		}
-
-		Assert.assertEquals(
-			expectedPrice.stripTrailingZeros(),
-			actualPrice.stripTrailingZeros());
 	}
 
 	@Test

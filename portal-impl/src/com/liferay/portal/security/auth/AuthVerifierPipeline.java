@@ -5,6 +5,7 @@
 
 package com.liferay.portal.security.auth;
 
+import com.liferay.petra.concurrent.DCLSingleton;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.petra.url.pattern.mapper.URLPatternMapper;
@@ -38,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
 import org.osgi.framework.BundleContext;
@@ -64,19 +66,61 @@ public class AuthVerifierPipeline {
 	}
 
 	public static AuthVerifierPipeline getPortalAuthVerifierPipeline() {
-		return PortalAuthVerifierPipelineHolder._PORTAL_AUTH_VERIFIER_PIPELINE;
+		return _portalAuthVerifierPipelineDCLSingleton.getSingleton(
+			() -> new AuthVerifierPipeline(
+				new ArrayList<>(_authVerifierConfigurations),
+				PortalContextLoaderListener.getPortalServletContextPath()));
 	}
 
 	public AuthVerifierPipeline(
 		List<AuthVerifierConfiguration> authVerifierConfigurations,
 		String contextPath) {
 
-		_authVerifierConfigurations = new ArrayList<>(
-			authVerifierConfigurations);
+		Map<String, List<AuthVerifierConfiguration>>
+			excludeAuthVerifierConfigurationsMap = new HashMap<>();
+		Map<String, List<AuthVerifierConfiguration>>
+			includeAuthVerifierConfigurationsMap = new HashMap<>();
 
-		_contextPath = contextPath;
+		for (AuthVerifierConfiguration authVerifierConfiguration :
+				authVerifierConfigurations) {
 
-		_buildURLPatternMapper();
+			Properties properties = authVerifierConfiguration.getProperties();
+
+			String[] urlsExcludes = StringUtil.split(
+				properties.getProperty("urls.excludes"));
+
+			for (String urlsExclude : urlsExcludes) {
+				urlsExclude = contextPath + _fixLegacyURLPattern(urlsExclude);
+
+				List<AuthVerifierConfiguration>
+					excludeAuthVerifierConfigurations =
+						excludeAuthVerifierConfigurationsMap.computeIfAbsent(
+							urlsExclude, key -> new ArrayList<>());
+
+				excludeAuthVerifierConfigurations.add(
+					authVerifierConfiguration);
+			}
+
+			String[] urlsIncludes = StringUtil.split(
+				properties.getProperty("urls.includes"));
+
+			for (String urlsInclude : urlsIncludes) {
+				urlsInclude = contextPath + _fixLegacyURLPattern(urlsInclude);
+
+				List<AuthVerifierConfiguration>
+					includeAuthVerifierConfigurations =
+						includeAuthVerifierConfigurationsMap.computeIfAbsent(
+							urlsInclude, key -> new ArrayList<>());
+
+				includeAuthVerifierConfigurations.add(
+					authVerifierConfiguration);
+			}
+		}
+
+		_excludeURLPatternMapper = URLPatternMapperFactory.create(
+			excludeAuthVerifierConfigurationsMap);
+		_includeURLPatternMapper = URLPatternMapperFactory.create(
+			includeAuthVerifierConfigurationsMap);
 	}
 
 	public AuthVerifierResult verifyRequest(
@@ -125,62 +169,6 @@ public class AuthVerifierPipeline {
 		return authVerifierConfigurations;
 	}
 
-	private synchronized void _addAuthVerifierConfiguration(
-		AuthVerifierConfiguration authVerifierConfiguration) {
-
-		_authVerifierConfigurations.add(authVerifierConfiguration);
-
-		_buildURLPatternMapper();
-	}
-
-	private void _buildURLPatternMapper() {
-		Map<String, List<AuthVerifierConfiguration>>
-			excludeAuthVerifierConfigurationsMap = new HashMap<>();
-		Map<String, List<AuthVerifierConfiguration>>
-			includeAuthVerifierConfigurationsMap = new HashMap<>();
-
-		for (AuthVerifierConfiguration authVerifierConfiguration :
-				_authVerifierConfigurations) {
-
-			Properties properties = authVerifierConfiguration.getProperties();
-
-			String[] urlsExcludes = StringUtil.split(
-				properties.getProperty("urls.excludes"));
-
-			for (String urlsExclude : urlsExcludes) {
-				urlsExclude = _contextPath + _fixLegacyURLPattern(urlsExclude);
-
-				List<AuthVerifierConfiguration>
-					excludeAuthVerifierConfigurations =
-						excludeAuthVerifierConfigurationsMap.computeIfAbsent(
-							urlsExclude, key -> new ArrayList<>());
-
-				excludeAuthVerifierConfigurations.add(
-					authVerifierConfiguration);
-			}
-
-			String[] urlsIncludes = StringUtil.split(
-				properties.getProperty("urls.includes"));
-
-			for (String urlsInclude : urlsIncludes) {
-				urlsInclude = _contextPath + _fixLegacyURLPattern(urlsInclude);
-
-				List<AuthVerifierConfiguration>
-					includeAuthVerifierConfigurations =
-						includeAuthVerifierConfigurationsMap.computeIfAbsent(
-							urlsInclude, key -> new ArrayList<>());
-
-				includeAuthVerifierConfigurations.add(
-					authVerifierConfiguration);
-			}
-		}
-
-		_excludeURLPatternMapper = URLPatternMapperFactory.create(
-			excludeAuthVerifierConfigurationsMap);
-		_includeURLPatternMapper = URLPatternMapperFactory.create(
-			includeAuthVerifierConfigurationsMap);
-	}
-
 	private AuthVerifierResult _createGuestVerificationResult(
 			AccessControlContext accessControlContext)
 		throws PortalException {
@@ -215,14 +203,6 @@ public class AuthVerifierPipeline {
 		return urlPattern.substring(0, urlPattern.length() - 1) + "/*";
 	}
 
-	private synchronized void _removeAuthVerifierConfiguration(
-		AuthVerifierConfiguration authVerifierConfiguration) {
-
-		_authVerifierConfigurations.remove(authVerifierConfiguration);
-
-		_buildURLPatternMapper();
-	}
-
 	private static final String[] _SUPREME_AUTH_VERIFIER_KEYS = {
 		"basic_auth", "digest_auth"
 	};
@@ -230,11 +210,68 @@ public class AuthVerifierPipeline {
 	private static final Log _log = LogFactoryUtil.getLog(
 		AuthVerifierPipeline.class);
 
-	private final List<AuthVerifierConfiguration> _authVerifierConfigurations;
-	private final String _contextPath;
-	private volatile URLPatternMapper<List<AuthVerifierConfiguration>>
+	private static final List<AuthVerifierConfiguration>
+		_authVerifierConfigurations = new CopyOnWriteArrayList<>();
+	private static final DCLSingleton<AuthVerifierPipeline>
+		_portalAuthVerifierPipelineDCLSingleton = new DCLSingleton<>();
+
+	static {
+		BundleContext bundleContext = SystemBundleUtil.getBundleContext();
+
+		ServiceTracker<AuthVerifierConfiguration, AuthVerifierConfiguration>
+			serviceTracker = new ServiceTracker<>(
+				bundleContext, AuthVerifierConfiguration.class,
+				new ServiceTrackerCustomizer
+					<AuthVerifierConfiguration, AuthVerifierConfiguration>() {
+
+					@Override
+					public AuthVerifierConfiguration addingService(
+						ServiceReference<AuthVerifierConfiguration>
+							serviceReference) {
+
+						AuthVerifierConfiguration authVerifierConfiguration =
+							bundleContext.getService(serviceReference);
+
+						if (authVerifierConfiguration != null) {
+							_authVerifierConfigurations.add(
+								authVerifierConfiguration);
+
+							_portalAuthVerifierPipelineDCLSingleton.destroy(
+								null);
+						}
+
+						return authVerifierConfiguration;
+					}
+
+					@Override
+					public void modifiedService(
+						ServiceReference<AuthVerifierConfiguration>
+							serviceReference,
+						AuthVerifierConfiguration authVerifierConfiguration) {
+					}
+
+					@Override
+					public void removedService(
+						ServiceReference<AuthVerifierConfiguration>
+							serviceReference,
+						AuthVerifierConfiguration authVerifierConfiguration) {
+
+						_authVerifierConfigurations.remove(
+							authVerifierConfiguration);
+
+						_portalAuthVerifierPipelineDCLSingleton.destroy(null);
+
+						bundleContext.ungetService(serviceReference);
+					}
+
+				});
+
+		serviceTracker.open();
+	}
+
+	private final URLPatternMapper<List<AuthVerifierConfiguration>>
 		_excludeURLPatternMapper;
-	private volatile URLPatternMapper<List<AuthVerifierConfiguration>>
+	private final URLPatternMapper<List<AuthVerifierConfiguration>>
 		_includeURLPatternMapper;
 
 	private static class AuthVerifierConfigurationConsumer
@@ -452,80 +489,11 @@ public class AuthVerifierPipeline {
 
 		private final AccessControlContext _accessControlContext;
 		private AuthVerifierResult _authVerifierResult;
-		private Set<AuthVerifierConfiguration>
-			_excludedAuthVerifierConfigurations;
 		private final URLPatternMapper<List<AuthVerifierConfiguration>>
 			_excludeURLPatternMapper;
+		private Set<AuthVerifierConfiguration>
+			_excludedAuthVerifierConfigurations;
 		private final String _requestURI;
-
-	}
-
-	private static class PortalAuthVerifierPipelineHolder {
-
-		private static final AuthVerifierPipeline
-			_PORTAL_AUTH_VERIFIER_PIPELINE;
-
-		static {
-			AuthVerifierPipeline portalAuthVerifierPipeline =
-				new AuthVerifierPipeline(
-					Collections.emptyList(),
-					PortalContextLoaderListener.getPortalServletContextPath());
-
-			BundleContext bundleContext = SystemBundleUtil.getBundleContext();
-
-			ServiceTracker<AuthVerifierConfiguration, AuthVerifierConfiguration>
-				serviceTracker = new ServiceTracker<>(
-					bundleContext, AuthVerifierConfiguration.class,
-					new ServiceTrackerCustomizer
-						<AuthVerifierConfiguration,
-						 AuthVerifierConfiguration>() {
-
-						@Override
-						public AuthVerifierConfiguration addingService(
-							ServiceReference<AuthVerifierConfiguration>
-								serviceReference) {
-
-							AuthVerifierConfiguration
-								authVerifierConfiguration =
-									bundleContext.getService(serviceReference);
-
-							if (authVerifierConfiguration != null) {
-								portalAuthVerifierPipeline.
-									_addAuthVerifierConfiguration(
-										authVerifierConfiguration);
-							}
-
-							return authVerifierConfiguration;
-						}
-
-						@Override
-						public void modifiedService(
-							ServiceReference<AuthVerifierConfiguration>
-								serviceReference,
-							AuthVerifierConfiguration
-								authVerifierConfiguration) {
-						}
-
-						@Override
-						public void removedService(
-							ServiceReference<AuthVerifierConfiguration>
-								serviceReference,
-							AuthVerifierConfiguration
-								authVerifierConfiguration) {
-
-							portalAuthVerifierPipeline.
-								_removeAuthVerifierConfiguration(
-									authVerifierConfiguration);
-
-							bundleContext.ungetService(serviceReference);
-						}
-
-					});
-
-			serviceTracker.open();
-
-			_PORTAL_AUTH_VERIFIER_PIPELINE = portalAuthVerifierPipeline;
-		}
 
 	}
 

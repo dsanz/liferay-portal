@@ -391,7 +391,8 @@ public class UserNotificationTypeTest extends BaseNotificationTypeTest {
 		objectActionLocalService.addObjectAction(
 			RandomTestUtil.randomString(), TestPropsValues.getUserId(),
 			childObjectDefinition.getObjectDefinitionId(), true,
-			StringPool.BLANK, RandomTestUtil.randomString(),
+			StringPool.BLANK,
+			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 			RandomTestUtil.randomString(),
@@ -578,6 +579,26 @@ public class UserNotificationTypeTest extends BaseNotificationTypeTest {
 		}
 	}
 
+	@Test
+	public void testSendNotificationRecipientTypeUserWithoutRecipients()
+		throws Exception {
+
+		executeNotificationObjectAction(
+			0,
+			notificationTemplateLocalService.addNotificationTemplate(
+				_createNotificationContext(
+					Collections.emptyList(),
+					NotificationRecipientConstants.TYPE_USER)));
+
+		List<NotificationQueueEntry> notificationQueueEntries =
+			notificationQueueEntryLocalService.getNotificationQueueEntries(
+				QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+
+		Assert.assertEquals(
+			notificationQueueEntries.toString(), 0,
+			notificationQueueEntries.size());
+	}
+
 	private User _addSiteRoleUser(Group group, Role siteRole) throws Exception {
 		resourcePermissionLocalService.addResourcePermission(
 			TestPropsValues.getCompanyId(),
@@ -753,7 +774,7 @@ public class UserNotificationTypeTest extends BaseNotificationTypeTest {
 		ObjectAction objectAction = objectActionLocalService.addObjectAction(
 			RandomTestUtil.randomString(), TestPropsValues.getUserId(),
 			objectDefinition.getObjectDefinitionId(), true, StringPool.BLANK,
-			RandomTestUtil.randomString(),
+			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 			RandomTestUtil.randomString(),

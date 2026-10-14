@@ -4,7 +4,9 @@
  */
 
 import buildLocalizedValue from '../../../common/utils/buildLocalizedValue';
+import {DefaultLanguageLabels} from '../../../common/utils/defaultLanguageLabels';
 import {
+	Group,
 	RepeatableGroup,
 	Structure,
 	StructureChild,
@@ -12,73 +14,41 @@ import {
 import {Uuid} from '../../types/Uuid';
 import getRandomId from '../getRandomId';
 import getRandomName from '../getRandomName';
-import sortChildren from './sortChildren';
+import insertGroup from './insertGroup';
 
 export default function addRepeatableGroup({
+	defaultLanguageLabels,
 	groupChildren,
 	groupParent,
 	groupUuid,
 	root,
 }: {
+	defaultLanguageLabels: DefaultLanguageLabels;
 	groupChildren: StructureChild[];
 	groupParent: Uuid;
 	groupUuid: Uuid;
-	root: Structure | RepeatableGroup;
+	root: Structure | Group;
 }): Structure['children'] | RepeatableGroup['children'] {
-	const children = new Map();
+	const group: RepeatableGroup = {
+		children: new Map(
+			groupChildren.map((child) => [
+				child.uuid,
+				{...child, parent: groupUuid},
+			])
+		),
+		erc: getRandomId(),
+		isRepeatable: true,
+		label: buildLocalizedValue({
+			defaultLanguageLabels,
+			key: 'repeatable-group',
+		}),
+		name: getRandomName({capitalize: true}),
+		parent: groupParent,
+		relationshipERC: getRandomId(),
+		relationshipName: getRandomName(),
+		type: 'group',
+		uuid: groupUuid,
+	};
 
-	// Iterate over children
-
-	for (const child of root.children.values()) {
-
-		// Don't insert the child if it belongs to the new group
-
-		if (groupChildren.some(({uuid}) => uuid === child.uuid)) {
-			continue;
-		}
-
-		// Insert the child. If it's a repeatable group, build it with recursive call
-
-		if (child.type === 'repeatable-group') {
-			const group: RepeatableGroup = {
-				...child,
-				children: addRepeatableGroup({
-					groupChildren,
-					groupParent,
-					groupUuid,
-					root: child,
-				}),
-			};
-
-			children.set(group.uuid, group);
-		}
-		else {
-			children.set(child.uuid, child);
-		}
-	}
-
-	// Add new group if this is the correct parent
-
-	if (root.uuid === groupParent) {
-		const group: RepeatableGroup = {
-			children: new Map(
-				groupChildren.map((child) => [
-					child.uuid,
-					{...child, parent: groupUuid},
-				])
-			),
-			erc: getRandomId(),
-			label: buildLocalizedValue('repeatable-group'),
-			name: getRandomName({capitalize: true}),
-			parent: groupParent,
-			relationshipERC: getRandomId(),
-			relationshipName: getRandomName(),
-			type: 'repeatable-group',
-			uuid: groupUuid,
-		};
-
-		children.set(group.uuid, group);
-	}
-
-	return sortChildren(children);
+	return insertGroup({group, groupChildren, root});
 }

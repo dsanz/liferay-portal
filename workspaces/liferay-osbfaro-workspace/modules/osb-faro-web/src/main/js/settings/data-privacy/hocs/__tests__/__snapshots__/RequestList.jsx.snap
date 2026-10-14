@@ -6,7 +6,7 @@ exports[`RequestList should render 1`] = `
     class="card card-root request-list-root page-display"
   >
     <div
-      class="toolbar-root"
+      class="search-toolbar-root"
     >
       <nav
         class="navbar navbar-root management-bar management-bar-light navbar-expand"
@@ -147,7 +147,7 @@ exports[`RequestList should render 1`] = `
         class="table-responsive"
       >
         <table
-          class="table table-autofit table-list table-nowrap table-head-bordered table-hover table-striped"
+          class="table table-autofit table-list table-head-bordered table-hover table-striped"
         >
           <thead>
             <tr>
@@ -261,7 +261,7 @@ exports[`RequestList should render 1`] = `
                 </a>
               </th>
               <th
-                class="table-head-title"
+                class="table-head-title text-nowrap"
               >
                 <a
                   class="button-root w-100 btn btn-unstyled"
@@ -282,12 +282,9 @@ exports[`RequestList should render 1`] = `
                     >
                       <svg
                         class="lexicon-icon lexicon-icon-order_arrow_descending icon-root"
+                        data-file="order_arrow_descending.svg"
                         role="presentation"
-                      >
-                        <use
-                          href="#order_arrow_descending"
-                        />
-                      </svg>
+                      />
                     </button>
                   </div>
                 </a>
@@ -365,7 +362,9 @@ exports[`RequestList should render 1`] = `
               <td>
                 Delete
               </td>
-              <td>
+              <td
+                class="text-nowrap"
+              >
                 Oct 9, 2019
               </td>
               <td>
@@ -418,7 +417,9 @@ exports[`RequestList should render 1`] = `
               <td>
                 Unsuppress
               </td>
-              <td>
+              <td
+                class="text-nowrap"
+              >
                 Oct 9, 2019
               </td>
               <td>
@@ -471,7 +472,9 @@ exports[`RequestList should render 1`] = `
               <td>
                 Suppress
               </td>
-              <td>
+              <td
+                class="text-nowrap"
+              >
                 Sep 9, 2019
               </td>
               <td>
@@ -527,7 +530,9 @@ exports[`RequestList should render 1`] = `
               <td>
                 Suppress
               </td>
-              <td>
+              <td
+                class="text-nowrap"
+              >
                 Nov 9, 2019
               </td>
               <td>
@@ -589,7 +594,9 @@ exports[`RequestList should render 1`] = `
               <td>
                 Access
               </td>
-              <td>
+              <td
+                class="text-nowrap"
+              >
                 Sep 9, 2019
               </td>
               <td>
@@ -642,7 +649,9 @@ exports[`RequestList should render 1`] = `
               <td>
                 Delete
               </td>
-              <td>
+              <td
+                class="text-nowrap"
+              >
                 Sep 9, 2019
               </td>
               <td>
@@ -694,7 +703,9 @@ exports[`RequestList should render 1`] = `
               <td>
                 Access
               </td>
-              <td>
+              <td
+                class="text-nowrap"
+              >
                 Dec 5, 2019
               </td>
               <td>

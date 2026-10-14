@@ -15,9 +15,20 @@ export default () => ({
 			events: [
 				{
 					__typename: 'Event',
+					acquisitionProperties: [
+						{name: 'utm_source', value: 'salesforce'},
+						{name: 'utm_cid', value: '7013a000002QwErtAAG'},
+						{name: 'utm_medium', value: 'email'},
+						{name: 'utm_campaign', value: 'q1_report'},
+						{name: 'utm_content', value: 'header_cta'},
+						{name: 'utm_term', value: ''},
+						{name: 'utm_lift', value: 'q1_report'},
+					],
 					applicationId: 'Page',
 					assetTitle:
 						'Tandem Rollers & Compactors - Full Product Range | RoadTech',
+					campaignId: '7013a000002QwErtAAG',
+					campaignName: 'Q1 Compactor Promo - EMEA',
 					canonicalUrl:
 						'https://marketplace.roadtech.com/compactors/tandem-rollers',
 					createDate: 'Mon Aug 31 20:20:15 GMT 2026',
@@ -30,18 +41,18 @@ export default () => ({
 					pageKeywords: '',
 					pageTitle:
 						'Tandem Rollers & Compactors - Full Product Range | RoadTech',
-					properties: [
-						{name: 'utm_source', value: 'salesforce'},
-						{name: 'utm_cid', value: '7013a000002QwErtAAG'},
-					],
+					properties: [],
 					referrer:
 						'https://marketplace.roadtech.com/lp/spring-compactor-promo',
 					url: 'https://marketplace.roadtech.com/compactors/tandem-rollers?utm_cid=7013a000002QwErtAAG',
 				},
 				{
 					__typename: 'Event',
+					acquisitionProperties: [],
 					applicationId: 'CustomEvent',
 					assetTitle: 'Compare Models',
+					campaignId: null,
+					campaignName: null,
 					canonicalUrl:
 						'https://marketplace.roadtech.com/compactors/tandem-rollers',
 					createDate: 'Mon Aug 31 20:20:02 GMT 2026',
@@ -61,9 +72,15 @@ export default () => ({
 				},
 				{
 					__typename: 'Event',
+					acquisitionProperties: [
+						{name: 'utm_source', value: 'salesforce'},
+						{name: 'utm_cid', value: '7013a000002QwErtAAG'},
+					],
 					applicationId: 'Page',
 					assetTitle:
 						'Tandem Rollers & Compactors - Full Product Range | RoadTech',
+					campaignId: '7013a000002QwErtAAG',
+					campaignName: 'Q1 Compactor Promo - EMEA',
 					canonicalUrl:
 						'https://marketplace.roadtech.com/compactors/tandem-rollers',
 					createDate: 'Mon Aug 31 20:19:48 GMT 2026',
@@ -76,18 +93,18 @@ export default () => ({
 					pageKeywords: '',
 					pageTitle:
 						'Tandem Rollers & Compactors - Full Product Range | RoadTech',
-					properties: [
-						{name: 'utm_source', value: 'salesforce'},
-						{name: 'utm_cid', value: '7013a000002QwErtAAG'},
-					],
+					properties: [],
 					referrer:
 						'https://marketplace.roadtech.com/videos/hamm-hd90i-demo',
 					url: 'https://marketplace.roadtech.com/compactors/tandem-rollers?utm_cid=7013a000002QwErtAAG',
 				},
 				{
 					__typename: 'Event',
+					acquisitionProperties: [],
 					applicationId: 'Page',
 					assetTitle: 'Request a Quote - Hamm HD+ 90i Tandem Roller',
+					campaignId: null,
+					campaignName: null,
 					canonicalUrl:
 						'https://marketplace.roadtech.com/compactors/hamm-hd90i/quote',
 					createDate: 'Mon Aug 31 20:18:42 GMT 2026',
@@ -106,9 +123,15 @@ export default () => ({
 				},
 				{
 					__typename: 'Event',
+					acquisitionProperties: [
+						{name: 'utm_source', value: 'linkedin'},
+						{name: 'utm_cid', value: '7013a000002XyZbAAK'},
+					],
 					applicationId: 'Page',
 					assetTitle:
 						'Hamm HD+ 901 Live Compaction Demo - Asphalt Paving',
+					campaignId: '7013a000002XyZbAAK',
+					campaignName: null,
 					canonicalUrl:
 						'https://marketplace.roadtech.com/videos/hamm-hd90i-demo',
 					createDate: 'Mon Aug 31 20:15:30 GMT 2026',
@@ -121,17 +144,17 @@ export default () => ({
 					pageKeywords: '',
 					pageTitle:
 						'Hamm HD+ 901 Live Compaction Demo - Asphalt Paving',
-					properties: [
-						{name: 'utm_source', value: 'linkedin'},
-						{name: 'utm_cid', value: '7013a000002XyZbAAK'},
-					],
+					properties: [],
 					referrer: 'https://www.linkedin.com/',
 					url: 'https://marketplace.roadtech.com/videos/hamm-hd90i-demo?utm_cid=7013a000002XyZbAAK',
 				},
 				{
 					__typename: 'Event',
+					acquisitionProperties: [],
 					applicationId: 'CustomEvent',
 					assetTitle: 'Play Demo Video',
+					campaignId: null,
+					campaignName: null,
 					canonicalUrl:
 						'https://marketplace.roadtech.com/videos/hamm-hd90i-demo',
 					createDate: 'Mon Aug 31 20:15:22 GMT 2026',
@@ -150,8 +173,14 @@ export default () => ({
 				},
 				{
 					__typename: 'Event',
+					acquisitionProperties: [
+						{name: 'utm_source', value: 'salesforce'},
+						{name: 'utm_cid', value: '7013a000002QwErtAAG'},
+					],
 					applicationId: 'Page',
 					assetTitle: 'Spring Compactor Promo - Landing | RoadTech',
+					campaignId: '7013a000002QwErtAAG',
+					campaignName: 'Q1 Compactor Promo - EMEA',
 					canonicalUrl:
 						'https://marketplace.roadtech.com/lp/spring-compactor-promo',
 					createDate: 'Mon Aug 31 20:05:10 GMT 2026',
@@ -163,10 +192,7 @@ export default () => ({
 						'https://marketplace.roadtech.com/lp/spring-compactor-promo',
 					pageKeywords: '',
 					pageTitle: 'Spring Compactor Promo - Landing | RoadTech',
-					properties: [
-						{name: 'utm_source', value: 'salesforce'},
-						{name: 'utm_cid', value: '7013a000002QwErtAAG'},
-					],
+					properties: [],
 					referrer: 'https://mail.google.com/',
 					url: 'https://marketplace.roadtech.com/lp/spring-compactor-promo?utm_cid=7013a000002QwErtAAG',
 				},
@@ -194,8 +220,11 @@ export default () => ({
 			events: [
 				{
 					__typename: 'Event',
+					acquisitionProperties: [],
 					applicationId: 'Page',
 					assetTitle: 'Support - RoadTech',
+					campaignId: null,
+					campaignName: null,
 					canonicalUrl: 'https://marketplace.roadtech.com/support',
 					createDate: 'Sun Aug 30 14:41:19 GMT 2026',
 					eventDate: '2026-08-30T14:41:19.000Z',
@@ -211,8 +240,11 @@ export default () => ({
 				},
 				{
 					__typename: 'Event',
+					acquisitionProperties: [],
 					applicationId: 'Page',
 					assetTitle: 'Home - RoadTech',
+					campaignId: null,
+					campaignName: null,
 					canonicalUrl: 'https://marketplace.roadtech.com',
 					createDate: 'Sun Aug 30 14:38:02 GMT 2026',
 					eventDate: '2026-08-30T14:38:02.000Z',
@@ -249,8 +281,11 @@ export default () => ({
 			events: [
 				{
 					__typename: 'Event',
+					acquisitionProperties: [],
 					applicationId: 'HubSpot',
 					assetTitle: null,
+					campaignId: null,
+					campaignName: null,
 					canonicalUrl: 'https://hubspot.com',
 					createDate: 'Fri May 08 18:00:15 GMT 2026',
 					eventDate: '2026-05-08T18:00:15.000Z',
@@ -269,8 +304,11 @@ export default () => ({
 				},
 				{
 					__typename: 'Event',
+					acquisitionProperties: [],
 					applicationId: 'HubSpot',
 					assetTitle: null,
+					campaignId: null,
+					campaignName: null,
 					canonicalUrl: 'https://hubspot.com',
 					createDate: 'Fri May 08 17:59:59 GMT 2026',
 					eventDate: '2026-05-08T17:59:59.000Z',
@@ -312,8 +350,11 @@ export default () => ({
 			events: [
 				{
 					__typename: 'Event',
+					acquisitionProperties: [],
 					applicationId: 'Page',
 					assetTitle: 'Home - learn-dev.lxc.liferay.com',
+					campaignId: null,
+					campaignName: null,
 					canonicalUrl: 'https://learn-dev.liferay.com/home',
 					createDate: 'Thu May 07 20:15:05 GMT 2026',
 					eventDate: '2026-05-07T20:15:05.000Z',
@@ -355,9 +396,12 @@ export default () => ({
 			events: [
 				{
 					__typename: 'Event',
+					acquisitionProperties: [],
 					applicationId: 'Page',
 					assetTitle:
 						'Content Management System - learn-dev.lxc.liferay.com',
+					campaignId: null,
+					campaignName: null,
 					canonicalUrl:
 						'https://learn-dev.liferay.com/capabilities/content-management-system',
 					createDate: 'Thu May 07 19:57:21 GMT 2026',
@@ -381,8 +425,11 @@ export default () => ({
 				},
 				{
 					__typename: 'Event',
+					acquisitionProperties: [],
 					applicationId: 'Page',
 					assetTitle: 'Home - learn-dev.lxc.liferay.com',
+					campaignId: null,
+					campaignName: null,
 					canonicalUrl: 'https://learn-dev.liferay.com/home',
 					createDate: 'Thu May 07 19:56:55 GMT 2026',
 					eventDate: '2026-05-07T19:56:55.000Z',
@@ -403,8 +450,11 @@ export default () => ({
 				},
 				{
 					__typename: 'Event',
+					acquisitionProperties: [],
 					applicationId: 'Page',
 					assetTitle: 'Home - learn-dev.lxc.liferay.com',
+					campaignId: null,
+					campaignName: null,
 					canonicalUrl: 'https://learn-dev.liferay.com',
 					createDate: 'Thu May 07 19:56:21 GMT 2026',
 					eventDate: '2026-05-07T19:56:21.000Z',
@@ -425,8 +475,11 @@ export default () => ({
 				},
 				{
 					__typename: 'Event',
+					acquisitionProperties: [],
 					applicationId: 'Page',
 					assetTitle: 'Home - learn-dev.lxc.liferay.com',
+					campaignId: null,
+					campaignName: null,
 					canonicalUrl: 'https://learn-dev.liferay.com',
 					createDate: 'Thu May 07 19:38:43 GMT 2026',
 					eventDate: '2026-05-07T19:38:43.000Z',
@@ -448,8 +501,11 @@ export default () => ({
 				},
 				{
 					__typename: 'Event',
+					acquisitionProperties: [],
 					applicationId: 'Page',
 					assetTitle: 'Security - learn-dev.lxc.liferay.com',
+					campaignId: null,
+					campaignName: null,
 					canonicalUrl:
 						'https://learn-dev.liferay.com/capabilities/security',
 					createDate: 'Thu May 07 19:38:36 GMT 2026',
@@ -472,8 +528,11 @@ export default () => ({
 				},
 				{
 					__typename: 'Event',
+					acquisitionProperties: [],
 					applicationId: 'Page',
 					assetTitle: 'Home - learn-dev.lxc.liferay.com',
+					campaignId: null,
+					campaignName: null,
 					canonicalUrl: 'https://learn-dev.liferay.com',
 					createDate: 'Thu May 07 19:37:43 GMT 2026',
 					eventDate: '2026-05-07T19:37:43.000Z',
@@ -516,8 +575,11 @@ export default () => ({
 			events: [
 				{
 					__typename: 'Event',
+					acquisitionProperties: [],
 					applicationId: 'HubSpot',
 					assetTitle: null,
+					campaignId: null,
+					campaignName: null,
 					canonicalUrl: 'https://hubspot.com',
 					createDate: 'Thu May 07 21:15:44 GMT 2026',
 					eventDate: '2026-05-07T21:15:44.000Z',
@@ -536,8 +598,11 @@ export default () => ({
 				},
 				{
 					__typename: 'Event',
+					acquisitionProperties: [],
 					applicationId: 'HubSpot',
 					assetTitle: null,
+					campaignId: null,
+					campaignName: null,
 					canonicalUrl: 'https://hubspot.com',
 					createDate: 'Thu May 07 21:15:44 GMT 2026',
 					eventDate: '2026-05-07T21:15:44.000Z',

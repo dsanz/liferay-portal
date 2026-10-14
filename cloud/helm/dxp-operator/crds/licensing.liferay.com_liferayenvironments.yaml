@@ -34,6 +34,9 @@ spec:
         -   jsonPath: .spec.desiredReplicas
             name: Desired
             type: integer
+        -   jsonPath: .status.replicaCeiling
+            name: Ceiling
+            type: integer
         -   jsonPath: .status.effectiveReplicas
             name: Effective
             type: integer
@@ -86,6 +89,23 @@ spec:
                                 -   key
                                 -   name
                                 type: object
+                            autoscaling:
+                                properties:
+                                    maxReplicas:
+                                        format: int32
+                                        minimum: 1
+                                        type: integer
+                                    minReplicas:
+                                        format: int32
+                                        minimum: 0
+                                        type: integer
+                                required:
+                                -   maxReplicas
+                                -   minReplicas
+                                type: object
+                                x-kubernetes-validations:
+                                -   message: minReplicas must not exceed maxReplicas
+                                    rule: self.minReplicas <= self.maxReplicas
                             desiredReplicas:
                                 format: int32
                                 type: integer
@@ -229,6 +249,9 @@ spec:
                                 -   Pending
                                 -   Ready
                                 type: string
+                            replicaCeiling:
+                                format: int32
+                                type: integer
                             unreachableSince:
                                 format: date-time
                                 type: string

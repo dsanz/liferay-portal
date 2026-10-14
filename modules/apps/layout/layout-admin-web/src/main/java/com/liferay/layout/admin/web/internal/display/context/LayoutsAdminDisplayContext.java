@@ -15,12 +15,14 @@ import com.liferay.client.extension.type.CET;
 import com.liferay.client.extension.type.item.selector.CETItemSelectorCriterion;
 import com.liferay.client.extension.type.item.selector.CETItemSelectorReturnType;
 import com.liferay.client.extension.type.manager.CETManager;
+import com.liferay.design.library.util.DesignLibraryUtil;
 import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.service.DLFileEntryLocalServiceUtil;
 import com.liferay.exportimport.kernel.staging.LayoutStagingUtil;
 import com.liferay.frontend.taglib.clay.servlet.taglib.LinkTag;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemListBuilder;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.IconItem;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.NavigationItem;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.NavigationItemListBuilder;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.VerticalNavItemList;
@@ -76,6 +78,7 @@ import com.liferay.portal.kernel.portlet.constants.FriendlyURLResolverConstants;
 import com.liferay.portal.kernel.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.portlet.url.builder.ResourceURLBuilder;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.service.LayoutService;
 import com.liferay.portal.kernel.service.LayoutServiceUtil;
@@ -169,6 +172,14 @@ public class LayoutsAdminDisplayContext {
 
 	public long getActiveLayoutSetBranchId() throws PortalException {
 		if (_activeLayoutSetBranchId != null) {
+			return _activeLayoutSetBranchId;
+		}
+
+		if (!FeatureFlagManagerUtil.isEnabled(
+				themeDisplay.getCompanyId(), "LPD-105778")) {
+
+			_activeLayoutSetBranchId = 0L;
+
 			return _activeLayoutSetBranchId;
 		}
 
@@ -1216,6 +1227,85 @@ public class LayoutsAdminDisplayContext {
 		return _layoutSetSEORobotsProvider.getRobotsContributions(selLayoutSet);
 	}
 
+	public Group getSelGroup() {
+		return _groupDisplayContextHelper.getSelGroup();
+	}
+
+	public long getSelGroupId() {
+		Group selGroup = getSelGroup();
+
+		if (selGroup != null) {
+			return selGroup.getGroupId();
+		}
+
+		return 0;
+	}
+
+	public Layout getSelLayout() {
+		if (_selLayout != null) {
+			return _selLayout;
+		}
+
+		if (getSelPlid() != LayoutConstants.DEFAULT_PLID) {
+			_selLayout = LayoutLocalServiceUtil.fetchLayout(getSelPlid());
+		}
+
+		return _selLayout;
+	}
+
+	public LayoutSet getSelLayoutSet() {
+		if (_selLayoutSet != null) {
+			return _selLayoutSet;
+		}
+
+		Group group = getStagingGroup();
+
+		if (group == null) {
+			group = getLiveGroup();
+		}
+
+		_selLayoutSet = LayoutSetLocalServiceUtil.fetchLayoutSet(
+			group.getGroupId(), isPrivateLayout());
+
+		return _selLayoutSet;
+	}
+
+	public Long getSelPlid() {
+		if (_selPlid != null) {
+			return _selPlid;
+		}
+
+		_selPlid = ParamUtil.getLong(
+			_liferayPortletRequest, "selPlid", LayoutConstants.DEFAULT_PLID);
+
+		if ((_selPlid == 0) ||
+			(!Objects.equals(
+				ParamUtil.getString(
+					httpServletRequest, "screenNavigationEntryKey"),
+				LayoutScreenNavigationEntryConstants.ENTRY_KEY_DESIGN) &&
+			 !Objects.equals(
+				 httpServletRequest.getAttribute(
+					 ScreenNavigationWebKeys.SELECTED_ENTRY_KEY),
+				 LayoutScreenNavigationEntryConstants.ENTRY_KEY_DESIGN))) {
+
+			return _selPlid;
+		}
+
+		Layout layout = LayoutLocalServiceUtil.fetchLayout(_selPlid);
+
+		if (layout == null) {
+			return _selPlid;
+		}
+
+		Layout draftLayout = layout.fetchDraftLayout();
+
+		if (draftLayout != null) {
+			_selPlid = draftLayout.getPlid();
+		}
+
+		return _selPlid;
+	}
+
 	public String getSelectFaviconEventName() {
 		return _liferayPortletResponse.getNamespace() + "selectImage";
 	}
@@ -1302,85 +1392,6 @@ public class LayoutsAdminDisplayContext {
 					_liferayPortletRequest),
 				_liferayPortletResponse.getNamespace() + "selectTheme",
 				layoutThemeItemSelectorCriterion));
-	}
-
-	public Group getSelGroup() {
-		return _groupDisplayContextHelper.getSelGroup();
-	}
-
-	public long getSelGroupId() {
-		Group selGroup = getSelGroup();
-
-		if (selGroup != null) {
-			return selGroup.getGroupId();
-		}
-
-		return 0;
-	}
-
-	public Layout getSelLayout() {
-		if (_selLayout != null) {
-			return _selLayout;
-		}
-
-		if (getSelPlid() != LayoutConstants.DEFAULT_PLID) {
-			_selLayout = LayoutLocalServiceUtil.fetchLayout(getSelPlid());
-		}
-
-		return _selLayout;
-	}
-
-	public LayoutSet getSelLayoutSet() {
-		if (_selLayoutSet != null) {
-			return _selLayoutSet;
-		}
-
-		Group group = getStagingGroup();
-
-		if (group == null) {
-			group = getLiveGroup();
-		}
-
-		_selLayoutSet = LayoutSetLocalServiceUtil.fetchLayoutSet(
-			group.getGroupId(), isPrivateLayout());
-
-		return _selLayoutSet;
-	}
-
-	public Long getSelPlid() {
-		if (_selPlid != null) {
-			return _selPlid;
-		}
-
-		_selPlid = ParamUtil.getLong(
-			_liferayPortletRequest, "selPlid", LayoutConstants.DEFAULT_PLID);
-
-		if ((_selPlid == 0) ||
-			(!Objects.equals(
-				ParamUtil.getString(
-					httpServletRequest, "screenNavigationEntryKey"),
-				LayoutScreenNavigationEntryConstants.ENTRY_KEY_DESIGN) &&
-			 !Objects.equals(
-				 httpServletRequest.getAttribute(
-					 ScreenNavigationWebKeys.SELECTED_ENTRY_KEY),
-				 LayoutScreenNavigationEntryConstants.ENTRY_KEY_DESIGN))) {
-
-			return _selPlid;
-		}
-
-		Layout layout = LayoutLocalServiceUtil.fetchLayout(_selPlid);
-
-		if (layout == null) {
-			return _selPlid;
-		}
-
-		Layout draftLayout = layout.fetchDraftLayout();
-
-		if (draftLayout != null) {
-			_selPlid = draftLayout.getPlid();
-		}
-
-		return _selPlid;
 	}
 
 	public Group getStagingGroup() {
@@ -1572,8 +1583,9 @@ public class LayoutsAdminDisplayContext {
 	}
 
 	public VerticalNavItemList getVerticalNavItemList(
-		SelectLayoutPageTemplateEntryDisplayContext
-			selectLayoutPageTemplateEntryDisplayContext) {
+			SelectLayoutPageTemplateEntryDisplayContext
+				selectLayoutPageTemplateEntryDisplayContext)
+		throws PortalException {
 
 		VerticalNavItemList verticalNavItemList =
 			VerticalNavItemListBuilder.add(
@@ -1613,64 +1625,18 @@ public class LayoutsAdminDisplayContext {
 				}
 			).build();
 
-		boolean widgetPageFeatureFlagEnabled = FeatureFlagManagerUtil.isEnabled(
-			themeDisplay.getCompanyId(), "LPD-76864");
+		_addLayoutPageTemplateCollectionVerticalNavItems(
+			themeDisplay.getScopeGroup(),
+			selectLayoutPageTemplateEntryDisplayContext, verticalNavItemList);
 
-		for (LayoutPageTemplateCollection layoutPageTemplateCollection :
-				LayoutPageTemplateCollectionServiceUtil.
-					getLayoutPageTemplateCollections(
-						themeDisplay.getScopeGroupId(),
-						LayoutPageTemplateEntryTypeConstants.BASIC)) {
+		for (long designLibraryGroupId :
+				DesignLibraryUtil.getConnectedDesignLibraryGroupIds(
+					themeDisplay.getScopeGroupId())) {
 
-			int layoutPageTemplateEntriesCount =
-				LayoutPageTemplateEntryServiceUtil.
-					getLayoutPageTemplateEntriesCount(
-						themeDisplay.getScopeGroupId(),
-						layoutPageTemplateCollection.
-							getLayoutPageTemplateCollectionId(),
-						WorkflowConstants.STATUS_APPROVED);
-
-			if (layoutPageTemplateEntriesCount <= 0) {
-				continue;
-			}
-
-			if (!widgetPageFeatureFlagEnabled) {
-				int basicLayoutPageTemplateEntriesCount =
-					LayoutPageTemplateEntryServiceUtil.
-						getLayoutPageTemplateEntriesCountByType(
-							themeDisplay.getScopeGroupId(),
-							layoutPageTemplateCollection.
-								getLayoutPageTemplateCollectionId(),
-							LayoutPageTemplateEntryTypeConstants.BASIC);
-
-				if (basicLayoutPageTemplateEntriesCount <= 0) {
-					continue;
-				}
-			}
-
-			String name = layoutPageTemplateCollection.getName();
-
-			verticalNavItemList.add(
-				verticalNavItem -> {
-					long layoutPageTemplateCollectionId =
-						selectLayoutPageTemplateEntryDisplayContext.
-							getLayoutPageTemplateCollectionId();
-
-					if (layoutPageTemplateCollectionId ==
-							layoutPageTemplateCollection.
-								getLayoutPageTemplateCollectionId()) {
-
-						verticalNavItem.setActive(true);
-					}
-
-					verticalNavItem.setHref(
-						getSelectLayoutPageTemplateEntryURL(
-							layoutPageTemplateCollection.
-								getLayoutPageTemplateCollectionId(),
-							getSelPlid(), isPrivateLayout()));
-					verticalNavItem.setId(name);
-					verticalNavItem.setLabel(name);
-				});
+			_addLayoutPageTemplateCollectionVerticalNavItems(
+				GroupLocalServiceUtil.getGroup(designLibraryGroupId),
+				selectLayoutPageTemplateEntryDisplayContext,
+				verticalNavItemList);
 		}
 
 		return verticalNavItemList;
@@ -2167,6 +2133,85 @@ public class LayoutsAdminDisplayContext {
 
 	protected final HttpServletRequest httpServletRequest;
 	protected final ThemeDisplay themeDisplay;
+
+	private void _addLayoutPageTemplateCollectionVerticalNavItems(
+		Group group,
+		SelectLayoutPageTemplateEntryDisplayContext
+			selectLayoutPageTemplateEntryDisplayContext,
+		VerticalNavItemList verticalNavItemList) {
+
+		boolean widgetPageFeatureFlagEnabled = FeatureFlagManagerUtil.isEnabled(
+			themeDisplay.getCompanyId(), "LPD-76864");
+
+		for (LayoutPageTemplateCollection layoutPageTemplateCollection :
+				LayoutPageTemplateCollectionServiceUtil.
+					getLayoutPageTemplateCollections(
+						group.getGroupId(),
+						LayoutPageTemplateEntryTypeConstants.BASIC)) {
+
+			int layoutPageTemplateEntriesCount =
+				LayoutPageTemplateEntryServiceUtil.
+					getLayoutPageTemplateEntriesCount(
+						group.getGroupId(),
+						layoutPageTemplateCollection.
+							getLayoutPageTemplateCollectionId(),
+						WorkflowConstants.STATUS_APPROVED);
+
+			if (layoutPageTemplateEntriesCount <= 0) {
+				continue;
+			}
+
+			if (!widgetPageFeatureFlagEnabled) {
+				int basicLayoutPageTemplateEntriesCount =
+					LayoutPageTemplateEntryServiceUtil.
+						getLayoutPageTemplateEntriesCountByType(
+							group.getGroupId(),
+							layoutPageTemplateCollection.
+								getLayoutPageTemplateCollectionId(),
+							LayoutPageTemplateEntryTypeConstants.BASIC);
+
+				if (basicLayoutPageTemplateEntriesCount <= 0) {
+					continue;
+				}
+			}
+
+			verticalNavItemList.add(
+				verticalNavItem -> {
+					if (group.isDepot()) {
+						verticalNavItem.addIcon(
+							IconItem.of("books-brush", StringPool.BLANK));
+						verticalNavItem.setTitle(
+							LanguageUtil.format(
+								httpServletRequest, "x-design-library",
+								group.getDescriptiveName(
+									themeDisplay.getLocale())));
+					}
+
+					long layoutPageTemplateCollectionId =
+						selectLayoutPageTemplateEntryDisplayContext.
+							getLayoutPageTemplateCollectionId();
+
+					if (layoutPageTemplateCollectionId ==
+							layoutPageTemplateCollection.
+								getLayoutPageTemplateCollectionId()) {
+
+						verticalNavItem.setActive(true);
+					}
+
+					verticalNavItem.setHref(
+						getSelectLayoutPageTemplateEntryURL(
+							layoutPageTemplateCollection.
+								getLayoutPageTemplateCollectionId(),
+							getSelPlid(), isPrivateLayout()));
+					verticalNavItem.setId(
+						String.valueOf(
+							layoutPageTemplateCollection.
+								getLayoutPageTemplateCollectionId()));
+					verticalNavItem.setLabel(
+						layoutPageTemplateCollection.getName());
+				});
+		}
+	}
 
 	private String _getBackURL() {
 		return _getBackURL(getSelLayout());

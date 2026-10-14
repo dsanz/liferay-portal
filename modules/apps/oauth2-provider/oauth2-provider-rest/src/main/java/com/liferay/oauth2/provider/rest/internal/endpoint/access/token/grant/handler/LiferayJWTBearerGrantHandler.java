@@ -9,7 +9,7 @@ import com.liferay.oauth2.provider.configuration.OAuth2ProviderConfiguration;
 import com.liferay.oauth2.provider.rest.internal.configuration.OAuth2InAssertionConfiguration;
 import com.liferay.oauth2.provider.rest.internal.endpoint.constants.OAuth2ProviderRESTEndpointConstants;
 import com.liferay.oauth2.provider.rest.internal.endpoint.liferay.LiferayOAuthDataProvider;
-import com.liferay.oauth2.provider.util.OAuth2JWKValidatorUtil;
+import com.liferay.oauth2.provider.rest.internal.endpoint.util.OAuth2HttpRequestUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
@@ -17,9 +17,13 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.CompanyConstants;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.security.fips.FIPSAuditEventFactory;
+import com.liferay.portal.kernel.security.fips.FIPSAuditUtil;
+import com.liferay.portal.kernel.security.fips.FIPSModeValidator;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.security.key.secret.SecretResolver;
 
 import jakarta.ws.rs.core.MultivaluedMap;
 
@@ -226,6 +230,10 @@ public class LiferayJWTBearerGrantHandler extends BaseAccessTokenGrantHandler {
 	private LiferayOAuthDataProvider _liferayOAuthDataProvider;
 
 	private volatile OAuth2ProviderConfiguration _oAuth2ProviderConfiguration;
+
+	@Reference
+	private SecretResolver _secretResolver;
+
 	private ServiceRegistration<ManagedServiceFactory> _serviceRegistration;
 	private final Map<Long, Map<String, String>> _userAuthTypes =
 		new ConcurrentHashMap<>();
@@ -255,14 +263,24 @@ public class LiferayJWTBearerGrantHandler extends BaseAccessTokenGrantHandler {
 
 				JwsHeaders jwsHeaders = jwtToken.getJwsHeaders();
 
-				OAuth2JWKValidatorUtil.validateJWSAlgorithm(
-					jwsHeaders.getAlgorithm());
+				String algorithm = jwsHeaders.getAlgorithm();
 
 				JwtClaims jwtClaims = jwtToken.getClaims();
 
+				try {
+					FIPSModeValidator.validateJWSAlgorithm(algorithm);
+				}
+				catch (SecurityException securityException) {
+					FIPSAuditUtil.write(
+						FIPSAuditEventFactory.createFederationTokenRejected(
+							OAuth2HttpRequestUtil.getRequestURI(), algorithm,
+							jwtClaims.getIssuer(), "JWT"));
+
+					throw securityException;
+				}
+
 				if (StringUtil.equals(
-						jwsHeaders.getAlgorithm(),
-						SignatureAlgorithm.RS256.getJwaName())) {
+						algorithm, SignatureAlgorithm.RS256.getJwaName())) {
 
 					_initGrantHandler(companyId, jwtClaims, jwsHeaders);
 				}
@@ -289,6 +307,13 @@ public class LiferayJWTBearerGrantHandler extends BaseAccessTokenGrantHandler {
 				}
 
 				throw new OAuthServiceException(exception);
+			}
+		}
+
+		@Override
+		protected void validateSubject(Client client, String subject) {
+			if (subject == null) {
+				throw new OAuthServiceException(OAuthConstants.INVALID_GRANT);
 			}
 		}
 
@@ -494,7 +519,10 @@ public class LiferayJWTBearerGrantHandler extends BaseAccessTokenGrantHandler {
 					jwsSignatureVerifiers.get(issuer);
 
 				JsonWebKeys jsonWebKeys = JwkUtils.readJwkSet(
-					oAuth2InAssertionConfiguration.signatureJSONWebKeySet());
+					_secretResolver.resolve(
+						companyId,
+						oAuth2InAssertionConfiguration.
+							signatureJSONWebKeySet()));
 
 				for (JsonWebKey jsonWebKey : jsonWebKeys.getKeys()) {
 					PublicKeyUse publicKeyUse = jsonWebKey.getPublicKeyUse();

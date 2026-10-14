@@ -15,6 +15,7 @@ import {
 	OBJECT_ENTRY_FOLDER_CLASS_NAME,
 } from '../../common/utils/constants';
 import {openGenericFDSDeleteConfirmationModal} from '../../common/utils/genericOpenModalUtil';
+import {getAssetTitle} from '../../common/utils/getAssetTitle';
 import {getFormattedLabel} from '../../common/utils/getFormattedText';
 import {getScopeExternalReferenceCode} from '../../common/utils/getScopeExternalReferenceCode';
 import {displayDeleteSuccessToast} from '../../common/utils/toastUtil';
@@ -24,6 +25,7 @@ import restoreItemAction from './actions/restoreItemAction';
 import AuthorRenderer from './cell_renderers/AuthorRenderer';
 import SimpleActionLinkRenderer from './cell_renderers/SimpleActionLinkRenderer';
 import SpaceRendererWithCache from './cell_renderers/SpaceRendererWithCache';
+import styleDeleteAction from './utils/styleDeleteAction';
 import transformFDSBulkActions from './utils/transformFDSBulkActions';
 
 export default function RecycleBinFDSPropsTransformer({
@@ -61,6 +63,7 @@ export default function RecycleBinFDSPropsTransformer({
 							systemIconLabel: Liferay.Language.get(
 								'system-default-structure'
 							),
+							value: getAssetTitle(props.itemData),
 						}),
 					name: 'simpleActionLinkTableCellRenderer',
 					type: 'internal',
@@ -91,7 +94,7 @@ export default function RecycleBinFDSPropsTransformer({
 				};
 			}
 
-			return action;
+			return styleDeleteAction(action);
 		}),
 		async onActionDropdownItemClick({
 			action,
@@ -103,7 +106,7 @@ export default function RecycleBinFDSPropsTransformer({
 			loadData: () => {};
 		}) {
 			const title =
-				itemData.embedded?.title ||
+				getAssetTitle(itemData) ||
 				Liferay.Language.get('untitled-asset');
 
 			if (action.data.id === 'delete') {
@@ -156,7 +159,7 @@ export default function RecycleBinFDSPropsTransformer({
 				if (selectedData?.items?.length === 1) {
 					const item = selectedData.items[0];
 					const title =
-						item.embedded?.title ||
+						getAssetTitle(item) ||
 						Liferay.Language.get('untitled-asset');
 
 					await restoreItemAction(
@@ -178,5 +181,7 @@ export default function RecycleBinFDSPropsTransformer({
 				}
 			}
 		},
+		searchAsYouType: true,
+		searchSuggestionsEnabled: true,
 	};
 }

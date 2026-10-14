@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
@@ -38,7 +38,7 @@ function main {
 		--volume "${license_dir}:/mnt/deploy" \
 		liferay/dxp:latest \
 		-c \
-		"cp /opt/liferay/deploy/trial-dxp-license*.xml /mnt/deploy/license.xml"
+		"cp /opt/liferay/osgi/modules/trial-dxp-license*.xml /mnt/deploy/license.xml 2> /dev/null || cp /opt/liferay/deploy/trial-dxp-license*.xml /mnt/deploy/license.xml"
 }
 
 main "${@}"

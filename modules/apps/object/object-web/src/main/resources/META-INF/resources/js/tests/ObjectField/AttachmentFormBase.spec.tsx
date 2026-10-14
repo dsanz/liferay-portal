@@ -109,11 +109,13 @@ const renderComponentWithHook = ({
 
 describe('The AttachmentFormBase component', () => {
 	afterEach(() => {
-		fetchMock.restore();
+		fetchMock.hardReset();
 		jest.restoreAllMocks();
 	});
 
 	beforeEach(() => {
+		fetchMock.mockGlobal();
+
 		fetchMock.get(SPACE_LIBRARIES_URL, {
 			body: {
 				items: [],
@@ -196,12 +198,18 @@ describe('The AttachmentFormBase component', () => {
 	});
 
 	it('sets default values for the storageDLFolderPath and storageDepotGroup', async () => {
-		fetchMock.restore();
+		fetchMock.hardReset();
 
-		fetchMock.get(SPACE_LIBRARIES_URL, {
-			items: [{externalReferenceCode: 'MySpaceERC'}],
-			totalCount: 1,
-		});
+		fetchMock.mockGlobal();
+
+		fetchMock.get(
+			SPACE_LIBRARIES_URL,
+			{
+				items: [{externalReferenceCode: 'MySpaceERC'}],
+				totalCount: 1,
+			},
+			{name: 'space-libraries'}
+		);
 
 		renderComponentWithHook({
 			objectFieldSettings: [
@@ -211,7 +219,7 @@ describe('The AttachmentFormBase component', () => {
 		});
 
 		await waitFor(() => {
-			expect(fetchMock.called(SPACE_LIBRARIES_URL)).toBe(true);
+			expect(fetchMock.callHistory.called('space-libraries')).toBe(true);
 		});
 
 		await userEvent.click(

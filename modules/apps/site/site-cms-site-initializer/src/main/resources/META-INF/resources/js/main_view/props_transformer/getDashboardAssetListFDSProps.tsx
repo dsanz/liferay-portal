@@ -14,6 +14,7 @@ import React from 'react';
 import {openAssetUsageListModal} from '../../common/components/asset_usage/utils';
 import {ISearchAssetObjectEntry} from '../../common/types/AssetType';
 import {OBJECT_ENTRY_FOLDER_CLASS_NAME} from '../../common/utils/constants';
+import {getAssetTitle} from '../../common/utils/getAssetTitle';
 import {getFormattedLabel} from '../../common/utils/getFormattedText';
 import {openCMSModal} from '../../common/utils/openCMSModal';
 import DefaultPermissionModalContent from '../default_permission/DefaultPermissionModalContent';
@@ -23,6 +24,7 @@ import AssetNavigationModalContent from '../modal/asset_navigation_view/AssetNav
 import {AdditionalProps} from './AssetsFDSPropsTransformer';
 import ACTIONS from './actions/creationMenuActions';
 import deleteItemAction from './actions/deleteItemAction';
+import editImageAction, {isEditableImage} from './actions/editImageAction';
 import openFolderItemSelectorAction from './actions/openFolderItemSelectorAction';
 import shareAction from './actions/shareAction';
 import AssetRenderer from './cell_renderers/AssetRenderer';
@@ -30,6 +32,7 @@ import {
 	isScheduleDateActionId,
 	openScheduleDateModal,
 } from './utils/createScheduleDateModalOpener';
+import styleDeleteAction from './utils/styleDeleteAction';
 
 export type DashboardAssetListAdditionalProps = Pick<
 	AdditionalProps,
@@ -51,6 +54,7 @@ export type DashboardAssetListAdditionalProps = Pick<
 		Pick<
 			AdditionalProps,
 			| 'additionalAPIURLParameters'
+			| 'editableImageMIMETypes'
 			| 'rootObjectEntryFolderExternalReferenceCode'
 		>
 	>;
@@ -58,12 +62,14 @@ export type DashboardAssetListAdditionalProps = Pick<
 export default function getDashboardAssetListFDSProps({
 	additionalProps,
 	itemsActions = [],
+	onDataChange,
 	renderSubtitle,
 	...otherProps
 }: {
 	additionalProps: DashboardAssetListAdditionalProps;
 	apiURL?: string;
 	itemsActions?: IItemsActions[];
+	onDataChange?: () => void;
 	renderSubtitle?: (itemData: ISearchAssetObjectEntry) => React.ReactNode;
 	[key: string]: any;
 }) {
@@ -77,7 +83,7 @@ export default function getDashboardAssetListFDSProps({
 		customRenderers: {
 			tableCell: [
 				{
-					component: ({actions, itemData, options, value}) => (
+					component: ({actions, itemData, options}) => (
 						<AssetRenderer
 							actions={actions}
 							additionalProps={additionalProps}
@@ -97,7 +103,7 @@ export default function getDashboardAssetListFDSProps({
 							}}
 							options={options}
 							renderSubtitle={renderSubtitle}
-							value={value}
+							value={getAssetTitle(itemData)}
 						/>
 					),
 					name: 'assetRenderer',
@@ -127,6 +133,16 @@ export default function getDashboardAssetListFDSProps({
 						Boolean(item?.embedded?.file?.link?.href),
 				};
 			}
+			else if (action?.data?.id === 'edit-image') {
+				return {
+					...action,
+					isVisible: (item: any) =>
+						isEditableImage(
+							item,
+							additionalProps.editableImageMIMETypes
+						),
+				};
+			}
 			else if (
 				action?.data?.id === 'export-for-translation' ||
 				action?.data?.id === 'import-translation' ||
@@ -144,14 +160,14 @@ export default function getDashboardAssetListFDSProps({
 				};
 			}
 
-			return action;
+			return styleDeleteAction(action);
 		}),
 		async onActionDropdownItemClick({
 			action,
 			event,
 			itemData,
 			items,
-			loadData,
+			loadData: fdsLoadData,
 		}: {
 			action: any;
 			event: Event;
@@ -159,6 +175,14 @@ export default function getDashboardAssetListFDSProps({
 			items: any;
 			loadData: () => {};
 		}) {
+			const loadData = () => {
+				const result = fdsLoadData();
+
+				onDataChange?.();
+
+				return result;
+			};
+
 			if (action?.data?.id === 'copy' || action?.data?.id === 'move') {
 				openFolderItemSelectorAction(
 					action?.data?.id,
@@ -239,6 +263,11 @@ export default function getDashboardAssetListFDSProps({
 						loadData
 					);
 				}
+			}
+			else if (action?.data?.id === 'edit-image') {
+				event?.preventDefault();
+
+				editImageAction(itemData, loadData);
 			}
 			else if (action?.data?.id === 'export-for-translation') {
 				event?.preventDefault();
@@ -341,7 +370,7 @@ export default function getDashboardAssetListFDSProps({
 					creator: itemData.embedded.creator,
 					entryClassName: itemData.entryClassName,
 					itemId: itemData.embedded.id,
-					title: itemData.embedded.title,
+					title: getAssetTitle(itemData),
 				});
 			}
 		},

@@ -8,7 +8,7 @@ import {createReadStream} from 'fs';
 import {getRandomInt} from '../utils/getRandomInt';
 import {ApiHelpers, DataApiHelpers} from './ApiHelpers';
 
-type TAccount = {
+export type TAccount = {
 	alternateName?: string;
 	description?: string;
 	externalReferenceCode?: string;
@@ -232,6 +232,23 @@ export class HeadlessAdminUserApiHelper {
 		return this.apiHelpers.delete(
 			`${this.apiHelpers.baseUrl}${this.basePath}/account-groups/${accountGroupId}`
 		);
+	}
+
+	async deleteAccountValidatorResults(accountId: number) {
+		const filter = encodeURIComponent(
+			`r_accountToAccountValidatorResults_accountEntryId eq '${accountId}'`
+		);
+
+		const accountValidatorResults = await this.apiHelpers.get(
+			`${this.apiHelpers.baseUrl}account/validator-results?filter=${filter}&pageSize=100`
+		);
+
+		for (const accountValidatorResult of accountValidatorResults?.items ||
+			[]) {
+			await this.apiHelpers.delete(
+				`${this.apiHelpers.baseUrl}account/validator-results/${accountValidatorResult.id}`
+			);
+		}
 	}
 
 	async deleteOrganization(organizationId: string) {
@@ -462,6 +479,16 @@ export class HeadlessAdminUserApiHelper {
 			},
 			method: 'PATCH',
 		});
+	}
+
+	async patchAccount(
+		accountId: number,
+		patchedAccount: DataObject
+	): Promise<TAccount> {
+		return this.apiHelpers.patch(
+			`${this.apiHelpers.baseUrl}${this.basePath}/accounts/${accountId}`,
+			patchedAccount
+		);
 	}
 
 	async patchUserAccount(

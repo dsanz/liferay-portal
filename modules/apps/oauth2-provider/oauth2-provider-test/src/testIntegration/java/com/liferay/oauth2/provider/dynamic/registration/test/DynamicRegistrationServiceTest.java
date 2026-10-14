@@ -53,6 +53,11 @@ import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.List;
 
+import org.apache.cxf.rs.security.jose.jwa.SignatureAlgorithm;
+import org.apache.cxf.rs.security.jose.jws.JwsHeaders;
+import org.apache.cxf.rs.security.jose.jws.JwsJwtCompactProducer;
+import org.apache.cxf.rs.security.jose.jws.NoneJwsSignatureProvider;
+import org.apache.cxf.rs.security.jose.jwt.JwtClaims;
 import org.apache.cxf.rs.security.oauth2.utils.OAuthConstants;
 
 import org.junit.After;
@@ -601,6 +606,39 @@ public class DynamicRegistrationServiceTest extends BaseClientTestCase {
 	}
 
 	@Test
+	public void testRegisterInOpenModeWithRateLimitDisabled() throws Exception {
+		String clientHost = RandomTestUtil.randomString();
+
+		WebTarget registerWebTarget = getRegisterWebTarget();
+
+		String body = _createOpenRegistrationJSONObject(
+			true, _getRandomRedirectURI()
+		).toString();
+
+		try (CompanyConfigurationTemporarySwapper
+				companyConfigurationTemporarySwapper =
+					_createCompanyConfigurationTemporarySwapper(
+						TestPropsValues.getCompanyId(),
+						"oauth2.dynamic.registration.maximum.number.of." +
+							"registrations.per.hour",
+						0, "oauth2.dynamic.registration.trust.proxy.headers",
+						true)) {
+
+			for (int i = 0; i < 15; i++) {
+				Invocation.Builder invocationBuilder =
+					registerWebTarget.request();
+
+				invocationBuilder.header("X-Forwarded-For", clientHost);
+
+				Response response = invocationBuilder.method(
+					"post", Entity.json(body));
+
+				Assert.assertEquals(201, response.getStatus());
+			}
+		}
+	}
+
+	@Test
 	public void testRegisterInOpenModeWithoutRedirectURIs() throws Exception {
 		WebTarget registerWebTarget = getRegisterWebTarget();
 
@@ -638,39 +676,6 @@ public class DynamicRegistrationServiceTest extends BaseClientTestCase {
 
 			Assert.assertEquals(
 				"open", additionalInfoJSONObject.getString("mode"));
-		}
-	}
-
-	@Test
-	public void testRegisterInOpenModeWithRateLimitDisabled() throws Exception {
-		String clientHost = RandomTestUtil.randomString();
-
-		WebTarget registerWebTarget = getRegisterWebTarget();
-
-		String body = _createOpenRegistrationJSONObject(
-			true, _getRandomRedirectURI()
-		).toString();
-
-		try (CompanyConfigurationTemporarySwapper
-				companyConfigurationTemporarySwapper =
-					_createCompanyConfigurationTemporarySwapper(
-						TestPropsValues.getCompanyId(),
-						"oauth2.dynamic.registration.maximum.number.of." +
-							"registrations.per.hour",
-						0, "oauth2.dynamic.registration.trust.proxy.headers",
-						true)) {
-
-			for (int i = 0; i < 15; i++) {
-				Invocation.Builder invocationBuilder =
-					registerWebTarget.request();
-
-				invocationBuilder.header("X-Forwarded-For", clientHost);
-
-				Response response = invocationBuilder.method(
-					"post", Entity.json(body));
-
-				Assert.assertEquals(201, response.getStatus());
-			}
 		}
 	}
 
@@ -757,31 +762,36 @@ public class DynamicRegistrationServiceTest extends BaseClientTestCase {
 
 	@Test
 	public void testRegisterWithInvalidBearerToken() throws Exception {
-		WebTarget registerWebTarget = getRegisterWebTarget();
+		_testRegisterWithInvalidBearerToken(RandomTestUtil.randomString());
 
-		Invocation.Builder invocationBuilder = registerWebTarget.request();
+		JwtClaims jwtClaims = new JwtClaims();
 
-		invocationBuilder.header(
-			"Authorization", "Bearer " + RandomTestUtil.randomString());
+		OAuth2Application dynamicRegistratorOAuth2Application =
+			_getDynamicRegistratorOAuth2Application();
 
-		Response response = invocationBuilder.method(
-			"post",
-			Entity.json(
-				JSONUtil.put(
-					"client_name", RandomTestUtil.randomString()
-				).toString()));
+		jwtClaims.setClaim(
+			"client_id", dynamicRegistratorOAuth2Application.getClientId());
 
-		Assert.assertEquals(401, response.getStatus());
+		User user = UserTestUtil.getAdminUser(TestPropsValues.getCompanyId());
 
-		AuditMessage auditMessage = _fetchAuditMessage(
-			"DYNAMIC_REGISTRATION_REJECT");
+		jwtClaims.setSubject(String.valueOf(user.getUserId()));
 
-		JSONObject additionalInfoJSONObject = auditMessage.getAdditionalInfo();
+		JwsJwtCompactProducer jwsJwtCompactProducer = new JwsJwtCompactProducer(
+			new JwsHeaders(SignatureAlgorithm.NONE), jwtClaims);
 
-		Assert.assertEquals(
-			"invalid_token", additionalInfoJSONObject.getString("error"));
-		Assert.assertEquals(
-			"authenticated", additionalInfoJSONObject.getString("mode"));
+		_testRegisterWithInvalidBearerToken(
+			jwsJwtCompactProducer.signWith(new NoneJwsSignatureProvider()));
+	}
+
+	@Test
+	public void testRegisterWithInvalidRedirectURI() throws Exception {
+		_testRegisterWithInvalidRedirectURI(StringPool.BLANK);
+		_testRegisterWithInvalidRedirectURI(
+			"com.example.app:/" + RandomTestUtil.randomString());
+		_testRegisterWithInvalidRedirectURI(
+			"ht tp://" + RandomTestUtil.randomString() + ".com/callback");
+		_testRegisterWithInvalidRedirectURI(
+			"myapp://" + RandomTestUtil.randomString() + ".com/callback");
 	}
 
 	@Test
@@ -1090,6 +1100,64 @@ public class DynamicRegistrationServiceTest extends BaseClientTestCase {
 				Assert.assertEquals(expectedError, parseError(response));
 			}
 		}
+	}
+
+	private void _testRegisterWithInvalidBearerToken(String bearerToken) {
+		_auditMessages.clear();
+
+		WebTarget registerWebTarget = getRegisterWebTarget();
+
+		Invocation.Builder invocationBuilder = registerWebTarget.request();
+
+		invocationBuilder.header("Authorization", "Bearer " + bearerToken);
+
+		Response response = invocationBuilder.method(
+			"post",
+			Entity.json(
+				JSONUtil.put(
+					"client_name", RandomTestUtil.randomString()
+				).toString()));
+
+		Assert.assertEquals(401, response.getStatus());
+
+		AuditMessage auditMessage = _fetchAuditMessage(
+			"DYNAMIC_REGISTRATION_REJECT");
+
+		JSONObject additionalInfoJSONObject = auditMessage.getAdditionalInfo();
+
+		Assert.assertEquals(
+			"invalid_token", additionalInfoJSONObject.getString("error"));
+		Assert.assertEquals(
+			"authenticated", additionalInfoJSONObject.getString("mode"));
+	}
+
+	private void _testRegisterWithInvalidRedirectURI(String redirectURI)
+		throws Exception {
+
+		WebTarget registerWebTarget = getRegisterWebTarget();
+
+		Invocation.Builder invocationBuilder = authorize(
+			registerWebTarget.request(),
+			_getToken(_getDynamicRegistratorOAuth2Application()));
+
+		Response response = invocationBuilder.method(
+			"post",
+			Entity.json(
+				JSONUtil.put(
+					"client_name", RandomTestUtil.randomString()
+				).put(
+					"grant_types",
+					new String[] {OAuthConstants.AUTHORIZATION_CODE_GRANT}
+				).put(
+					"redirect_uris", new String[] {redirectURI}
+				).put(
+					"response_types",
+					new String[] {OAuthConstants.CODE_RESPONSE_TYPE}
+				).toString()));
+
+		Assert.assertEquals(400, response.getStatus());
+
+		Assert.assertEquals("invalid_redirect_uri", parseError(response));
 	}
 
 	private List<AuditMessage> _auditMessages;

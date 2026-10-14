@@ -1,8 +1,16 @@
+accessControl:
+    allowedCIDRs:
+        -   10.0.0.0/16
+        -   203.0.113.0/24
+    enabled: true
+argocd:
+    gateway:
+        enabled: true
+        hostname: argocd.liferay.render
 clusterSecretStore:
     name: liferay-render-secret-store
 deploymentContext:
     deploymentName: liferay-render
-    region: local
 gitops:
     repository:
         url: https://github.com/example/liferay-gitops.git
@@ -15,3 +23,7 @@ infrastructureProvider:
 liferay:
     repoURL: oci://example-registry/liferay-helm-chart/liferay-azure
     targetRevision: 1.0.0
+networkPolicy:
+    apiServerSources:
+        -   ipBlock:
+                cidr: 10.0.0.0/16

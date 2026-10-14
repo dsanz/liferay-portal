@@ -19,9 +19,24 @@
 			"label": {
 				"en_US": "MCP Server Profile Tool"
 			},
-			"modifiable": true,
 			"name": "MCPServerProfileTool",
 			"objectFields": [
+				{
+					"DBType": "Clob",
+					"businessType": "LongText",
+					"defaultValue": "null",
+					"indexed": true,
+					"indexedAsKeyword": false,
+					"indexedLanguageId": "en_US",
+					"label": {
+						"en_US": "Restrict Fields"
+					},
+					"name": "restrictFields",
+					"required": false,
+					"state": false,
+					"system": true,
+					"type": "String"
+				},
 				{
 					"DBType": "String",
 					"businessType": "Text",
@@ -55,7 +70,7 @@
 					"type": "String"
 				}
 			],
-			"panelCategoryKey": "control_panel.object",
+			"panelCategoryKey": "",
 			"pluralLabel": {
 				"en_US": "MCP Server Profile Tools"
 			},

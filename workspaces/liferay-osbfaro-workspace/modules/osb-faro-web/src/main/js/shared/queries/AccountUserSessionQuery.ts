@@ -2,6 +2,7 @@ import {gql} from '@apollo/client';
 import {SessionEntityTypes} from 'shared/util/constants';
 
 export interface AccountUserSessionEvent {
+	acquisitionProperties: Array<{name: string; value: string}>;
 	applicationId: string;
 	assetTitle: string;
 	campaignId: string | null;
@@ -10,6 +11,8 @@ export interface AccountUserSessionEvent {
 	createDate: string;
 	eventDate: string;
 	eventId: string;
+	experienceId?: string | null;
+	experienceName?: string | null;
 	name: string;
 	pageDescription: string;
 	pageGroupId?: string | null;
@@ -29,6 +32,7 @@ export interface AccountUserSession {
 	deviceType: string;
 	events: AccountUserSessionEvent[];
 	individualId: string | null;
+	jobTitle?: string | null;
 	languageId: string;
 	screenHeight: number;
 	screenWidth: number;
@@ -96,6 +100,10 @@ export default gql`
 					devicePixelRatio
 					deviceType
 					events {
+						acquisitionProperties {
+							name
+							value
+						}
 						applicationId
 						assetTitle
 						campaignId
@@ -104,6 +112,8 @@ export default gql`
 						createDate
 						eventDate
 						eventId
+						experienceId
+						experienceName
 						name
 						pageDescription
 						pageGroupId

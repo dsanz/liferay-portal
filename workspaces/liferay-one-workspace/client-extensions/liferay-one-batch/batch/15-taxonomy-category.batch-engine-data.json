@@ -1,0 +1,935 @@
+{
+	"configuration": {
+		"className": "com.liferay.headless.admin.taxonomy.dto.v1_0.TaxonomyCategory",
+		"parameters": {
+			"containsHeaders": "true",
+			"createStrategy": "UPSERT",
+			"onErrorFail": "false",
+			"siteId": "L_GLOBAL",
+			"taskItemDelegateName": "DEFAULT",
+			"updateStrategy": "UPDATE"
+		}
+	},
+	"items": [
+		{
+			"externalReferenceCode": "MARKETPLACE_APP_CATEGORY_ANALYTICS_AND_OPTIMIZATION",
+			"name": "analytics-and-optimization",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_APP_CATEGORY"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_APP_CATEGORY_COLLABORATION_KNOWLEDGE_SHARING",
+			"name": "collaboration-knowledge-sharing",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_APP_CATEGORY"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_APP_CATEGORY_CONTENT_MANAGEMENT_OPERATIONS",
+			"name": "content-management-operations",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_APP_CATEGORY"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_APP_CATEGORY_CUSTOMER_DATA_MANAGEMENT",
+			"name": "customer-data-management",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_APP_CATEGORY"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_APP_CATEGORY_DATA_MODELING_AND_BUSINESS_LOGIC",
+			"name": "data-modeling-and-business-logic",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_APP_CATEGORY"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_APP_CATEGORY_DATA_MODELING_PROCESS_AND_BUSINESS_LOGIC",
+			"name": "data-modeling-process-and-business-logic",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_APP_CATEGORY"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_APP_CATEGORY_EXPERIENCE_MANAGEMENT",
+			"name": "experience-management",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_APP_CATEGORY"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_APP_CATEGORY_EXTENSIBILITY_AND_INTEGRATION",
+			"name": "extensibility-and-integration",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_APP_CATEGORY"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_APP_CATEGORY_E_COMMERCE",
+			"name": "e-commerce",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_APP_CATEGORY"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_APP_CATEGORY_IDENTITY_MANAGEMENT_GOVERNANCE",
+			"name": "identity-management-governance",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_APP_CATEGORY"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_APP_CATEGORY_NAVIGATION_AND_DISCOVERY",
+			"name": "navigation-and-discovery",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_APP_CATEGORY"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_APP_CATEGORY_ORDERS_AND_FULFILLMENT",
+			"name": "orders-and-fulfillment",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_APP_CATEGORY"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_APP_CATEGORY_PERSONALIZATION_AND_SEGMENTATION",
+			"name": "personalization-and-segmentation",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_APP_CATEGORY"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_APP_TAGS_BUSINESS_USE",
+			"name": "business-use",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_APP_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_APP_TAGS_CLIENT_EXTENSION_TYPE",
+			"name": "client-extension-type",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_APP_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_AVAILABILITY_COMMUNITY",
+			"name": "community",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_AVAILABILITY"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_AVAILABILITY_ENTERPRISE",
+			"name": "enterprise",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_AVAILABILITY"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_CATEGORY_BATCH",
+			"name": "batch",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_CATEGORY"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_CATEGORY_CHECKOUT",
+			"name": "checkout",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_CATEGORY"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"description": "Fragments",
+			"description_i18n": {
+				"en_US": "Fragments"
+			},
+			"externalReferenceCode": "MARKETPLACE_CATEGORY_FRAGMENTS",
+			"name": "fragments",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_CATEGORY"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_CATEGORY_OBJECT_DEFINITION",
+			"name": "object-definition",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_CATEGORY"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_CATEGORY_OTHER",
+			"name": "other",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_CATEGORY"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_CATEGORY_PAYMENT_METHODS",
+			"name": "payment-methods",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_CATEGORY"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_CATEGORY_PROMPT",
+			"name": "prompt",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_CATEGORY"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_CATEGORY_SITE_INITIALIZER",
+			"name": "site-initializer",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_CATEGORY"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_CATEGORY_THEME",
+			"name": "theme",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_CATEGORY"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_CATEGORY_WORKFLOW_ACTION",
+			"name": "workflow-action",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_CATEGORY"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_LIFERAY_PLATFORM_OFFERING_LIFERAY_PAAS",
+			"name": "liferay-paas",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_LIFERAY_PLATFORM_OFFERING"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_LIFERAY_PLATFORM_OFFERING_LIFERAY_SAAS",
+			"name": "liferay-saas",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_LIFERAY_PLATFORM_OFFERING"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_LIFERAY_PLATFORM_OFFERING_LIFERAY_SELF_HOSTED",
+			"name": "liferay-self-hosted",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_LIFERAY_PLATFORM_OFFERING"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_LIFERAY_VERSION_61",
+			"name": "61",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_LIFERAY_VERSION"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_LIFERAY_VERSION_62",
+			"name": "62",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_LIFERAY_VERSION"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_LIFERAY_VERSION_70",
+			"name": "70",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_LIFERAY_VERSION"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_LIFERAY_VERSION_71",
+			"name": "71",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_LIFERAY_VERSION"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_LIFERAY_VERSION_72",
+			"name": "72",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_LIFERAY_VERSION"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_LIFERAY_VERSION_73",
+			"name": "73",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_LIFERAY_VERSION"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_LIFERAY_VERSION_74",
+			"name": "74",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_LIFERAY_VERSION"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"description": "Listed",
+			"description_i18n": {
+				"en_US": "Listed"
+			},
+			"externalReferenceCode": "MARKETPLACE_LISTING_LISTED",
+			"name": "listed",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_LISTING"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"description": "App",
+			"description_i18n": {
+				"en_US": "An app is a specialized component developed using Liferay or other technology that helps a customer to accomplish a specific task."
+			},
+			"externalReferenceCode": "MARKETPLACE_PRODUCT_TYPE_APP",
+			"name": "app",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_PRODUCT_TYPE"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"description": "Liferay Product",
+			"description_i18n": {
+				"en_US": "Liferay Product"
+			},
+			"externalReferenceCode": "MARKETPLACE_PRODUCT_TYPE_LIFERAY_PRODUCT",
+			"name": "liferay-product",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_PRODUCT_TYPE"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"description": "Product",
+			"description_i18n": {
+				"en_US": "A product is a packaged offering available in the marketplace catalog."
+			},
+			"externalReferenceCode": "MARKETPLACE_PRODUCT_TYPE_PRODUCT",
+			"name": "product",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_PRODUCT_TYPE"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"description": "Solution",
+			"description_i18n": {
+				"en_US": "A Liferay solution is a reproducible tailoring and integration of Liferay DXP product features whose purpose is to solve large, complex business challenges. (customer portal, d2c, producer portal, intranet, etc.)"
+			},
+			"externalReferenceCode": "MARKETPLACE_PRODUCT_TYPE_SOLUTION",
+			"name": "solution",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_PRODUCT_TYPE"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_CATEGORY_ANALYTICS_AND_OPTIMIZATION",
+			"name": "analytics-and-optimization",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_CATEGORY"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_CATEGORY_COLLABORATION_KNOWLEDGE_SHARING",
+			"name": "collaboration-knowledge-sharing",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_CATEGORY"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_CATEGORY_CONTENT_MANAGEMENT_OPERATIONS",
+			"name": "content-management-operations",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_CATEGORY"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_CATEGORY_CUSTOMER_DATA_MANAGEMENT",
+			"name": "customer-data-management",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_CATEGORY"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_CATEGORY_DATA_MODELING_PROCESS_BUSINESS_LOGIC",
+			"name": "data-modeling-process-business-logic",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_CATEGORY"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_CATEGORY_EXPERIENCE_MANAGEMENT",
+			"name": "experience-management",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_CATEGORY"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_CATEGORY_EXTENSIBILITY_AND_INTEGRATION",
+			"name": "extensibility-and-integration",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_CATEGORY"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_CATEGORY_IDENTITY_MANAGEMENT_AND_GOVERNANCE",
+			"name": "identity-management-and-governance",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_CATEGORY"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_CATEGORY_NAVIGATION_AND_DISCOVERY",
+			"name": "navigation-and-discovery",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_CATEGORY"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_CATEGORY_ORDERS_AND_FULFILLMENT",
+			"name": "orders-and-fulfillment",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_CATEGORY"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_CATEGORY_PERSONALIZATION_AND_SEGMENTATION",
+			"name": "personalization-and-segmentation",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_CATEGORY"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_ACCELERATOR",
+			"name": "accelerator",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_AGENT_PORTAL",
+			"name": "agent-portal",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_AI",
+			"name": "ai",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_ANALYTICS",
+			"name": "analytics",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_ARCHITECTURE",
+			"name": "architecture",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_AUTOMATION",
+			"name": "automation",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_BANKING",
+			"name": "banking",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_BRANDING",
+			"name": "branding",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_CITIZEN_PORTAL",
+			"name": "citizen-portal",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_CLINICAL_TRIALS",
+			"name": "clinical-trials",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_COLLABORATION",
+			"name": "collaboration",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_COMMUNITY_PLATFORM",
+			"name": "community-platform",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_CONSUMER_PRODUCTS",
+			"name": "consumer-products",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_CRM",
+			"name": "crm",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_CUSTOMER_DATA_MANAGEMENT",
+			"name": "customer-data-management",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_CUSTOMER_PORTAL",
+			"name": "customer-portal",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_DATA_LAKE",
+			"name": "data-lake",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_DATA_MODELER",
+			"name": "data-modeler",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_DATA_VISUALIZATION",
+			"name": "data-visualization",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_DEVELOPMENT_FRAMEWORK",
+			"name": "development-framework",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_DIGITAL_WORKPLACE",
+			"name": "digital-workplace",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_ECM",
+			"name": "ecm",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_EDUCATION",
+			"name": "education",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_EMPLOYEE_EXPERIENCE",
+			"name": "employee-experience",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_EMPLOYEE_PORTAL",
+			"name": "employee-portal",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_ENTERPRISE_SEARCH",
+			"name": "enterprise-search",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_EVENTS",
+			"name": "events",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_EXTRANET",
+			"name": "extranet",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_FINANCIAL_PORTAL",
+			"name": "financial-portal",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_GAMIFICATION",
+			"name": "gamification",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_GOVERNMENT",
+			"name": "government",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_HEALTHCARE",
+			"name": "healthcare",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_HIGHER_EDUCATION",
+			"name": "higher-education",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_INDUSTRY",
+			"name": "industry",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_INSURANCE",
+			"name": "insurance",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_INTRANET",
+			"name": "intranet",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_IOT",
+			"name": "iot",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_KNOWLEDGE_MANAGEMENT",
+			"name": "knowledge-management",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_KPIS",
+			"name": "kpis",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_LIFE_SCIENCES",
+			"name": "life-sciences",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_LOW_CODE",
+			"name": "low-code",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_MANUFACTURING",
+			"name": "manufacturing",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_METADATA",
+			"name": "metadata",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_NO_CODE",
+			"name": "no-code",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_PERFORMANCE_MANAGEMENT",
+			"name": "performance-management",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_PERSONALIZATION",
+			"name": "personalization",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_PROCUREMENT",
+			"name": "procurement",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_PRO_CODE",
+			"name": "pro-code",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_PUBLIC_SECTOR",
+			"name": "public-sector",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_PURCHASING",
+			"name": "purchasing",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_RAPID_DEVELOPMENT",
+			"name": "rapid-development",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_RETAIL",
+			"name": "retail",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_SEARCH",
+			"name": "search",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_SELF_SERVICE_PORTAL",
+			"name": "self-service-portal",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_SHARED_INVESTIGATOR_PLATFORM",
+			"name": "shared-investigator-platform",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_SUPPLIER_PORTAL",
+			"name": "supplier-portal",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_TELECOMMUNICATIONS",
+			"name": "telecommunications",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_TRAINING",
+			"name": "training",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		},
+		{
+			"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS_VR",
+			"name": "vr",
+			"parentTaxonomyVocabulary": {
+				"externalReferenceCode": "MARKETPLACE_SOLUTION_TAGS"
+			},
+			"viewableBy": "Anyone"
+		}
+	]
+}

@@ -12,12 +12,14 @@ import com.liferay.info.field.InfoField;
 import com.liferay.info.form.InfoForm;
 import com.liferay.info.item.provider.InfoItemFormProvider;
 import com.liferay.object.exception.ObjectEntryValuesException;
-import com.liferay.object.model.ObjectDefinition;
+import com.liferay.object.rest.manager.exception.ObjectEntryManagerHttpException;
 import com.liferay.portal.kernel.exception.DuplicateExternalReferenceCodeException;
 import com.liferay.portal.kernel.exception.GroupFriendlyURLException;
+import com.liferay.portal.kernel.exception.InfoFormException;
 import com.liferay.portal.kernel.exception.ModelListenerException;
 import com.liferay.portal.kernel.test.TestInfo;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 
 import org.junit.Assert;
@@ -45,6 +47,7 @@ public class ObjectEntryInfoItemExceptionRequestHandlerTest {
 		_testHandleInfoFormExceptionWhenDuplicateExternalReferenceCode();
 		_testHandleInfoFormExceptionWhenDuplicateFriendlyURL();
 		_testHandleInfoFormExceptionWhenInvalidValue();
+		_testHandleInfoFormExceptionWhenObjectEntryManagerHttpException();
 		_testHandleInfoFormExceptionWhenRequiredLanguageId();
 	}
 
@@ -92,7 +95,7 @@ public class ObjectEntryInfoItemExceptionRequestHandlerTest {
 				new AssetCategoryException(
 					assetVocabulary,
 					AssetCategoryException.AT_LEAST_ONE_CATEGORY),
-				0, null, null);
+				0, null, 0);
 
 			Assert.fail();
 		}
@@ -115,7 +118,7 @@ public class ObjectEntryInfoItemExceptionRequestHandlerTest {
 				new AssetCategoryException(
 					assetVocabulary,
 					AssetCategoryException.TOO_MANY_CATEGORIES),
-				0, null, null);
+				0, null, 0);
 
 			Assert.fail();
 		}
@@ -137,8 +140,7 @@ public class ObjectEntryInfoItemExceptionRequestHandlerTest {
 				ObjectEntryInfoItemExceptionRequestHandler.
 					handleInfoFormException(
 						new DuplicateExternalReferenceCodeException(), 0,
-						_mockInfoItemFormProvider(),
-						Mockito.mock(ObjectDefinition.class)));
+						_mockInfoItemFormProvider(), 0));
 	}
 
 	private void _testHandleInfoFormExceptionWhenDuplicateFriendlyURL()
@@ -152,8 +154,7 @@ public class ObjectEntryInfoItemExceptionRequestHandlerTest {
 						new ModelListenerException(
 							new GroupFriendlyURLException(
 								GroupFriendlyURLException.DUPLICATE)),
-						0, _mockInfoItemFormProvider(),
-						Mockito.mock(ObjectDefinition.class)));
+						0, _mockInfoItemFormProvider(), 0));
 	}
 
 	private void _testHandleInfoFormExceptionWhenInvalidValue()
@@ -166,8 +167,24 @@ public class ObjectEntryInfoItemExceptionRequestHandlerTest {
 					handleInfoFormException(
 						new ObjectEntryValuesException.InvalidValue(
 							RandomTestUtil.randomString()),
-						0, _mockInfoItemFormProvider(),
-						Mockito.mock(ObjectDefinition.class)));
+						0, _mockInfoItemFormProvider(), 0));
+	}
+
+	private void _testHandleInfoFormExceptionWhenObjectEntryManagerHttpException()
+		throws Exception {
+
+		String message = RandomTestUtil.randomString();
+
+		InfoFormException infoFormException = Assert.assertThrows(
+			InfoFormException.class,
+			() ->
+				ObjectEntryInfoItemExceptionRequestHandler.
+					handleInfoFormException(
+						new ObjectEntryManagerHttpException(message), 0, null,
+						0));
+
+		Assert.assertEquals(
+			message, infoFormException.getLocalizedMessage(LocaleUtil.US));
 	}
 
 	private void _testHandleInfoFormExceptionWhenRequiredLanguageId()
@@ -181,8 +198,7 @@ public class ObjectEntryInfoItemExceptionRequestHandlerTest {
 						new ObjectEntryValuesException.RequiredLanguageId(
 							RandomTestUtil.randomString(),
 							RandomTestUtil.randomString()),
-						0, _mockInfoItemFormProvider(),
-						Mockito.mock(ObjectDefinition.class)));
+						0, _mockInfoItemFormProvider(), 0));
 	}
 
 }

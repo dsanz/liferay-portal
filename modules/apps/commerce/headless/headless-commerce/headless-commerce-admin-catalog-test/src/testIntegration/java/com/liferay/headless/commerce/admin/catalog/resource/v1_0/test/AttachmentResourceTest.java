@@ -622,7 +622,9 @@ public class AttachmentResourceTest extends BaseAttachmentResourceTestCase {
 
 			CPDefinition cpDefinition1 = CPTestUtil.addCPDefinitionFromCatalog(
 				commerceCatalog.getGroupId(), "simple", null, null, true, true,
-				WorkflowConstants.STATUS_APPROVED);
+				WorkflowConstants.STATUS_APPROVED,
+				ServiceContextTestUtil.getServiceContext(
+					commerceCatalog.getGroupId()));
 
 			_cpDefinitions.add(cpDefinition1);
 
@@ -739,6 +741,9 @@ public class AttachmentResourceTest extends BaseAttachmentResourceTestCase {
 			GetterUtil.getLong(postAttachment.getFileEntryId()));
 	}
 
+	@DeleteAfterTestRun
+	private CProduct _cProduct;
+
 	@Inject
 	private ClassNameLocalService _classNameLocalService;
 
@@ -754,9 +759,6 @@ public class AttachmentResourceTest extends BaseAttachmentResourceTestCase {
 
 	@DeleteAfterTestRun
 	private List<CPDefinition> _cpDefinitions = new ArrayList<>();
-
-	@DeleteAfterTestRun
-	private CProduct _cProduct;
 
 	@Inject
 	private DLAppLocalService _dlAppLocalService;

@@ -88,51 +88,20 @@ public class ExportImportPortletPreferencesProcessorHelperImpl
 			Function<String, String> exportPortletPreferencesNewValueFunction)
 		throws Exception {
 
-		String[] oldValues = portletPreferences.getValues(key, null);
+		_updateExportPortletPreferencesClassPKs(
+			portletPreferences, key, className,
+			exportPortletPreferencesNewValueFunction);
+	}
 
-		if (oldValues == null) {
-			return;
-		}
+	@Override
+	public void updateExportPortletPreferencesClassPKs(
+			PortletPreferences portletPreferences, String key, String className,
+			Function<String, String> exportPortletPreferencesNewValueFunction)
+		throws Exception {
 
-		String[] newValues = new String[oldValues.length];
-
-		for (int i = 0; i < oldValues.length; i++) {
-			String oldValue = oldValues[i];
-
-			String newValue = oldValue;
-
-			String[] primaryKeys = StringUtil.split(oldValue);
-
-			for (String primaryKey : primaryKeys) {
-				if (!Validator.isNumber(primaryKey)) {
-					break;
-				}
-
-				long primaryKeyLong = GetterUtil.getLong(primaryKey);
-
-				String newPreferencesValue =
-					exportPortletPreferencesNewValueFunction.apply(primaryKey);
-
-				if (Validator.isNull(newPreferencesValue)) {
-					if (_log.isWarnEnabled()) {
-						_log.warn(
-							StringBundler.concat(
-								"Unable to export portlet preferences value ",
-								"for class ", className, " with primary key ",
-								primaryKeyLong));
-					}
-
-					continue;
-				}
-
-				newValue = StringUtil.replace(
-					newValue, primaryKey, newPreferencesValue);
-			}
-
-			newValues[i] = newValue;
-		}
-
-		portletPreferences.setValues(key, newValues);
+		_updateExportPortletPreferencesClassPKs(
+			portletPreferences, key, className,
+			exportPortletPreferencesNewValueFunction);
 	}
 
 	@Override
@@ -167,46 +136,18 @@ public class ExportImportPortletPreferencesProcessorHelperImpl
 			Function<String, Long> importPortletPreferencesNewValueSupplier)
 		throws Exception {
 
-		String[] oldValues = portletPreferences.getValues(key, null);
+		_updateImportPortletPreferencesClassPKs(
+			portletPreferences, key, importPortletPreferencesNewValueSupplier);
+	}
 
-		if (oldValues == null) {
-			return;
-		}
+	@Override
+	public void updateImportPortletPreferencesClassPKs(
+			PortletPreferences portletPreferences, String key,
+			Function<String, Long> importPortletPreferencesNewValueFunction)
+		throws Exception {
 
-		String[] newValues = new String[oldValues.length];
-
-		for (int i = 0; i < oldValues.length; i++) {
-			String oldValue = oldValues[i];
-
-			String newValue = oldValue;
-
-			String[] portletPreferencesOldValues = StringUtil.split(oldValue);
-
-			for (String portletPreferencesOldValue :
-					portletPreferencesOldValues) {
-
-				Long newPrimaryKey =
-					importPortletPreferencesNewValueSupplier.apply(
-						portletPreferencesOldValue);
-
-				if (Validator.isNull(newPrimaryKey)) {
-					if (_log.isInfoEnabled()) {
-						_log.info(
-							"Unable to import portlet preferences value " +
-								portletPreferencesOldValue);
-					}
-				}
-				else {
-					newValue = StringUtil.replace(
-						newValue, portletPreferencesOldValue,
-						newPrimaryKey.toString());
-				}
-			}
-
-			newValues[i] = newValue;
-		}
-
-		portletPreferences.setValues(key, newValues);
+		_updateImportPortletPreferencesClassPKs(
+			portletPreferences, key, importPortletPreferencesNewValueFunction);
 	}
 
 	private String _getRemoteGroupExternalReferenceCode(Group group) {
@@ -267,6 +208,105 @@ public class ExportImportPortletPreferencesProcessorHelperImpl
 		}
 
 		return null;
+	}
+
+	private void _updateExportPortletPreferencesClassPKs(
+			PortletPreferences portletPreferences, String key, String className,
+			Function<String, String> exportPortletPreferencesNewValueFunction)
+		throws Exception {
+
+		String[] oldValues = portletPreferences.getValues(key, null);
+
+		if (oldValues == null) {
+			return;
+		}
+
+		String[] newValues = new String[oldValues.length];
+
+		for (int i = 0; i < oldValues.length; i++) {
+			String oldValue = oldValues[i];
+
+			String newValue = oldValue;
+
+			String[] primaryKeys = StringUtil.split(oldValue);
+
+			for (String primaryKey : primaryKeys) {
+				if (!Validator.isNumber(primaryKey)) {
+					break;
+				}
+
+				long primaryKeyLong = GetterUtil.getLong(primaryKey);
+
+				String newPreferencesValue =
+					exportPortletPreferencesNewValueFunction.apply(primaryKey);
+
+				if (Validator.isNull(newPreferencesValue)) {
+					if (_log.isWarnEnabled()) {
+						_log.warn(
+							StringBundler.concat(
+								"Unable to export portlet preferences value ",
+								"for class ", className, " with primary key ",
+								primaryKeyLong));
+					}
+
+					continue;
+				}
+
+				newValue = StringUtil.replace(
+					newValue, primaryKey, newPreferencesValue);
+			}
+
+			newValues[i] = newValue;
+		}
+
+		portletPreferences.setValues(key, newValues);
+	}
+
+	private void _updateImportPortletPreferencesClassPKs(
+			PortletPreferences portletPreferences, String key,
+			Function<String, Long> importPortletPreferencesNewValueFunction)
+		throws Exception {
+
+		String[] oldValues = portletPreferences.getValues(key, null);
+
+		if (oldValues == null) {
+			return;
+		}
+
+		String[] newValues = new String[oldValues.length];
+
+		for (int i = 0; i < oldValues.length; i++) {
+			String oldValue = oldValues[i];
+
+			String newValue = oldValue;
+
+			String[] portletPreferencesOldValues = StringUtil.split(oldValue);
+
+			for (String portletPreferencesOldValue :
+					portletPreferencesOldValues) {
+
+				Long newPrimaryKey =
+					importPortletPreferencesNewValueFunction.apply(
+						portletPreferencesOldValue);
+
+				if (Validator.isNull(newPrimaryKey)) {
+					if (_log.isInfoEnabled()) {
+						_log.info(
+							"Unable to import portlet preferences value " +
+								portletPreferencesOldValue);
+					}
+				}
+				else {
+					newValue = StringUtil.replace(
+						newValue, portletPreferencesOldValue,
+						newPrimaryKey.toString());
+				}
+			}
+
+			newValues[i] = newValue;
+		}
+
+		portletPreferences.setValues(key, newValues);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

@@ -66,7 +66,11 @@ afterAll(() => {
 });
 
 afterEach(() => {
-	fetchMock.restore();
+	fetchMock.hardReset();
+});
+
+beforeEach(() => {
+	fetchMock.mockGlobal();
 });
 
 describe('inheritance alert', () => {

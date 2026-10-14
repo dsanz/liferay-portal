@@ -12,6 +12,18 @@ import {MarkerBase} from '@liferay/map-common';
 class GoogleMapsMarker extends MarkerBase {
 
 	/**
+	 * @inheritDoc
+	 * @review
+	 */
+	setDraggable(draggable) {
+		super.setDraggable(draggable);
+
+		if (this._nativeMarker) {
+			this._nativeMarker.setDraggable(draggable);
+		}
+	}
+
+	/**
 	 * If a marked has been created, sets the marker location to the given one
 	 * @param {Object} location Location to set the native marker in
 	 * @review
@@ -29,7 +41,7 @@ class GoogleMapsMarker extends MarkerBase {
 	_getNativeMarker(location, map) {
 		if (!this._nativeMarker) {
 			this._nativeMarker = new google.maps.Marker({
-				draggable: true,
+				draggable: this.draggable,
 				map,
 				position: location,
 			});

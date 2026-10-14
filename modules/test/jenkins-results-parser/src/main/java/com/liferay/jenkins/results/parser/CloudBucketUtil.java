@@ -21,9 +21,9 @@ import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Objects;
-import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -378,18 +378,19 @@ public class CloudBucketUtil {
 			return false;
 		}
 
-		if (isS3ObjectRefAvailable(s3ObjectPath)) {
-			return true;
-		}
-
 		try {
-			String listS3Files = listS3Files(s3ObjectPath, true);
+			String s3FilesOutput = listS3Files(
+				_replaceS3ObjectPath(s3ObjectPath), true);
 
-			if (!JenkinsResultsParserUtil.isNullOrEmpty(listS3Files.trim())) {
+			if (!JenkinsResultsParserUtil.isNullOrEmpty(s3FilesOutput.trim())) {
 				return true;
 			}
 		}
-		catch (IOException | TimeoutException exception) {
+		catch (IOException | RuntimeException | TimeoutException exception) {
+			System.out.println(
+				JenkinsResultsParserUtil.combine(
+					"WARNING: Unable to check S3 object path ", s3ObjectPath,
+					"\n", String.valueOf(exception)));
 		}
 
 		return false;
@@ -525,9 +526,7 @@ public class CloudBucketUtil {
 			while (listS3FilesMatcher.find()) {
 				String fileName = listS3FilesMatcher.group("fileName");
 
-				if (!fileName.endsWith(_CHECKSUM_FILE_EXTENSION) &&
-					_VALIDATE_CHECKSUM) {
-
+				if (!fileName.endsWith(_CHECKSUM_FILE_EXTENSION)) {
 					_createChecksumFile(
 						destination + "/" + fileName,
 						new File(source + "/" + fileName));
@@ -625,8 +624,7 @@ public class CloudBucketUtil {
 		}
 
 		if (!sourceFileName.endsWith(_CHECKSUM_FILE_EXTENSION) &&
-			!sourceFileName.equals("build-database.json") &&
-			_VALIDATE_CHECKSUM) {
+			!sourceFileName.equals("build-database.json")) {
 
 			_createChecksumFile(replacedS3DestinationPath, sourceFile);
 		}
@@ -670,7 +668,7 @@ public class CloudBucketUtil {
 			String s3DestinationPath, File sourceFile)
 		throws IOException {
 
-		if (!sourceFile.exists()) {
+		if (!sourceFile.exists() || !_isChecksumValidationEnabled()) {
 			return;
 		}
 
@@ -861,20 +859,23 @@ public class CloudBucketUtil {
 			source.startsWith(GCP_BUCKET_PATH_JENKINS_CI_DATA) ||
 			source.startsWith(GCP_BUCKET_PATH_LIFERAY_RELEASE_CANDIDATES)) {
 
-			gcpApplicationCredentialFilePath = _buildProperties.getProperty(
-				"google.application.crendential.file[jenkins]");
+			gcpApplicationCredentialFilePath =
+				JenkinsResultsParserUtil.getBuildProperty(
+					"google.application.crendential.file[jenkins]");
 		}
 		else if (destination.startsWith(GCP_BUCKET_PATH_PATCHER_SHARED) ||
 				 source.startsWith(GCP_BUCKET_PATH_PATCHER_SHARED)) {
 
-			gcpApplicationCredentialFilePath = _buildProperties.getProperty(
-				"google.application.crendential.file[patcher]");
+			gcpApplicationCredentialFilePath =
+				JenkinsResultsParserUtil.getBuildProperty(
+					"google.application.crendential.file[patcher]");
 		}
 		else if (destination.startsWith(GCP_BUCKET_PATH_TESTRAY_RESULTS) ||
 				 source.startsWith(GCP_BUCKET_PATH_TESTRAY_RESULTS)) {
 
-			gcpApplicationCredentialFilePath = _buildProperties.getProperty(
-				"google.application.crendential.file[testray]");
+			gcpApplicationCredentialFilePath =
+				JenkinsResultsParserUtil.getBuildProperty(
+					"google.application.crendential.file[testray]");
 		}
 
 		if (gcpApplicationCredentialFilePath != null) {
@@ -933,6 +934,12 @@ public class CloudBucketUtil {
 		return new File(sb.toString());
 	}
 
+	private static boolean _isChecksumValidationEnabled() throws IOException {
+		return Boolean.parseBoolean(
+			JenkinsResultsParserUtil.getBuildProperty(
+				"cloud.ci.s3.bucket.validate.checksum.enabled"));
+	}
+
 	private static boolean _isOlderThan(
 		BasicFileAttributes basicFileAttributes, long ageSeconds) {
 
@@ -973,53 +980,96 @@ public class CloudBucketUtil {
 		return false;
 	}
 
-	private static String _replaceS3ObjectPath(String s3ObjectPath) {
+	private static boolean _matchesS3ObjectPath(String s3ObjectPath) {
 		Matcher s3ObjectPathMatcher = _s3ObjectPathPattern.matcher(
 			s3ObjectPath);
 
-		if (s3ObjectPathMatcher.find()) {
-			File s3ObjectRefFile = _getS3ObjectRefFile(s3ObjectPath);
+		return s3ObjectPathMatcher.matches();
+	}
 
-			if (s3ObjectRefFile.exists()) {
-				Retryable<String> retryable = new Retryable<String>(
-					true, 5, 30, true) {
+	private static String _replaceS3ObjectPath(String s3ObjectPath) {
+		return _replaceS3ObjectPath(s3ObjectPath, new LinkedHashSet<>());
+	}
 
-					@Override
-					public String execute() {
-						try {
-							String s3ObjectRefFileContent =
-								JenkinsResultsParserUtil.read(s3ObjectRefFile);
+	private static String _replaceS3ObjectPath(
+		String s3ObjectPath, Set<String> visitedS3ObjectPaths) {
 
-							if (Objects.equals(
-									s3ObjectRefFileContent, s3ObjectPath)) {
-
-								return s3ObjectRefFileContent;
-							}
-
-							return _replaceS3ObjectPath(s3ObjectRefFileContent);
-						}
-						catch (IOException ioException) {
-							System.out.println(
-								"Unable to read " + s3ObjectRefFile);
-
-							throw new RuntimeException(ioException);
-						}
-					}
-
-				};
-
-				return retryable.executeWithRetries();
-			}
+		if (!isValidS3ObjectPath(s3ObjectPath)) {
+			return s3ObjectPath.trim();
 		}
 
-		return s3ObjectPath.trim();
+		File s3ObjectRefFile = _getS3ObjectRefFile(s3ObjectPath);
+
+		if (!s3ObjectRefFile.exists()) {
+			return s3ObjectPath.trim();
+		}
+
+		if (!visitedS3ObjectPaths.add(s3ObjectPath)) {
+			throw new RuntimeException(
+				JenkinsResultsParserUtil.combine(
+					"Unable to resolve circular S3 object reference ",
+					JenkinsResultsParserUtil.join(
+						" -> ", visitedS3ObjectPaths.toArray(new String[0])),
+					" -> ", s3ObjectPath));
+		}
+
+		Retryable<String> retryable = new Retryable<String>(true, 5, 1, true) {
+
+			@Override
+			public String execute() {
+				String s3ObjectRefFileContent = null;
+
+				try {
+					s3ObjectRefFileContent = JenkinsResultsParserUtil.read(
+						s3ObjectRefFile);
+				}
+				catch (IOException ioException) {
+					System.out.println("Unable to read " + s3ObjectRefFile);
+
+					throw new RuntimeException(ioException);
+				}
+
+				s3ObjectRefFileContent = s3ObjectRefFileContent.trim();
+
+				if (JenkinsResultsParserUtil.isNullOrEmpty(
+						s3ObjectRefFileContent)) {
+
+					throw new RuntimeException(
+						JenkinsResultsParserUtil.combine(
+							"Unable to resolve empty S3 object reference file ",
+							JenkinsResultsParserUtil.getCanonicalPath(
+								s3ObjectRefFile)));
+				}
+
+				if (!_matchesS3ObjectPath(s3ObjectRefFileContent)) {
+					throw new RuntimeException(
+						JenkinsResultsParserUtil.combine(
+							"Invalid S3 object path: ", s3ObjectRefFileContent,
+							" in ",
+							JenkinsResultsParserUtil.getCanonicalPath(
+								s3ObjectRefFile)));
+				}
+
+				return s3ObjectRefFileContent;
+			}
+
+		};
+
+		String s3ObjectRefFileContent = retryable.executeWithRetries();
+
+		if (s3ObjectRefFileContent.equals(s3ObjectPath)) {
+			return s3ObjectRefFileContent;
+		}
+
+		return _replaceS3ObjectPath(
+			s3ObjectRefFileContent, visitedS3ObjectPaths);
 	}
 
 	private static void _validateChecksumFile(
 			File destinationFile, String s3SourcePath)
 		throws IOException {
 
-		if (!_VALIDATE_CHECKSUM) {
+		if (!_isChecksumValidationEnabled()) {
 			return;
 		}
 
@@ -1088,11 +1138,8 @@ public class CloudBucketUtil {
 
 	private static final String _CHECKSUM_FILE_EXTENSION = ".sha512";
 
-	private static final boolean _VALIDATE_CHECKSUM;
-
 	private static final Pattern _awsCommandPattern = Pattern.compile(
 		"aws s3 (?<command>[^\\s]+)\\s+(?<options>.+)");
-	private static final Properties _buildProperties;
 	private static final Pattern _listS3FilesPattern = Pattern.compile(
 		"\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2} +\\d+ (?<fileName>.+)");
 	private static final Pattern _s3ObjectPathPattern = Pattern.compile(
@@ -1102,22 +1149,5 @@ public class CloudBucketUtil {
 	private static final Pattern _signedURLPattern = Pattern.compile(
 		"https:\\/\\/([a-zA-Z\\d-]+\\.)?storage\\." +
 			"(cloud\\.google\\.com|googleapis\\.com)\\/.*");
-
-	static {
-		_buildProperties = new Properties() {
-			{
-				try {
-					putAll(JenkinsResultsParserUtil.getBuildProperties());
-				}
-				catch (IOException ioException) {
-					throw new RuntimeException(ioException);
-				}
-			}
-		};
-
-		_VALIDATE_CHECKSUM = Boolean.parseBoolean(
-			_buildProperties.getProperty(
-				"cloud.ci.s3.bucket.validate.checksum.enabled"));
-	}
 
 }

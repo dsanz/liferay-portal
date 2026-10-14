@@ -3,7 +3,13 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {Locator, expect, mergeTests} from '@playwright/test';
+import {
+	FrameLocator,
+	Locator,
+	Page,
+	expect,
+	mergeTests,
+} from '@playwright/test';
 import path from 'path';
 
 import {accountSettingsPagesTest} from '../../../fixtures/accountSettingsPagesTest';
@@ -231,6 +237,124 @@ test(
 );
 
 test(
+	'Verify Consent Panel keeps previously accepted cookies when saving again',
+	{tag: ['@LPD-101997', '@LPD-109445']},
+	async ({page, systemSettingsPage}) => {
+		const configurationFrame = page.frameLocator(
+			'#cookiesBannerConfiguration iframe'
+		);
+
+		const [
+			functionalCookieKey,
+			performanceCookieKey,
+			personalizationCookieKey,
+		] = cookieKeys;
+
+		await test.step('Accept only Functional Cookies', async () => {
+			await page.goto('/');
+
+			const cookiesBanner = page.locator(
+				'div[role="dialog"][aria-modal="true"]'
+			);
+
+			await cookiesBanner.waitFor();
+
+			await cookiesBanner
+				.getByRole('button', {name: 'Configuration'})
+				.click();
+
+			await checkConsentPanelToggle(
+				configurationFrame,
+				functionalCookieKey
+			);
+
+			await page.getByRole('button', {name: 'Accept Selected'}).click();
+		});
+
+		await test.step('Verify the Consent Panel reflects the accepted cookie', async () => {
+			await openConsentPanelFromFloatingIcon(page);
+
+			await expect(
+				configurationFrame.locator(
+					`[data-cookie-key="${functionalCookieKey}"]`
+				)
+			).toBeChecked();
+		});
+
+		await test.step('Accept Performance Cookies as well', async () => {
+			await checkConsentPanelToggle(
+				configurationFrame,
+				performanceCookieKey
+			);
+
+			await page.getByRole('button', {name: 'Accept Selected'}).click();
+		});
+
+		await test.step('Verify both cookies remain accepted', async () => {
+			await openConsentPanelFromFloatingIcon(page);
+
+			await expectCookieAccepted(
+				configurationFrame,
+				functionalCookieKey,
+				page
+			);
+			await expectCookieAccepted(
+				configurationFrame,
+				performanceCookieKey,
+				page
+			);
+		});
+
+		await test.step('Hide Functional and Personalization Cookies from the end user', async () => {
+			await hideConsentCookieTypesFromEndUser(
+				['Functional', 'Personalization'],
+				systemSettingsPage
+			);
+		});
+
+		await test.step('Accept Selected without the hidden cookie types', async () => {
+			await page.goto('/');
+
+			await openConsentPanelFromFloatingIcon(page);
+
+			await expect(
+				configurationFrame.locator(
+					`[data-cookie-key="${performanceCookieKey}"]`
+				)
+			).toBeEnabled();
+
+			await expect(
+				configurationFrame.locator(
+					`[data-cookie-key="${functionalCookieKey}"]`
+				)
+			).toHaveCount(0);
+			await expect(
+				configurationFrame.locator(
+					`[data-cookie-key="${personalizationCookieKey}"]`
+				)
+			).toHaveCount(0);
+
+			await page.getByRole('button', {name: 'Accept Selected'}).click();
+		});
+
+		await test.step('Verify the hidden cookie types are declined', async () => {
+			await expectCookieValue(functionalCookieKey, page, 'false');
+			await expectCookieValue(performanceCookieKey, page, 'true');
+			await expectCookieValue(personalizationCookieKey, page, 'false');
+		});
+
+		await test.step('Verify the Cookie Banner stays hidden on another page', async () => {
+			await page.goto('/');
+
+			await expect(page.locator('.cookies-banner')).toHaveAttribute(
+				'style',
+				/display: none/
+			);
+		});
+	}
+);
+
+test(
 	'Verify Cookie Banner Consent Panel buttons',
 	{tag: '@LPD-67119'},
 	async ({page}) => {
@@ -258,8 +382,8 @@ test(
 
 test(
 	'Verify Cookie Preferences can be saved from the new Consent Manager page',
-	{tag: '@LPD-60007'},
-	async ({accountSettingsPage, page}) => {
+	{tag: ['@LPD-60007', '@LPD-109445']},
+	async ({accountSettingsPage, page, systemSettingsPage}) => {
 		await test.step('Enable all cookie types', async () => {
 			await accountSettingsPage.goToDataAndPrivacy();
 
@@ -296,6 +420,49 @@ test(
 				expect(actualCookie).toBeDefined();
 				expect(actualCookie.value).toEqual('true');
 			}
+		});
+
+		await test.step('Hide Functional and Personalization Cookies from the end user', async () => {
+			await hideConsentCookieTypesFromEndUser(
+				['Functional', 'Personalization'],
+				systemSettingsPage
+			);
+		});
+
+		await test.step('Accept Selected without the hidden cookie types', async () => {
+			await accountSettingsPage.goToDataAndPrivacy();
+
+			await accountSettingsPage.page
+				.getByText('Consent Manager')
+				.first()
+				.waitFor();
+
+			if (await accountSettingsPage.consentManagerMenuItem.isVisible()) {
+				await accountSettingsPage.consentManagerMenuItem.click();
+			}
+
+			const [
+				functionalCookieKey,
+				performanceCookieKey,
+				personalizationCookieKey,
+			] = cookieKeys;
+
+			await expect(
+				page.locator(`[data-cookie-key="${performanceCookieKey}"]`)
+			).toBeEnabled();
+
+			await expect(
+				page.locator(`[data-cookie-key="${functionalCookieKey}"]`)
+			).toHaveCount(0);
+			await expect(
+				page.locator(`[data-cookie-key="${personalizationCookieKey}"]`)
+			).toHaveCount(0);
+
+			await page.getByRole('button', {name: 'Accept Selected'}).click();
+
+			await expectCookieValue(functionalCookieKey, page, 'false');
+			await expectCookieValue(performanceCookieKey, page, 'true');
+			await expectCookieValue(personalizationCookieKey, page, 'false');
 		});
 	}
 );
@@ -347,6 +514,10 @@ test(
 			.click();
 
 		await saveOrUpdateConfiguration(systemSettingsPage.page);
+
+		await acceptAllButton.click();
+
+		await expect(acceptAllButton).not.toBeVisible();
 
 		const imageButton = systemSettingsPage.page.locator(
 			'#_com_liferay_cookies_banner_web_portlet_CookiesBannerPortlet_floatingIconButton'
@@ -755,6 +926,43 @@ test(
 	}
 );
 
+async function checkConsentPanelToggle(
+	configurationFrame: FrameLocator,
+	cookieKey: string
+) {
+	const toggleSwitch = configurationFrame.locator(
+		`[data-cookie-key="${cookieKey}"]`
+	);
+
+	// The panel enables a toggle only once it has restored its state from the
+	// stored consent cookies
+
+	await expect(toggleSwitch).toBeEnabled();
+
+	await configurationFrame
+		.locator(`label.toggle-switch:has([data-cookie-key="${cookieKey}"])`)
+		.click();
+
+	await expect(toggleSwitch).toBeChecked();
+}
+
+async function expectCookieAccepted(
+	configurationFrame: FrameLocator,
+	cookieKey: string,
+	page: Page
+) {
+	await expect(
+		configurationFrame.locator(`[data-cookie-key="${cookieKey}"]`)
+	).toBeChecked();
+
+	const actualCookie = (await page.context().cookies()).find(
+		(cookie) => cookie.name === cookieKey
+	);
+
+	expect(actualCookie).toBeDefined();
+	expect(actualCookie.value).toEqual('true');
+}
+
 async function expectCookieConsentPanelButtons(locator: Locator) {
 	await locator.waitFor();
 
@@ -764,4 +972,52 @@ async function expectCookieConsentPanelButtons(locator: Locator) {
 	await expect(buttons[0]).toContainText('Use Necessary Cookies Only');
 	await expect(buttons[1]).toContainText('Accept Selected');
 	await expect(buttons[2]).toContainText('Accept All');
+}
+
+async function expectCookieValue(cookieKey: string, page: Page, value: string) {
+	await expect
+		.poll(
+			async () =>
+				(await page.context().cookies()).find(
+					(cookie) => cookie.name === cookieKey
+				)?.value
+		)
+		.toEqual(value);
+}
+
+async function hideConsentCookieTypesFromEndUser(
+	cookieTypeNames: string[],
+	systemSettingsPage
+) {
+	await systemSettingsPage.goToSystemSetting('Privacy', 'Consent Manager');
+
+	const page = systemSettingsPage.page;
+
+	await page
+		.locator('#main-content')
+		.getByRole('menuitem', {exact: true, name: 'Cookie Panel'})
+		.click();
+
+	await page.getByLabel('Cookie Policy Link').fill('http://example.com');
+
+	for (const cookieTypeName of cookieTypeNames) {
+		await page
+			.getByLabel('Hide from end-user')
+			.nth(cookieHeadingNames.indexOf(`${cookieTypeName} Cookies`))
+			.check();
+	}
+
+	await saveOrUpdateConfiguration(page);
+}
+
+async function openConsentPanelFromFloatingIcon(page: Page) {
+	await page
+		.locator(
+			'#_com_liferay_cookies_banner_web_portlet_CookiesBannerPortlet_floatingIconButton'
+		)
+		.click();
+
+	await expect(
+		page.getByRole('dialog', {name: 'Cookie Configuration'})
+	).toBeVisible();
 }

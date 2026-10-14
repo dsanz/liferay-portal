@@ -5,13 +5,16 @@
 
 package com.liferay.headless.commerce.admin.pricing.internal.resource.v2_0;
 
+import com.liferay.commerce.currency.service.CommerceCurrencyService;
 import com.liferay.commerce.discount.exception.NoSuchDiscountException;
 import com.liferay.commerce.discount.model.CommerceDiscount;
 import com.liferay.commerce.discount.model.CommerceDiscountRel;
 import com.liferay.commerce.discount.service.CommerceDiscountRelService;
 import com.liferay.commerce.discount.service.CommerceDiscountService;
 import com.liferay.commerce.product.model.CPDefinition;
+import com.liferay.commerce.product.service.CPDefinitionService;
 import com.liferay.commerce.product.service.CProductLocalService;
+import com.liferay.commerce.product.service.CommerceCatalogService;
 import com.liferay.headless.commerce.admin.pricing.dto.v2_0.Discount;
 import com.liferay.headless.commerce.admin.pricing.dto.v2_0.DiscountProduct;
 import com.liferay.headless.commerce.admin.pricing.internal.util.v2_0.DiscountProductUtil;
@@ -128,8 +131,10 @@ public class DiscountProductResourceImpl
 
 		CommerceDiscountRel commerceDiscountRel =
 			DiscountProductUtil.addCommerceDiscountRel(
-				_cProductLocalService, _commerceDiscountRelService,
-				discountProduct, commerceDiscount, _serviceContextHelper);
+				_cProductLocalService, _commerceCatalogService,
+				_commerceCurrencyService, _commerceDiscountRelService,
+				_cpDefinitionService, discountProduct, commerceDiscount,
+				_serviceContextHelper);
 
 		return _toDiscountProduct(
 			commerceDiscountRel.getCommerceDiscountRelId());
@@ -142,8 +147,9 @@ public class DiscountProductResourceImpl
 
 		CommerceDiscountRel commerceDiscountRel =
 			DiscountProductUtil.addCommerceDiscountRel(
-				_cProductLocalService, _commerceDiscountRelService,
-				discountProduct,
+				_cProductLocalService, _commerceCatalogService,
+				_commerceCurrencyService, _commerceDiscountRelService,
+				_cpDefinitionService, discountProduct,
 				_commerceDiscountService.getCommerceDiscount(id),
 				_serviceContextHelper);
 
@@ -190,6 +196,15 @@ public class DiscountProductResourceImpl
 				commerceDiscountRel.getCommerceDiscountRelId()));
 	}
 
+	@Reference
+	private CProductLocalService _cProductLocalService;
+
+	@Reference
+	private CommerceCatalogService _commerceCatalogService;
+
+	@Reference
+	private CommerceCurrencyService _commerceCurrencyService;
+
 	@Reference(
 		target = "(model.class.name=com.liferay.commerce.discount.model.CommerceDiscountRel)"
 	)
@@ -203,7 +218,7 @@ public class DiscountProductResourceImpl
 	private CommerceDiscountService _commerceDiscountService;
 
 	@Reference
-	private CProductLocalService _cProductLocalService;
+	private CPDefinitionService _cpDefinitionService;
 
 	@Reference(
 		target = "(component.name=com.liferay.headless.commerce.admin.pricing.internal.dto.v2_0.converter.DiscountProductDTOConverter)"

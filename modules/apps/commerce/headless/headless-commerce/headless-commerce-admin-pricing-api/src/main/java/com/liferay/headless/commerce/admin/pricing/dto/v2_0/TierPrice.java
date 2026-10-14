@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
@@ -31,6 +32,8 @@ import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
@@ -49,7 +52,7 @@ import java.util.function.Supplier;
 )
 @io.swagger.v3.oas.annotations.media.Schema(
 	description = "Quantity-break override on a price entry. Binds a minimumQuantity threshold to an override price; the runtime resolves the highest-quantity tier whose minimumQuantity is at most the cart line quantity. Backed by tier price.",
-	requiredProperties = {"minimumQuantity", "price", "priceEntryId"}
+	requiredProperties = {"minimumQuantity", "price"}
 )
 @JsonFilter("Liferay.Vulcan")
 @XmlRootElement(name = "TierPrice")
@@ -858,7 +861,6 @@ public class TierPrice implements Serializable {
 		description = "Reference to the priceEntry entity (FK identifier)."
 	)
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
-	@NotNull
 	protected Long priceEntryId;
 
 	@JsonIgnore
@@ -1332,6 +1334,27 @@ public class TierPrice implements Serializable {
 		return sb.toString();
 	}
 
+	private static String _toJSON(Object value) {
+		if (value instanceof Collection) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONArray((Collection<?>)value));
+		}
+		else if (value instanceof Map) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONObject((Map<?, ?>)value));
+		}
+		else if (value instanceof Object[]) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONArray(
+					Arrays.asList((Object[])value)));
+		}
+		else if (value instanceof String) {
+			return StringBundler.concat("\"", _escape(value), "\"");
+		}
+
+		return String.valueOf(value);
+	}
+
 	private static final String[][] _JSON_ESCAPE_STRINGS = {
 		{"\\", "\"", "\b", "\f", "\n", "\r", "\t"},
 		{"\\\\", "\\\"", "\\b", "\\f", "\\n", "\\r", "\\t"}
@@ -1340,4 +1363,4 @@ public class TierPrice implements Serializable {
 	private Map<String, Serializable> _extendedProperties;
 
 }
-// LIFERAY-REST-BUILDER-HASH:2019076859
+// LIFERAY-REST-BUILDER-HASH:-812522908

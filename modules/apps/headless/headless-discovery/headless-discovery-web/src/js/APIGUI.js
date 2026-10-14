@@ -322,7 +322,7 @@ const APIGUI = () => {
 					<ClayLayout.Row className="vh-100">
 						<GraphiQL fetcher={graphQLFetcher} />
 					</ClayLayout.Row>
-				) : endpoint && !endpoints.includes(endpoint) ? (
+				) : endpoint && !endpoint.startsWith(origin + '/') ? (
 					<ClayAlert className="mt-4" displayType="danger">
 						Forbidden access.
 					</ClayAlert>

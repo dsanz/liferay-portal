@@ -49,7 +49,6 @@ long commerceOrderId = ParamUtil.getLong(request, "commerceOrderId");
 			itemsPerPage="<%= 10 %>"
 			propsTransformer="{AccountValidationsFDSPropsTransformer} from commerce-order-web"
 			showManagementBar="<%= true %>"
-			showSearch="<%= false %>"
 			style="fluid"
 		/>
 	</commerce-ui:panel>

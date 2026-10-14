@@ -24,6 +24,8 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.model.ModelHintsUtil;
+import com.liferay.portal.kernel.portlet.PortletIdCodec;
 import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
@@ -32,11 +34,13 @@ import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
+import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 import com.liferay.segments.constants.SegmentsEntryConstants;
 
 import jakarta.portlet.PortletPreferences;
@@ -64,7 +68,9 @@ public class AssetPublisherOSGiCommandsTest {
 	@ClassRule
 	@Rule
 	public static final AggregateTestRule aggregateTestRule =
-		new LiferayIntegrationTestRule();
+		new AggregateTestRule(
+			new LiferayIntegrationTestRule(),
+			PermissionCheckerMethodTestRule.INSTANCE);
 
 	@Before
 	public void setUp() throws Exception {
@@ -88,8 +94,12 @@ public class AssetPublisherOSGiCommandsTest {
 		assetEntries.add(_addAssetEntry());
 		assetEntries.add(_addAssetEntry());
 
+		String classNameIds =
+			PortalUtil.getClassNameId(Layout.class) + StringPool.COMMA +
+				RandomTestUtil.randomLong();
+
 		PortletPreferences portletPreferences =
-			_setDynamicSelectionStylePreference();
+			_setDynamicSelectionStylePreference(classNameIds);
 
 		Assert.assertEquals(
 			"dynamic", portletPreferences.getValue("selectionStyle", null));
@@ -146,6 +156,8 @@ public class AssetPublisherOSGiCommandsTest {
 
 		Assert.assertEquals(
 			"true", unicodeProperties.getProperty("anyAssetType", null));
+		Assert.assertEquals(
+			classNameIds, unicodeProperties.getProperty("classNameIds", null));
 
 		assetEntryQuery = _assetPublisherHelper.getAssetEntryQuery(
 			portletPreferences, _group.getGroupId(), _layout, null, null);
@@ -196,6 +208,53 @@ public class AssetPublisherOSGiCommandsTest {
 		Assert.assertNotNull(assetListEntry);
 	}
 
+	@Test
+	public void testMigratePortletPreferencesWithLongLayoutName()
+		throws Exception {
+
+		Layout layout = LayoutTestUtil.addTypePortletLayout(
+			_group.getGroupId(), RandomTestUtil.randomString(80), false);
+
+		String portletId = LayoutTestUtil.addPortletToLayout(
+			layout, AssetPublisherPortletKeys.ASSET_PUBLISHER);
+
+		PortletPreferences portletPreferences =
+			LayoutTestUtil.getPortletPreferences(layout, portletId);
+
+		portletPreferences.setValue(
+			"scopeIds",
+			AssetPublisherHelper.SCOPE_ID_GROUP_PREFIX + _group.getGroupId());
+		portletPreferences.setValue("selectionStyle", "dynamic");
+
+		portletPreferences.store();
+
+		_run("migratePortletPreferences");
+
+		portletPreferences =
+			PortletPreferencesFactoryUtil.getExistingPortletSetup(
+				layout, portletId);
+
+		Assert.assertEquals(
+			"asset-list", portletPreferences.getValue("selectionStyle", null));
+
+		AssetListEntry assetListEntry =
+			_assetListEntryLocalService.
+				fetchAssetListEntryByExternalReferenceCode(
+					portletPreferences.getValue(
+						"assetListEntryExternalReferenceCode", null),
+					_group.getGroupId());
+
+		String title = assetListEntry.getTitle();
+
+		Assert.assertEquals(
+			ModelHintsUtil.getMaxLength(
+				AssetListEntry.class.getName(), "title"),
+			title.length());
+		Assert.assertTrue(
+			title.startsWith(
+				"AP " + PortletIdCodec.decodeInstanceId(portletId)));
+	}
+
 	private AssetEntry _addAssetEntry() throws Exception {
 		BlogsEntry blogsEntry = _blogsEntryLocalService.addEntry(
 			TestPropsValues.getUserId(), RandomTestUtil.randomString(),
@@ -215,12 +274,14 @@ public class AssetPublisherOSGiCommandsTest {
 		method.invoke(_assetPublisherOSGiCommands, null);
 	}
 
-	private PortletPreferences _setDynamicSelectionStylePreference()
+	private PortletPreferences _setDynamicSelectionStylePreference(
+			String classNameIds)
 		throws Exception {
 
 		PortletPreferences portletPreferences =
 			LayoutTestUtil.getPortletPreferences(_layout, _portletId);
 
+		portletPreferences.setValue("classNameIds", classNameIds);
 		portletPreferences.setValue(
 			"scopeIds",
 			AssetPublisherHelper.SCOPE_ID_GROUP_PREFIX + _group.getGroupId());

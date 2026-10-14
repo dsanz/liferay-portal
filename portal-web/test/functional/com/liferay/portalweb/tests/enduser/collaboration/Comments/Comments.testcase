@@ -342,6 +342,10 @@ definition {
 
 		User.editPassword(newPassword = PropsUtil.get("default.admin.password"));
 
+		task ("Enable widget pages on the second portal instance") {
+			PagesAdmin.enableWidgetPages();
+		}
+
 		Navigator.openURL(baseURL = "http://www.able.com:8080");
 
 		ProductMenu.gotoPortlet(

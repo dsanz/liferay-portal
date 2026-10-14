@@ -8,7 +8,7 @@ import {
 	TaxonomyVocabularyAPI,
 } from '@liferay/headless-admin-taxonomy-client-js';
 import {expect, mergeTests} from '@playwright/test';
-import {createReadStream, readdirSync} from 'fs';
+import {createReadStream} from 'fs';
 import path from 'path';
 
 import {assetPublisherPagesTest} from '../../../fixtures/assetPublisherPagesTest';
@@ -31,27 +31,28 @@ import {reloadUntilVisible} from '../../../utils/reloadUntilVisible';
 import {enableLocalStaging} from '../../../utils/staging';
 import getBasicWebContentStructureId from '../../../utils/structured-content/getBasicWebContentStructureId';
 import {journalPagesTest} from '../../journal-web/main/fixtures/journalPagesTest';
+import {exportImportPagesTest} from '../revamp/fixtures/exportImportPagesTest';
 import {exportImportConfig} from './export_import.config';
-import {exportPageTest} from './fixtures/exportPageTest';
 import {stagingConfigurationPageTest} from './fixtures/stagingConfigurationPageTest';
 import {stagingPageTest} from './fixtures/stagingPageTest';
 import {StageableEntities} from './utils/stagingConstants';
-import {unzipAndCheckFolder} from './utils/stagingUtil';
+import {getTomcatTempDir, unzipAndCheckFolder} from './utils/stagingUtil';
 
 const test = mergeTests(
 	dataApiHelpersTest,
 	featureFlagsTest({
-		'LPD-35443': {enabled: true},
 		'LPD-39304': {enabled: true},
-		'LPD-57655': {enabled: false},
+		'LPD-57655': {enabled: true},
 		'LPD-76864': {enabled: true},
+		'LPD-101272': {enabled: true},
+		'LPD-105778': {enabled: true},
 	}),
 	loginTest(),
 	assetPublisherPagesTest,
 	assetPublisherWidgetPagesTest,
 	collectionsPagesTest,
 	displayPageTemplatesPagesTest,
-	exportPageTest,
+	exportImportPagesTest,
 	journalPagesTest,
 	pageEditorPagesTest,
 	pageViewModePagesTest,
@@ -265,6 +266,7 @@ test('Staging only approved content goes to live', async ({
 	pageEditorPage,
 	stagingPage,
 	webContentDisplayPage,
+	widgetPagePage,
 	workflowPage,
 	workflowTasksPage,
 }) => {
@@ -315,6 +317,21 @@ test('Staging only approved content goes to live', async ({
 			`${site.friendlyUrlPath}-staging`
 		);
 
+	// The staging copies keep the external reference code of the live pages,
+	// but their draft layouts have their own friendly URLs, so the page editor
+	// must be opened through the staging drafts
+
+	const stagingDraftLayout1 =
+		await apiHelpers.jsonWebServicesLayout.getDraftLayoutByExternalReferenceCode(
+			layout1.externalReferenceCode,
+			stagingSite.id
+		);
+	const stagingDraftLayout2 =
+		await apiHelpers.jsonWebServicesLayout.getDraftLayoutByExternalReferenceCode(
+			layout2.externalReferenceCode,
+			stagingSite.id
+		);
+
 	const webcontentContent1 = getRandomString();
 	const webcontentContent2 = getRandomString();
 	const basicWebcontentStructureId =
@@ -333,7 +350,7 @@ test('Staging only approved content goes to live', async ({
 		titleMap: {en_US: getRandomString()},
 	});
 
-	await pageEditorPage.goto(layout1, stagingSite.friendlyUrlPath);
+	await pageEditorPage.goto(stagingDraftLayout1, stagingSite.friendlyUrlPath);
 
 	await webContentDisplayPage.addWebContentWithDisplay({
 		pageType: 'content',
@@ -341,7 +358,7 @@ test('Staging only approved content goes to live', async ({
 	});
 
 	await pageEditorPage.publishPage();
-	await pageEditorPage.goto(layout2, stagingSite.friendlyUrlPath);
+	await pageEditorPage.goto(stagingDraftLayout2, stagingSite.friendlyUrlPath);
 
 	await webContentDisplayPage.addWebContentWithDisplay({
 		pageType: 'content',
@@ -356,7 +373,7 @@ test('Staging only approved content goes to live', async ({
 	await workflowTasksPage.assignToMe(webContent2.title);
 	await workflowTasksPage.approve(webContent1.title);
 
-	await pageEditorPage.goto(layout1, stagingSite.friendlyUrlPath);
+	await pageEditorPage.goto(stagingDraftLayout1, stagingSite.friendlyUrlPath);
 	await reloadUntilVisible({
 		myLocator: page.getByText(webcontentContent1, {exact: true}),
 		page,
@@ -365,7 +382,7 @@ test('Staging only approved content goes to live', async ({
 		page.getByText(webcontentContent1, {exact: true})
 	).toBeVisible();
 
-	await pageEditorPage.goto(layout2, stagingSite.friendlyUrlPath);
+	await pageEditorPage.goto(stagingDraftLayout2, stagingSite.friendlyUrlPath);
 	await expect(
 		page.getByText(`${webContent2.title} is not approved.`)
 	).toBeVisible();
@@ -373,7 +390,9 @@ test('Staging only approved content goes to live', async ({
 	await stagingPage.goto(`${site.name}-staging`);
 	await stagingPage.publish();
 
-	await pageEditorPage.goto(layout1, site.friendlyUrlPath);
+	// Live pages of a staged site cannot be edited, so check them in view mode
+
+	await widgetPagePage.goto(layout1, site.friendlyUrlPath);
 	await reloadUntilVisible({
 		myLocator: page.getByText(webcontentContent1, {exact: true}),
 		page,
@@ -382,7 +401,7 @@ test('Staging only approved content goes to live', async ({
 		page.getByText(webcontentContent1, {exact: true})
 	).toBeVisible();
 
-	await pageEditorPage.goto(layout2, site.friendlyUrlPath);
+	await widgetPagePage.goto(layout2, site.friendlyUrlPath);
 	await expect(
 		page.getByText(webcontentContent2, {exact: true})
 	).toBeHidden();
@@ -398,12 +417,12 @@ test('Staging only approved content goes to live', async ({
 		webContent2.articleId
 	);
 
-	await pageEditorPage.goto(layout2, site.friendlyUrlPath);
+	await widgetPagePage.goto(layout2, site.friendlyUrlPath);
 
 	await stagingPage.goto(`${site.name}-staging`);
 	await stagingPage.publish();
 
-	await pageEditorPage.goto(layout2, stagingSite.friendlyUrlPath);
+	await pageEditorPage.goto(stagingDraftLayout2, stagingSite.friendlyUrlPath);
 
 	await expect(
 		page.getByText(
@@ -421,7 +440,7 @@ test(
 		assetPublisherWidgetPage,
 		collectionsPage,
 		displayPageTemplatesPage,
-		exportPage,
+		exportImportPage,
 		page,
 		pageEditorPage,
 		uiElementsPage,
@@ -519,10 +538,7 @@ classTypeIdsJournalArticleAssetRendererFactory=${basicWebcontentStructureId}`,
 		await collectionsPage.goto(site.friendlyUrlPath);
 		await page.getByRole('link', {name: assetListEntryName}).click();
 
-		await assetPublisherPage.addManualItem(
-			'Basic Web Content',
-			webContentName
-		);
+		await assetPublisherPage.addManualItem(webContentName);
 		await pageEditorPage.goto(layout, site.friendlyUrlPath);
 		await pageEditorPage.addWidget(
 			'Content Management',
@@ -538,9 +554,15 @@ classTypeIdsJournalArticleAssetRendererFactory=${basicWebcontentStructureId}`,
 
 		await uiElementsPage.closeClickable.click();
 
-		await exportPage.goto(site.friendlyUrlPath);
+		await exportImportPage.goToExport(site.friendlyUrlPath);
 
-		await exportPage.exportPages();
+		const exportName = `MyExport-${getRandomString()}`;
+
+		await exportImportPage.export(exportName);
+
+		await expect(
+			exportImportPage.taskStatusLabel(exportName)
+		).toBeVisible();
 	}
 );
 
@@ -609,14 +631,8 @@ test(
 			includeIfModified: ['Web Content 1 Items Web'],
 		});
 
-		const tomcatDir = exportImportConfig.environment.tomcatDir;
-
-		const files = readdirSync(tomcatDir).filter((file) =>
-			file.startsWith('tomcat-')
-		);
-
 		const hasFolder = await unzipAndCheckFolder(
-			path.resolve(tomcatDir, files[0], 'temp')
+			getTomcatTempDir(exportImportConfig.environment.tomcatDir)
 		);
 
 		expect(hasFolder).toEqual(false);

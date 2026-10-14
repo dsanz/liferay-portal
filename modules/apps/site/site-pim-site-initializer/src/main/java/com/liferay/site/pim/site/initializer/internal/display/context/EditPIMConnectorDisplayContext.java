@@ -20,6 +20,7 @@ import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.site.pim.site.initializer.connector.PIMConnector;
+import com.liferay.site.pim.site.initializer.internal.util.PIMURLUtil;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -55,7 +56,9 @@ public class EditPIMConnectorDisplayContext {
 		return HashMapBuilder.<String, Object>put(
 			"apiURL", _getAPIURL()
 		).put(
-			"backURL", _getBackURL()
+			"backURL",
+			PIMURLUtil.getBackURL(
+				_themeDisplay.getURLCurrent(), _httpServletRequest)
 		).put(
 			"objectEntryId", _objectEntryId
 		).put(
@@ -85,16 +88,6 @@ public class EditPIMConnectorDisplayContext {
 		return "/o" + _objectDefinition.getRESTContextPath();
 	}
 
-	private String _getBackURL() {
-		String backURL = ParamUtil.getString(_httpServletRequest, "backURL");
-
-		if (Validator.isNotNull(backURL)) {
-			return backURL;
-		}
-
-		return _themeDisplay.getURLCurrent();
-	}
-
 	private JSONObject _getPIMConnectorJSONObject(
 		Map<String, Serializable> values) {
 
@@ -104,8 +97,6 @@ public class EditPIMConnectorDisplayContext {
 
 		return JSONUtil.put(
 			"active", MapUtil.getBoolean(values, "active")
-		).put(
-			"apiSchema", MapUtil.getString(values, "apiSchema")
 		).put(
 			"key", MapUtil.getString(values, "key")
 		).put(

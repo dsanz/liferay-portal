@@ -2,25 +2,12 @@ definition {
 
 	@summary = "Default summary"
 	macro addCategoriesFilter(queryContains = null, queryAndOperator = null, categoryNameList = null) {
-		Panel.expandPanel(panel = "Filter");
+		AssetListsAdmin.selectFilterCondition(
+			field = "Categories",
+			queryAndOperator = ${queryAndOperator},
+			queryContains = ${queryContains});
 
-		if (isSet(queryAndOperator)) {
-			Select(
-				locator1 = "APConfiguration#FILTER_QUERY_AND_OPERATOR",
-				value1 = ${queryAndOperator});
-		}
-
-		if (isSet(queryContains)) {
-			Select(
-				locator1 = "APConfiguration#FILTER_QUERY_CONTAINS",
-				value1 = ${queryContains});
-		}
-
-		Select(
-			locator1 = "APConfiguration#FILTER_CATEGORIZATION_SELECT",
-			value1 = "Categories");
-
-		Click(locator1 = "Button#SELECT_CATEGORIES");
+		Click(locator1 = "AssetLists#FILTER_CONDITION_SELECT_BUTTON");
 
 		AssetCategorization.gotoSelectCategory();
 
@@ -68,30 +55,19 @@ definition {
 				value1 = "All Types");
 		}
 
-		Panel.expandPanel(panel = "Filter");
-
-		Select(
-			locator1 = "APConfiguration#FILTER_CATEGORIZATION_SELECT",
-			value1 = "Keywords");
-
-		Select(
-			locator1 = "APConfiguration#FILTER_QUERY_CONTAINS",
-			value1 = ${queryContains});
-
-		Select(
-			locator1 = "APConfiguration#FILTER_QUERY_AND_OPERATOR",
-			value1 = ${queryAndOperator});
+		AssetListsAdmin.selectFilterCondition(
+			field = "Keywords",
+			queryAndOperator = ${queryAndOperator},
+			queryContains = ${queryContains});
 
 		Type(
-			key_text = "Keywords",
-			locator1 = "TextInput#ANY",
+			locator1 = "AssetLists#FILTER_CONDITION_VALUE",
 			value1 = ${keyWords});
 
 		PortletEntry.save();
 
 		AssertTextEquals(
-			key_text = "Keywords",
-			locator1 = "TextInput#ANY",
+			locator1 = "AssetLists#FILTER_CONDITION_VALUE",
 			value1 = ${keyWords});
 	}
 
@@ -166,28 +142,12 @@ definition {
 
 	@summary = "Default summary"
 	macro addTagsFilter(queryContains = null, queryAndOperator = null, tagNameList = null) {
-		Panel.expandPanel(panel = "Filter");
+		AssetListsAdmin.selectFilterCondition(
+			field = "Tags",
+			queryAndOperator = ${queryAndOperator},
+			queryContains = ${queryContains});
 
-		if (isSet(queryAndOperator)) {
-			Select(
-				locator1 = "APConfiguration#FILTER_QUERY_AND_OPERATOR",
-				value1 = ${queryAndOperator});
-		}
-
-		if (isSet(queryContains)) {
-			Select(
-				locator1 = "APConfiguration#FILTER_QUERY_CONTAINS",
-				value1 = ${queryContains});
-		}
-
-		Select(
-			locator1 = "APConfiguration#FILTER_CATEGORIZATION_SELECT",
-			value1 = "Tags");
-
-		Click(
-			key_fieldLabel = "Tags",
-			key_text = "Select",
-			locator1 = "Button#ANY_WITH_LABEL");
+		Click(locator1 = "AssetLists#FILTER_CONDITION_SELECT_BUTTON");
 
 		SelectFrame(locator1 = "IFrame#MODAL_BODY");
 
@@ -336,7 +296,7 @@ definition {
 				locator1 = "Configuration#SCOPE_SELECT",
 				value1 = "Select");
 
-			MenuItem.click(menuItem = "Other Site or Asset Library...");
+			MenuItem.click(menuItem = "Other Site, Asset Library, or Space...");
 
 			SelectFrame(value1 = "relative=top");
 
@@ -430,8 +390,7 @@ definition {
 
 	@summary = "Default summary"
 	macro enableCollectionsToCombineAssetsFromSegments(collectionType = null) {
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
+		ApplicationsMenu.gotoRootPortlet(
 			panel = "Control Panel",
 			portlet = "System Settings");
 
@@ -492,6 +451,21 @@ definition {
 		}
 
 		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+	}
+
+	@summary = "Default summary"
+	macro openSelectAssetTypeFilter() {
+		Button.clickSelect();
+
+		WaitForVisible(locator1 = "ItemSelector#INLINE_MODAL");
+
+		Click(locator1 = "ItemSelector#INLINE_MODAL_FILTER_BUTTON");
+
+		Click(
+			key_filterOption = "Type",
+			locator1 = "ItemSelector#INLINE_MODAL_FILTER_OPTION");
+
+		AssertElementPresent(locator1 = "ItemSelector#INLINE_MODAL_FILTER_ITEMS");
 	}
 
 	@summary = "Default summary"
@@ -561,8 +535,7 @@ definition {
 
 	@summary = "Default summary"
 	macro resetCollectionsToCombineAssetsFromSegments() {
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
+		ApplicationsMenu.gotoRootPortlet(
 			panel = "Control Panel",
 			portlet = "System Settings");
 
@@ -621,6 +594,63 @@ definition {
 	}
 
 	@summary = "Default summary"
+	macro selectFilterCondition(field = null, queryAndOperator = null, queryContains = null) {
+		Panel.expandPanel(panel = "Filter");
+
+		var newCondition = "false";
+
+		if (!(IsElementPresent(key_picker = "Field", key_value = ${field}, locator1 = "AssetLists#FILTER_CONDITION_PICKER_VALUE"))) {
+			if (!(IsElementPresent(key_picker = "Field", key_value = "Select", locator1 = "AssetLists#FILTER_CONDITION_PICKER_VALUE"))) {
+				Button.click(button = "Add Filter");
+			}
+
+			AssetListsAdmin.selectFilterConditionOption(
+				option = ${field},
+				picker = "Field");
+
+			var newCondition = "true";
+		}
+
+		if (isSet(queryContains)) {
+			AssetListsAdmin.selectFilterConditionOption(
+				option = ${queryContains},
+				picker = "Operator");
+		}
+		else if (${newCondition} == "true") {
+			AssetListsAdmin.selectFilterConditionOption(
+				option = "Contains",
+				picker = "Operator");
+		}
+
+		if (isSet(queryAndOperator)) {
+			AssetListsAdmin.selectFilterConditionOption(
+				option = "${queryAndOperator} of the Following",
+				picker = "Quantifier");
+		}
+		else if (${newCondition} == "true") {
+			AssetListsAdmin.selectFilterConditionOption(
+				option = "All of the Following",
+				picker = "Quantifier");
+		}
+	}
+
+	@summary = "Default summary"
+	macro selectFilterConditionOption(option = null, picker = null) {
+		Click(
+			key_picker = ${picker},
+			locator1 = "AssetLists#FILTER_CONDITION_PICKER");
+
+		Click(
+			key_option = ${option},
+			locator1 = "AssetLists#FILTER_CONDITION_OPTION");
+
+		AssertElementPresent(
+			key_picker = ${picker},
+			key_value = ${option},
+			locator1 = "AssetLists#FILTER_CONDITION_PICKER_VALUE");
+	}
+
+	@summary = "Default summary"
 	macro viewAssetList(assetListTitle = null, type = null) {
 		var key_title = ${assetListTitle};
 		var key_type = ${type};
@@ -660,10 +690,12 @@ definition {
 				PortletEntry.save();
 			}
 
-			Button.clickSelect();
+			AssetListsAdmin.openSelectAssetTypeFilter();
 
 			for (var assetType : list ${assetTypeList}) {
-				MenuItem.viewPresent(menuItem = ${assetType});
+				AssertElementPresent(
+					key_filterItem = ${assetType},
+					locator1 = "ItemSelector#INLINE_MODAL_FILTER_ITEM");
 			}
 		}
 
@@ -722,12 +754,12 @@ definition {
 					locator1 = "Button#ANY");
 			}
 			else {
-				Button.clickSelect();
+				AssetListsAdmin.openSelectAssetTypeFilter();
 
 				for (var assetType : list ${assetType}) {
 					AssertElementNotPresent(
-						key_assetType = ${assetType},
-						locator1 = "APConfiguration#SOURCE_SCOPE_ASSET_TYPE_OPTION");
+						key_filterItem = ${assetType},
+						locator1 = "ItemSelector#INLINE_MODAL_FILTER_ITEM");
 				}
 			}
 		}

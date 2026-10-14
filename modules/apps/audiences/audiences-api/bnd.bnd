@@ -1,10 +1,12 @@
 Bundle-Name: Liferay Audiences API
 Bundle-SymbolicName: com.liferay.audiences.api
-Bundle-Version: 3.0.0
+Bundle-Version: 3.1.1
 Export-Package:\
+	com.liferay.audiences.cache,\
 	com.liferay.audiences.constants,\
 	com.liferay.audiences.criteria,\
 	com.liferay.audiences.exception,\
+	com.liferay.audiences.listener,\
 	com.liferay.audiences.model,\
 	com.liferay.audiences.service,\
 	com.liferay.audiences.service.persistence

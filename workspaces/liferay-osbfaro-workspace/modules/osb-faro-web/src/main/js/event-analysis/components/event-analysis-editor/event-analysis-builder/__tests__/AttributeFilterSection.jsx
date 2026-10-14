@@ -1,17 +1,18 @@
+import AttributeFilterSection from '../AttributeFilterSection';
 import mockStore from 'test/mock-store';
 import React from 'react';
-import {AttributeFilterSection} from '../AttributeFilterSection';
+import {AttributesContext} from '../../context/attributes';
 import {DndProvider} from 'react-dnd';
 import {HTML5Backend} from 'react-dnd-html5-backend';
 import {MemoryRouter, Route, Routes as RouterRoutes} from 'react-router-dom';
 import {MockedProvider} from '@apollo/client/testing';
 import {Provider} from 'react-redux';
-import {render} from '@testing-library/react';
+import {fireEvent, render, screen} from '@testing-library/react';
 import {Routes} from 'shared/util/router';
 
 jest.unmock('react-dom');
 
-const WrappedComponent = props => (
+const WrappedComponent = ({eventId, ...attributes}) => (
 	<Provider store={mockStore()}>
 		<MemoryRouter initialEntries={['/workspace/23/event-analysis']}>
 			<RouterRoutes>
@@ -19,12 +20,16 @@ const WrappedComponent = props => (
 					element={
 						<MockedProvider freezeResults={false}>
 							<DndProvider backend={HTML5Backend}>
-								<AttributeFilterSection
-									attributes={[]}
-									filterOrder={[]}
-									filters={[]}
-									{...props}
-								/>
+								<AttributesContext.Provider
+									value={{
+										attributes: {},
+										filterOrder: [],
+										filters: {},
+										...attributes
+									}}
+								>
+									<AttributeFilterSection eventId={eventId} />
+								</AttributesContext.Provider>
 							</DndProvider>
 						</MockedProvider>
 					}
@@ -36,20 +41,31 @@ const WrappedComponent = props => (
 );
 
 describe('AttributeFilterSection', () => {
-	it('renders', () => {
+	jest.useFakeTimers();
+
+	it('does not render without an event', () => {
 		const {container} = render(<WrappedComponent />);
 
-		expect(container.querySelector('.add-attribute')).toBeNull();
-		expect(container).toMatchSnapshot();
+		expect(
+			container.querySelector('.attribute-filter-section-root')
+		).toBeNull();
 	});
 
-	it('renders w/ add attribute button', () => {
+	it('renders only the title and the add button without filters', () => {
 		const {container} = render(<WrappedComponent eventId='1' />);
 
-		expect(container.querySelector('.add-attribute')).toBeTruthy();
+		expect(
+			screen.getByRole('heading', {name: /filter.by/i})
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole('button', {name: /add.filter/i})
+		).toBeInTheDocument();
+		expect(container.querySelector('.attribute-list')).toBeNull();
 	});
 
-	it('renders w/ filter', () => {
+	it('renders the filters and focuses the section when one is removed', () => {
+		const deleteFilter = jest.fn();
+
 		const {container} = render(
 			<WrappedComponent
 				attributes={{
@@ -60,20 +76,39 @@ describe('AttributeFilterSection', () => {
 						name: 'jobTitle'
 					}
 				}}
+				deleteFilter={deleteFilter}
 				eventId='1'
 				filterOrder={['123123']}
 				filters={{
 					123123: {
 						attributeId: '123123',
 						dataType: 'STRING',
+						id: '123123',
 						operator: 'eq',
 						type: 'event',
-						value: ['Stuff']
+						values: ['Stuff']
 					}
 				}}
 			/>
 		);
 
-		expect(container).toMatchSnapshot();
+		expect(
+			container.querySelectorAll('.attribute-list .condition-chip')
+		).toHaveLength(1);
+		expect(container.querySelector('.condition-chip')).toHaveTextContent(
+			/stuff/i
+		);
+		expect(
+			screen.getByRole('button', {name: /drag.job title/i})
+		).toBeInTheDocument();
+
+		fireEvent.click(container.querySelector('.condition-chip-remove'));
+
+		jest.runAllTimers();
+
+		expect(deleteFilter).toHaveBeenCalledWith({id: '123123'});
+		expect(document.activeElement).toBe(
+			container.querySelector('.attribute-filter-section-root')
+		);
 	});
 });

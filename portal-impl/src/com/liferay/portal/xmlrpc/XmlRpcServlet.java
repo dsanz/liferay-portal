@@ -5,9 +5,13 @@
 
 package com.liferay.portal.xmlrpc;
 
+import com.liferay.osgi.service.tracker.collections.map.ServiceReferenceMapperFactory;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.servlet.ServletResponseUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.HttpComponentsUtil;
@@ -26,6 +30,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+
+import org.osgi.framework.BundleContext;
 
 /**
  * @author Alexander Chow
@@ -110,7 +116,8 @@ public class XmlRpcServlet extends HttpServlet {
 			long companyId, String token, String methodName, Object[] arguments)
 		throws XmlRpcException {
 
-		Method method = XmlRpcMethodUtil.getMethod(token, methodName);
+		Method method = _serviceTrackerMap.getService(
+			_getRegistryKey(token, methodName));
 
 		if (method == null) {
 			return XmlRpcUtil.createFault(
@@ -127,6 +134,20 @@ public class XmlRpcServlet extends HttpServlet {
 		return method.execute(companyId);
 	}
 
+	private static String _getRegistryKey(String token, String methodName) {
+		return token + StringPool.POUND + methodName;
+	}
+
 	private static final Log _log = LogFactoryUtil.getLog(XmlRpcServlet.class);
+
+	private static final BundleContext _bundleContext =
+		SystemBundleUtil.getBundleContext();
+	private static final ServiceTrackerMap<String, Method> _serviceTrackerMap =
+		ServiceTrackerMapFactory.openSingleValueMap(
+			_bundleContext, Method.class, null,
+			ServiceReferenceMapperFactory.createFromFunction(
+				_bundleContext,
+				method -> _getRegistryKey(
+					method.getToken(), method.getMethodName())));
 
 }

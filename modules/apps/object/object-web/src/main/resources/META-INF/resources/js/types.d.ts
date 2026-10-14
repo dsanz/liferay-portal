@@ -157,7 +157,7 @@ type NotificationTemplate = {
 interface ObjectAction {
 	active: boolean;
 	conditionExpression?: string;
-	description?: string;
+	description?: LocalizedValue<string>;
 	errorMessage: LocalizedValue<string>;
 	id?: number;
 	label: LocalizedValue<string>;
@@ -183,6 +183,8 @@ interface ObjectActionParameters {
 	secret?: string;
 	system?: boolean;
 	url?: string;
+	urlHostsAllowed?: string;
+	urlLocalNetworkAccessEnabled?: boolean;
 	usePreferredLanguageForGuests?: boolean;
 }
 
@@ -324,6 +326,7 @@ type ObjectFieldBusinessTypeName =
 	| 'Encrypted'
 	| 'Formula'
 	| 'Integer'
+	| 'Location'
 	| 'LongInteger'
 	| 'LongText'
 	| 'MultiselectPicklist'

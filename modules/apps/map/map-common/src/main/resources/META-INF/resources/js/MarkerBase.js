@@ -21,9 +21,10 @@ export default class MarkerBase extends EventEmitter {
 	 * the future, but currently it supports the legacy API.
 	 * @review
 	 */
-	constructor({location, map}) {
-		super({location, map});
+	constructor({draggable = true, location, map}) {
+		super({draggable, location, map});
 
+		this.draggable = draggable;
 		this.location = location;
 		this.map = map;
 
@@ -85,6 +86,16 @@ export default class MarkerBase extends EventEmitter {
 	 */
 	_handleNativeEvent(nativeEvent, externalEventType) {
 		this.emit(externalEventType, this._getNormalizedEventData(nativeEvent));
+	}
+
+	/**
+	 * Sets whether the marker can be dragged. Implementations also update
+	 * the native marker.
+	 * @param {boolean} draggable
+	 * @review
+	 */
+	setDraggable(draggable) {
+		this.draggable = draggable;
 	}
 }
 

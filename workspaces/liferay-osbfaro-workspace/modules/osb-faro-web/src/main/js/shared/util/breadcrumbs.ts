@@ -1,4 +1,10 @@
-import {ACCOUNTS, Routes, SEGMENTS, toRoute} from 'shared/util/router';
+import {
+	ACCOUNTS,
+	Routes,
+	SEGMENTS,
+	setUriQueryValues,
+	toRoute,
+} from 'shared/util/router';
 
 type IBasicRouteArgs = {
 	groupId: string;
@@ -111,55 +117,21 @@ export const getTests = ({channelId, groupId}: IBasicSidebarRouteArgs) => ({
 /**
  * Assets
  */
-export const getAssets = ({channelId, groupId}: IBasicSidebarRouteArgs) => ({
-	href: toRoute(Routes.ASSETS, {channelId, groupId}),
+
+/**
+ * `query` carries the list's date range, account and segment back, so the
+ * breadcrumb returns to the list as it was left.
+ */
+export const getAssets = ({
+	channelId,
+	groupId,
+	query = {},
+}: IBasicSidebarRouteArgs & {query?: {[key: string]: unknown}}) => ({
+	href: setUriQueryValues(
+		query,
+		toRoute(Routes.ASSETS, {channelId, groupId})
+	),
 	label: Liferay.Language.get('assets'),
-});
-
-export const getBlogs = ({channelId, groupId}: IBasicSidebarRouteArgs) => ({
-	href: toRoute(Routes.ASSETS_BLOGS, {channelId, groupId}),
-	label: Liferay.Language.get('blogs'),
-});
-
-export const getCustomContent = ({
-	channelId,
-	groupId,
-}: IBasicSidebarRouteArgs) => ({
-	href: toRoute(Routes.ASSETS_CUSTOM, {
-		channelId,
-		groupId,
-	}),
-	label: Liferay.Language.get('custom'),
-});
-
-export const getDocumentsAndMedia = ({
-	channelId,
-	groupId,
-}: IBasicSidebarRouteArgs) => ({
-	href: toRoute(Routes.ASSETS_DOCUMENTS_AND_MEDIA, {
-		channelId,
-		groupId,
-	}),
-	label: Liferay.Language.get('documents-and-media'),
-});
-
-export const getForms = ({channelId, groupId}: IBasicSidebarRouteArgs) => ({
-	href: toRoute(Routes.ASSETS_FORMS, {
-		channelId,
-		groupId,
-	}),
-	label: Liferay.Language.get('forms'),
-});
-
-export const getWebContent = ({
-	channelId,
-	groupId,
-}: IBasicSidebarRouteArgs) => ({
-	href: toRoute(Routes.ASSETS_WEB_CONTENT, {
-		channelId,
-		groupId,
-	}),
-	label: Liferay.Language.get('web-content'),
 });
 
 /**

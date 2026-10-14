@@ -6,6 +6,12 @@
 package com.liferay.object.web.internal.info.item.updater.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
+import com.liferay.asset.kernel.model.AssetCategory;
+import com.liferay.asset.kernel.model.AssetEntry;
+import com.liferay.asset.kernel.model.AssetVocabulary;
+import com.liferay.asset.kernel.service.AssetCategoryLocalService;
+import com.liferay.asset.kernel.service.AssetEntryLocalService;
+import com.liferay.asset.kernel.service.AssetVocabularyLocalService;
 import com.liferay.depot.constants.DepotConstants;
 import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.service.DepotEntryLocalService;
@@ -28,6 +34,7 @@ import com.liferay.object.definition.setting.builder.ObjectDefinitionSettingBuil
 import com.liferay.object.field.builder.AttachmentObjectFieldBuilder;
 import com.liferay.object.field.builder.TextObjectFieldBuilder;
 import com.liferay.object.field.setting.builder.ObjectFieldSettingBuilder;
+import com.liferay.object.field.util.ObjectFieldUtil;
 import com.liferay.object.info.item.util.ObjectEntryInfoItemUtil;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
@@ -50,6 +57,8 @@ import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
@@ -94,6 +103,116 @@ public class ObjectEntryInfoItemFieldValuesUpdaterTest
 			objectEntry2);
 
 		assertObjectEntryValues(name1, name2);
+
+		ObjectFieldUtil.addCustomObjectField(
+			new TextObjectFieldBuilder(
+			).labelMap(
+				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString())
+			).name(
+				"baker"
+			).objectDefinitionId(
+				objectDefinition2.getObjectDefinitionId()
+			).userId(
+				TestPropsValues.getUserId()
+			).build());
+
+		String value = RandomTestUtil.randomString();
+
+		objectEntryLocalService.partialUpdateObjectEntry(
+			TestPropsValues.getUserId(), objectEntry2.getObjectEntryId(),
+			objectEntry2.getObjectEntryFolderId(),
+			HashMapBuilder.<String, Serializable>put(
+				"baker", value
+			).build(),
+			ServiceContextTestUtil.getServiceContext());
+
+		_updateFromInfoItemFieldValues(
+			geInfoItemFieldValues(name1, name2), objectDefinition2,
+			objectEntryLocalService.getObjectEntry(
+				objectEntry2.getObjectEntryId()));
+
+		Map<String, Serializable> values = objectEntryLocalService.getValues(
+			objectEntry2.getObjectEntryId());
+
+		Assert.assertEquals(values.toString(), value, values.get("baker"));
+	}
+
+	@Test
+	public void testUpdateFromInfoItemFieldValuesWithAssetCategorization()
+		throws Exception {
+
+		ObjectDefinition objectDefinition =
+			ObjectDefinitionTestUtil.publishObjectDefinition(
+				Collections.singletonList(
+					new TextObjectFieldBuilder(
+					).labelMap(
+						RandomTestUtil.randomLocaleStringMap()
+					).name(
+						"name"
+					).build()),
+				ObjectDefinitionConstants.SCOPE_SITE);
+
+		long groupId = TestPropsValues.getGroupId();
+
+		_assetVocabulary = _assetVocabularyLocalService.addVocabulary(
+			TestPropsValues.getUserId(), groupId, RandomTestUtil.randomString(),
+			ServiceContextTestUtil.getServiceContext(groupId));
+
+		AssetCategory assetCategory = _assetCategoryLocalService.addCategory(
+			TestPropsValues.getUserId(), groupId, RandomTestUtil.randomString(),
+			_assetVocabulary.getVocabularyId(),
+			ServiceContextTestUtil.getServiceContext(groupId));
+
+		String assetTagName = RandomTestUtil.randomString();
+
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(groupId);
+
+		serviceContext.setAssetCategoryIds(
+			new long[] {assetCategory.getCategoryId()});
+		serviceContext.setAssetTagNames(new String[] {assetTagName});
+
+		ObjectEntry objectEntry = ObjectEntryTestUtil.addObjectEntry(
+			groupId, objectDefinition.getObjectDefinitionId(), serviceContext,
+			HashMapBuilder.<String, Serializable>put(
+				"name", RandomTestUtil.randomString()
+			).build());
+
+		String name = RandomTestUtil.randomString();
+
+		_updateFromInfoItemFieldValues(
+			InfoItemFieldValues.builder(
+			).infoFieldValue(
+				new InfoFieldValue<>(
+					InfoField.builder(
+					).infoFieldType(
+						TextInfoFieldType.INSTANCE
+					).namespace(
+						ObjectField.class.getSimpleName()
+					).name(
+						"name"
+					).build(),
+					name)
+			).build(),
+			objectDefinition, objectEntry);
+
+		Assert.assertEquals(
+			name,
+			MapUtil.getString(
+				objectEntryLocalService.getValues(
+					objectEntry.getObjectEntryId()),
+				"name"));
+
+		AssetEntry assetEntry = _assetEntryLocalService.getEntry(
+			objectDefinition.getClassName(), objectEntry.getObjectEntryId());
+
+		Assert.assertArrayEquals(
+			new long[] {assetCategory.getCategoryId()},
+			assetEntry.getCategoryIds());
+		Assert.assertArrayEquals(
+			new String[] {assetTagName}, assetEntry.getTagNames());
+
+		_objectDefinitionLocalService.deleteObjectDefinition(objectDefinition);
 	}
 
 	@Test
@@ -204,7 +323,7 @@ public class ObjectEntryInfoItemFieldValuesUpdaterTest
 				null, TestPropsValues.getUserId(),
 				parentObjectDefinition.getObjectDefinitionId(),
 				childObjectDefinition.getObjectDefinitionId(), 0,
-				ObjectRelationshipConstants.DELETION_TYPE_CASCADE, true,
+				ObjectRelationshipConstants.DELETION_TYPE_CASCADE, null, true,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				StringUtil.randomId(), false,
 				ObjectRelationshipConstants.TYPE_ONE_TO_MANY, null);
@@ -300,7 +419,7 @@ public class ObjectEntryInfoItemFieldValuesUpdaterTest
 			_objectRelationshipLocalService.updateObjectRelationship(
 				objectRelationship.getExternalReferenceCode(),
 				objectRelationship.getObjectRelationshipId(), 0,
-				ObjectRelationshipConstants.DELETION_TYPE_CASCADE, false,
+				ObjectRelationshipConstants.DELETION_TYPE_CASCADE, null, false,
 				objectRelationship.getLabelMap(), null);
 
 		_objectRelationshipLocalService.deleteObjectRelationship(
@@ -378,7 +497,7 @@ public class ObjectEntryInfoItemFieldValuesUpdaterTest
 		ObjectDefinition objectDefinition =
 			_objectDefinitionLocalService.addCustomObjectDefinition(
 				null, TestPropsValues.getUserId(),
-				objectFolder.getObjectFolderId(), null, true, false, true,
+				objectFolder.getObjectFolderId(), null, null, true, false, true,
 				false, true, false, false, false, false, null,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				ObjectDefinitionTestUtil.getRandomName(), null, null,
@@ -672,6 +791,18 @@ public class ObjectEntryInfoItemFieldValuesUpdaterTest
 		infoItemFieldValuesUpdater.updateFromInfoItemFieldValues(
 			objectEntry, infoItemFieldValues);
 	}
+
+	@Inject
+	private AssetCategoryLocalService _assetCategoryLocalService;
+
+	@Inject
+	private AssetEntryLocalService _assetEntryLocalService;
+
+	@DeleteAfterTestRun
+	private AssetVocabulary _assetVocabulary;
+
+	@Inject
+	private AssetVocabularyLocalService _assetVocabularyLocalService;
 
 	@Inject
 	private DepotEntryLocalService _depotEntryLocalService;

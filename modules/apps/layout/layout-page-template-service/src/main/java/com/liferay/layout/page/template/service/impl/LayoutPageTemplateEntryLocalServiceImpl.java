@@ -36,7 +36,6 @@ import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.LockedLayoutException;
 import com.liferay.portal.kernel.exception.NoSuchClassNameException;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.license.util.LicenseManagerUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -156,6 +155,11 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 		else {
 			_validateLayoutPageTemplateEntryKey(
 				groupId, layoutPageTemplateEntryKey, type);
+		}
+
+		if (defaultTemplate) {
+			_unsetDefaultLayoutPageTemplateEntry(
+				classNameId, classTypeKey, 0, groupId);
 		}
 
 		long layoutPageTemplateEntryId = counterLocalService.increment();
@@ -750,7 +754,8 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 		layoutPageTemplateEntry.setLayoutPageTemplateCollectionId(
 			targetLayoutPageTemplateCollectionId);
 
-		return updateLayoutPageTemplateEntry(layoutPageTemplateEntry);
+		return layoutPageTemplateEntryLocalService.
+			updateLayoutPageTemplateEntry(layoutPageTemplateEntry);
 	}
 
 	@Override
@@ -772,21 +777,12 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 				layoutPageTemplateEntry.getType());
 		}
 
-		LayoutPageTemplateEntry defaultLayoutPageTemplateEntry =
-			layoutPageTemplateEntryPersistence.fetchByG_C_C_D_First(
-				layoutPageTemplateEntry.getGroupId(),
+		if (defaultTemplate) {
+			_unsetDefaultLayoutPageTemplateEntry(
 				layoutPageTemplateEntry.getClassNameId(),
-				layoutPageTemplateEntry.getClassTypeKey(), true, null);
-
-		if (defaultTemplate && (defaultLayoutPageTemplateEntry != null) &&
-			(defaultLayoutPageTemplateEntry.getLayoutPageTemplateEntryId() !=
-				layoutPageTemplateEntryId)) {
-
-			layoutPageTemplateEntry.setModifiedDate(new Date());
-			defaultLayoutPageTemplateEntry.setDefaultTemplate(false);
-
-			layoutPageTemplateEntryLocalService.updateLayoutPageTemplateEntry(
-				defaultLayoutPageTemplateEntry);
+				layoutPageTemplateEntry.getClassTypeKey(),
+				layoutPageTemplateEntryId,
+				layoutPageTemplateEntry.getGroupId());
 		}
 
 		layoutPageTemplateEntry.setModifiedDate(new Date());
@@ -1072,8 +1068,9 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 
 		Layout draftLayout = layout.fetchDraftLayout();
 
-		if ((type == LayoutPageTemplateEntryTypeConstants.MASTER_LAYOUT) ||
-			Validator.isNotNull(masterLayoutPageTemplateEntryERC)) {
+		if (((type == LayoutPageTemplateEntryTypeConstants.MASTER_LAYOUT) ||
+			 Validator.isNotNull(masterLayoutPageTemplateEntryERC)) &&
+			!DesignLibraryUtil.isDesignLibraryScope(groupId)) {
 
 			LayoutSet layoutSet = _layoutSetLocalService.getLayoutSet(
 				groupId, false);
@@ -1222,6 +1219,27 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 			String.valueOf(classTypeId));
 	}
 
+	private void _unsetDefaultLayoutPageTemplateEntry(
+		long classNameId, String classTypeKey,
+		long excludedLayoutPageTemplateEntryId, long groupId) {
+
+		LayoutPageTemplateEntry defaultLayoutPageTemplateEntry =
+			layoutPageTemplateEntryPersistence.fetchByG_C_C_D_First(
+				groupId, classNameId, classTypeKey, true, null);
+
+		if ((defaultLayoutPageTemplateEntry == null) ||
+			(defaultLayoutPageTemplateEntry.getLayoutPageTemplateEntryId() ==
+				excludedLayoutPageTemplateEntryId)) {
+
+			return;
+		}
+
+		defaultLayoutPageTemplateEntry.setDefaultTemplate(false);
+
+		layoutPageTemplateEntryLocalService.updateLayoutPageTemplateEntry(
+			defaultLayoutPageTemplateEntry);
+	}
+
 	private void _validate(
 			long groupId, long layoutPageTemplateCollectionId, int type)
 		throws PortalException {
@@ -1232,10 +1250,10 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 			((!Objects.equals(
 				LayoutPageTemplateEntryTypeConstants.BASIC, type) &&
 			  !Objects.equals(
-				  LayoutPageTemplateEntryTypeConstants.DISPLAY_PAGE, type)) ||
-			 !FeatureFlagManagerUtil.isEnabled(
-				 group.getCompanyId(), "LPD-57283") ||
-			 !DesignLibraryUtil.isDesignLibraryScope(group))) {
+				  LayoutPageTemplateEntryTypeConstants.DISPLAY_PAGE, type) &&
+			  !Objects.equals(
+				  LayoutPageTemplateEntryTypeConstants.MASTER_LAYOUT, type)) ||
+			 !DesignLibraryUtil.isDesignLibraryScope(groupId))) {
 
 			throw new LayoutPageTemplateEntryGroupIdException();
 		}

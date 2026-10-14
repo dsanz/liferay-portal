@@ -123,4 +123,4 @@ public class MBSuspiciousActivityModelArgumentsResolver
 		new ConcurrentHashMap<>();
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:2044406328
+// LIFERAY-SERVICE-BUILDER-HASH:702011172

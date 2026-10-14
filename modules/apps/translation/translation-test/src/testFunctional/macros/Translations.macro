@@ -18,10 +18,10 @@ definition {
 	@summary = "Default summary"
 	macro assertFileNameFromTempFolder(webContentTitle = null, pageName = null) {
 		if (isSet(pageName)) {
-			var translationZipFileName = TestCase.getDownloadedTempFileName(fileNamePattern = "${pageName}*.zip");
+			var translationZipFileName = TestCase.waitForDownloadedTempFileName(fileNamePattern = "${pageName}*.zip");
 		}
 		else {
-			var translationZipFileName = TestCase.getDownloadedTempFileName(fileNamePattern = "${webContentTitle}*.zip");
+			var translationZipFileName = TestCase.waitForDownloadedTempFileName(fileNamePattern = "${webContentTitle}*.zip");
 		}
 
 		echo("## translationZipFileName: ${translationZipFileName}");
@@ -505,33 +505,23 @@ definition {
 		}
 
 		if (isSet(webContentContent)) {
-			SelectFrame.selectFrameNoLoading(locator1 = "CKEditor#BODY_FIELD_IFRAME_2");
-
-			Type(
-				locator1 = "CKEditor#BODY",
-				value1 = ${webContentContent});
-
-			SelectFrame(value1 = "relative=top");
+			CKEditor.typeContentInEitherEditor(
+				content = ${webContentContent},
+				fieldLabel = "Content",
+				iframeLocator = "CKEditor#BODY_FIELD_IFRAME_2");
 		}
 
 		if (isSet(webContentDescription)) {
-			SelectFrame.selectFrameNoLoading(locator1 = "CKEditor#BODY_FIELD_IFRAME");
-
-			Type(
-				locator1 = "CKEditor#BODY",
-				value1 = ${webContentDescription});
-
-			SelectFrame(value1 = "relative=top");
+			CKEditor.typeContentInEitherEditor(
+				content = ${webContentDescription},
+				fieldLabel = "Description",
+				iframeLocator = "CKEditor#BODY_FIELD_IFRAME");
 		}
 
 		if (isSet(webContentSourceHtml)) {
-			Click(locator1 = "CKEditor#TOOLBAR_SOURCE_BUTTON_2");
-
-			Type.typeCodeMirrorEditorNoError(
-				locator1 = "CKEditor#BODY_FIELD_SOURCE_ON",
-				value1 = ${webContentSourceHtml});
-
-			Click(locator1 = "CKEditor#TOOLBAR_SOURCE_BUTTON_2");
+			CKEditor.addSourceContent(
+				content = ${webContentSourceHtml},
+				fieldLabel = "Rich Text");
 		}
 
 		if (isSet(webContentText)) {
@@ -573,6 +563,16 @@ definition {
 	@summary = "Default summary"
 	macro translateFile(webContentDescription = null, translationZipFileName = null, contentTranslation = null, webContentTitle = null, webContentContent = null, descriptionTranslation = null, encoding = null, operation = null, titleTranslation = null) {
 		var os = OSDetector.isWindows();
+
+		if (${operation} == "unzip") {
+			var downloadedZipFileName = ${translationZipFileName};
+
+			if (${downloadedZipFileName} == "WCGeneralName") {
+				var downloadedZipFileName = "Web Content Article Translations-en_US";
+			}
+
+			TestCase.waitForDownloadedTempFileName(fileNamePattern = "${downloadedZipFileName}.zip");
+		}
 
 		if (contains(${translationFileName}, " ")) {
 			var translationFileName = StringUtil.replace(${translationFileName}, " ", "*");
@@ -887,37 +887,24 @@ definition {
 		}
 
 		if (isSet(webContentContent)) {
-			AssertElementPresent.assertVisible(locator1 = "CKEditor#BODY_FIELD_IFRAME_2");
-
-			SelectFrame.selectFrameNoLoading(locator1 = "CKEditor#BODY_FIELD_IFRAME_2");
-
-			AssertTextEquals(
-				locator1 = "CKEditor#BODY",
-				value1 = ${webContentContent});
-
-			SelectFrame(value1 = "relative=top");
+			CKEditor.assertContentInEitherEditor(
+				content = ${webContentContent},
+				fieldLabel = "Content",
+				iframeLocator = "CKEditor#BODY_FIELD_IFRAME_2");
 		}
 
 		if (isSet(webContentDescription)) {
-			AssertElementPresent.assertVisible(locator1 = "CKEditor#BODY_FIELD_IFRAME");
-
-			SelectFrame.selectFrameNoLoading(locator1 = "CKEditor#BODY_FIELD_IFRAME");
-
-			AssertTextEquals(
-				locator1 = "CKEditor#BODY",
-				value1 = ${webContentDescription});
-
-			SelectFrame(value1 = "relative=top");
+			CKEditor.assertContentInEitherEditor(
+				content = ${webContentDescription},
+				fieldLabel = "Description",
+				iframeLocator = "CKEditor#BODY_FIELD_IFRAME");
 		}
 
 		if (isSet(webContentHtml)) {
-			SelectFrame.selectFrameNoLoading(locator1 = "CKEditor#BODY_FIELD_IFRAME_2");
-
-			AssertTextEquals.assertPartialText(
-				locator1 = "CKEditor#BODY",
-				value1 = ${webContentHtml});
-
-			SelectFrame(value1 = "relative=top");
+			CKEditor.assertContentInEitherEditor(
+				content = ${webContentHtml},
+				fieldLabel = "Rich Text",
+				iframeLocator = "CKEditor#BODY_FIELD_IFRAME_2");
 		}
 
 		if (isSet(webContentText)) {

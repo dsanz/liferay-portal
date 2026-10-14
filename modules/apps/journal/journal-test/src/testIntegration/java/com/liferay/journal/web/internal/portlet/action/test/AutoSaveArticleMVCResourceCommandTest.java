@@ -37,6 +37,7 @@ import com.liferay.portal.kernel.test.portlet.MockLiferayResourceResponse;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.JavaConstants;
@@ -198,6 +199,27 @@ public class AutoSaveArticleMVCResourceCommandTest {
 				_portal.getSiteDefaultLocale(_group),
 				"you-must-define-a-friendly-url-for-the-default-language"),
 			jsonObject.getString("errorMessage"));
+	}
+
+	@Test
+	public void testServeResourceWithManualArticleId() throws Exception {
+		MockLiferayResourceRequest mockLiferayResourceRequest =
+			_getMockLiferayResourceRequest();
+
+		String articleId = RandomTestUtil.randomString();
+
+		mockLiferayResourceRequest.setParameter("articleId", articleId);
+
+		mockLiferayResourceRequest.setParameter(
+			"autoArticleId", StringPool.FALSE);
+
+		JSONObject jsonObject = _serveResource(mockLiferayResourceRequest);
+
+		Assert.assertTrue(jsonObject.getBoolean("success"));
+		Assert.assertEquals(
+			StringUtil.toUpperCase(articleId),
+			jsonObject.getString("articleId"));
+		Assert.assertTrue(jsonObject.has("friendlyURL"));
 	}
 
 	private MockMultipartHttpServletRequest

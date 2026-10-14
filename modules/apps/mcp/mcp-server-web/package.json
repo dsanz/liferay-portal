@@ -12,14 +12,22 @@
 		"@clayui/management-toolbar": "^3.166.0",
 		"@clayui/modal": "^3.166.0",
 		"@clayui/table": "^3.166.0",
+		"@liferay/frontend-data-set-web": "*",
 		"@liferay/frontend-js-react-web": "*",
+		"@liferay/layout-js-components-web": "*",
 		"classnames": "2.3.1",
 		"formik": "2.1.4",
 		"frontend-js-components-web": "*",
 		"frontend-js-web": "*",
+		"jest-fetch-mock": "3.0.3",
 		"react": "18.2.0",
 		"react-dnd": "11.1.1",
 		"react-dnd-html5-backend": "11.1.1"
+	},
+	"jest": {
+		"testPathIgnorePatterns": [
+			"<rootDir>/test/mocks/"
+		]
 	},
 	"main": "js/index.ts",
 	"name": "@liferay/mcp-server-web",
@@ -29,5 +37,5 @@
 		"format": "node-scripts format",
 		"test": "node-scripts test"
 	},
-	"version": "1.0.4"
+	"version": "1.0.6"
 }

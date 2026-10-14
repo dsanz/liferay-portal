@@ -13,6 +13,7 @@ import jakarta.annotation.Generated;
 import java.io.Serializable;
 
 import java.util.Date;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -25,6 +26,28 @@ public class DisplayPageTemplateFolder implements Cloneable, Serializable {
 	public static DisplayPageTemplateFolder toDTO(String json) {
 		return DisplayPageTemplateFolderSerDes.toDTO(json);
 	}
+
+	public Map<String, Map<String, String>> getActions() {
+		return actions;
+	}
+
+	public void setActions(Map<String, Map<String, String>> actions) {
+		this.actions = actions;
+	}
+
+	public void setActions(
+		UnsafeSupplier<Map<String, Map<String, String>>, Exception>
+			actionsUnsafeSupplier) {
+
+		try {
+			actions = actionsUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Map<String, Map<String, String>> actions;
 
 	public Creator getCreator() {
 		return creator;
@@ -302,4 +325,4 @@ public class DisplayPageTemplateFolder implements Cloneable, Serializable {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:-1377290361
+// LIFERAY-REST-BUILDER-HASH:2097044409

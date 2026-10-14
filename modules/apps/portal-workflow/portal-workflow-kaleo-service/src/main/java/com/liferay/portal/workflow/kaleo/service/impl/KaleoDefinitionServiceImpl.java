@@ -15,15 +15,16 @@ import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.service.ServiceContext;
-import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.workflow.constants.WorkflowDefinitionConstants;
 import com.liferay.portal.workflow.kaleo.internal.util.KaleoDefinitionScopeUtil;
 import com.liferay.portal.workflow.kaleo.model.KaleoDefinition;
 import com.liferay.portal.workflow.kaleo.service.KaleoDefinitionLocalService;
 import com.liferay.portal.workflow.kaleo.service.base.KaleoDefinitionServiceBaseImpl;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -41,17 +42,51 @@ import org.osgi.service.component.annotations.Reference;
 public class KaleoDefinitionServiceImpl extends KaleoDefinitionServiceBaseImpl {
 
 	@Override
+	public KaleoDefinition activateKaleoDefinition(
+			String name, int version, ServiceContext serviceContext)
+		throws PortalException {
+
+		KaleoDefinition kaleoDefinition =
+			kaleoDefinitionPersistence.findByC_N_V(
+				serviceContext.getCompanyId(), name, version);
+
+		_checkPermissions(
+			_getGroupId(
+				kaleoDefinition.getGroupId(), kaleoDefinition.getScope()));
+
+		return _kaleoDefinitionLocalService.activateKaleoDefinition(
+			name, version, serviceContext);
+	}
+
+	@Override
 	public KaleoDefinition addKaleoDefinition(
 			String externalReferenceCode, String name, String title,
 			String description, String content, String scope, boolean system,
 			int version, ServiceContext serviceContext)
 		throws PortalException {
 
-		_checkPermissions(serviceContext);
+		_checkPermissions(_getGroupId(serviceContext.getScopeGroupId(), scope));
 
 		return _kaleoDefinitionLocalService.addKaleoDefinition(
 			externalReferenceCode, name, title, description, content, scope,
 			system, version, serviceContext);
+	}
+
+	@Override
+	public KaleoDefinition deactivateKaleoDefinition(
+			String name, int version, ServiceContext serviceContext)
+		throws PortalException {
+
+		KaleoDefinition kaleoDefinition =
+			kaleoDefinitionPersistence.findByC_N_V(
+				serviceContext.getCompanyId(), name, version);
+
+		_checkPermissions(
+			_getGroupId(
+				kaleoDefinition.getGroupId(), kaleoDefinition.getScope()));
+
+		return _kaleoDefinitionLocalService.deactivateKaleoDefinition(
+			name, version, serviceContext);
 	}
 
 	@Override
@@ -138,29 +173,36 @@ public class KaleoDefinitionServiceImpl extends KaleoDefinitionServiceBaseImpl {
 			ServiceContext serviceContext)
 		throws PortalException {
 
-		_checkPermissions(serviceContext);
+		KaleoDefinition kaleoDefinition =
+			kaleoDefinitionPersistence.findByPrimaryKey(kaleoDefinitionId);
+
+		_checkPermissions(
+			_getGroupId(
+				kaleoDefinition.getGroupId(), kaleoDefinition.getScope()));
 
 		return _kaleoDefinitionLocalService.updatedKaleoDefinition(
 			externalReferenceCode, kaleoDefinitionId, title, description,
 			content, system, serviceContext);
 	}
 
-	private void _checkPermissions(ServiceContext serviceContext)
-		throws PrincipalException {
-
+	private void _checkPermissions(long groupId) throws PrincipalException {
 		PermissionChecker permissionChecker =
 			PermissionThreadLocal.getPermissionChecker();
 
-		if ((permissionChecker == null) ||
-			!GetterUtil.getBoolean(
-				serviceContext.getAttribute("checkPermission"), true)) {
-
+		if (permissionChecker == null) {
 			return;
 		}
 
 		_portletResourcePermission.check(
-			permissionChecker, serviceContext.getScopeGroupId(),
-			ActionKeys.ADD_DEFINITION);
+			permissionChecker, groupId, ActionKeys.ADD_DEFINITION);
+	}
+
+	private long _getGroupId(long groupId, String scope) {
+		if (Objects.equals(scope, WorkflowDefinitionConstants.SCOPE_AI)) {
+			return groupId;
+		}
+
+		return WorkflowConstants.DEFAULT_GROUP_ID;
 	}
 
 	@Reference

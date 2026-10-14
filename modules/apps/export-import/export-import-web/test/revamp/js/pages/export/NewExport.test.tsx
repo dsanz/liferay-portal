@@ -39,6 +39,9 @@ const getExportCall = () =>
 			String(url).includes('export-processes') && init?.method === 'POST'
 	);
 
+const getFilteredPreviewCall = () =>
+	fetch.mock.calls.find(([url]) => String(url).includes('export-preview?'));
+
 const DEFAULT_PROPS = {
 	backURL: '/some/back/url',
 	exportPreviewAPIURL: '/o/export-import/v1.0/export-preview',
@@ -48,6 +51,13 @@ const DEFAULT_PROPS = {
 		pageSize: 20,
 		privateLayoutsAvailable: false,
 	},
+	timeZoneId: 'UTC',
+};
+
+const INSTANCE_PROPS = {
+	exportPreviewSitesAPIURL:
+		'/o/export-import/v1.0/export-preview/preview-sites',
+	siteSelectionEnabled: true,
 };
 
 const renderComponent = (
@@ -219,6 +229,110 @@ describe('NewExport', () => {
 		expect(dataSelectionGroup).not.toHaveAttribute('aria-invalid');
 	});
 
+	it('asks for an entity type or a site below both, where sites are on offer', async () => {
+		renderComponent(INSTANCE_PROPS);
+
+		const nameInput = await screen.findByRole('textbox', {
+			name: /^name/i,
+		});
+		await userEvent.type(nameInput, 'test-file');
+
+		await userEvent.click(screen.getByRole('checkbox', {name: 'Design'}));
+		await userEvent.click(
+			screen.getByRole('checkbox', {name: 'Site Builder'})
+		);
+		await userEvent.click(
+			screen.getByRole('checkbox', {name: 'Content & Data'})
+		);
+
+		const alert = await screen.findByText(
+			'please-select-at-least-one-entity-type-or-site-to-continue'
+		);
+
+		expect(
+			screen.getByRole('group', {name: 'data-selection'})
+		).not.toHaveAttribute('aria-invalid');
+
+		const sitesHeading = screen.getByText('sites');
+
+		expect(
+			sitesHeading.compareDocumentPosition(alert) &
+				Node.DOCUMENT_POSITION_FOLLOWING
+		).toBeTruthy();
+	});
+
+	it('keeps the entity types deselected after exporting only sites', async () => {
+		fetch.mockResponse(async (request) => {
+			if (request.url.includes('preview-sites')) {
+				return JSON.stringify({
+					items: [
+						{
+							childSitesCount: 0,
+							descriptiveName: 'Support',
+							externalReferenceCode: 'erc-support',
+							path: 'Global / Support',
+						},
+					],
+					lastPage: 1,
+					page: 1,
+					pageSize: 20,
+					totalCount: 1,
+				});
+			}
+
+			if (request.method === 'POST') {
+				return JSON.stringify({exportImportConfigurationId: 1});
+			}
+
+			return JSON.stringify(mockPreview);
+		});
+
+		renderComponent(INSTANCE_PROPS);
+
+		await userEvent.type(
+			await screen.findByRole('textbox', {name: /^name/i}),
+			'test-file'
+		);
+
+		for (const name of ['Design', 'Site Builder', 'Content & Data']) {
+			await userEvent.click(screen.getByRole('checkbox', {name}));
+		}
+
+		await userEvent.click(
+			screen.getByRole('button', {name: 'select-sites'})
+		);
+
+		const row = await screen.findByText('Support');
+
+		await userEvent.click(
+			within(row.closest('tr') as HTMLElement).getByRole('checkbox')
+		);
+		await userEvent.click(screen.getByRole('button', {name: 'select'}));
+
+		const exportButton = screen.getByRole('button', {name: /^export$/i});
+
+		await waitFor(() => expect(exportButton).toBeEnabled());
+
+		await userEvent.click(exportButton);
+
+		await waitFor(() => expect(getExportCall()).toBeDefined());
+
+		expect(
+			screen.getByRole('checkbox', {name: 'Design'})
+		).not.toBeChecked();
+		expect(
+			screen.getByRole('checkbox', {name: 'Site Builder'})
+		).not.toBeChecked();
+		expect(
+			screen.getByRole('checkbox', {name: 'Content & Data'})
+		).not.toBeChecked();
+
+		expect(JSON.parse(String(getExportCall()?.[1]?.body))).toMatchObject({
+			requestPortletDataHandlers: [],
+			siteExternalReferenceCodes: ['erc-support'],
+		});
+	});
+
 	it('keeps form values after applying a filter', async () => {
 		renderComponent();
 
@@ -243,6 +357,39 @@ describe('NewExport', () => {
 		expect(screen.getByRole('textbox', {name: /^name/i})).toHaveValue(
 			'test-file'
 		);
+	});
+
+	it('keeps the entity types deselected after applying a filter', async () => {
+		renderComponent();
+
+		await screen.findByText('loaded');
+
+		for (const name of ['Design', 'Site Builder', 'Content & Data']) {
+			await userEvent.click(screen.getByRole('checkbox', {name}));
+		}
+
+		await userEvent.selectOptions(
+			screen.getByRole('combobox', {name: 'filter-content-by'}),
+			'last'
+		);
+
+		await userEvent.click(
+			screen.getByRole('button', {name: /show-results/i})
+		);
+
+		await waitFor(() => {
+			expect(fetch).toHaveBeenCalledTimes(2);
+		});
+
+		expect(
+			await screen.findByRole('checkbox', {name: 'Design'})
+		).not.toBeChecked();
+		expect(
+			screen.getByRole('checkbox', {name: 'Site Builder'})
+		).not.toBeChecked();
+		expect(
+			screen.getByRole('checkbox', {name: 'Content & Data'})
+		).not.toBeChecked();
 	});
 
 	it('ignores a stale filtered preview after the filter is cleared', async () => {
@@ -329,6 +476,54 @@ describe('NewExport', () => {
 				new Date(applyTime - 12 * HOUR).toISOString()
 			);
 			expect(body.endDate).toBeUndefined();
+		});
+	});
+
+	it('resolves the date range bounds in the portal time zone', async () => {
+		renderComponent({timeZoneId: 'Europe/Madrid'});
+
+		await screen.findByText('loaded');
+
+		await userEvent.click(
+			await screen.findByRole('textbox', {name: /^name/i})
+		);
+
+		await userEvent.paste('test-file');
+
+		await userEvent.selectOptions(
+			screen.getByRole('combobox', {name: 'filter-content-by'}),
+			'dateRange'
+		);
+
+		await userEvent.click(screen.getByLabelText('from'));
+
+		await userEvent.paste('01/01/2026 08:00 AM');
+
+		await userEvent.click(
+			screen.getByRole('button', {name: /show-results/i})
+		);
+
+		await waitFor(() => {
+			expect(getFilteredPreviewCall()).toBeDefined();
+		});
+
+		expect(
+			new URL(
+				String(getFilteredPreviewCall()![0]),
+				'http://localhost'
+			).searchParams.get('startDate')
+		).toBe('2026-01-01T07:00:00.000Z');
+
+		fetch.mockResponseOnce(JSON.stringify({}));
+
+		await userEvent.click(screen.getByRole('button', {name: /^export$/i}));
+
+		await waitFor(() => {
+			const body = JSON.parse(getExportCall()![1]!.body as string);
+
+			expect(body.dateRangeType).toBe('DATE_RANGE');
+			expect(body.endDate).toBeUndefined();
+			expect(body.startDate).toBe('2026-01-01T07:00:00.000Z');
 		});
 	});
 

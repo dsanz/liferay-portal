@@ -64,11 +64,11 @@ afterAll(() => {
 });
 
 afterEach(() => {
-	fetchMock.restore();
+	fetchMock.hardReset();
 });
 
 beforeEach(() => {
-	Liferay.FeatureFlags['LPD-80279'] = true;
+	fetchMock.mockGlobal();
 
 	fetchMock.get('http://localhost/url', {
 		objectRelationshipTypes: ['oneToMany'],
@@ -78,10 +78,6 @@ beforeEach(() => {
 		items: [objectDefinition],
 		totalCount: 1,
 	});
-});
-
-afterEach(() => {
-	Liferay.FeatureFlags['LPD-80279'] = false;
 });
 
 const renderComponent = (customProps = {}) =>
@@ -100,16 +96,6 @@ describe('Object relationship description', () => {
 				system: true,
 			},
 		});
-
-		await screen.findByRole('textbox', {name: /name/i});
-
-		expect(screen.queryByLabelText('description')).not.toBeInTheDocument();
-	});
-
-	it('does not render when the feature flag is disabled', async () => {
-		Liferay.FeatureFlags['LPD-80279'] = false;
-
-		renderComponent();
 
 		await screen.findByRole('textbox', {name: /name/i});
 

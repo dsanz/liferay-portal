@@ -39,13 +39,15 @@ describe('QueueFlushService', () => {
 	let identityQueue: IdentityMessageQueue;
 
 	afterEach(() => {
-		fetchMock.restore();
+		fetchMock.hardReset();
 
 		queueFlushService.dispose();
 		identityQueue.reset();
 	});
 
 	beforeEach(() => {
+		fetchMock.mockGlobal();
+
 		queueFlushService = new QueueFlushService({
 			...INITIAL_ANALYTICS_CONFIG,
 			flushInterval: 100,
@@ -59,7 +61,7 @@ describe('QueueFlushService', () => {
 	it('flush queue items', async () => {
 		let fetchCalled = 0;
 
-		fetchMock.mock(/ac-server/i, () => {
+		fetchMock.route(/ac-server/i, () => {
 			fetchCalled += 1;
 
 			return Promise.resolve(200);
@@ -80,10 +82,10 @@ describe('QueueFlushService', () => {
 		let resolveFetch: (value: unknown) => void = () => {};
 		let settled = false;
 
-		fetchMock.mock(
+		fetchMock.route(
 			/ac-server/i,
 			() =>
-				new Promise((resolve) => {
+				new Promise<unknown>((resolve) => {
 					resolveFetch = resolve;
 				})
 		);
@@ -111,10 +113,10 @@ describe('QueueFlushService', () => {
 		let resolveFetch: (value: unknown) => void = () => {};
 		let secondSettled = false;
 
-		fetchMock.mock(
+		fetchMock.route(
 			/ac-server/i,
 			() =>
-				new Promise((resolve) => {
+				new Promise<unknown>((resolve) => {
 					resolveFetch = resolve;
 				})
 		);
@@ -145,7 +147,7 @@ describe('QueueFlushService', () => {
 	it('resolves the flush when no queue has anything to send', async () => {
 		let fetchCalled = 0;
 
-		fetchMock.mock(/ac-server/i, () => {
+		fetchMock.route(/ac-server/i, () => {
 			fetchCalled += 1;
 
 			return Promise.resolve(200);
@@ -163,7 +165,7 @@ describe('QueueFlushService', () => {
 		async () => {
 			let settled = false;
 
-			fetchMock.mock(/ac-server/i, () => new Promise(() => {}));
+			fetchMock.route(/ac-server/i, () => new Promise(() => {}));
 
 			queueFlushService.addQueue(identityQueue);
 
@@ -194,8 +196,8 @@ describe('QueueFlushService', () => {
 		});
 		const priorityItem = getMockMessageItem('priority');
 
-		fetchMock.mock(/ac-server/i, (url: string, {body}: {body: string}) => {
-			sentEvents.push(JSON.parse(body));
+		fetchMock.route(/ac-server/i, ({options: {body}}) => {
+			sentEvents.push(JSON.parse(body as string));
 
 			return Promise.resolve(200);
 		});

@@ -36,6 +36,7 @@ export const detailsListCDPColumns = {
 				formatDateToTimeZone(date, getCustomDateFormat()),
 			datePath: 'dateModified',
 		},
+		className: 'text-nowrap',
 		label: Liferay.Language.get('last-modified'),
 		sortable: false,
 	}),
@@ -225,6 +226,7 @@ const IndividualDetailsCDP = ({
 								detailsListCDPColumns.getDateModified(),
 							]}
 							entityLabel={Liferay.Language.get('all-attributes')}
+							nowrap={false}
 							rowIdentifier="name"
 						/>
 					</Card>

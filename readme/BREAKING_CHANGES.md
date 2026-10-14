@@ -1925,9 +1925,11 @@ This affects anyone who triggered one of these operations by saving the correspo
 
 Use the Portal Instances headless API:
 
-- `POST /o/headless-portal-instances/v1.0/portal-instances/{portalInstanceId}/copy`
-- `POST /o/headless-portal-instances/v1.0/portal-instances/{portalInstanceId}/export`
+- `POST /o/headless-portal-instances/v1.0/portal-instances/copy`
+- `POST /o/headless-portal-instances/v1.0/portal-instances/export`
 - `POST /o/headless-portal-instances/v1.0/portal-instances/import`
+
+Copy and export take the instance in the request body, as `sourcePortalInstanceId` and `portalInstanceId` respectively.
 
 Copy and export can also be triggered from the Virtual Instances page in the Control Panel. Every endpoint requires an authenticated omniadmin, whereas deploying a configuration file required no credentials, so provisioning scripts that ran before an administrator existed must now authenticate.
 
@@ -1973,3 +1975,60 @@ In a JSON object definition payload, the `panelCategoryKey` that points to a del
 ### Why was this change made?
 
 The Applications Panel has been reorganized by feature area, rather than by arbitrary splits and groups containing a single application. Panel Category groups left empty by this change have been removed and are no longer available as destinations for OSGi applications or object definitions.
+
+---------------------------------------
+
+## Localized the Object Action Description in the Object Admin API
+- **Date:** 2026-Sep-24
+- **JIRA Ticket:** [LPD-103300](https://liferay.atlassian.net/browse/LPD-103300)
+
+### What changed?
+
+An object action's `description` is now a localized value instead of a plain string. In the Object Admin API the property changes from `type: string` to a map of language IDs to strings, matching how `errorMessage` and `label` are already represented on the same resource, and the generated OpenAPI document resolves the English value, falling back to the object definition's default language, rather than emitting the single stored string.
+
+Two behaviors change with it. A `PUT` that omits `description`, or sends an empty map, no longer clears the stored value, where a request that omitted the property used to clear it. And an object action that has no description now returns an empty object rather than omitting the property.
+
+### Who is affected?
+
+This affects clients of the Object Admin API (`/o/object-admin/v1.0`) that read or write an object action's `description`, any Batch Engine import or client extension that carries that property in its payload, and site initializers whose object definition JSON files declare object actions.
+
+### How should I update my code?
+
+When reading, treat `description` as a map keyed by language ID (for example, `{"en_US": "Sends the welcome email."}`) rather than a string, and select the entry for the language you want. When writing, send the same map shape; a plain string is no longer accepted. To clear a language, send `{"en_US": ""}`. In a site initializer, write the property the way `errorMessage` and `label` are already written, as an object keyed by language ID, because a plain string no longer parses. Existing stored descriptions are migrated to the company's default language by an upgrade process, so no data is lost.
+
+### Why was this change made?
+
+The description is authored by administrators and surfaces in the generated OpenAPI document that AI clients consume, so it has to carry a language rather than a single untagged string. Every other administrator authored text on the same resource was already localized; the description was the remaining exception.
+
+---------------------------------------
+
+## Removed the Configuration Panel Category
+- **Date:** 2026-Sep-30
+- **JIRA Ticket:** [LPD-106961](https://liferay.atlassian.net/browse/LPD-106961)
+
+### What changed?
+
+The Control Panel no longer has a Configuration category. Its applications moved into the System and Instance scopes, and the `control_panel.configuration` panel category is deleted. `PanelCategoryKeys.CONTROL_PANEL_CONFIGURATION` and `PortletCategoryKeys.CONTROL_PANEL_CONFIGURATION` are both removed.
+
+### Who is affected?
+
+This affects administrators with a custom object in Configuration. The object is moved to Control Panel > Objects by an upgrade process, not deleted.
+
+This also affects developers whose module or client extension names a removed constant or its literal key value. A panel app registered under the old key is left out of the menu until it is pointed at a scope that exists.
+
+This also affects portlets that declare `control_panel.configuration` as their control panel entry category. The upgrade source processor rewrites that value in Java and JSP, but a WAR plugin that declares it in `liferay-portlet.xml` must be updated by hand to `control_panel.instance` or `control_panel.system`. A portlet that declares the legacy `configuration`, `portal` or `server` value is not affected: `configuration` and `portal` are mapped to the Instance scope, and `server` to the System scope.
+
+### How should I update my code?
+
+Point the removed key at the scope the application belongs to:
+
+| Removed Key | Replacement |
+| --- | --- |
+| `PanelCategoryKeys.CONTROL_PANEL_CONFIGURATION` | `PanelCategoryKeys.CONTROL_PANEL_INSTANCE` or `PanelCategoryKeys.CONTROL_PANEL_SYSTEM` |
+| `PortletCategoryKeys.CONTROL_PANEL_CONFIGURATION` | `PortletCategoryKeys.CONTROL_PANEL_INSTANCE` or `PortletCategoryKeys.CONTROL_PANEL_SYSTEM` |
+
+Use the Instance key for an application that applies to one virtual instance, and the System key for one that applies to the whole installation. In a JSON object definition payload, a `panelCategoryKey` of `control_panel.configuration` should be rewritten to `control_panel.object`, which is where the upgrade process moves a stored object definition.
+
+### Why was this change made?
+
+Configuration mixed settings that apply to the whole installation with settings that apply to one virtual instance. The Control Panel root is rebuilt around that distinction as a System scope and an Instance scope, which left Configuration empty.

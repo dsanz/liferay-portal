@@ -86,16 +86,34 @@ describe('Event Analysis Create', () => {
 	afterEach(cleanup);
 
 	it('should render', async () => {
-		const {container} = render(<WrappedComponent />);
+		const {container, getByLabelText} = render(<WrappedComponent />);
 
 		await waitForLoadingToBeRemoved(container);
 
 		expect(
 			container.querySelector('.event-analysis-editor-root')
 		).toBeInTheDocument();
+		expect(getByLabelText(/^title/i)).toBeInTheDocument();
+	});
+
+	it('should render the conditions in a side panel outside the editor', async () => {
+		const {container, getByRole} = render(<WrappedComponent />);
+
+		await waitForLoadingToBeRemoved(container);
+
 		expect(
-			container.querySelector('input.title-input')
+			getByRole('heading', {name: /conditions.library/i})
 		).toBeInTheDocument();
+		expect(
+			container.querySelector(
+				'.event-analysis-conditions-panel .event-analysis-builder-root'
+			)
+		).toBeInTheDocument();
+		expect(
+			container.querySelector(
+				'.event-analysis-editor-root .event-analysis-builder-root'
+			)
+		).toBeNull();
 	});
 
 	it('should render empty state', async () => {
@@ -105,23 +123,19 @@ describe('Event Analysis Create', () => {
 
 		await waitForLoadingToBeRemoved(container);
 
-		expect(getByPlaceholderText('Unnamed Analysis')).toBeTruthy();
-		expect(getByText('Add an event to analyze.')).toBeTruthy();
+		expect(getByPlaceholderText('New Analysis')).toBeTruthy();
+		expect(getByText('No Conditions Yet')).toBeTruthy();
 		expect(
 			container.querySelector('.dropdown-range-key-root button')
 				.textContent
 		).toEqual('Last 30 days');
-		expect(container.querySelector('.event-list').textContent).toBe('');
+		expect(container.querySelector('.event-list')).toBeNull();
 		expect(
-			container.querySelector(
-				'.attribute-breakdown-section-root .attribute-container'
-			)
-		).toBeFalsy();
+			container.querySelector('.attribute-breakdown-section-root')
+		).toBeNull();
 		expect(
-			container.querySelector(
-				'.attribute-filter-section-root .attribute-container'
-			)
-		).toBeFalsy();
+			container.querySelector('.attribute-filter-section-root')
+		).toBeNull();
 		expect(
 			container.querySelector('.compare-to-previous-checkbox input')
 				.checked
@@ -137,11 +151,13 @@ describe('Event Analysis Create', () => {
 	});
 
 	it('should enable the save button when there is at least one name and one event added', async () => {
-		const {container, getByText} = render(<WrappedComponent />);
+		const {container, getByLabelText, getByRole, getByText} = render(
+			<WrappedComponent />
+		);
 
 		await waitForLoadingToBeRemoved(container);
 
-		const inputName = container.querySelector('input.title-input');
+		const inputName = getByLabelText(/^title/i);
 
 		fireEvent.change(inputName, {
 			target: {
@@ -149,13 +165,11 @@ describe('Event Analysis Create', () => {
 			}
 		});
 
-		expect(getByText('My First Event Analysis')).toBeTruthy();
+		expect(inputName).toHaveValue('My First Event Analysis');
 
 		expect(getByText('Save Analysis')).toBeDisabled();
 
-		const addEventButton = container.querySelector('.add-event-button');
-
-		fireEvent.click(addEventButton);
+		fireEvent.click(getByRole('button', {name: /add.event/i}));
 
 		jest.runOnlyPendingTimers();
 

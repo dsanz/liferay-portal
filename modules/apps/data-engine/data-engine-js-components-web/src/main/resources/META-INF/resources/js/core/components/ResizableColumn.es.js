@@ -50,12 +50,21 @@ const ResizableColumn = ({
 				resizeInfoRef.current &&
 				resizeInfoRef.current.instanceId === instanceId
 			) {
+				const row = rowRef.current;
+
+				if (!row) {
+					return;
+				}
+
+				const rowRect = row.getBoundingClientRect();
+
+				const offset =
+					document.dir === 'rtl'
+						? rowRect.right - event.clientX
+						: event.clientX - rowRect.left;
+
 				let column = Math.floor(
-					((event.clientX -
-						rowRef.current?.getBoundingClientRect().left) *
-						(MAX_COLUMNS * 10)) /
-						rowRef.current?.clientWidth /
-						10
+					(offset * (MAX_COLUMNS * 10)) / row.clientWidth / 10
 				);
 
 				if (column > MAX_COLUMNS - 1) {

@@ -38,7 +38,9 @@ describe('Analytics', () => {
 	let Analytics: AnalyticsClient;
 
 	beforeEach(() => {
-		fetchMock.mock(/ac-server/i, () => Promise.resolve(200));
+		fetchMock.mockGlobal();
+
+		fetchMock.route(/ac-server/i, () => Promise.resolve(200));
 
 		Analytics = AnalyticsClient.create(INITIAL_CONFIG);
 
@@ -50,7 +52,7 @@ describe('Analytics', () => {
 		Analytics.reset();
 		AnalyticsClient.dispose();
 
-		fetchMock.restore();
+		fetchMock.hardReset();
 
 		jest.restoreAllMocks();
 	});
@@ -89,7 +91,7 @@ describe('Analytics', () => {
 	});
 
 	it('regenerates the stored identity if the identity changed', async () => {
-		fetchMock.mock(/identity$/i, () => Promise.resolve(200));
+		fetchMock.route(/identity$/i, () => Promise.resolve(200));
 
 		Analytics.reset();
 		AnalyticsClient.dispose();
@@ -111,7 +113,7 @@ describe('Analytics', () => {
 	});
 
 	it('reports identity changes to the Identity Service', async () => {
-		fetchMock.mock('*', () => Promise.resolve(200));
+		fetchMock.route('*', () => Promise.resolve(200));
 
 		Analytics.reset();
 		AnalyticsClient.dispose();
@@ -124,8 +126,10 @@ describe('Analytics', () => {
 
 		await wait(FLUSH_INTERVAL);
 
-		fetchMock.restore();
-		fetchMock.mock(/identity$/, () => {
+		fetchMock.hardReset();
+		fetchMock.mockGlobal();
+
+		fetchMock.route(/identity$/, () => {
 			identityCalled += 1;
 
 			return '';
@@ -149,13 +153,15 @@ describe('Analytics', () => {
 
 		let identityBody: {[key: string]: any} = {};
 
-		fetchMock.restore();
-		fetchMock.mock(/identity$/, (_url: string, options: RequestInit) => {
+		fetchMock.hardReset();
+		fetchMock.mockGlobal();
+
+		fetchMock.route(/identity$/, ({options}) => {
 			identityBody = JSON.parse(options.body as string);
 
 			return 200;
 		});
-		fetchMock.mock(/ac-server/i, () => Promise.resolve(200));
+		fetchMock.route(/ac-server/i, () => Promise.resolve(200));
 
 		await Analytics.setIdentity({
 			email: 'john@liferay.com',
@@ -175,7 +181,7 @@ describe('Analytics', () => {
 	});
 
 	it('does not request the Identity Service when only the field order changed', async () => {
-		fetchMock.mock(/identity$/, () => Promise.resolve(200));
+		fetchMock.route(/identity$/, () => Promise.resolve(200));
 
 		Analytics.reset();
 		AnalyticsClient.dispose();
@@ -195,8 +201,10 @@ describe('Analytics', () => {
 
 		let identityCalled = 0;
 
-		fetchMock.restore();
-		fetchMock.mock(/identity$/, () => {
+		fetchMock.hardReset();
+		fetchMock.mockGlobal();
+
+		fetchMock.route(/identity$/, () => {
 			identityCalled += 1;
 
 			return '';
@@ -217,7 +225,7 @@ describe('Analytics', () => {
 	});
 
 	it('requests the Identity Service when a field value changed', async () => {
-		fetchMock.mock(/identity$/, () => Promise.resolve(200));
+		fetchMock.route(/identity$/, () => Promise.resolve(200));
 
 		Analytics.reset();
 		AnalyticsClient.dispose();
@@ -237,8 +245,10 @@ describe('Analytics', () => {
 
 		let identityCalled = 0;
 
-		fetchMock.restore();
-		fetchMock.mock(/identity$/, () => {
+		fetchMock.hardReset();
+		fetchMock.mockGlobal();
+
+		fetchMock.route(/identity$/, () => {
 			identityCalled += 1;
 
 			return '';
@@ -266,13 +276,15 @@ describe('Analytics', () => {
 
 		let identityBody: {[key: string]: any} = {};
 
-		fetchMock.restore();
-		fetchMock.mock(/identity$/, (_url: string, options: RequestInit) => {
+		fetchMock.hardReset();
+		fetchMock.mockGlobal();
+
+		fetchMock.route(/identity$/, ({options}) => {
 			identityBody = JSON.parse(options.body as string);
 
 			return 200;
 		});
-		fetchMock.mock(/ac-server/i, () => Promise.resolve(200));
+		fetchMock.route(/ac-server/i, () => Promise.resolve(200));
 
 		await Analytics.setIdentity(ANALYTICS_IDENTITY);
 
@@ -289,13 +301,15 @@ describe('Analytics', () => {
 
 		let identityBody: {[key: string]: any} = {};
 
-		fetchMock.restore();
-		fetchMock.mock(/identity$/, (_url: string, options: RequestInit) => {
+		fetchMock.hardReset();
+		fetchMock.mockGlobal();
+
+		fetchMock.route(/identity$/, ({options}) => {
 			identityBody = JSON.parse(options.body as string);
 
 			return 200;
 		});
-		fetchMock.mock(/ac-server/i, () => Promise.resolve(200));
+		fetchMock.route(/ac-server/i, () => Promise.resolve(200));
 
 		await Analytics.setIdentity({
 			fields: [{name: 'emailAddress', value: 'john@liferay.com'}],
@@ -310,7 +324,7 @@ describe('Analytics', () => {
 	});
 
 	it("does not request the Identity Service when identity hasn't changed", async () => {
-		fetchMock.mock(/identity$/, () => Promise.resolve(200));
+		fetchMock.route(/identity$/, () => Promise.resolve(200));
 
 		Analytics.reset();
 		AnalyticsClient.dispose();
@@ -321,8 +335,10 @@ describe('Analytics', () => {
 
 		await Analytics.setIdentity(ANALYTICS_IDENTITY);
 
-		fetchMock.restore();
-		fetchMock.mock(/identity$/, () => {
+		fetchMock.hardReset();
+		fetchMock.mockGlobal();
+
+		fetchMock.route(/identity$/, () => {
 			identityCalled += 1;
 
 			return 200;
@@ -334,8 +350,8 @@ describe('Analytics', () => {
 	});
 
 	it('preserves the user id whenever the set identity is called after a anonymous navigation', async () => {
-		fetchMock.mock(/ac-server/i, () => Promise.resolve(200));
-		fetchMock.mock(/identity$/, () => Promise.resolve(200));
+		fetchMock.route(/ac-server/i, () => Promise.resolve(200));
+		fetchMock.route(/identity$/, () => Promise.resolve(200));
 
 		Analytics.reset();
 		AnalyticsClient.dispose();
@@ -361,8 +377,8 @@ describe('Analytics', () => {
 	});
 
 	it('replace the user id whenever the set identity hash is changed', async () => {
-		fetchMock.mock(/ac-server/i, () => Promise.resolve(200));
-		fetchMock.mock(/identity$/, () => Promise.resolve(200));
+		fetchMock.route(/ac-server/i, () => Promise.resolve(200));
+		fetchMock.route(/identity$/, () => Promise.resolve(200));
 
 		await Analytics.setIdentity({
 			email: 'john@liferay.com',
@@ -382,8 +398,8 @@ describe('Analytics', () => {
 	});
 
 	it('does not replace the user id whenever the set identity hash is the same', async () => {
-		fetchMock.mock(/ac-server/i, () => Promise.resolve(200));
-		fetchMock.mock(/identity$/, () => Promise.resolve(200));
+		fetchMock.route(/ac-server/i, () => Promise.resolve(200));
+		fetchMock.route(/identity$/, () => Promise.resolve(200));
 
 		await Analytics.setIdentity({
 			email: 'john@liferay.com',
@@ -403,8 +419,8 @@ describe('Analytics', () => {
 	});
 
 	it('does not replace the user id whenever the set identity hash is the same and emailAddress is uppercase', async () => {
-		fetchMock.mock(/ac-server/i, () => Promise.resolve(200));
-		fetchMock.mock(/identity$/, () => Promise.resolve(200));
+		fetchMock.route(/ac-server/i, () => Promise.resolve(200));
+		fetchMock.route(/identity$/, () => Promise.resolve(200));
 
 		await Analytics.setIdentity({
 			email: 'JOHN@LIFERAY.COM',
@@ -424,8 +440,8 @@ describe('Analytics', () => {
 	});
 
 	it('does not replace the user id whenever only the fields changed', async () => {
-		fetchMock.mock(/ac-server/i, () => Promise.resolve(200));
-		fetchMock.mock(/identity$/, () => Promise.resolve(200));
+		fetchMock.route(/ac-server/i, () => Promise.resolve(200));
+		fetchMock.route(/identity$/, () => Promise.resolve(200));
 
 		await Analytics.setIdentity({
 			email: 'john@liferay.com',
@@ -447,8 +463,8 @@ describe('Analytics', () => {
 	});
 
 	it('replaces the user id whenever the email changed and fields are sent', async () => {
-		fetchMock.mock(/ac-server/i, () => Promise.resolve(200));
-		fetchMock.mock(/identity$/, () => Promise.resolve(200));
+		fetchMock.route(/ac-server/i, () => Promise.resolve(200));
+		fetchMock.route(/identity$/, () => Promise.resolve(200));
 
 		await Analytics.setIdentity({
 			email: 'john@liferay.com',
@@ -488,13 +504,15 @@ describe('Analytics', () => {
 
 		Analytics[AnalyticsType.Queues.IdentityMessage].reset();
 
-		fetchMock.restore();
-		fetchMock.mock(/identity$/, () => {
+		fetchMock.hardReset();
+		fetchMock.mockGlobal();
+
+		fetchMock.route(/identity$/, () => {
 			identityCalled += 1;
 
 			return '';
 		});
-		fetchMock.mock(/ac-server/i, () => Promise.resolve(200));
+		fetchMock.route(/ac-server/i, () => Promise.resolve(200));
 
 		await Analytics.setIdentity({
 			email: 'flush@liferay.com',
@@ -509,8 +527,8 @@ describe('Analytics', () => {
 	});
 
 	it('regenerates the user id on logouts or session expirations ', async () => {
-		fetchMock.mock(/ac-server/i, () => Promise.resolve(200));
-		fetchMock.mock(/identity$/, () => Promise.resolve(200));
+		fetchMock.route(/ac-server/i, () => Promise.resolve(200));
+		fetchMock.route(/identity$/, () => Promise.resolve(200));
 
 		sendDummyEvents(Analytics, 1);
 
@@ -735,7 +753,7 @@ describe('Analytics', () => {
 		});
 
 		it('gets batch segment ids for the first time', async () => {
-			fetchMock.mock(/ac-backend-server/i, () =>
+			fetchMock.route(/ac-backend-server/i, () =>
 				Promise.resolve([1, 2, 3])
 			);
 
@@ -776,7 +794,7 @@ describe('Analytics', () => {
 		});
 
 		it('gets batch segment ids when data is expired', async () => {
-			fetchMock.mock(/ac-backend-server/i, () =>
+			fetchMock.route(/ac-backend-server/i, () =>
 				Promise.resolve([1, 2, 3])
 			);
 
@@ -818,7 +836,7 @@ describe('Analytics', () => {
 		});
 
 		it('gets batch segment ids when data is not expired', async () => {
-			fetchMock.mock(/ac-backend-server/i, () =>
+			fetchMock.route(/ac-backend-server/i, () =>
 				Promise.resolve([1, 2, 3])
 			);
 
@@ -868,7 +886,7 @@ describe('Analytics', () => {
 		});
 
 		it('gets real time segment ids and never caches data', async () => {
-			fetchMock.mock(/ac-backend-server/i, () =>
+			fetchMock.route(/ac-backend-server/i, () =>
 				Promise.resolve([1, 2, 3])
 			);
 
@@ -879,9 +897,10 @@ describe('Analytics', () => {
 
 			expect(result1).toEqual([1, 2, 3]);
 
-			fetchMock.restore();
+			fetchMock.hardReset();
+			fetchMock.mockGlobal();
 
-			fetchMock.mock(/ac-backend-server/i, () =>
+			fetchMock.route(/ac-backend-server/i, () =>
 				Promise.resolve([4, 5, 6])
 			);
 

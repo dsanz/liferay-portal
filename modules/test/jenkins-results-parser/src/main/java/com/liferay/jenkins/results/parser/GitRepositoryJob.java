@@ -40,17 +40,6 @@ public abstract class GitRepositoryJob extends BaseJob {
 	}
 
 	@Override
-	public List<String> getJobPropertyOptions() {
-		List<String> jobPropertyOptions = super.getJobPropertyOptions();
-
-		jobPropertyOptions.add(getBranchName());
-
-		jobPropertyOptions.removeAll(Collections.singleton(null));
-
-		return jobPropertyOptions;
-	}
-
-	@Override
 	public JSONObject getJSONObject() {
 		if (jsonObject != null) {
 			return jsonObject;
@@ -65,6 +54,17 @@ public abstract class GitRepositoryJob extends BaseJob {
 		jsonObject.put("upstream_branch_name", _upstreamBranchName);
 
 		return jsonObject;
+	}
+
+	@Override
+	public List<String> getJobPropertyOptions() {
+		List<String> jobPropertyOptions = super.getJobPropertyOptions();
+
+		jobPropertyOptions.add(getBranchName());
+
+		jobPropertyOptions.removeAll(Collections.singleton(null));
+
+		return jobPropertyOptions;
 	}
 
 	public String getRepositoryName() {
@@ -103,13 +103,13 @@ public abstract class GitRepositoryJob extends BaseJob {
 		}
 
 		if (upstreamBranchName.equals("release")) {
-			String githubUpstreamBranchName = Environment.get(
+			String gitHubUpstreamBranchName = Environment.get(
 				"GITHUB_UPSTREAM_BRANCH_NAME");
 
 			if (!JenkinsResultsParserUtil.isNullOrEmpty(
-					githubUpstreamBranchName)) {
+					gitHubUpstreamBranchName)) {
 
-				upstreamBranchName = githubUpstreamBranchName;
+				upstreamBranchName = gitHubUpstreamBranchName;
 			}
 		}
 

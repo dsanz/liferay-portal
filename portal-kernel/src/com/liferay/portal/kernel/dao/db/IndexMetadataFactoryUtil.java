@@ -30,7 +30,7 @@ public class IndexMetadataFactoryUtil {
 	}
 
 	public static IndexMetadata createIndexMetadata(String createSQL) {
-		boolean unique = createSQL.contains("unique");
+		boolean unique = createSQL.contains("create unique index ");
 
 		int start = createSQL.indexOf("IX_");
 
@@ -40,6 +40,11 @@ public class IndexMetadataFactoryUtil {
 		}
 
 		int end = createSQL.indexOf(CharPool.SPACE, start + 3);
+
+		if (end < 0) {
+			throw new IllegalArgumentException(
+				"Unable to find index name end " + createSQL);
+		}
 
 		String indexName = createSQL.substring(start, end);
 

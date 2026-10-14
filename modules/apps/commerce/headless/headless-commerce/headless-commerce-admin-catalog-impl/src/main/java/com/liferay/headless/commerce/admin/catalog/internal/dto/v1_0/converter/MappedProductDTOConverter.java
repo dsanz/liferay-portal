@@ -27,7 +27,10 @@ import org.osgi.service.component.annotations.Reference;
  * @author Alessio Antonio Rendina
  */
 @Component(
-	property = "dto.class.name=com.liferay.commerce.shop.by.diagram.model.CSDiagramEntry",
+	property = {
+		"default=true",
+		"dto.class.name=com.liferay.commerce.shop.by.diagram.model.CSDiagramEntry"
+	},
 	service = DTOConverter.class
 )
 public class MappedProductDTOConverter
@@ -80,6 +83,14 @@ public class MappedProductDTOConverter
 
 						return LanguageUtils.getLanguageIdMap(
 							cpDefinition.getNameMap());
+					});
+				setProductType(
+					() -> {
+						if (cpDefinition == null) {
+							return null;
+						}
+
+						return cpDefinition.getProductTypeName();
 					});
 				setQuantity(csDiagramEntry::getQuantity);
 				setSequence(csDiagramEntry::getSequence);

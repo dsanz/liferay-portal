@@ -170,7 +170,11 @@ const ScopeSelectModal = ({
 	};
 
 	return (
-		<ClayModal observer={observer} size="full-screen">
+		<ClayModal
+			className="result-ranking-modal-root"
+			observer={observer}
+			size="full-screen"
+		>
 			<ClayModal.Header
 				closeButtonAriaLabel={Liferay.Language.get('close')}
 			>

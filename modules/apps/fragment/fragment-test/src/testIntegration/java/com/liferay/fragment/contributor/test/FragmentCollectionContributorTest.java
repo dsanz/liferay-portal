@@ -9,8 +9,10 @@ import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.fragment.constants.FragmentConstants;
 import com.liferay.fragment.contributor.FragmentCollectionContributor;
 import com.liferay.fragment.contributor.FragmentCollectionContributorRegistry;
+import com.liferay.fragment.model.FragmentComposition;
 import com.liferay.fragment.model.FragmentEntry;
 import com.liferay.fragment.model.FragmentEntryLink;
+import com.liferay.fragment.service.FragmentCompositionLocalServiceUtil;
 import com.liferay.fragment.service.FragmentEntryLinkLocalService;
 import com.liferay.fragment.service.FragmentEntryLocalServiceUtil;
 import com.liferay.layout.test.util.LayoutTestUtil;
@@ -28,6 +30,7 @@ import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
@@ -78,6 +81,27 @@ public class FragmentCollectionContributorTest {
 	@After
 	public void tearDown() throws Exception {
 		ServiceContextThreadLocal.pushServiceContext(_originalServiceContext);
+	}
+
+	@Test
+	public void testGetFragmentEntryName() {
+		Assert.assertEquals(
+			"Heading",
+			_fragmentCollectionContributorRegistry.getFragmentEntryName(
+				"BASIC_COMPONENT-heading", LocaleUtil.US));
+
+		FragmentEntry fragmentEntry =
+			_fragmentCollectionContributorRegistry.getFragmentEntry(
+				"BASIC_COMPONENT-heading");
+
+		String name = fragmentEntry.getName();
+
+		Assert.assertEquals(
+			"Título",
+			_fragmentCollectionContributorRegistry.getFragmentEntryName(
+				"BASIC_COMPONENT-heading", LocaleUtil.SPAIN));
+
+		Assert.assertEquals(name, fragmentEntry.getName());
 	}
 
 	@Test
@@ -169,6 +193,12 @@ public class FragmentCollectionContributorTest {
 	public void testRegisterContributedFragmentEntries() {
 		String fragmentCollectionContributorKey = RandomTestUtil.randomString();
 
+		FragmentComposition fragmentComposition =
+			FragmentCompositionLocalServiceUtil.createFragmentComposition(0L);
+
+		fragmentComposition.setFragmentCompositionKey(
+			"test-fragment-composition");
+
 		TestFragmentCollectionContributor testFragmentCollectionContributor =
 			new TestFragmentCollectionContributor(
 				fragmentCollectionContributorKey,
@@ -195,7 +225,8 @@ public class FragmentCollectionContributorTest {
 						"test-section-fragment-entry",
 						RandomTestUtil.randomString(),
 						FragmentConstants.TYPE_SECTION)
-				).build());
+				).build(),
+				fragmentComposition);
 
 		ServiceRegistration<?> serviceRegistration = _getServiceRegistration(
 			testFragmentCollectionContributor);
@@ -212,6 +243,13 @@ public class FragmentCollectionContributorTest {
 				fragmentEntries.get("test-section-fragment-entry"));
 			Assert.assertNull(
 				fragmentEntries.get("test-unsupported-fragment-entry"));
+
+			Assert.assertNotNull(
+				_fragmentCollectionContributorRegistry.getFragmentEntry(
+					"test-component-fragment-entry"));
+			Assert.assertNotNull(
+				_fragmentCollectionContributorRegistry.getFragmentComposition(
+					"test-fragment-composition"));
 		}
 		finally {
 			serviceRegistration.unregister();

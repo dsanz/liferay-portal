@@ -24,20 +24,20 @@ const views = [
 					contentRenderer: 'campaignNameRenderer',
 					fieldName: 'campaignName',
 					label: Liferay.Language.get('campaign-name'),
-					sortable: false,
+					sortable: true,
 					truncate: true,
 				},
 				{
 					contentRenderer: 'countRenderer',
 					fieldName: 'accountsTouched',
 					label: Liferay.Language.get('accounts-touched'),
-					sortable: false,
+					sortable: true,
 				},
 				{
 					contentRenderer: 'countRenderer',
 					fieldName: 'individualsTouched',
 					label: Liferay.Language.get('individuals-touched'),
-					sortable: false,
+					sortable: true,
 				},
 			],
 		},
@@ -69,19 +69,26 @@ const CampaignsDataSet: React.FC<ICampaignsDataSetProps> = ({
 					}),
 				countRenderer: columns.countRenderer,
 			}}
+			emptyState={{
+				description: Liferay.Language.get(
+					'no-campaigns-were-synced-from-the-connected-data-sources'
+				),
+				image: '/states/satellite.svg',
+				imageReducedMotion: '/states/satellite.svg',
+				title: Liferay.Language.get('no-campaigns-found'),
+			}}
 			id="campaigns-list-dataset"
 			pagination={pagination}
-
-			// The endpoint takes `search`, `filter` and `sort` and acts on
-			// none of them: asah declares all three on the controller and
-			// never reads them. Turning them on here would give the table a
-			// search box that filters nothing and headers that sort nothing,
-			// which reads as broken rather than as absent, so they stay off
-			// until asah implements them.
-
-			showManagementBar={false}
 			showPagination
-			showSearch={false}
+			sorts={[
+				{
+					active: true,
+					default: true,
+					direction: 'desc',
+					key: 'accountsTouched',
+					label: Liferay.Language.get('accounts-touched'),
+				},
+			]}
 			views={views}
 		/>
 	</Card>

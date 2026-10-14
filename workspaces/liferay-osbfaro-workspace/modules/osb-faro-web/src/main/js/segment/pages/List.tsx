@@ -4,10 +4,11 @@ import BasePage from 'shared/components/base-page';
 import Card from 'shared/components/Card';
 import ClayButton from '@clayui/button';
 import ClayDropDown, {Align} from '@clayui/drop-down';
-import ClayIcon from '@clayui/icon';
+import ClayIcon from 'shared/components/Icon';
 import ClayLink from '@clayui/link';
 import CrossPageSelect from 'shared/hoc/CrossPageSelect';
 import LinkCell from 'shared/components/table/cell-components/LinkCell';
+import getCN from 'classnames';
 import Nav from 'shared/components/Nav';
 import NoResultsDisplay from 'shared/components/NoResultsDisplay';
 import React, {useContext, useEffect, useRef, useState} from 'react';
@@ -25,10 +26,9 @@ import {
 	useSelectionContext,
 	withSelectionProvider,
 } from 'shared/context/selection';
-import {addAlert} from 'shared/actions/alerts';
-import {Alert, FilterByType} from 'shared/types';
 import {ALERT_CONFIG_MAP, AlertTypes} from 'shared/components/Alert';
 import {close, modalTypes, open} from 'shared/actions/modals';
+import {FilterByType} from 'shared/types';
 import {compose} from 'shared/hoc';
 import {connect, ConnectedProps} from 'react-redux';
 import {createOrderIOMap} from 'shared/util/pagination';
@@ -71,6 +71,8 @@ import {sub} from 'shared/util/lang';
 import {toThousands} from 'shared/util/numbers';
 import {useChannelContext} from 'shared/context/channel';
 import {useCurrentUser} from 'shared/hooks/useCurrentUser';
+import {useDeleteSegments} from 'segment/hooks/useDeleteSegments';
+import {useLDPEnabled} from 'shared/hooks/useLDPEnabled';
 import {useQueryPagination} from 'shared/hooks/useQueryPagination';
 import {useRequest} from 'shared/hooks/useRequest';
 
@@ -98,7 +100,7 @@ function fetchDisabledSegments(
 	});
 }
 
-const connector = connect(null, {addAlert, close, open});
+const connector = connect(null, {close, open});
 
 type PropsFromRedux = ConnectedProps<typeof connector>;
 
@@ -119,15 +121,16 @@ const SEGMENT_TYPES_LABEL_MAP = {
 };
 
 /**
- * The membership counts are only available once the segment has been
- * processed. A null count means the processing is still pending, while a zero
- * count means the segment has been processed and has no members yet.
+ * A membership count always arrives as a number, because the engine flattens a
+ * count it has not computed yet to zero, so a zero count cannot tell a segment
+ * with no members apart from one that has not been counted. The last
+ * membership update date is the only field that still separates the two, so it
+ * decides for both membership columns.
  */
-const getMembershipLabel = (count: number, accountSegment: boolean) => {
-	if (isNil(count)) {
-		return Liferay.Language.get('processing');
-	}
+const isMembershipProcessing = (lastMembershipUpdateDate: number | null) =>
+	isNil(lastMembershipUpdateDate);
 
+const getMembershipLabel = (count: number, accountSegment: boolean) => {
 	if (!count) {
 		return '-';
 	}
@@ -204,7 +207,6 @@ const ORDER_BY_OPTIONS = [
 ];
 
 export const List: React.FC<IListProps> = ({
-	addAlert,
 	channelId,
 	close,
 	groupId,
@@ -212,7 +214,9 @@ export const List: React.FC<IListProps> = ({
 	open,
 }) => {
 	const currentUser = useCurrentUser();
+	const LDPEnabled = useLDPEnabled({groupId});
 	const {selectedChannel} = useChannelContext();
+	const deleteSegments = useDeleteSegments(groupId);
 	const _tableRef = useRef<HTMLDivElement & SearchableEntityTable>();
 
 	const {selectedItems, selectionDispatch} = useSelectionContext();
@@ -360,79 +364,25 @@ export const List: React.FC<IListProps> = ({
 		items: unknown[];
 		name?: string;
 	}) => {
-		const isMultiple = ids.length > 1;
+		deleteSegments({
+			ids,
+			name,
+			onSuccess: () => {
+				_tableRef?.current?.reload();
 
-		const MODAL_MESSAGES = {
-			confirmation: isMultiple
-				? Liferay.Language.get(
-						'are-you-sure-you-want-to-delete-the-selected-segments'
-					)
-				: Liferay.Language.get(
-						'are-you-sure-you-want-to-delete-this-segment'
-					),
-			subtitle: isMultiple
-				? Liferay.Language.get(
-						'you-will-lose-all-data-related-to-these-segments.-you-will-not-be-able-to-undo-this-operation'
-					)
-				: Liferay.Language.get(
-						'you-will-lose-all-data-related-to-this-segment.-you-will-not-be-able-to-undo-this-operation'
-					),
-			title: isMultiple
-				? Liferay.Language.get('delete-segments')
-				: sub(Liferay.Language.get('deleting-x'), [name]),
-		};
+				if (items.length === 1 && page !== 1) {
+					history.push(
+						setUriQueryValue(
+							window.location.href,
+							'page',
+							Number(page) - 1
+						)
+					);
+				}
+				selectionDispatch?.({type: ActionTypes.ClearAll});
 
-		open(modalTypes.CONFIRMATION_MODAL, {
-			message: (
-				<div>
-					<div className="h4 text-secondary">
-						{MODAL_MESSAGES.confirmation}
-					</div>
-
-					<p>{MODAL_MESSAGES.subtitle}</p>
-				</div>
-			),
-			modalVariant: 'modal-warning',
-			onClose: close,
-			onSubmit: () =>
-				API.individualSegment
-					.delete({
-						groupId,
-						ids,
-					})
-					.then(() => {
-						_tableRef?.current?.reload();
-
-						addAlert({
-							alertType: Alert.Types.Success,
-							message: Liferay.Language.get(
-								'the-segment-has-been-deleted'
-							),
-						});
-
-						if (items.length === 1 && page !== 1) {
-							history.push(
-								setUriQueryValue(
-									window.location.href,
-									'page',
-									Number(page) - 1
-								)
-							);
-						}
-						selectionDispatch?.({type: ActionTypes.ClearAll});
-
-						refetch?.();
-					})
-					.catch(() => {
-						addAlert({
-							alertType: Alert.Types.Error,
-							message: Liferay.Language.get('error'),
-						});
-					}),
-			submitButtonDisplay: 'warning',
-			submitMessage: Liferay.Language.get('delete'),
-			title: MODAL_MESSAGES.title,
-			titleIcon: 'warning-full',
+				refetch?.();
+			},
 		});
 	};
 
@@ -465,6 +415,16 @@ export const List: React.FC<IListProps> = ({
 				label: Liferay.Language.get('edit'),
 			},
 			{
+				iconSymbol: 'bell-on',
+				label: Liferay.Language.get('manage-notifications'),
+				onClick: () =>
+					open(modalTypes.MANAGE_SEGMENT_NOTIFICATIONS_MODAL, {
+						groupId,
+						onClose: close,
+						segmentId: id,
+					}),
+			},
+			{
 				className: 'text-danger',
 				iconSymbol: 'trash',
 				label: Liferay.Language.get('delete'),
@@ -492,82 +452,113 @@ export const List: React.FC<IListProps> = ({
 				<Nav>
 					<Nav.Item>
 						<div className="d-flex align-items-center">
-							<ClayDropDown
-								alignmentPosition={Align.BottomRight}
-								trigger={
-									<ClayButton
-										aria-label={
-											pageActionsLabel &&
-											Liferay.Language.get('menu')
-										}
-										className="button-root p-2 rounded-lg"
-										disabled={error || loading}
-										displayType="primary"
-										size="sm"
-									>
-										<>
-											<span>{pageActionsLabel}</span>
-											<ClayIcon
-												className="icon-root ml-2"
-												symbol="caret-bottom"
-											/>
-										</>
-									</ClayButton>
-								}
-							>
-								<ClayDropDown.Group
-									header={Liferay.Language.get('account')}
+							{!LDPEnabled && (
+								<ClayLink
+									aria-disabled={error || loading}
+									button
+									className={getCN(
+										'button-root p-2 rounded-lg',
+										{disabled: error || loading}
+									)}
+									data-testid="new-segment-link"
+									displayType="primary"
+									href={setUriQueryValues(
+										{type: SegmentTypes.Batch},
+										toRoute(
+											Routes.CONTACTS_SEGMENT_CREATE,
+											{channelId, groupId}
+										)
+									)}
+									small
 								>
-									<ClayDropDown.Item
-										data-testid="account-batch-segment-dropdown-item"
-										href={setUriQueryValues(
-											{
-												category:
-													SegmentCategories.Account,
-												type: SegmentTypes.Batch,
-											},
-											toRoute(
-												Routes.CONTACTS_SEGMENT_CREATE,
-												{channelId, groupId}
-											)
-										)}
-									>
-										{Liferay.Language.get('batch-segment')}
-									</ClayDropDown.Item>
-								</ClayDropDown.Group>
+									{pageActionsLabel}
+								</ClayLink>
+							)}
 
-								<ClayDropDown.Group
-									header={Liferay.Language.get('individual')}
+							{LDPEnabled && (
+								<ClayDropDown
+									alignmentPosition={Align.BottomRight}
+									trigger={
+										<ClayButton
+											aria-label={
+												pageActionsLabel &&
+												Liferay.Language.get('menu')
+											}
+											className="button-root p-2 rounded-lg"
+											disabled={error || loading}
+											displayType="primary"
+											size="sm"
+										>
+											<>
+												<span>{pageActionsLabel}</span>
+												<ClayIcon
+													className="icon-root ml-2"
+													symbol="caret-bottom"
+												/>
+											</>
+										</ClayButton>
+									}
 								>
-									<ClayDropDown.Item
-										data-testid="batch-segment-dropdown-item"
-										href={setUriQueryValues(
-											{type: SegmentTypes.Batch},
-											toRoute(
-												Routes.CONTACTS_SEGMENT_CREATE,
-												{channelId, groupId}
-											)
-										)}
+									<ClayDropDown.Group
+										header={Liferay.Language.get('account')}
 									>
-										{Liferay.Language.get('batch-segment')}
-									</ClayDropDown.Item>
+										<ClayDropDown.Item
+											data-testid="account-batch-segment-dropdown-item"
+											href={setUriQueryValues(
+												{
+													category:
+														SegmentCategories.Account,
+													type: SegmentTypes.Batch,
+												},
+												toRoute(
+													Routes.CONTACTS_SEGMENT_CREATE,
+													{channelId, groupId}
+												)
+											)}
+										>
+											{Liferay.Language.get(
+												'batch-segment'
+											)}
+										</ClayDropDown.Item>
+									</ClayDropDown.Group>
 
-									<ClayDropDown.Item
-										data-testid="real-time-segment-dropdown-item"
-										href={setUriQueryValues(
-											{type: SegmentTypes.RealTime},
-											toRoute(
-												Routes.CONTACTS_SEGMENT_CREATE,
-												{channelId, groupId}
-											)
+									<ClayDropDown.Group
+										header={Liferay.Language.get(
+											'individual'
 										)}
 									>
-										{Liferay.Language.get(
-											'real-time-segment'
-										)}
-									</ClayDropDown.Item>
-								</ClayDropDown.Group>
-							</ClayDropDown>
+										<ClayDropDown.Item
+											data-testid="batch-segment-dropdown-item"
+											href={setUriQueryValues(
+												{type: SegmentTypes.Batch},
+												toRoute(
+													Routes.CONTACTS_SEGMENT_CREATE,
+													{channelId, groupId}
+												)
+											)}
+										>
+											{Liferay.Language.get(
+												'batch-segment'
+											)}
+										</ClayDropDown.Item>
+
+										<ClayDropDown.Item
+											data-testid="real-time-segment-dropdown-item"
+											href={setUriQueryValues(
+												{type: SegmentTypes.RealTime},
+												toRoute(
+													Routes.CONTACTS_SEGMENT_CREATE,
+													{channelId, groupId}
+												)
+											)}
+										>
+											{Liferay.Language.get(
+												'real-time-segment'
+											)}
+										</ClayDropDown.Item>
+									</ClayDropDown.Group>
+								</ClayDropDown>
+							)}
 						</div>
 					</Nav.Item>
 				</Nav>
@@ -709,12 +700,16 @@ export const List: React.FC<IListProps> = ({
 										data: {
 											accountsCount: number;
 											individualCount: number;
+											lastMembershipUpdateDate:
+												| number
+												| null;
 											segmentCategory: SegmentCategories;
 										};
 									}) => {
 										const {
 											accountsCount,
 											individualCount,
+											lastMembershipUpdateDate,
 											segmentCategory,
 										} = item.data;
 
@@ -725,12 +720,18 @@ export const List: React.FC<IListProps> = ({
 										return (
 											<td className="table-cell-expand">
 												<div className="text-truncate text-right">
-													{getMembershipLabel(
-														accountSegment
-															? accountsCount
-															: individualCount,
-														accountSegment
-													)}
+													{isMembershipProcessing(
+														lastMembershipUpdateDate
+													)
+														? Liferay.Language.get(
+																'processing'
+															)
+														: getMembershipLabel(
+																accountSegment
+																	? accountsCount
+																	: individualCount,
+																accountSegment
+															)}
 												</div>
 											</td>
 										);
@@ -742,10 +743,12 @@ export const List: React.FC<IListProps> = ({
 									cellRenderer: (item: {
 										className?: string;
 										data: {
-											lastMembershipUpdateDate: number;
+											lastMembershipUpdateDate:
+												| number
+												| null;
 										};
 									}) =>
-										isNil(
+										isMembershipProcessing(
 											item.data.lastMembershipUpdateDate
 										) ? (
 											<td className={item.className}>

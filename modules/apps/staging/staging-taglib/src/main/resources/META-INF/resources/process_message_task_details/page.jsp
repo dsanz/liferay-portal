@@ -68,7 +68,7 @@
 								<li>
 									<%= messageListItemJSONObject.getString("type") %>
 
-									<%= messageListItemJSONObject.getString("site") %>:
+									<%= HtmlUtil.escape(messageListItemJSONObject.getString("site")) %>:
 
 									<strong><%= HtmlUtil.escape(messageListItemJSONObject.getString("name")) %></strong>
 

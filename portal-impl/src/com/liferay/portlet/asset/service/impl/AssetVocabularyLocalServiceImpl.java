@@ -335,40 +335,8 @@ public class AssetVocabularyLocalServiceImpl
 	}
 
 	@Override
-	public List<AssetVocabulary> getGroupsVocabularies(long[] groupIds) {
-		return getGroupsVocabularies(groupIds, null);
-	}
-
-	@Override
-	public List<AssetVocabulary> getGroupsVocabularies(
-		long[] groupIds, String className) {
-
-		return getGroupsVocabularies(
-			groupIds, className, AssetCategoryConstants.ALL_CLASS_TYPE_PK);
-	}
-
-	@Override
-	public List<AssetVocabulary> getGroupsVocabularies(
-		long[] groupIds, String className, long classTypePK) {
-
-		if (ArrayUtil.isEmpty(groupIds)) {
-			return Collections.emptyList();
-		}
-
-		List<AssetVocabulary> vocabularies =
-			assetVocabularyPersistence.findByGroupId(groupIds);
-
-		if (Validator.isNull(className)) {
-			return vocabularies;
-		}
-
-		long classNameId = _classNameLocalService.getClassNameId(className);
-
-		return ListUtil.filter(
-			vocabularies,
-			assetVocabulary ->
-				assetVocabulary.isAssociatedToClassNameIdAndClassTypePK(
-					classNameId, classTypePK));
+	public int getCompanyVocabulariesCount(long companyId) {
+		return assetVocabularyPersistence.countByCompanyId(companyId);
 	}
 
 	@Override
@@ -436,6 +404,43 @@ public class AssetVocabularyLocalServiceImpl
 		throws PortalException {
 
 		return assetVocabularyPersistence.findByG_N(groupId, name);
+	}
+
+	@Override
+	public List<AssetVocabulary> getGroupsVocabularies(long[] groupIds) {
+		return getGroupsVocabularies(groupIds, null);
+	}
+
+	@Override
+	public List<AssetVocabulary> getGroupsVocabularies(
+		long[] groupIds, String className) {
+
+		return getGroupsVocabularies(
+			groupIds, className, AssetCategoryConstants.ALL_CLASS_TYPE_PK);
+	}
+
+	@Override
+	public List<AssetVocabulary> getGroupsVocabularies(
+		long[] groupIds, String className, long classTypePK) {
+
+		if (ArrayUtil.isEmpty(groupIds)) {
+			return Collections.emptyList();
+		}
+
+		List<AssetVocabulary> vocabularies =
+			assetVocabularyPersistence.findByGroupId(groupIds);
+
+		if (Validator.isNull(className)) {
+			return vocabularies;
+		}
+
+		long classNameId = _classNameLocalService.getClassNameId(className);
+
+		return ListUtil.filter(
+			vocabularies,
+			assetVocabulary ->
+				assetVocabulary.isAssociatedToClassNameIdAndClassTypePK(
+					classNameId, classTypePK));
 	}
 
 	public AssetVocabulary getOrAddEmptyVocabulary(

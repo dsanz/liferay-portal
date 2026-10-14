@@ -45,8 +45,6 @@ import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.kernel.view.count.ViewCountManager;
-import com.liferay.portal.test.rule.FeatureFlag;
-import com.liferay.portal.test.rule.FeatureFlags;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
@@ -116,7 +114,6 @@ public class AssetListAssetEntryProviderOrderByTest {
 				titleObjectField.getObjectFieldId());
 	}
 
-	@FeatureFlags(featureFlags = @FeatureFlag(value = "LPD-74731"))
 	@Test
 	public void testGetAssetEntriesInfoPageOrderedByCommonFieldDisplayDate()
 		throws Exception {
@@ -142,7 +139,6 @@ public class AssetListAssetEntryProviderOrderByTest {
 			"displayDate", "DESC", objectEntry1, objectEntry3, objectEntry2);
 	}
 
-	@FeatureFlags(featureFlags = @FeatureFlag(value = "LPD-74731"))
 	@Test
 	public void testGetAssetEntriesInfoPageOrderedByCommonFieldExpirationDate()
 		throws Exception {
@@ -168,7 +164,31 @@ public class AssetListAssetEntryProviderOrderByTest {
 			"expirationDate", "DESC", objectEntry1, objectEntry3, objectEntry2);
 	}
 
-	@FeatureFlags(featureFlags = @FeatureFlag(value = "LPD-74731"))
+	@Test
+	public void testGetAssetEntriesInfoPageOrderedByCommonFieldReviewDate()
+		throws Exception {
+
+		long time = System.currentTimeMillis();
+
+		ObjectEntry objectEntry1 = _addObjectEntry(
+			HashMapBuilder.<String, Serializable>put(
+				"reviewDate", new Date(time + (30 * Time.DAY))
+			).build());
+		ObjectEntry objectEntry2 = _addObjectEntry(
+			HashMapBuilder.<String, Serializable>put(
+				"reviewDate", new Date(time + (10 * Time.DAY))
+			).build());
+		ObjectEntry objectEntry3 = _addObjectEntry(
+			HashMapBuilder.<String, Serializable>put(
+				"reviewDate", new Date(time + (20 * Time.DAY))
+			).build());
+
+		_assertOrderedObjectEntries(
+			"reviewDate", "ASC", objectEntry2, objectEntry3, objectEntry1);
+		_assertOrderedObjectEntries(
+			"reviewDate", "DESC", objectEntry1, objectEntry3, objectEntry2);
+	}
+
 	@Test
 	public void testGetAssetEntriesInfoPageOrderedByCommonFieldUserName()
 		throws Exception {
@@ -195,7 +215,6 @@ public class AssetListAssetEntryProviderOrderByTest {
 			Field.USER_NAME, "DESC", objectEntry1, objectEntry3, objectEntry2);
 	}
 
-	@FeatureFlags(featureFlags = @FeatureFlag(value = "LPD-74731"))
 	@Test
 	public void testGetAssetEntriesInfoPageOrderedByCommonFieldViewCount()
 		throws Exception {
@@ -223,7 +242,6 @@ public class AssetListAssetEntryProviderOrderByTest {
 			"viewCount", "DESC", objectEntry1, objectEntry3, objectEntry2);
 	}
 
-	@FeatureFlags(featureFlags = @FeatureFlag(value = "LPD-74731"))
 	@Test
 	public void testGetAssetEntriesInfoPageOrderedByObjectFieldDate()
 		throws Exception {
@@ -249,7 +267,6 @@ public class AssetListAssetEntryProviderOrderByTest {
 			objectEntry2);
 	}
 
-	@FeatureFlags(featureFlags = @FeatureFlag(value = "LPD-74731"))
 	@Test
 	public void testGetAssetEntriesInfoPageOrderedByObjectFieldInteger()
 		throws Exception {
@@ -275,7 +292,6 @@ public class AssetListAssetEntryProviderOrderByTest {
 			objectEntry2);
 	}
 
-	@FeatureFlags(featureFlags = @FeatureFlag(value = "LPD-74731"))
 	@Test
 	public void testGetAssetEntriesInfoPageOrderedByObjectFieldText()
 		throws Exception {
@@ -382,16 +398,13 @@ public class AssetListAssetEntryProviderOrderByTest {
 		List<Long> expectedClassPKs = TransformUtil.transformToList(
 			expectedObjectEntries, ObjectEntry::getObjectEntryId);
 
-		Assert.assertEquals(
-			actualClassPKs.toString(), expectedClassPKs, actualClassPKs);
+		Assert.assertEquals(expectedClassPKs, actualClassPKs);
 	}
 
 	private String _getOrderByColumn(String propertyName) {
 		return JSONUtil.put(
-			"classNameId",
-			_portal.getClassNameId(_objectDefinition.getClassName())
-		).put(
-			"classTypeId", _objectDefinition.getObjectDefinitionId()
+			"objectDefinitionExternalReferenceCode",
+			_objectDefinition.getExternalReferenceCode()
 		).put(
 			"propertyName", propertyName
 		).toString();

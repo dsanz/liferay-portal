@@ -67,7 +67,7 @@ public class AssetTagGroupRelCacheModel
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(15);
+		StringBundler sb = new StringBundler(17);
 
 		sb.append("{mvccVersion=");
 		sb.append(mvccVersion);
@@ -83,6 +83,8 @@ public class AssetTagGroupRelCacheModel
 		sb.append(companyId);
 		sb.append(", tagId=");
 		sb.append(tagId);
+		sb.append(", depotEntryType=");
+		sb.append(depotEntryType);
 		sb.append("}");
 
 		return sb.toString();
@@ -106,6 +108,7 @@ public class AssetTagGroupRelCacheModel
 		assetTagGroupRelImpl.setGroupId(groupId);
 		assetTagGroupRelImpl.setCompanyId(companyId);
 		assetTagGroupRelImpl.setTagId(tagId);
+		assetTagGroupRelImpl.setDepotEntryType(depotEntryType);
 
 		assetTagGroupRelImpl.resetOriginalValues();
 
@@ -126,6 +129,8 @@ public class AssetTagGroupRelCacheModel
 		companyId = objectInput.readLong();
 
 		tagId = objectInput.readLong();
+
+		depotEntryType = objectInput.readInt();
 	}
 
 	@Override
@@ -148,6 +153,8 @@ public class AssetTagGroupRelCacheModel
 		objectOutput.writeLong(companyId);
 
 		objectOutput.writeLong(tagId);
+
+		objectOutput.writeInt(depotEntryType);
 	}
 
 	public long mvccVersion;
@@ -157,6 +164,7 @@ public class AssetTagGroupRelCacheModel
 	public long groupId;
 	public long companyId;
 	public long tagId;
+	public int depotEntryType;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-128595912
+// LIFERAY-SERVICE-BUILDER-HASH:93667543

@@ -23,7 +23,7 @@ The tables below list the common endpoints per module — they are not exhaustiv
 | Create display page template | POST | `/sites/{siteExternalReferenceCode}/display-page-templates` |
 | Create master page | POST | `/sites/{siteExternalReferenceCode}/master-pages` |
 
-**Required flag:** `LPD-35443` (off by default) for public layout API; `LPD-38869` (on by default) for private. Page-element / page-specification composition additionally requires `LPD-74328`.
+**Required flag:** `LPD-38869` (on by default) for the private layout API. Composing page elements and page specifications additionally requires `LPD-74328`.
 
 **OAuth scope:** `Liferay.Headless.Admin.Site.everything`
 
@@ -71,7 +71,7 @@ The tables below list the common endpoints per module — they are not exhaustiv
 
 Object entries (after publish): `/o/c/<pluralLabel>` — GET, POST, PUT, PATCH, DELETE by ID.
 
-**OAuth scope:** `Liferay.Object.Admin.REST.everything` for the admin endpoints above (definitions, fields, etc.). `Liferay.Headless.Object.everything` for the dynamic `/o/c/<plural>` entry endpoints.
+**OAuth scope:** `Liferay.Object.Admin.REST.everything` for the admin endpoints above (definitions, fields, etc.). The dynamic `/o/c/<plural>` entry endpoints take one scope per object, `c_<name>.everything[.read|.write]`. `Liferay.Headless.Object.everything` does not grant them. See `rules/oauth-scopes.md`.
 
 ## headless-admin-fragment
 

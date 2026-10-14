@@ -100,15 +100,15 @@ public abstract class ModulesTestClass extends BaseTestClass {
 		return "modules" + modulePath.replaceAll("/", ".");
 	}
 
-	public String getTestrayMainComponentName() {
-		return _testrayMainComponentName;
-	}
-
 	@Override
 	public String getTestTaskName() {
 		String modulePath = getModulePath();
 
 		return modulePath.replaceAll("/", ":") + ":" + getTaskName();
+	}
+
+	public String getTestrayMainComponentName() {
+		return _testrayMainComponentName;
 	}
 
 	protected ModulesTestClass(
@@ -118,13 +118,6 @@ public abstract class ModulesTestClass extends BaseTestClass {
 		super(batchTestClassGroup, moduleBaseDir);
 
 		_taskName = taskName;
-
-		if (this instanceof JSUnitModulesTestClass) {
-			_testPropertiesFile = null;
-			_testrayMainComponentName = null;
-
-			return;
-		}
 
 		File testPropertiesBaseDir = getTestPropertiesBaseDir(
 			getTestClassFile());

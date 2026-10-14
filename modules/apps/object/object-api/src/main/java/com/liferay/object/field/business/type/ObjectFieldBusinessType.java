@@ -53,6 +53,15 @@ public interface ObjectFieldBusinessType {
 		return getDDMFormFieldTypeName();
 	}
 
+	public default Serializable getDTOValue(
+			DTOConverterContext dtoConverterContext,
+			ObjectDefinition objectDefinition, ObjectEntry objectEntry,
+			ObjectField objectField, Serializable serializable)
+		throws Exception {
+
+		return serializable;
+	}
+
 	public default String getDescription(Locale locale) {
 		return StringPool.BLANK;
 	}
@@ -68,19 +77,11 @@ public interface ObjectFieldBusinessType {
 		return getValue(null, objectField, userId, values);
 	}
 
-	public default Serializable getDTOValue(
-			DTOConverterContext dtoConverterContext,
-			ObjectDefinition objectDefinition, ObjectEntry objectEntry,
-			ObjectField objectField, Serializable serializable)
-		throws Exception {
-
-		return serializable;
-	}
-
 	public String getLabel(Locale locale);
 
 	public default Map<String, Object> getLocalizedValues(
-			ObjectField objectField, Long userId, Map<String, Object> values)
+			Long groupId, ObjectField objectField, Long userId,
+			Map<String, Object> values)
 		throws PortalException {
 
 		Object value = values.get(objectField.getI18nObjectFieldName());

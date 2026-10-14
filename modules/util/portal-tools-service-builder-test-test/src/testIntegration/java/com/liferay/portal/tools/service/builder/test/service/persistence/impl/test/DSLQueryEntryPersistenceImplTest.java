@@ -302,6 +302,21 @@ public class DSLQueryEntryPersistenceImplTest {
 	}
 
 	@Test
+	public void testDSLQueryLimitWithDistinctAndWithoutOrderBy() {
+		List<Long> dslQueryEntryIds = _dslQueryEntryPersistence.dslQuery(
+			DSLQueryFactoryUtil.selectDistinct(
+				DSLQueryEntryTable.INSTANCE.dslQueryEntryId
+			).from(
+				DSLQueryEntryTable.INSTANCE
+			).limit(
+				0, 2
+			));
+
+		Assert.assertEquals(
+			dslQueryEntryIds.toString(), 2, dslQueryEntryIds.size());
+	}
+
+	@Test
 	public void testDSLQueryOrderBy() {
 		Assert.assertEquals(
 			Arrays.asList(1L, 3L, 2L),
@@ -371,26 +386,6 @@ public class DSLQueryEntryPersistenceImplTest {
 	}
 
 	@Test
-	public void testDSLQueryWithDivide() {
-		Assert.assertEquals(
-			Arrays.asList(0L, 1L, 1L),
-			_dslQueryEntryPersistence.dslQuery(
-				DSLQueryFactoryUtil.select(
-					DSLFunctionFactoryUtil.divide(
-						DSLQueryStatusEntryTable.INSTANCE.dslQueryStatusEntryId,
-						new Scalar<>(2L)
-					).as(
-						"alias"
-					)
-				).from(
-					DSLQueryStatusEntryTable.INSTANCE
-				).orderBy(
-					DSLQueryStatusEntryTable.INSTANCE.dslQueryStatusEntryId.
-						ascending()
-				)));
-	}
-
-	@Test
 	public void testDSLQueryWithDSLFunction() {
 		Assert.assertEquals(
 			Arrays.asList(0L, 1L, 2L),
@@ -415,6 +410,26 @@ public class DSLQueryEntryPersistenceImplTest {
 					DSLFunctionFactoryUtil.subtract(
 						new Scalar<>(3L),
 						DSLQueryStatusEntryTable.INSTANCE.dslQueryStatusEntryId
+					).as(
+						"alias"
+					)
+				).from(
+					DSLQueryStatusEntryTable.INSTANCE
+				).orderBy(
+					DSLQueryStatusEntryTable.INSTANCE.dslQueryStatusEntryId.
+						ascending()
+				)));
+	}
+
+	@Test
+	public void testDSLQueryWithDivide() {
+		Assert.assertEquals(
+			Arrays.asList(0L, 1L, 1L),
+			_dslQueryEntryPersistence.dslQuery(
+				DSLQueryFactoryUtil.select(
+					DSLFunctionFactoryUtil.divide(
+						DSLQueryStatusEntryTable.INSTANCE.dslQueryStatusEntryId,
+						new Scalar<>(2L)
 					).as(
 						"alias"
 					)

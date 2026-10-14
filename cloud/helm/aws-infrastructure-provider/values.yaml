@@ -1,28 +1,19 @@
-aws: {}
-clusterBootstrap:
-    image: alpine:3
-    resources:
-        limits:
-            cpu: 3m
-            memory: 16Mi
-        requests:
-            cpu: 1m
-            memory: 8Mi
-    script: |
-        sysctl -w vm.max_map_count=1048576
-crossplaneNamespace: crossplane-system
-gateway:
-    internetFacing: true
-    namespace: envoy-gateway-system
-liferay-dxp-operator:
-    enabled: true
-    fullnameOverride: dxp-operator
-    marketplace:
-        claimName: dxp-operator-marketplace
-        csi:
-            driver: efs.csi.aws.com
-        enabled: true
-        mountPath: /marketplace
-    namespaceOverride: dxp-operator-system
+deploymentContext:
+    accountId: ""
+    clusterSecurityGroupId: ""
+    clusterSubnetIds: ""
+    crossplaneDataRoleArn: ""
+    crossplaneIamBoundaryArn: ""
+    crossplaneIamPath: ""
+    crossplaneIamRoleArn: ""
+    deploymentName: ""
+    oidcIssuerUrl: ""
+    partition: ""
+    region: ""
+    vpcId: ""
 liferay-subchart-backup-restore:
+    enabled: true
+marketplace:
+    enabled: false
+providers:
     enabled: true

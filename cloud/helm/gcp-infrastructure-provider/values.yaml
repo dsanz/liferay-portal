@@ -19,12 +19,18 @@ filestore:
     storageClassName: filestore-sc
     tier: standard
 gateway:
+    accessControl:
+        allowedCIDRs: []
+        enabled: false
+        gateways: []
     enabled: true
     internetFacing: true
     namespace: envoy-gateway-system
 global:
     gcp: {}
 liferay-dxp-operator:
+    clientExtensions:
+        enabled: true
     enabled: true
     fullnameOverride: dxp-operator
     marketplace:

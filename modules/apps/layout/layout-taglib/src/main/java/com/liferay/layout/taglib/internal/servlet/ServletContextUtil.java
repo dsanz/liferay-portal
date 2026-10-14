@@ -10,7 +10,6 @@ import com.liferay.fragment.entry.processor.helper.LayoutReferenceResolver;
 import com.liferay.fragment.helper.FragmentEntryLinkHelper;
 import com.liferay.fragment.renderer.FragmentRendererController;
 import com.liferay.fragment.util.configuration.FragmentEntryConfigurationParser;
-import com.liferay.frontend.token.definition.FrontendTokenDefinitionRegistry;
 import com.liferay.info.item.InfoItemServiceRegistry;
 import com.liferay.info.list.renderer.InfoListRendererRegistry;
 import com.liferay.layout.adaptive.media.LayoutAdaptiveMediaProcessor;
@@ -54,12 +53,6 @@ public class ServletContextUtil {
 		return _fragmentRendererControllerSnapshot.get();
 	}
 
-	public static FrontendTokenDefinitionRegistry
-		getFrontendTokenDefinitionRegistry() {
-
-		return _frontendTokenDefinitionRegistrySnapshot.get();
-	}
-
 	public static InfoItemServiceRegistry getInfoItemServiceRegistry() {
 		return _infoItemServiceRegistrySnapshot.get();
 	}
@@ -100,16 +93,16 @@ public class ServletContextUtil {
 		return _layoutReferenceResolverRegistrySnapshot.get();
 	}
 
-	public static LayoutsTree getLayoutsTree() {
-		return _layoutsTreeSnapshot.get();
-	}
-
 	public static LayoutStructureProvider getLayoutStructureHelper() {
 		return _layoutStructureProviderSnapshot.get();
 	}
 
 	public static LayoutStructureRulesHelper getLayoutStructureRulesHelper() {
 		return _layoutStructureRulesHelperSnapshot.get();
+	}
+
+	public static LayoutsTree getLayoutsTree() {
+		return _layoutsTreeSnapshot.get();
 	}
 
 	public static ListObjectReferenceFactoryRegistry
@@ -148,9 +141,6 @@ public class ServletContextUtil {
 	private static final Snapshot<FragmentRendererController>
 		_fragmentRendererControllerSnapshot = new Snapshot<>(
 			ServletContextUtil.class, FragmentRendererController.class);
-	private static final Snapshot<FrontendTokenDefinitionRegistry>
-		_frontendTokenDefinitionRegistrySnapshot = new Snapshot<>(
-			ServletContextUtil.class, FrontendTokenDefinitionRegistry.class);
 	private static final Snapshot<InfoItemServiceRegistry>
 		_infoItemServiceRegistrySnapshot = new Snapshot<>(
 			ServletContextUtil.class, InfoItemServiceRegistry.class);
@@ -176,14 +166,14 @@ public class ServletContextUtil {
 	private static final Snapshot<LayoutReferenceResolver>
 		_layoutReferenceResolverRegistrySnapshot = new Snapshot<>(
 			ServletContextUtil.class, LayoutReferenceResolver.class);
-	private static final Snapshot<LayoutsTree> _layoutsTreeSnapshot =
-		new Snapshot<>(ServletContextUtil.class, LayoutsTree.class);
 	private static final Snapshot<LayoutStructureProvider>
 		_layoutStructureProviderSnapshot = new Snapshot<>(
 			ServletContextUtil.class, LayoutStructureProvider.class);
 	private static final Snapshot<LayoutStructureRulesHelper>
 		_layoutStructureRulesHelperSnapshot = new Snapshot<>(
 			ServletContextUtil.class, LayoutStructureRulesHelper.class);
+	private static final Snapshot<LayoutsTree> _layoutsTreeSnapshot =
+		new Snapshot<>(ServletContextUtil.class, LayoutsTree.class);
 	private static final Snapshot<ListObjectReferenceFactoryRegistry>
 		_listObjectReferenceFactoryRegistrySnapshot = new Snapshot<>(
 			ServletContextUtil.class, ListObjectReferenceFactoryRegistry.class);

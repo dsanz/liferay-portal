@@ -13,6 +13,7 @@ import java.nio.file.PathMatcher;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.json.JSONObject;
 
@@ -72,8 +73,34 @@ public class PortalWorkspace extends BaseWorkspace {
 	}
 
 	public PortalWorkspaceGitRepository getPortalWorkspaceGitRepository() {
+		String portalUpstreamBranchName = jsonObject.optString(
+			"portal_upstream_branch_name");
+
+		if (JenkinsResultsParserUtil.isNullOrEmpty(portalUpstreamBranchName)) {
+			WorkspaceGitRepository workspaceGitRepository =
+				getPrimaryWorkspaceGitRepository();
+
+			if (workspaceGitRepository instanceof
+					PortalWorkspaceGitRepository) {
+
+				return (PortalWorkspaceGitRepository)workspaceGitRepository;
+			}
+
+			portalUpstreamBranchName =
+				workspaceGitRepository.getUpstreamBranchName();
+		}
+
+		String repositoryName = "liferay-portal";
+
+		if (!portalUpstreamBranchName.equals("master")) {
+			repositoryName += "-ee";
+		}
+
+		String directoryName = JenkinsResultsParserUtil.getGitDirectoryName(
+			repositoryName, portalUpstreamBranchName);
+
 		WorkspaceGitRepository workspaceGitRepository =
-			getPrimaryWorkspaceGitRepository();
+			getWorkspaceGitRepository(directoryName);
 
 		if (!(workspaceGitRepository instanceof PortalWorkspaceGitRepository)) {
 			throw new RuntimeException(
@@ -88,7 +115,15 @@ public class PortalWorkspace extends BaseWorkspace {
 			throw new RuntimeException("Invalid build profile " + buildProfile);
 		}
 
-		jsonObject.put("build_profile", buildProfile.toString());
+		String buildProfileString = buildProfile.toString();
+
+		if (buildProfileString.equals(jsonObject.optString("build_profile"))) {
+			return;
+		}
+
+		jsonObject.put("build_profile", buildProfileString);
+
+		updateBuildDatabase();
 	}
 
 	public void setCommitOSBAsahModule(boolean commitOSBAsahModule) {
@@ -101,6 +136,19 @@ public class PortalWorkspace extends BaseWorkspace {
 
 	public void setOSBFaroGitHubURL(String osbFaroGitHubURL) {
 		_osbFaroGitHubURL = osbFaroGitHubURL;
+	}
+
+	public void setPortalUpstreamBranchName(String portalUpstreamBranchName) {
+		if (Objects.equals(
+				portalUpstreamBranchName,
+				jsonObject.optString("portal_upstream_branch_name"))) {
+
+			return;
+		}
+
+		jsonObject.put("portal_upstream_branch_name", portalUpstreamBranchName);
+
+		updateBuildDatabase();
 	}
 
 	@Override

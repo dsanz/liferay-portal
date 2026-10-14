@@ -10,7 +10,8 @@ import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerListFacto
 import com.liferay.petra.concurrent.DCLSingleton;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
-import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.dao.db.IndexMetadata;
+import com.liferay.portal.kernel.dao.db.IndexMetadataFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -19,6 +20,7 @@ import com.liferay.portal.kernel.module.util.BundleUtil;
 import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Validator;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -111,6 +113,12 @@ public class DBResourceUtil {
 		return liferayTableNames;
 	}
 
+	public static Map<String, List<String>> getModuleColumnDefinitionsMap(
+		Bundle bundle) {
+
+		return _parseColumnDefinitionsMap(getModuleTablesSQL(bundle));
+	}
+
 	public static String getModuleIndexesSQL(Bundle bundle) {
 		return _read(bundle, "/META-INF/sql/indexes.sql");
 	}
@@ -132,6 +140,12 @@ public class DBResourceUtil {
 		}
 
 		return _getModuleTableNames();
+	}
+
+	public static Map<String, List<IndexMetadata>>
+		getModuleTablesIndexMetadatas(Bundle bundle) {
+
+		return _parseIndexMetadatas(getModuleIndexesSQL(bundle));
 	}
 
 	public static Map<String, String[]> getModuleTablesPrimaryKeyColumnNames(
@@ -184,6 +198,10 @@ public class DBResourceUtil {
 		return nonserviceBuildTableNames;
 	}
 
+	public static Map<String, List<String>> getPortalColumnDefinitionsMap() {
+		return _parseColumnDefinitionsMap(getPortalTablesSQL());
+	}
+
 	public static String getPortalIndexesSQL() {
 		return StringUtil.read(
 			DBResourceUtil.class,
@@ -199,6 +217,12 @@ public class DBResourceUtil {
 				() -> parseCreateTableSQL(getPortalTablesSQL())));
 
 		return portalTableNames;
+	}
+
+	public static Map<String, List<IndexMetadata>>
+		getPortalTablesIndexMetadatas() {
+
+		return _parseIndexMetadatas(getPortalIndexesSQL());
 	}
 
 	public static Map<String, String[]> getPortalTablesPrimaryKeyColumnNames() {
@@ -401,43 +425,71 @@ public class DBResourceUtil {
 			return columnDefinitionsMap;
 		}
 
-		String tableName = null;
+		Matcher matcher = _createTableColumnsPattern.matcher(sql);
 
-		for (String line : StringUtil.splitLines(sql)) {
-			line = line.trim();
+		while (matcher.find()) {
+			List<String> columnDefinitions = new ArrayList<>();
 
-			if (line.contains("create table ")) {
-				String createTableSQL = line.substring(
-					line.indexOf("create table "));
+			for (String columnDefinition :
+					_columnDefinitionSeparatorPattern.split(matcher.group(2))) {
 
-				tableName =
-					StringUtil.split(createTableSQL, StringPool.SPACE)[2];
+				columnDefinition = columnDefinition.trim();
 
-				columnDefinitionsMap.put(tableName, new ArrayList<>());
+				if (columnDefinition.isEmpty() ||
+					columnDefinition.startsWith("primary key")) {
 
-				continue;
+					continue;
+				}
+
+				columnDefinition = StringUtil.removeSubstring(
+					columnDefinition, "primary key");
+
+				columnDefinitions.add(columnDefinition.trim());
 			}
 
-			if (line.isEmpty() || line.startsWith(")") ||
-				line.startsWith(";") || line.startsWith("<") ||
-				line.startsWith("]]>") || line.startsWith("create ") ||
-				line.startsWith("primary key")) {
+			columnDefinitionsMap.put(matcher.group(1), columnDefinitions);
+		}
 
-				continue;
+		if (_log.isWarnEnabled()) {
+			Set<String> unparsedTableNames = parseCreateTableSQL(sql);
+
+			unparsedTableNames.removeAll(columnDefinitionsMap.keySet());
+
+			if (!unparsedTableNames.isEmpty()) {
+				_log.warn(
+					"Unable to parse the column definitions of " +
+						unparsedTableNames);
 			}
-
-			line = StringUtil.replaceLast(
-				line, CharPool.COMMA, StringPool.BLANK);
-			line = StringUtil.removeSubstring(line, "primary key");
-
-			columnDefinitionsMap.get(
-				tableName
-			).add(
-				line.trim()
-			);
 		}
 
 		return columnDefinitionsMap;
+	}
+
+	private static Map<String, List<IndexMetadata>> _parseIndexMetadatas(
+		String sql) {
+
+		Map<String, List<IndexMetadata>> indexMetadatasMap = new HashMap<>();
+
+		if (sql == null) {
+			return indexMetadatasMap;
+		}
+
+		for (String line : StringUtil.splitLines(sql)) {
+			if (Validator.isNull(line)) {
+				continue;
+			}
+
+			IndexMetadata indexMetadata =
+				IndexMetadataFactoryUtil.createIndexMetadata(line);
+
+			List<IndexMetadata> indexMetadatas =
+				indexMetadatasMap.computeIfAbsent(
+					indexMetadata.getTableName(), key -> new ArrayList<>());
+
+			indexMetadatas.add(indexMetadata);
+		}
+
+		return indexMetadatasMap;
 	}
 
 	private static String _read(Bundle bundle, String path) {
@@ -477,11 +529,15 @@ public class DBResourceUtil {
 	private static final Log _log = LogFactoryUtil.getLog(DBResourceUtil.class);
 
 	private static volatile boolean _cacheEnabled;
+	private static final Pattern _columnDefinitionSeparatorPattern =
+		Pattern.compile(",(?![^(]*\\))");
 	private static final Pattern _composedPrimaryKeyPattern = Pattern.compile(
 		"create table\\s+(\\w+)\\s*\\((?:[^;]*?)?primary key\\s*\\(([^)]+)\\)",
 		Pattern.DOTALL);
+	private static final Pattern _createTableColumnsPattern = Pattern.compile(
+		"create table (\\S+) \\(([^;<]*)\\);");
 	private static final Pattern _createTablePattern = Pattern.compile(
-		"create table (\\S*) \\(");
+		"create table (\\S+) \\(");
 	private static final Pattern _inlinedPrimaryKeyPattern = Pattern.compile(
 		"create table\\s+(\\w+)\\s*\\([^;]*?(\\w+)\\s+\\w+(?:\\([^)]*\\))?" +
 			"(?:\\s+\\w+)*\\s+primary key\\b",

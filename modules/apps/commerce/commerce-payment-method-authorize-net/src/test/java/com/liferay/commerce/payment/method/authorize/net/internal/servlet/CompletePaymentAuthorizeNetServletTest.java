@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.security.key.secret.SecretResolver;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -68,6 +69,18 @@ public class CompletePaymentAuthorizeNetServletTest {
 			_completePaymentAuthorizeNetServlet, "_jsonFactory", _jsonFactory);
 		ReflectionTestUtil.setFieldValue(
 			_completePaymentAuthorizeNetServlet, "_portal", _portal);
+
+		SecretResolver secretResolver = Mockito.mock(SecretResolver.class);
+
+		Mockito.when(
+			secretResolver.resolve(Mockito.anyLong(), Mockito.any())
+		).thenAnswer(
+			invocation -> invocation.getArgument(1)
+		);
+
+		ReflectionTestUtil.setFieldValue(
+			_completePaymentAuthorizeNetServlet, "_secretResolver",
+			secretResolver);
 	}
 
 	@Test

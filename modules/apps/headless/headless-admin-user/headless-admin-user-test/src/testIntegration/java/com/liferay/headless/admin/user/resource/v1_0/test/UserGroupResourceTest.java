@@ -40,6 +40,7 @@ import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.PropsValues;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -362,6 +363,118 @@ public class UserGroupResourceTest extends BaseUserGroupResourceTestCase {
 		return userGroupResource.postUserGroup(userGroup);
 	}
 
+	private void _testGetUserGroupWithNestedFields() throws Exception {
+		com.liferay.portal.kernel.model.UserGroup userGroup =
+			_userGroupLocalService.addUserGroup(
+				StringPool.BLANK, TestPropsValues.getUserId(),
+				TestPropsValues.getCompanyId(), RandomTestUtil.randomString(),
+				RandomTestUtil.randomString(),
+				ServiceContextTestUtil.getServiceContext());
+
+		User user1 = UserTestUtil.addUser();
+		User user2 = UserTestUtil.addUser();
+		User user3 = UserTestUtil.addUser();
+
+		userGroupResource.postUserGroupUsers(
+			userGroup.getUserGroupId(),
+			new Long[] {user1.getUserId(), user2.getUserId()});
+
+		Role role = RoleTestUtil.addRole(RoleConstants.TYPE_REGULAR);
+
+		_roleLocalService.addGroupRole(
+			userGroup.getGroupId(), role.getRoleId());
+
+		_resourcePermissionLocalService.setResourcePermissions(
+			TestPropsValues.getCompanyId(),
+			com.liferay.portal.kernel.model.UserGroup.class.getName(),
+			ResourceConstants.SCOPE_INDIVIDUAL,
+			String.valueOf(userGroup.getUserGroupId()), role.getRoleId(),
+			new String[] {ActionKeys.DELETE});
+
+		UserGroupResource userGroupResource = UserGroupResource.builder(
+		).authentication(
+			"test@liferay.com", PropsValues.DEFAULT_ADMIN_PASSWORD
+		).endpoint(
+			testCompany.getVirtualHostname(),
+			PortalUtil.getPortalServerPort(false), "http"
+		).locale(
+			LocaleUtil.getDefault()
+		).parameters(
+			"nestedFields", "creator,permissions,roleBriefs,userAccountBriefs"
+		).build();
+
+		UserGroup getUserGroup = userGroupResource.getUserGroup(
+			userGroup.getUserGroupId());
+
+		Assert.assertNotNull(getUserGroup.getCreator());
+
+		Creator creator = getUserGroup.getCreator();
+
+		Assert.assertTrue(creator.getId() == TestPropsValues.getUserId());
+
+		Assert.assertTrue(
+			ArrayUtil.exists(
+				getUserGroup.getPermissions(),
+				permission ->
+					Objects.equals(permission.getRoleName(), role.getName()) &&
+					(permission.getActionIds().length == 1) &&
+					Objects.equals(permission.getActionIds()[0], "DELETE")));
+		Assert.assertTrue(
+			ArrayUtil.exists(
+				getUserGroup.getRoleBriefs(),
+				groupRole -> groupRole.getId() == role.getRoleId()));
+		Assert.assertTrue(
+			ArrayUtil.exists(
+				getUserGroup.getUserAccountBriefs(),
+				userAccountBrief ->
+					userAccountBrief.getId() == user1.getUserId()));
+		Assert.assertTrue(
+			ArrayUtil.exists(
+				getUserGroup.getUserAccountBriefs(),
+				userAccountBrief ->
+					userAccountBrief.getId() == user2.getUserId()));
+		Assert.assertFalse(
+			ArrayUtil.exists(
+				getUserGroup.getUserAccountBriefs(),
+				userAccountBrief ->
+					userAccountBrief.getId() == user3.getUserId()));
+	}
+
+	private void _testGetUserGroupWithoutPermissions() throws Exception {
+		com.liferay.portal.kernel.model.UserGroup serviceBuilderUserGroup =
+			_userGroupLocalService.addUserGroup(
+				StringPool.BLANK, TestPropsValues.getUserId(),
+				TestPropsValues.getCompanyId(), RandomTestUtil.randomString(),
+				RandomTestUtil.randomString(),
+				ServiceContextTestUtil.getServiceContext());
+
+		Role role = RoleTestUtil.addRole(RoleConstants.TYPE_REGULAR);
+
+		_resourcePermissionLocalService.setResourcePermissions(
+			TestPropsValues.getCompanyId(),
+			com.liferay.portal.kernel.model.UserGroup.class.getName(),
+			ResourceConstants.SCOPE_INDIVIDUAL,
+			String.valueOf(serviceBuilderUserGroup.getUserGroupId()),
+			role.getRoleId(), new String[] {ActionKeys.DELETE});
+
+		UserGroupResource userGroupResource = UserGroupResource.builder(
+		).authentication(
+			"test@liferay.com", PropsValues.DEFAULT_ADMIN_PASSWORD
+		).endpoint(
+			testCompany.getVirtualHostname(),
+			PortalUtil.getPortalServerPort(false), "http"
+		).locale(
+			LocaleUtil.getDefault()
+		).parameters(
+			"nestedFields", "creator"
+		).build();
+
+		UserGroup getUserGroup = userGroupResource.getUserGroup(
+			serviceBuilderUserGroup.getUserGroupId());
+
+		Assert.assertTrue(ArrayUtil.isEmpty(getUserGroup.getPermissions()));
+	}
+
 	private void _testGetUserGroupsPageWithFilter() throws Exception {
 		Page<UserGroup> page = userGroupResource.getUserGroupsPage(
 			null, null, Pagination.of(1, 10), null);
@@ -429,112 +542,6 @@ public class UserGroupResourceTest extends BaseUserGroupResourceTestCase {
 		Assert.assertEquals(totalCount + 1, page.getTotalCount());
 
 		assertContains(userGroup2, (List<UserGroup>)page.getItems());
-	}
-
-	private void _testGetUserGroupWithNestedFields() throws Exception {
-		com.liferay.portal.kernel.model.UserGroup userGroup =
-			_userGroupLocalService.addUserGroup(
-				StringPool.BLANK, TestPropsValues.getUserId(),
-				TestPropsValues.getCompanyId(), RandomTestUtil.randomString(),
-				RandomTestUtil.randomString(),
-				ServiceContextTestUtil.getServiceContext());
-
-		User user1 = UserTestUtil.addUser();
-		User user2 = UserTestUtil.addUser();
-		User user3 = UserTestUtil.addUser();
-
-		userGroupResource.postUserGroupUsers(
-			userGroup.getUserGroupId(),
-			new Long[] {user1.getUserId(), user2.getUserId()});
-
-		Role role = RoleTestUtil.addRole(RoleConstants.TYPE_REGULAR);
-
-		_roleLocalService.addGroupRole(
-			userGroup.getGroupId(), role.getRoleId());
-
-		_resourcePermissionLocalService.setResourcePermissions(
-			TestPropsValues.getCompanyId(),
-			com.liferay.portal.kernel.model.UserGroup.class.getName(),
-			ResourceConstants.SCOPE_INDIVIDUAL,
-			String.valueOf(userGroup.getUserGroupId()), role.getRoleId(),
-			new String[] {ActionKeys.DELETE});
-
-		UserGroupResource userGroupResource = UserGroupResource.builder(
-		).authentication(
-			"test@liferay.com", PropsValues.DEFAULT_ADMIN_PASSWORD
-		).locale(
-			LocaleUtil.getDefault()
-		).parameters(
-			"nestedFields", "creator,permissions,roleBriefs,userAccountBriefs"
-		).build();
-
-		UserGroup getUserGroup = userGroupResource.getUserGroup(
-			userGroup.getUserGroupId());
-
-		Assert.assertNotNull(getUserGroup.getCreator());
-
-		Creator creator = getUserGroup.getCreator();
-
-		Assert.assertTrue(creator.getId() == TestPropsValues.getUserId());
-
-		Assert.assertTrue(
-			ArrayUtil.exists(
-				getUserGroup.getPermissions(),
-				permission ->
-					Objects.equals(permission.getRoleName(), role.getName()) &&
-					(permission.getActionIds().length == 1) &&
-					Objects.equals(permission.getActionIds()[0], "DELETE")));
-		Assert.assertTrue(
-			ArrayUtil.exists(
-				getUserGroup.getRoleBriefs(),
-				groupRole -> groupRole.getId() == role.getRoleId()));
-		Assert.assertTrue(
-			ArrayUtil.exists(
-				getUserGroup.getUserAccountBriefs(),
-				userAccountBrief ->
-					userAccountBrief.getId() == user1.getUserId()));
-		Assert.assertTrue(
-			ArrayUtil.exists(
-				getUserGroup.getUserAccountBriefs(),
-				userAccountBrief ->
-					userAccountBrief.getId() == user2.getUserId()));
-		Assert.assertFalse(
-			ArrayUtil.exists(
-				getUserGroup.getUserAccountBriefs(),
-				userAccountBrief ->
-					userAccountBrief.getId() == user3.getUserId()));
-	}
-
-	private void _testGetUserGroupWithoutPermissions() throws Exception {
-		com.liferay.portal.kernel.model.UserGroup serviceBuilderUserGroup =
-			_userGroupLocalService.addUserGroup(
-				StringPool.BLANK, TestPropsValues.getUserId(),
-				TestPropsValues.getCompanyId(), RandomTestUtil.randomString(),
-				RandomTestUtil.randomString(),
-				ServiceContextTestUtil.getServiceContext());
-
-		Role role = RoleTestUtil.addRole(RoleConstants.TYPE_REGULAR);
-
-		_resourcePermissionLocalService.setResourcePermissions(
-			TestPropsValues.getCompanyId(),
-			com.liferay.portal.kernel.model.UserGroup.class.getName(),
-			ResourceConstants.SCOPE_INDIVIDUAL,
-			String.valueOf(serviceBuilderUserGroup.getUserGroupId()),
-			role.getRoleId(), new String[] {ActionKeys.DELETE});
-
-		UserGroupResource userGroupResource = UserGroupResource.builder(
-		).authentication(
-			"test@liferay.com", PropsValues.DEFAULT_ADMIN_PASSWORD
-		).locale(
-			LocaleUtil.getDefault()
-		).parameters(
-			"nestedFields", "creator"
-		).build();
-
-		UserGroup getUserGroup = userGroupResource.getUserGroup(
-			serviceBuilderUserGroup.getUserGroupId());
-
-		Assert.assertTrue(ArrayUtil.isEmpty(getUserGroup.getPermissions()));
 	}
 
 	private void _testPostUserGroupBatch() throws Exception {

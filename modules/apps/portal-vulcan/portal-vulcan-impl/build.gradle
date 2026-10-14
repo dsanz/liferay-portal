@@ -28,13 +28,13 @@ dependencies {
 	compileInclude group: "org.yaml", name: "snakeyaml", version: "2.3"
 	compileOnly group: "biz.aQute.bnd", name: "biz.aQute.bnd", version: "6.4.0"
 	compileOnly group: "com.fasterxml", name: "classmate", version: "1.5.1"
-	compileOnly group: "com.fasterxml.jackson.core", name: "jackson-annotations", version: "2.18.9"
-	compileOnly group: "com.fasterxml.jackson.core", name: "jackson-core", version: "2.18.9"
-	compileOnly group: "com.fasterxml.jackson.core", name: "jackson-databind", version: "2.18.9"
+	compileOnly group: "com.fasterxml.jackson.core", name: "jackson-annotations", version: "2.18.11"
+	compileOnly group: "com.fasterxml.jackson.core", name: "jackson-core", version: "2.18.11"
+	compileOnly group: "com.fasterxml.jackson.core", name: "jackson-databind", version: "2.18.11"
 	compileOnly group: "com.fasterxml.jackson.jakarta.rs", name: "jackson-jakarta-rs-json-provider", version: "2.18.2"
 	compileOnly group: "com.google.guava", name: "guava", version: "32.0.1-jre"
 	compileOnly group: "com.liferay", name: "jakarta.ws.rs", version: "3.1.0.LIFERAY-PATCHED-1"
-	compileOnly group: "com.liferay", name: "org.apache.commons.fileupload", version: "1.5.JAKARTA-LIFERAY-PATCHED-1"
+	compileOnly group: "com.liferay", name: "org.apache.commons.fileupload", version: "1.5.LIFERAY-PATCHED-2.JAKARTA-LIFERAY-PATCHED-1"
 	compileOnly group: "com.liferay", name: "org.apache.cxf.core", version: "3.6.12.JAKARTA-LIFERAY-PATCHED-1"
 	compileOnly group: "com.liferay", name: "org.apache.cxf.rt.frontend.jaxrs", version: "3.6.12.JAKARTA-LIFERAY-PATCHED-1"
 	compileOnly group: "com.liferay", name: "org.osgi.service.http.whiteboard", version: "1.1.1.JAKARTA-LIFERAY-PATCHED-1"
@@ -66,6 +66,7 @@ dependencies {
 	compileOnly project(":apps:oauth2-provider:oauth2-provider-scope-liferay-api")
 	compileOnly project(":apps:portal-configuration:portal-configuration-module-configuration-api")
 	compileOnly project(":apps:portal-odata:portal-odata-api")
+	compileOnly project(":apps:portal-remote:portal-remote-jaxrs-whiteboard")
 	compileOnly project(":apps:portal-security:portal-security-service-access-policy-api")
 	compileOnly project(":apps:portal-vulcan:portal-vulcan-api")
 	compileOnly project(":apps:static:osgi:osgi-util")

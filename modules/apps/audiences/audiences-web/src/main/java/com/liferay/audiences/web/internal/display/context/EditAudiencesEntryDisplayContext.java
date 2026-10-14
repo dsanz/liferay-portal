@@ -9,15 +9,20 @@ import com.liferay.audiences.criteria.AudiencesCriteria;
 import com.liferay.audiences.criteria.AudiencesCriteriaProvider;
 import com.liferay.audiences.model.AudiencesEntry;
 import com.liferay.audiences.service.AudiencesEntryServiceUtil;
+import com.liferay.layout.page.template.service.LayoutPageTemplateStructureRelElementVariationAudienceEntryRelLocalServiceUtil;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.portlet.url.builder.PortletURLBuilder;
+import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -160,6 +165,8 @@ public class EditAudiencesEntryDisplayContext {
 		).put(
 			"backURLTitle", getBackURLTitle()
 		).put(
+			"companyGroupERC", _getCompanyGroupERC(themeDisplay)
+		).put(
 			"externalReferenceCode", _getExternalReferenceCode()
 		).put(
 			"name", _getName()
@@ -169,6 +176,8 @@ public class EditAudiencesEntryDisplayContext {
 			"redirect", getRedirect()
 		).put(
 			"rulesGroup", getAudiencesEntryJSONObject()
+		).put(
+			"scopeSites", _getScopeSitesJSONArray(themeDisplay)
 		).put(
 			"updateAudiencesEntryActionURL",
 			PortletURLBuilder.createActionURL(
@@ -230,6 +239,17 @@ public class EditAudiencesEntryDisplayContext {
 		return null;
 	}
 
+	private String _getCompanyGroupERC(ThemeDisplay themeDisplay) {
+		Group companyGroup = GroupLocalServiceUtil.fetchGroup(
+			themeDisplay.getCompanyGroupId());
+
+		if (companyGroup != null) {
+			return companyGroup.getExternalReferenceCode();
+		}
+
+		return StringPool.BLANK;
+	}
+
 	private String _getExternalReferenceCode() {
 		try {
 			AudiencesEntry audiencesEntry = _getAudiencesEntry();
@@ -262,6 +282,60 @@ public class EditAudiencesEntryDisplayContext {
 		}
 
 		return StringPool.BLANK;
+	}
+
+	private JSONArray _getScopeSitesJSONArray(ThemeDisplay themeDisplay) {
+		AudiencesEntry audiencesEntry = null;
+
+		try {
+			audiencesEntry = _getAudiencesEntry();
+		}
+		catch (PortalException portalException) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(portalException);
+			}
+		}
+
+		if (audiencesEntry == null) {
+			return JSONFactoryUtil.createJSONArray();
+		}
+
+		String externalReferenceCode =
+			audiencesEntry.getExternalReferenceCode();
+
+		return JSONUtil.toJSONArray(
+			audiencesEntry.getGroupERCs(),
+			groupERC -> {
+				Group group =
+					GroupLocalServiceUtil.fetchGroupByExternalReferenceCode(
+						groupERC, themeDisplay.getCompanyId());
+
+				if (group == null) {
+					return null;
+				}
+
+				return JSONUtil.put(
+					"descriptiveName",
+					group.getDescriptiveName(themeDisplay.getLocale())
+				).put(
+					"externalReferenceCode", group.getExternalReferenceCode()
+				).put(
+					"hasElementVariations",
+					() -> {
+						int count =
+							LayoutPageTemplateStructureRelElementVariationAudienceEntryRelLocalServiceUtil.
+								getGroupLayoutPageTemplateStructureRelElementVariationAudienceEntryRelsCount(
+									group.getGroupId(), externalReferenceCode);
+
+						return count > 0;
+					}
+				).put(
+					"id", group.getGroupId()
+				).put(
+					"logo", group.getLogoURL(themeDisplay, true)
+				);
+			},
+			_log);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

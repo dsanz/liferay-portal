@@ -5,6 +5,7 @@
 
 package com.liferay.layout.page.template.admin.web.internal.display.context;
 
+import com.liferay.design.library.util.DesignLibraryUtil;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.NavigationItem;
 import com.liferay.layout.page.template.constants.LayoutPageTemplateConstants;
 import com.liferay.layout.page.template.constants.LayoutPageTemplateEntryTypeConstants;
@@ -16,8 +17,10 @@ import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.url.builder.PortletURLBuilder;
+import com.liferay.portal.kernel.test.TestInfo;
 import com.liferay.portal.kernel.test.portlet.MockLiferayPortletURL;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.kernel.theme.PortletDisplay;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -61,6 +64,7 @@ public class LayoutPageTemplatesAdminDisplayContextTest {
 
 	@After
 	public void tearDown() {
+		_designLibraryUtilMockedStatic.close();
 		_portletURLBuilderMockedStatic.close();
 		_stagingGroupHelperUtilMockedStatic.close();
 	}
@@ -111,6 +115,23 @@ public class LayoutPageTemplatesAdminDisplayContextTest {
 	}
 
 	@Test
+	@TestInfo("LPD-104842")
+	public void testGetNavigationItemsInDesignLibraryGroup() {
+		_setUpDesignLibraryScope(true);
+		_setUpGroup(false);
+		_setUpStagingGroupHelper(false, false);
+
+		LayoutPageTemplatesAdminDisplayContext
+			layoutPageTemplatesAdminDisplayContext =
+				new LayoutPageTemplatesAdminDisplayContext(
+					_liferayPortletRequest, _liferayPortletResponse);
+
+		Assert.assertTrue(
+			ListUtil.isEmpty(
+				layoutPageTemplatesAdminDisplayContext.getNavigationItems()));
+	}
+
+	@Test
 	public void testGetNavigationItemsInLocalLiveStagingGroup() {
 		_setUpGroup(false);
 		_setUpStagingGroupHelper(true, false);
@@ -145,10 +166,60 @@ public class LayoutPageTemplatesAdminDisplayContextTest {
 	}
 
 	@Test
+	@TestInfo("LPD-108335")
+	public void testGetTabs1() {
+		_setUpGroup(false);
+
+		Assert.assertEquals("master-layouts", _getTabs1());
+	}
+
+	@Test
+	@TestInfo("LPD-108335")
+	public void testGetTabs1InCompanyGroup() {
+		_setUpGroup(true);
+
+		Assert.assertEquals("page-templates", _getTabs1());
+	}
+
+	@Test
+	@TestInfo({"LPD-104842", "LPD-108335"})
+	public void testGetTabs1InDesignLibraryGroup() {
+		_setUpDesignLibraryScope(true);
+		_setUpGroup(false);
+
+		Assert.assertEquals("page-templates", _getTabs1());
+
+		_setUpTabs1("display-page-templates");
+
+		Assert.assertEquals("display-page-templates", _getTabs1());
+
+		_setUpTabs1("master-layouts");
+
+		Assert.assertEquals("page-templates", _getTabs1());
+	}
+
+	@Test
 	public void testIsShowPageTemplates() {
 		_testIsShowPageTemplates(false, 0, false);
 		_testIsShowPageTemplates(false, RandomTestUtil.randomInt(), true);
 		_testIsShowPageTemplates(true, RandomTestUtil.randomInt(), true);
+	}
+
+	private String _getTabs1() {
+		LayoutPageTemplatesAdminDisplayContext
+			layoutPageTemplatesAdminDisplayContext =
+				new LayoutPageTemplatesAdminDisplayContext(
+					_liferayPortletRequest, _liferayPortletResponse);
+
+		return layoutPageTemplatesAdminDisplayContext.getTabs1();
+	}
+
+	private void _setUpDesignLibraryScope(boolean designLibraryScope) {
+		_designLibraryUtilMockedStatic.when(
+			() -> DesignLibraryUtil.isDesignLibraryScope(_group)
+		).thenReturn(
+			designLibraryScope
+		);
 	}
 
 	private void _setUpGroup(boolean company) {
@@ -228,6 +299,14 @@ public class LayoutPageTemplatesAdminDisplayContextTest {
 		);
 	}
 
+	private void _setUpTabs1(String tabs1) {
+		Mockito.when(
+			_liferayPortletRequest.getParameter("tabs1")
+		).thenReturn(
+			tabs1
+		);
+	}
+
 	private void _setUpThemeDisplay() {
 		ThemeDisplay themeDisplay = Mockito.mock(ThemeDisplay.class);
 
@@ -235,6 +314,12 @@ public class LayoutPageTemplatesAdminDisplayContextTest {
 			_liferayPortletRequest.getAttribute(WebKeys.THEME_DISPLAY)
 		).thenReturn(
 			themeDisplay
+		);
+
+		Mockito.when(
+			themeDisplay.getPortletDisplay()
+		).thenReturn(
+			Mockito.mock(PortletDisplay.class)
 		);
 
 		Mockito.when(
@@ -289,6 +374,9 @@ public class LayoutPageTemplatesAdminDisplayContextTest {
 		}
 	}
 
+	private final MockedStatic<DesignLibraryUtil>
+		_designLibraryUtilMockedStatic = Mockito.mockStatic(
+			DesignLibraryUtil.class);
 	private final Group _group = Mockito.mock(Group.class);
 	private final HttpServletRequest _httpServletRequest = Mockito.mock(
 		HttpServletRequest.class);

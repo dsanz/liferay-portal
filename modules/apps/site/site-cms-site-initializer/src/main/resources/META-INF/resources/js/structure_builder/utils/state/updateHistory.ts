@@ -7,6 +7,8 @@ import {State} from '../../contexts/StateContext';
 import {Structure} from '../../types/Structure';
 import {Uuid} from '../../types/Uuid';
 import findChild from '../findChild';
+import getClosestERC from '../getClosestERC';
+import isRepeatableGroup from '../isRepeatableGroup';
 
 export default function updateHistory({
 	deletedChildrenUuids,
@@ -38,17 +40,14 @@ export default function updateHistory({
 			};
 
 			if (
-				child.type === 'repeatable-group' ||
+				isRepeatableGroup(child) ||
 				child.type === 'related-content' ||
 				child.type === 'referenced-structure'
 			) {
-				let parentERC =
-					child.parent === structure.uuid
-						? structure.erc
-						: findChild({
-								root: structure,
-								uuid: child.parent,
-							})?.erc || '';
+				let parentERC = getClosestERC({
+					structure,
+					uuid: child.parent,
+				});
 
 				if (child.type === 'related-content' && !child.multiselection) {
 					parentERC = child.relatedStructureERC;
@@ -69,7 +68,7 @@ export default function updateHistory({
 				};
 			}
 
-			if (child.type === 'repeatable-group') {
+			if (isRepeatableGroup(child)) {
 				nextHistory = {
 					...nextHistory,
 					deletedGroupERCs: [

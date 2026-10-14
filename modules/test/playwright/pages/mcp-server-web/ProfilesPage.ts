@@ -94,6 +94,10 @@ export class ProfilesPage extends FDSTablePage {
 		return this.page.getByRole('link', {exact: true, name: 'Data Masks'});
 	}
 
+	fieldTreeItem(name: string): Locator {
+		return this.treeItem(name);
+	}
+
 	get formHeading(): Locator {
 		return this.page.locator('.control-menu-level-1-heading');
 	}
@@ -106,10 +110,8 @@ export class ProfilesPage extends FDSTablePage {
 		return this.masksRows.filter({hasText: name});
 	}
 
-	removeToolButton(name: string): Locator {
-		return this.rows
-			.filter({has: this.page.getByRole('cell', {exact: true, name})})
-			.getByLabel('Remove');
+	get selectionStatus(): Locator {
+		return this.dialog.getByRole('status').filter({hasText: 'Selected'});
 	}
 
 	toolCheckbox(name: string): Locator {
@@ -164,6 +166,16 @@ export class ProfilesPage extends FDSTablePage {
 
 	get saveButton(): Locator {
 		return this.page.getByRole('button', {name: 'Save'});
+	}
+
+	get statusToggle(): Locator {
+		return this.page.getByRole('switch', {name: 'Profile Status'});
+	}
+
+	get creationInfoAlert(): Locator {
+		return this.page.getByText(
+			'Tools, data masks, and status become available once the profile is saved.'
+		);
 	}
 
 	get cancelButton(): Locator {

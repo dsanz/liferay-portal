@@ -89,7 +89,7 @@ export class ViewObjectEntriesPage {
 		this.duplicateEntryErrorMessage = page.getByText(
 			'Error:The field values are already in use. Please choose unique values.'
 		);
-		this.editObjectEntryForm = page.locator('[id="editObjectEntry"]');
+		this.editObjectEntryForm = page.locator('[id$="editObjectEntry"]');
 		this.expirationDateInput = page.getByLabel(
 			'Expiration Date' + 'Mandatory',
 			{

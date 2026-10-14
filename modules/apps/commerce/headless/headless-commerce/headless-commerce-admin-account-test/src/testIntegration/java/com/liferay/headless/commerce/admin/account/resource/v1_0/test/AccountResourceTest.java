@@ -5,7 +5,9 @@
 
 package com.liferay.headless.commerce.admin.account.resource.v1_0.test;
 
+import com.liferay.account.constants.AccountConstants;
 import com.liferay.account.model.AccountEntry;
+import com.liferay.account.service.AccountEntryLocalService;
 import com.liferay.account.service.AccountEntryOrganizationRelLocalService;
 import com.liferay.account.service.AccountEntryUserRelLocalService;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
@@ -410,6 +412,54 @@ public class AccountResourceTest extends BaseAccountResourceTestCase {
 		Assert.assertEquals(account1.getId(), account4.getId());
 	}
 
+	private void _testGetAccountWithPermission() throws Exception {
+		AccountEntry accountEntry =
+			_accountEntryLocalService.getGuestAccountEntry(
+				testCompany.getCompanyId());
+
+		User user1 = _addUser();
+
+		AccountResource accountResource1 = _getAccountResource(
+			_PASSWORD, user1);
+
+		Account account1 = accountResource1.getAccount(
+			AccountConstants.ACCOUNT_ENTRY_ID_GUEST);
+
+		Assert.assertEquals(
+			(Long)accountEntry.getAccountEntryId(), account1.getId());
+
+		Account account2 = _postAccount(randomAccount());
+
+		_assertProblemException(
+			() -> accountResource1.getAccount(account2.getId()));
+
+		_addRoleUsers(account2.getId(), user1, ActionKeys.VIEW);
+
+		Account account3 = accountResource1.getAccount(account2.getId());
+
+		Assert.assertEquals(account2.getId(), account3.getId());
+
+		User user2 = _addUser();
+
+		AccountResource accountResource2 = _getAccountResource(
+			_PASSWORD, user2);
+
+		Account account4 = _postAccount(randomAccount());
+
+		_accountEntryUserRelLocalService.addAccountEntryUserRel(
+			account4.getId(), user2.getUserId());
+
+		_assertProblemException(
+			() -> accountResource2.getAccount(account2.getId()));
+
+		_accountEntryUserRelLocalService.addAccountEntryUserRel(
+			account2.getId(), user2.getUserId());
+
+		Account account5 = accountResource2.getAccount(account2.getId());
+
+		Assert.assertEquals(account2.getId(), account5.getId());
+	}
+
 	private void _testGetAccountsPage(List<Account> expectedAccountEntries)
 		throws Exception {
 
@@ -446,45 +496,10 @@ public class AccountResourceTest extends BaseAccountResourceTestCase {
 		Assert.assertEquals(account1.getId(), account2.getId());
 	}
 
-	private void _testGetAccountWithPermission() throws Exception {
-		User user1 = _addUser();
-
-		AccountResource accountResource1 = _getAccountResource(
-			_PASSWORD, user1);
-
-		Account account1 = _postAccount(randomAccount());
-
-		_assertProblemException(
-			() -> accountResource1.getAccount(account1.getId()));
-
-		_addRoleUsers(account1.getId(), user1, ActionKeys.VIEW);
-
-		Account account2 = accountResource1.getAccount(account1.getId());
-
-		Assert.assertEquals(account1.getId(), account2.getId());
-
-		User user2 = _addUser();
-
-		AccountResource accountResource2 = _getAccountResource(
-			_PASSWORD, user2);
-
-		Account account3 = _postAccount(randomAccount());
-
-		_accountEntryUserRelLocalService.addAccountEntryUserRel(
-			account3.getId(), user2.getUserId());
-
-		_assertProblemException(
-			() -> accountResource2.getAccount(account1.getId()));
-
-		_accountEntryUserRelLocalService.addAccountEntryUserRel(
-			account1.getId(), user2.getUserId());
-
-		Account account4 = accountResource2.getAccount(account1.getId());
-
-		Assert.assertEquals(account1.getId(), account4.getId());
-	}
-
 	private static final String _PASSWORD = RandomTestUtil.randomString();
+
+	@Inject
+	private AccountEntryLocalService _accountEntryLocalService;
 
 	@Inject
 	private AccountEntryOrganizationRelLocalService

@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.liferay.mcp.server.rest.dto.v1_0.Tool;
 import com.liferay.mcp.server.rest.internal.constants.MCPServerConstants;
+import com.liferay.mcp.server.rest.internal.util.MCPServerProfileUtil;
 import com.liferay.mcp.server.rest.internal.util.ToolSetUtil;
 import com.liferay.object.constants.ObjectDefinitionConstants;
 import com.liferay.object.model.ObjectDefinition;
@@ -24,14 +25,19 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.search.Sort;
+import com.liferay.portal.kernel.servlet.ServletResponseUtil;
+import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.odata.filter.InvalidFilterException;
+import com.liferay.portal.odata.sort.InvalidSortException;
 
 import io.modelcontextprotocol.common.McpTransportContext;
 import io.modelcontextprotocol.server.McpServer;
@@ -56,6 +62,7 @@ import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -80,24 +87,7 @@ import org.osgi.service.component.annotations.Reference;
 )
 public class MCPServerServlet extends HttpServlet {
 
-	@Override
-	public void destroy() {
-		synchronized (this) {
-			for (Servlet servlet : _servlets.values()) {
-				servlet.destroy();
-			}
-
-			_servlets.clear();
-		}
-	}
-
-	public void invalidate(long companyId, String mcpServerProfileName) {
-		synchronized (this) {
-			_destroy(_getServletKey(companyId, mcpServerProfileName));
-		}
-	}
-
-	public void invalidateAll(long companyId) {
+	public void clearServletCache(long companyId) {
 		synchronized (this) {
 			String companyIdString = String.valueOf(companyId);
 
@@ -109,6 +99,23 @@ public class MCPServerServlet extends HttpServlet {
 					_destroy(servletKey);
 				}
 			}
+		}
+	}
+
+	public void clearServletCache(long companyId, String mcpServerProfileName) {
+		synchronized (this) {
+			_destroy(_getServletKey(companyId, mcpServerProfileName));
+		}
+	}
+
+	@Override
+	public void destroy() {
+		synchronized (this) {
+			for (Servlet servlet : _servlets.values()) {
+				servlet.destroy();
+			}
+
+			_servlets.clear();
 		}
 	}
 
@@ -125,6 +132,26 @@ public class MCPServerServlet extends HttpServlet {
 
 		if (mcpServerProfileObjectEntry == null) {
 			httpServletResponse.setStatus(HttpServletResponse.SC_NOT_FOUND);
+
+			return;
+		}
+
+		if (!MCPServerProfileUtil.isActive(mcpServerProfileObjectEntry)) {
+			httpServletResponse.setCharacterEncoding(StringPool.UTF8);
+			httpServletResponse.setContentType(ContentTypes.APPLICATION_JSON);
+			httpServletResponse.setStatus(HttpServletResponse.SC_NOT_FOUND);
+
+			ServletResponseUtil.write(
+				httpServletResponse,
+				JSONUtil.put(
+					"error",
+					StringBundler.concat(
+						"MCP server profile \"",
+						MapUtil.getString(
+							mcpServerProfileObjectEntry.getValues(), "name"),
+						"\" is inactive. Activate it in the MCP Server ",
+						"control panel to make its tools available.")
+				).toString());
 
 			return;
 		}
@@ -160,10 +187,15 @@ public class MCPServerServlet extends HttpServlet {
 						"/mcp/" + mcpServerProfileName : "/mcp"
 				).build();
 
+		List<ObjectEntry> mcpServerProfileToolObjectEntries =
+			_getMCPServerProfileToolObjectEntries(mcpServerProfileObjectEntry);
+
+		Map<String, String> restrictFieldsMap = _getRestrictFieldsMap(
+			mcpServerProfileToolObjectEntries);
+
 		List<McpStatelessServerFeatures.SyncToolSpecification>
 			syncToolSpecifications = TransformUtil.transform(
-				_getMCPServerProfileToolObjectEntries(
-					mcpServerProfileObjectEntry),
+				mcpServerProfileToolObjectEntries,
 				mcpServerProfileToolObjectEntry -> {
 					Map<String, Serializable> mcpServerProfileToolValues =
 						mcpServerProfileToolObjectEntry.getValues();
@@ -177,12 +209,13 @@ public class MCPServerServlet extends HttpServlet {
 						return new McpStatelessServerFeatures.
 							SyncToolSpecification(
 								_getTool(
-									httpServletRequest, toolName, toolSetName),
+									httpServletRequest, restrictFieldsMap,
+									toolName, toolSetName),
 								(mcpTransportContext, callToolRequest) -> _call(
 									mcpTransportContext,
 									callToolRequest.arguments(), companyId,
 									mcpServerProfileExternalReferenceCode,
-									toolName, toolSetName));
+									restrictFieldsMap, toolName, toolSetName));
 					}
 					catch (Exception exception) {
 						_log.error(
@@ -206,6 +239,8 @@ public class MCPServerServlet extends HttpServlet {
 			).build()
 		).immediateExecution(
 			true
+		).instructions(
+			(String)values.get("instructions")
 		).prompts(
 			_getSyncPromptSpecifications(companyId)
 		).tools(
@@ -251,7 +286,8 @@ public class MCPServerServlet extends HttpServlet {
 	private McpSchema.CallToolResult _call(
 		McpTransportContext mcpTransportContext, Object inputObject,
 		long companyId, String mcpServerProfileExternalReferenceCode,
-		String toolName, String toolSetName) {
+		Map<String, String> restrictFieldsMap, String toolName,
+		String toolSetName) {
 
 		HttpServletRequest httpServletRequest =
 			(HttpServletRequest)mcpTransportContext.get("httpServletRequest");
@@ -260,7 +296,8 @@ public class MCPServerServlet extends HttpServlet {
 			Response response = ToolSetUtil.invokeTool(
 				_getDataMaskExternalReferenceCodes(
 					companyId, mcpServerProfileExternalReferenceCode),
-				httpServletRequest, inputObject, toolName, toolSetName);
+				httpServletRequest, inputObject, restrictFieldsMap, toolName,
+				toolSetName);
 
 			int responseCode = response.getStatus();
 			String content = (String)response.getEntity();
@@ -278,23 +315,21 @@ public class MCPServerServlet extends HttpServlet {
 				).build();
 			}
 
-			return McpSchema.CallToolResult.builder(
-			).addTextContent(
+			return _getErrorCallToolResult(
 				StringBundler.concat(
-					"Status code: ", responseCode, ", Content:\n", content)
-			).isError(
-				true
-			).build();
+					"Status code: ", responseCode, ", Content:\n", content));
+		}
+		catch (InvalidFilterException | InvalidSortException exception) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(exception);
+			}
+
+			return _getErrorCallToolResult(exception.getMessage());
 		}
 		catch (Exception exception) {
 			_log.error(exception);
 
-			return McpSchema.CallToolResult.builder(
-			).addTextContent(
-				exception.getMessage()
-			).isError(
-				true
-			).build();
+			return _getErrorCallToolResult(exception.getMessage());
 		}
 	}
 
@@ -333,6 +368,15 @@ public class MCPServerServlet extends HttpServlet {
 				new Sort[] {new Sort("executionOrder", Sort.INT_TYPE, false)}),
 			values -> MapUtil.getString(
 				values, "dataMaskExternalReferenceCode"));
+	}
+
+	private McpSchema.CallToolResult _getErrorCallToolResult(String content) {
+		return McpSchema.CallToolResult.builder(
+		).addTextContent(
+			content
+		).isError(
+			true
+		).build();
 	}
 
 	private String _getMCPServerProfileName(
@@ -383,9 +427,7 @@ public class MCPServerServlet extends HttpServlet {
 
 			Map<String, Serializable> values = objectEntry.getValues();
 
-			if (mcpServerProfileName.equals(values.get("name")) &&
-				Objects.equals(values.get("profileStatus"), "active")) {
-
+			if (mcpServerProfileName.equals(values.get("name"))) {
 				return objectEntry;
 			}
 		}
@@ -410,6 +452,33 @@ public class MCPServerServlet extends HttpServlet {
 		catch (PortalException portalException) {
 			throw new RuntimeException(portalException);
 		}
+	}
+
+	private Map<String, String> _getRestrictFieldsMap(
+		List<ObjectEntry> mcpServerProfileToolObjectEntries) {
+
+		Map<String, String> restrictFieldsMap = new HashMap<>();
+
+		for (ObjectEntry mcpServerProfileToolObjectEntry :
+				mcpServerProfileToolObjectEntries) {
+
+			Map<String, Serializable> values =
+				mcpServerProfileToolObjectEntry.getValues();
+
+			String restrictFields = MapUtil.getString(values, "restrictFields");
+
+			if (Validator.isNull(restrictFields)) {
+				continue;
+			}
+
+			restrictFieldsMap.put(
+				ToolSetUtil.getToolKey(
+					MapUtil.getString(values, "toolName"),
+					MapUtil.getString(values, "toolSetName")),
+				restrictFields);
+		}
+
+		return restrictFieldsMap;
 	}
 
 	private Servlet _getServlet(
@@ -475,12 +544,14 @@ public class MCPServerServlet extends HttpServlet {
 	}
 
 	private McpSchema.Tool _getTool(
-		HttpServletRequest httpServletRequest, String toolName,
+		HttpServletRequest httpServletRequest,
+		Map<String, String> restrictFieldsMap, String toolName,
 		String toolSetName) {
 
 		try {
 			Tool tool = ToolSetUtil.getTool(
-				httpServletRequest, toolName, toolSetName);
+				httpServletRequest, false, restrictFieldsMap, toolName,
+				toolSetName);
 
 			return McpSchema.Tool.builder(
 			).description(

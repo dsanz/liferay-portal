@@ -14,8 +14,8 @@ import com.liferay.data.engine.rest.resource.v2_0.DataDefinitionResource;
 import com.liferay.depot.constants.DepotConstants;
 import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.service.DepotEntryLocalService;
+import com.liferay.document.library.helper.DLURLHelper;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
-import com.liferay.document.library.util.DLURLHelper;
 import com.liferay.dynamic.data.mapping.constants.DDMStructureConstants;
 import com.liferay.dynamic.data.mapping.form.field.type.constants.DDMFormFieldTypeConstants;
 import com.liferay.dynamic.data.mapping.io.DDMFormDeserializer;
@@ -1780,7 +1780,7 @@ public class EditableFragmentEntryProcessorTest {
 	}
 
 	@Test
-	@TestInfo("LPD-73556")
+	@TestInfo({"LPD-73556", "LPD-107399"})
 	public void testFragmentEntryProcessorEditableMappedDLImage()
 		throws Exception {
 
@@ -1841,10 +1841,13 @@ public class EditableFragmentEntryProcessorTest {
 		String src = element.attr("src");
 
 		Assert.assertFalse(src.contains("imagePreview=1"));
+		Assert.assertTrue(
+			src.startsWith(_portal.getPathContext() + "/documents/"));
 		Assert.assertEquals(
 			_dlURLHelper.getPreviewURL(
 				fileEntry, fileEntry.getFileVersion(),
-				_serviceContext.getThemeDisplay(), StringPool.BLANK),
+				_serviceContext.getThemeDisplay(), StringPool.BLANK, true,
+				false),
 			src);
 	}
 
@@ -1955,6 +1958,16 @@ public class EditableFragmentEntryProcessorTest {
 		Assert.assertEquals(
 			fileEntry.getFileEntryId(),
 			GetterUtil.getLong(element.attr("data-fileentryid")));
+	}
+
+	@Test
+	@TestInfo({"LPD-72706", "LPD-105357"})
+	public void testFragmentEntryProcessorEditableWithCharacterReferences()
+		throws Exception {
+
+		_testFragmentEntryProcessorEditableWithCharacterReferencesInHTML();
+		_testFragmentEntryProcessorEditableWithCharacterReferencesInMappedText();
+		_testFragmentEntryProcessorEditableWithCharacterReferencesInText();
 	}
 
 	@Test(expected = FragmentEntryContentException.class)
@@ -2448,7 +2461,7 @@ public class EditableFragmentEntryProcessorTest {
 		return _objectActionLocalService.addObjectAction(
 			RandomTestUtil.randomString(), TestPropsValues.getUserId(),
 			objectDefinitionId, true, StringPool.BLANK,
-			RandomTestUtil.randomString(),
+			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 			labelMap, RandomTestUtil.randomString(),
 			ObjectActionExecutorConstants.KEY_WEBHOOK,
@@ -2464,8 +2477,8 @@ public class EditableFragmentEntryProcessorTest {
 	private ObjectDefinition _addObjectDefinition() throws Exception {
 		ObjectDefinition objectDefinition =
 			_objectDefinitionLocalService.addCustomObjectDefinition(
-				null, TestPropsValues.getUserId(), 0, null, true, false, true,
-				false, true, false, false, false, false, null,
+				null, TestPropsValues.getUserId(), 0, null, null, true, false,
+				true, false, true, false, false, false, false, null,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				ObjectDefinitionTestUtil.getRandomName(), null,
 				"control_panel.sites",
@@ -2547,7 +2560,7 @@ public class EditableFragmentEntryProcessorTest {
 		ObjectDefinition objectDefinition =
 			_objectDefinitionLocalService.addCustomObjectDefinition(
 				null, TestPropsValues.getUserId(),
-				objectFolder.getObjectFolderId(), null, true, false, true,
+				objectFolder.getObjectFolderId(), null, null, true, false, true,
 				false, true, false, false, false, false, null,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				ObjectDefinitionTestUtil.getRandomName(), null, null,
@@ -2628,6 +2641,18 @@ public class EditableFragmentEntryProcessorTest {
 		if (objectFolderCreated) {
 			_objectFolderLocalService.deleteObjectFolder(objectFolder);
 		}
+	}
+
+	private void _assertEditableText(String defaultValue, String expectedText)
+		throws Exception {
+
+		Element element = _getElement(
+			"data-lfr-editable-id", "editable_text",
+			_getEditableValues(defaultValue, "editable_text"),
+			"fragment_entry_editable_text.html", LocaleUtil.US,
+			FragmentEntryLinkConstants.VIEW);
+
+		Assert.assertEquals(expectedText, element.text());
 	}
 
 	private void _assertElementAttribute(
@@ -2747,6 +2772,16 @@ public class EditableFragmentEntryProcessorTest {
 				String.valueOf(classNameId), String.valueOf(classPK),
 				externalReferenceCode, fieldId, scopeExternalReferenceCode
 			});
+	}
+
+	private String _getEditableValues(String defaultValue, String editableId) {
+		JSONObject jsonObject = JSONUtil.put(
+			FragmentEntryProcessorConstants.
+				KEY_EDITABLE_FRAGMENT_ENTRY_PROCESSOR,
+			JSONUtil.put(
+				editableId, JSONUtil.put("defaultValue", defaultValue)));
+
+		return jsonObject.toString();
 	}
 
 	private Element _getElement(
@@ -2917,6 +2952,47 @@ public class EditableFragmentEntryProcessorTest {
 		Assert.assertEquals(expectedHref, element.attr("href"));
 		Assert.assertEquals(
 			"Default Editable Values Link Text", element.text());
+	}
+
+	private void _testFragmentEntryProcessorEditableWithCharacterReferencesInHTML()
+		throws Exception {
+
+		Element element = _getElement(
+			"data-lfr-editable-id", "editable_html",
+			_getEditableValues(
+				"10&nbsp;kg &mdash; 50&hellip;100", "editable_html"),
+			"fragment_entry_editable_html.html", LocaleUtil.US,
+			FragmentEntryLinkConstants.VIEW);
+
+		Assert.assertEquals("10&nbsp;kg — 50…100", element.html());
+	}
+
+	private void _testFragmentEntryProcessorEditableWithCharacterReferencesInMappedText()
+		throws Exception {
+
+		String title = "<script>alert(456)</script>";
+
+		JournalArticle journalArticle = JournalTestUtil.addArticle(
+			_group.getGroupId(), title, RandomTestUtil.randomString());
+
+		Element element = _getElement(
+			"data-lfr-editable-id", "editable_text",
+			_getEditableFieldValues(
+				_portal.getClassNameId(JournalArticle.class),
+				journalArticle.getResourcePrimKey(), "title",
+				"fragment_entry_link_mapped_asset_field.json"),
+			"fragment_entry_editable_text.html", LocaleUtil.US,
+			FragmentEntryLinkConstants.VIEW);
+
+		Assert.assertEquals(title, element.text());
+	}
+
+	private void _testFragmentEntryProcessorEditableWithCharacterReferencesInText()
+		throws Exception {
+
+		_assertEditableText("Liferay&#39;s", "Liferay's");
+		_assertEditableText("Tom &amp; Jerry", "Tom & Jerry");
+		_assertEditableText("say &#34;hi&#34;", "say \"hi\"");
 	}
 
 	private String _toJSON(FileEntry fileEntry) {

@@ -105,6 +105,9 @@ public class DataCleanupPreupgradeProcessSuite {
 			portletPreferencesDataCleanupPreupgradeProcess =
 				new PortletPreferencesDataCleanupPreupgradeProcess();
 		DataCleanupPreupgradeProcess
+			postgreSQLRuleDataCleanupPreupgradeProcess =
+				new PostgreSQLRuleDataCleanupPreupgradeProcess();
+		DataCleanupPreupgradeProcess
 			quartzJobDetailsDataCleanupPreupgradeProcess =
 				new QuartzJobDetailsDataCleanupPreupgradeProcess();
 		DataCleanupPreupgradeProcess roleDataCleanupPreupgradeProcess =
@@ -171,7 +174,8 @@ public class DataCleanupPreupgradeProcessSuite {
 					userDataCleanupPreupgradeProcess)
 			).put(
 				databaseTableAndColumnCaseDataCleanupPreupgradeProcess,
-				DataCleanupPreupgradeProcess.dependsOn()
+				DataCleanupPreupgradeProcess.dependsOn(
+					postgreSQLRuleDataCleanupPreupgradeProcess)
 			).put(
 				ddmDataCleanupPreupgradeProcess,
 				DataCleanupPreupgradeProcess.dependsOn(
@@ -220,6 +224,9 @@ public class DataCleanupPreupgradeProcessSuite {
 				portletPreferencesDataCleanupPreupgradeProcess,
 				DataCleanupPreupgradeProcess.dependsOn(
 					layoutDataCleanupPreupgradeProcess)
+			).put(
+				postgreSQLRuleDataCleanupPreupgradeProcess,
+				DataCleanupPreupgradeProcess.dependsOn()
 			).put(
 				quartzJobDetailsDataCleanupPreupgradeProcess,
 				DataCleanupPreupgradeProcess.dependsOn(

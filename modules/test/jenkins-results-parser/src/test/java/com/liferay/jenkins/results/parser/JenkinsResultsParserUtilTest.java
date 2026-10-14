@@ -5,13 +5,20 @@
 
 package com.liferay.jenkins.results.parser;
 
+import com.sun.net.httpserver.HttpServer;
+
 import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 
 import java.util.HashMap;
 import java.util.Properties;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -108,6 +115,59 @@ public class JenkinsResultsParserUtilTest
 				"cloud-10-50-0-2,cloud-10-50-0-49,cloud-10-50-0-50",
 			JenkinsResultsParserUtil.expandSlaveRange(
 				"cloud-10-50-0-47, cloud-10-50-0-0..2, cloud-10-50-0-49..50"));
+	}
+
+	@Test
+	public void testFetchBuildURL() throws Exception {
+		String buildURL =
+			"https://" + RandomTestUtil.randomString() + "/job/" +
+				RandomTestUtil.randomString() + "/1/";
+
+		_testFetchBuildURL(buildURL, buildURL);
+
+		_testFetchBuildURL(null, "");
+		_testFetchBuildURL(null, RandomTestUtil.randomString());
+
+		JenkinsMaster jenkinsMaster = Mockito.mock(JenkinsMaster.class);
+		String jobName = RandomTestUtil.randomString();
+
+		for (long queueId : new long[] {0, -1, Long.MIN_VALUE}) {
+			Assert.assertNull(
+				JenkinsResultsParserUtil.fetchBuildURL(
+					jobName, jenkinsMaster, queueId));
+		}
+
+		Assert.assertNull(
+			JenkinsResultsParserUtil.fetchBuildURL("", jenkinsMaster, 1));
+		Assert.assertNull(
+			JenkinsResultsParserUtil.fetchBuildURL(jobName, null, 1));
+
+		Mockito.verify(
+			jenkinsMaster, Mockito.never()
+		).getName();
+	}
+
+	@Test
+	public void testFetchBuildURLFailure() throws Exception {
+		JenkinsMaster jenkinsMaster = Mockito.mock(JenkinsMaster.class);
+
+		try (ServerSocket serverSocket = _createServerSocket()) {
+			Mockito.doReturn(
+				"localhost:" + serverSocket.getLocalPort()
+			).when(
+				jenkinsMaster
+			).getName();
+		}
+
+		String jobName = RandomTestUtil.randomString();
+
+		Assert.assertThrows(
+			IOException.class,
+			() -> JenkinsResultsParserUtil.fetchBuildURL(
+				jobName, jenkinsMaster, 1));
+
+		Assert.assertNull(
+			JenkinsResultsParserUtil.getBuildURL(jobName, jenkinsMaster, 1));
 	}
 
 	@Test
@@ -233,6 +293,19 @@ public class JenkinsResultsParserUtilTest
 	}
 
 	@Test
+	public void testGetMessage() {
+		testEquals(
+			"java.io.IOException",
+			JenkinsResultsParserUtil.getMessage(new IOException()));
+
+		String message = RandomTestUtil.randomString();
+
+		testEquals(
+			message,
+			JenkinsResultsParserUtil.getMessage(new IOException(message)));
+	}
+
+	@Test
 	public void testGetProperty() {
 		Properties properties = new Properties();
 
@@ -352,6 +425,9 @@ public class JenkinsResultsParserUtilTest
 			"false", properties, "build.caching.enabled",
 			"forward-pullrequest");
 		_testGetProperty(
+			"false", properties, "build.caching.enabled",
+			"merge-central-subrepository");
+		_testGetProperty(
 			"true", properties, "build.caching.enabled",
 			"test-portal-fixpack-release");
 		_testGetProperty(
@@ -364,6 +440,9 @@ public class JenkinsResultsParserUtilTest
 			"test-portal-source-format");
 		_testGetProperty(
 			"false", properties, "git.archive.enabled", "forward-pullrequest");
+		_testGetProperty(
+			"false", properties, "git.archive.enabled",
+			"merge-portal-subrepository");
 		_testGetProperty(
 			"true", properties, "git.archive.enabled", "test-portal-release");
 		_testGetProperty(
@@ -416,6 +495,218 @@ public class JenkinsResultsParserUtilTest
 	}
 
 	@Test
+	public void testGetThreadDump() {
+		String threadDump = JenkinsResultsParserUtil.getThreadDump();
+
+		Assert.assertTrue(
+			threadDump.contains(
+				"JenkinsResultsParserUtilTest.testGetThreadDump"));
+
+		Thread currentThread = Thread.currentThread();
+
+		Assert.assertTrue(
+			threadDump.contains(
+				JenkinsResultsParserUtil.combine(
+					"\"", currentThread.getName(), "\"")));
+	}
+
+	@Test(timeout = 30000)
+	public void testGetThreadDumpBlockedThread() throws Exception {
+		String lockOwnerThreadName = "lock-owner";
+		String lockWaiterThreadName = "lock-waiter";
+
+		Object lock = new Object();
+
+		CountDownLatch holdCountDownLatch = new CountDownLatch(1);
+		CountDownLatch lockedCountDownLatch = new CountDownLatch(1);
+
+		Thread lockOwnerThread = new Thread(
+			() -> {
+				synchronized (lock) {
+					lockedCountDownLatch.countDown();
+
+					try {
+						holdCountDownLatch.await();
+					}
+					catch (InterruptedException interruptedException) {
+						throw new RuntimeException(interruptedException);
+					}
+				}
+			},
+			lockOwnerThreadName);
+
+		Thread lockWaiterThread = new Thread(
+			() -> {
+				synchronized (lock) {
+				}
+			},
+			lockWaiterThreadName);
+
+		try {
+			lockOwnerThread.start();
+
+			lockedCountDownLatch.await();
+
+			lockWaiterThread.start();
+
+			while (lockWaiterThread.getState() != Thread.State.BLOCKED) {
+				JenkinsResultsParserUtil.sleep(10);
+			}
+
+			String threadDump = JenkinsResultsParserUtil.getThreadDump();
+
+			String lockWaiterThreadDumpEntry = _getThreadDumpEntry(
+				threadDump, lockWaiterThreadName);
+
+			Assert.assertTrue(lockWaiterThreadDumpEntry.contains("BLOCKED"));
+
+			Assert.assertTrue(
+				lockWaiterThreadDumpEntry.contains(
+					JenkinsResultsParserUtil.combine(
+						" on ", Object.class.getName(), "@",
+						Integer.toHexString(System.identityHashCode(lock)))));
+
+			Assert.assertTrue(
+				lockWaiterThreadDumpEntry.contains(
+					JenkinsResultsParserUtil.combine(
+						"owned by \"", lockOwnerThreadName, "\"")));
+
+			String lockOwnerThreadDumpEntry = _getThreadDumpEntry(
+				threadDump, lockOwnerThreadName);
+
+			Assert.assertTrue(lockOwnerThreadDumpEntry.contains("- locked"));
+		}
+		finally {
+			holdCountDownLatch.countDown();
+
+			lockOwnerThread.join();
+
+			lockWaiterThread.join();
+		}
+	}
+
+	@Test(timeout = 30000)
+	public void testGetThreadDumpDeadlockedThreads() throws Exception {
+		String threadName0 = "deadlock-0";
+		String threadName1 = "deadlock-1";
+
+		ReentrantLock reentrantLock0 = new ReentrantLock();
+		ReentrantLock reentrantLock1 = new ReentrantLock();
+
+		CountDownLatch bothLockedCountDownLatch = new CountDownLatch(2);
+		CountDownLatch proceedCountDownLatch = new CountDownLatch(1);
+
+		Thread thread0 = new Thread(
+			() -> _awaitDeadlock(
+				bothLockedCountDownLatch, reentrantLock0, proceedCountDownLatch,
+				reentrantLock1),
+			threadName0);
+
+		Thread thread1 = new Thread(
+			() -> _awaitDeadlock(
+				bothLockedCountDownLatch, reentrantLock1, proceedCountDownLatch,
+				reentrantLock0),
+			threadName1);
+
+		thread0.setDaemon(true);
+		thread1.setDaemon(true);
+
+		try {
+			thread0.start();
+			thread1.start();
+
+			bothLockedCountDownLatch.await();
+
+			proceedCountDownLatch.countDown();
+
+			String threadDump = JenkinsResultsParserUtil.getThreadDump();
+
+			for (int i = 0; i < 500; i++) {
+				if (threadDump.contains(" deadlocked threads:")) {
+					break;
+				}
+
+				JenkinsResultsParserUtil.sleep(10);
+
+				threadDump = JenkinsResultsParserUtil.getThreadDump();
+			}
+
+			Assert.assertTrue(threadDump.contains(" deadlocked threads:"));
+
+			String deadlockSection = threadDump.substring(
+				threadDump.indexOf(" deadlocked threads:"));
+
+			Assert.assertTrue(
+				deadlockSection.contains(
+					JenkinsResultsParserUtil.combine("\"", threadName0, "\"")));
+
+			Assert.assertTrue(
+				deadlockSection.contains(
+					JenkinsResultsParserUtil.combine("\"", threadName1, "\"")));
+
+			String threadDumpEntry = _getThreadDumpEntry(
+				threadDump, threadName0);
+
+			Assert.assertTrue(
+				threadDumpEntry.contains("\tLocked synchronizers:\n"));
+		}
+		finally {
+			thread0.interrupt();
+			thread1.interrupt();
+
+			thread0.join();
+			thread1.join();
+		}
+	}
+
+	@Test(timeout = 30000)
+	public void testGetThreadDumpTruncatedStack() throws Exception {
+		String threadName = "deep-stack";
+
+		CountDownLatch deepStackCountDownLatch = new CountDownLatch(1);
+		CountDownLatch holdCountDownLatch = new CountDownLatch(1);
+
+		Object lock = new Object();
+
+		Thread thread = new Thread(
+			() -> {
+				synchronized (lock) {
+					_buildDeepStack(
+						deepStackCountDownLatch, 60, holdCountDownLatch);
+				}
+			},
+			threadName);
+
+		thread.setDaemon(true);
+
+		try {
+			thread.start();
+
+			deepStackCountDownLatch.await();
+
+			int stackTraceElementsCount = 0;
+
+			String threadDumpEntry = _getThreadDumpEntry(
+				JenkinsResultsParserUtil.getThreadDump(), threadName);
+
+			for (String line : threadDumpEntry.split("\n")) {
+				if (line.startsWith("\tat ")) {
+					stackTraceElementsCount++;
+				}
+			}
+
+			Assert.assertEquals(40, stackTraceElementsCount);
+
+			Assert.assertTrue(threadDumpEntry.contains("\t...\n\t- locked "));
+		}
+		finally {
+			holdCountDownLatch.countDown();
+
+			thread.join();
+		}
+	}
+
+	@Test
 	public void testInvokeJenkinsBuild() throws Exception {
 		Environment environment = mockEnvironment();
 
@@ -434,12 +725,12 @@ public class JenkinsResultsParserUtilTest
 
 		JenkinsResultsParserUtil.setBuildProperties(buildProperties);
 
-		UrlReader urlReader = mockUrlReader();
+		mockURLReaders();
 
 		Mockito.doReturn(
 			"https://test-1-1.liferay.com/queue/item/12345"
 		).when(
-			urlReader
+			getStreamURLReader()
 		).doGetResponseHeader(
 			Mockito.eq("Location"), Mockito.any(), Mockito.any(), Mockito.any(),
 			Mockito.any(), Mockito.anyInt(), Mockito.anyString()
@@ -704,6 +995,52 @@ public class JenkinsResultsParserUtilTest
 		return environment;
 	}
 
+	private void _awaitDeadlock(
+		CountDownLatch bothLockedLatch, ReentrantLock heldLock,
+		CountDownLatch proceedLatch, ReentrantLock requestedLock) {
+
+		heldLock.lock();
+
+		try {
+			bothLockedLatch.countDown();
+
+			proceedLatch.await();
+
+			requestedLock.lockInterruptibly();
+
+			requestedLock.unlock();
+		}
+		catch (InterruptedException interruptedException) {
+			Thread currentThread = Thread.currentThread();
+
+			currentThread.interrupt();
+		}
+		finally {
+			heldLock.unlock();
+		}
+	}
+
+	private void _buildDeepStack(
+		CountDownLatch deepStackLatch, int depth, CountDownLatch holdLatch) {
+
+		if (depth > 0) {
+			_buildDeepStack(deepStackLatch, depth - 1, holdLatch);
+
+			return;
+		}
+
+		deepStackLatch.countDown();
+
+		try {
+			holdLatch.await();
+		}
+		catch (InterruptedException interruptedException) {
+			Thread currentThread = Thread.currentThread();
+
+			currentThread.interrupt();
+		}
+	}
+
 	private ServerSocket _createServerSocket() throws Exception {
 		return new ServerSocket(0, 1, InetAddress.getByName("localhost"));
 	}
@@ -727,6 +1064,76 @@ public class JenkinsResultsParserUtilTest
 			buildAwsPropertiesFile.exists());
 
 		return JenkinsResultsParserUtil.getProperties(buildAwsPropertiesFile);
+	}
+
+	private String _getThreadDumpEntry(String threadDump, String threadName) {
+		StringBuilder sb = new StringBuilder();
+
+		boolean matched = false;
+
+		for (String line : threadDump.split("\n")) {
+			if (line.startsWith(
+					JenkinsResultsParserUtil.combine("\"", threadName, "\""))) {
+
+				matched = true;
+			}
+			else if (matched && line.isEmpty()) {
+				break;
+			}
+
+			if (matched) {
+				sb.append(line);
+				sb.append("\n");
+			}
+		}
+
+		return sb.toString();
+	}
+
+	private void _testFetchBuildURL(
+			String expectedBuildURL, String scriptOutput)
+		throws Exception {
+
+		HttpServer httpServer = HttpServer.create(
+			new InetSocketAddress(InetAddress.getByName("localhost"), 0), 0);
+
+		httpServer.createContext(
+			"/script",
+			httpExchange -> {
+				byte[] bytes = JenkinsResultsParserUtil.combine(
+					"<pre>", scriptOutput, "</pre>"
+				).getBytes();
+
+				httpExchange.sendResponseHeaders(200, bytes.length);
+
+				try (OutputStream outputStream =
+						httpExchange.getResponseBody()) {
+
+					outputStream.write(bytes);
+				}
+			});
+
+		httpServer.start();
+
+		try {
+			JenkinsMaster jenkinsMaster = Mockito.mock(JenkinsMaster.class);
+
+			InetSocketAddress inetSocketAddress = httpServer.getAddress();
+
+			Mockito.doReturn(
+				"localhost:" + inetSocketAddress.getPort()
+			).when(
+				jenkinsMaster
+			).getName();
+
+			Assert.assertEquals(
+				expectedBuildURL,
+				JenkinsResultsParserUtil.fetchBuildURL(
+					RandomTestUtil.randomString(), jenkinsMaster, 1));
+		}
+		finally {
+			httpServer.stop(0);
+		}
 	}
 
 	private void _testGetJobVariant(

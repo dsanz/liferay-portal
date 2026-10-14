@@ -37,6 +37,14 @@ components:
                     format: int64
                     readOnly: true
                     type: integer
+                longStandingDraftsCount:
+                    format: int64
+                    readOnly: true
+                    type: integer
+                overdueWorkflowTasksCount:
+                    format: int64
+                    readOnly: true
+                    type: integer
                 pendingCount:
                     format: int64
                     readOnly: true
@@ -49,11 +57,19 @@ components:
                     format: int64
                     readOnly: true
                     type: integer
+                slaBreachedWorkflowTasksCount:
+                    format: int64
+                    readOnly: true
+                    type: integer
                 totalCount:
                     format: int64
                     readOnly: true
                     type: integer
                 upcomingReviewCount:
+                    format: int64
+                    readOnly: true
+                    type: integer
+                workflowTasksCount:
                     format: int64
                     readOnly: true
                     type: integer
@@ -81,10 +97,26 @@ components:
                     format: int64
                     readOnly: true
                     type: integer
+                deletedBrokenLinksCount:
+                    format: int64
+                    readOnly: true
+                    type: integer
+                draftBrokenLinksCount:
+                    format: int64
+                    readOnly: true
+                    type: integer
+                expiredBrokenLinksCount:
+                    format: int64
+                    readOnly: true
+                    type: integer
                 href:
                     readOnly: true
                     type: string
                 id:
+                    format: int64
+                    readOnly: true
+                    type: integer
+                inTrashBrokenLinksCount:
                     format: int64
                     readOnly: true
                     type: integer

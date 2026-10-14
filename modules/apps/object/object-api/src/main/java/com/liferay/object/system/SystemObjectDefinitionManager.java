@@ -15,6 +15,7 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.model.BaseModel;
+import com.liferay.portal.kernel.model.ExternalReferenceCodeModel;
 import com.liferay.portal.kernel.model.PersistedModel;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Sort;
@@ -27,6 +28,8 @@ import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 import com.liferay.portal.vulcan.util.ObjectMapperUtil;
 
+import java.io.Serializable;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -34,6 +37,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 /**
  * @author Marco Leo
@@ -68,8 +72,40 @@ public interface SystemObjectDefinitionManager {
 			String externalReferenceCode, long companyId)
 		throws PortalException;
 
-	public String getBaseModelExternalReferenceCode(long primaryKey)
-		throws PortalException;
+	public default String getBaseModelExternalReferenceCode(long primaryKey)
+		throws PortalException {
+
+		ExternalReferenceCodeModel externalReferenceCodeModel =
+			(ExternalReferenceCodeModel)getPersistedModel(primaryKey);
+
+		return externalReferenceCodeModel.getExternalReferenceCode();
+	}
+
+	public default Map<Serializable, String> getBaseModelExternalReferenceCodes(
+		Set<Serializable> primaryKeys) {
+
+		Map<Serializable, String> externalReferenceCodes = new HashMap<>();
+
+		PersistedModelLocalService persistedModelLocalService =
+			PersistedModelLocalServiceRegistryUtil.
+				getPersistedModelLocalService(getModelClassName());
+
+		Map<Serializable, PersistedModel> persistedModels =
+			persistedModelLocalService.fetchPersistedModels(primaryKeys);
+
+		for (Map.Entry<Serializable, PersistedModel> entry :
+				persistedModels.entrySet()) {
+
+			ExternalReferenceCodeModel externalReferenceCodeModel =
+				(ExternalReferenceCodeModel)entry.getValue();
+
+			externalReferenceCodes.put(
+				entry.getKey(),
+				externalReferenceCodeModel.getExternalReferenceCode());
+		}
+
+		return externalReferenceCodes;
+	}
 
 	public default long getBaseModelGroupId() {
 		return 0L;
@@ -128,6 +164,23 @@ public interface SystemObjectDefinitionManager {
 	}
 
 	public Map<Locale, String> getPluralLabelMap();
+
+	public default long getPrimaryKey(BaseModel<?> baseModel) {
+		Map<String, Function<Object, Object>> functions =
+			(Map<String, Function<Object, Object>>)
+				(Map<String, ?>)baseModel.getAttributeGetterFunctions();
+
+		Column<?, Long> column = getPrimaryKeyColumn();
+
+		Function<Object, Object> function = functions.get(column.getName());
+
+		if (function == null) {
+			throw new IllegalArgumentException(
+				"Base model does not have column: " + column.getName());
+		}
+
+		return (Long)function.apply(baseModel);
+	}
 
 	public Column<?, Long> getPrimaryKeyColumn();
 

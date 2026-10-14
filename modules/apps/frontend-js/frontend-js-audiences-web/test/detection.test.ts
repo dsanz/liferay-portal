@@ -30,6 +30,7 @@ function mockAudiencesDefinition(conjunction: Conjunction, rules: Rule[]) {
 			conjunction,
 			id: 'the_audience',
 			rules,
+			scope: [],
 		},
 	]);
 }
@@ -417,31 +418,34 @@ describe('detection', () => {
 		});
 	});
 
-	describe('attribute segments', () => {
-		it('positive test', async () => {
-			mockAudiencesDefinitionWithAttribute(
-				'segments',
-				'includes',
-				'SEGMENT_REAL_TIME'
-			);
+	describe.each(['batch_segments', 'real_time_segments'] as const)(
+		'attribute %s',
+		(attribute) => {
+			it('positive test', async () => {
+				mockAudiencesDefinitionWithAttribute(
+					attribute,
+					'includes',
+					'SEGMENT_REAL_TIME'
+				);
 
-			await audiences.runDetection(URL);
+				await audiences.runDetection(URL);
 
-			expect(audiences.get()).toEqual(new Set(['the_audience']));
-		});
+				expect(audiences.get()).toEqual(new Set(['the_audience']));
+			});
 
-		it('negative test', async () => {
-			mockAudiencesDefinitionWithAttribute(
-				'segments',
-				'includes',
-				'NON_EXISTENT_SEGMENT'
-			);
+			it('negative test', async () => {
+				mockAudiencesDefinitionWithAttribute(
+					attribute,
+					'includes',
+					'NON_EXISTENT_SEGMENT'
+				);
 
-			await audiences.runDetection(URL);
+				await audiences.runDetection(URL);
 
-			expect(audiences.get()).toEqual(new Set());
-		});
-	});
+				expect(audiences.get()).toEqual(new Set());
+			});
+		}
+	);
 
 	describe('attribute timezone', () => {
 		it('positive test', async () => {
@@ -584,6 +588,7 @@ describe('detection', () => {
 						value: 'US',
 					},
 				],
+				scope: [],
 			},
 			{
 				conjunction: 'AND',
@@ -591,6 +596,7 @@ describe('detection', () => {
 				rules: [
 					{attribute: 'hostname', operator: 'eq', value: 'localhost'},
 				],
+				scope: [],
 			},
 		]);
 
@@ -621,6 +627,7 @@ describe('detection', () => {
 							value: 'US',
 						},
 					],
+					scope: [],
 				},
 				{
 					conjunction: 'AND',
@@ -632,6 +639,7 @@ describe('detection', () => {
 							value: 'localhost',
 						},
 					],
+					scope: [],
 				},
 			]);
 

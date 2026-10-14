@@ -40,6 +40,8 @@ import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.lazy.referencing.LazyReferencingThreadLocal;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.UserNotificationDeliveryConstants;
@@ -49,6 +51,7 @@ import com.liferay.portal.kernel.module.configuration.ConfigurationException;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.security.permission.InlineSQLHelper;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionCheckerFactory;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
@@ -296,20 +299,11 @@ public class ObjectEntryServiceImpl extends ObjectEntryServiceBaseImpl {
 			boolean related, boolean reverse, String search, int start, int end)
 		throws PortalException {
 
-		List<ObjectEntry> objectEntries =
+		return _getObjectEntries(
+			groupId,
 			objectEntryLocalService.getManyToManyObjectEntries(
 				groupId, objectRelationshipId, primaryKey, related, reverse,
-				search, start, end);
-
-		if (!ObjectEntryThreadLocal.isSkipObjectEntryResourcePermission()) {
-			for (ObjectEntry objectEntry : objectEntries) {
-				objectEntryService.checkModelResourcePermission(
-					objectEntry.getObjectDefinitionId(),
-					objectEntry.getObjectEntryId(), ActionKeys.VIEW);
-			}
-		}
-
-		return objectEntries;
+				search, start, end));
 	}
 
 	@Override
@@ -386,8 +380,12 @@ public class ObjectEntryServiceImpl extends ObjectEntryServiceBaseImpl {
 		long groupId, long objectDefinitionId, int status) {
 
 		if (status == WorkflowConstants.STATUS_ANY) {
-			return objectEntryPersistence.countByG_ODI_NotS(
+			int count = objectEntryPersistence.countByG_ODI(
+				groupId, objectDefinitionId);
+			int trashCount = objectEntryPersistence.countByG_ODI_S(
 				groupId, objectDefinitionId, WorkflowConstants.STATUS_IN_TRASH);
+
+			return count - trashCount;
 		}
 
 		return objectEntryPersistence.countByG_ODI_S(
@@ -434,20 +432,11 @@ public class ObjectEntryServiceImpl extends ObjectEntryServiceBaseImpl {
 			String search, int start, int end, Sort[] sorts)
 		throws PortalException {
 
-		List<ObjectEntry> objectEntries =
+		return _getObjectEntries(
+			groupId,
 			objectEntryLocalService.getOneToManyObjectEntries(
 				groupId, objectRelationshipId, predicate, preferApproved,
-				primaryKey, related, search, start, end, sorts);
-
-		if (!ObjectEntryThreadLocal.isSkipObjectEntryResourcePermission()) {
-			for (ObjectEntry objectEntry : objectEntries) {
-				objectEntryService.checkModelResourcePermission(
-					objectEntry.getObjectDefinitionId(),
-					objectEntry.getObjectEntryId(), ActionKeys.VIEW);
-			}
-		}
-
-		return objectEntries;
+				primaryKey, related, search, start, end, sorts));
 	}
 
 	@Override
@@ -813,6 +802,36 @@ public class ObjectEntryServiceImpl extends ObjectEntryServiceBaseImpl {
 			getPermissionChecker(), objectEntry, actionId);
 	}
 
+	private List<ObjectEntry> _getObjectEntries(
+			long groupId, List<ObjectEntry> objectEntries)
+		throws PortalException {
+
+		if (ObjectEntryThreadLocal.isSkipObjectEntryResourcePermission() ||
+			_inlineSQLHelper.isEnabled(groupId)) {
+
+			return objectEntries;
+		}
+
+		return TransformUtil.transform(
+			objectEntries,
+			objectEntry -> {
+				try {
+					objectEntryService.checkModelResourcePermission(
+						objectEntry.getObjectDefinitionId(),
+						objectEntry.getObjectEntryId(), ActionKeys.VIEW);
+				}
+				catch (PortalException portalException) {
+					if (_log.isDebugEnabled()) {
+						_log.debug(portalException);
+					}
+
+					return null;
+				}
+
+				return objectEntry;
+			});
+	}
+
 	private ObjectEntry _getRootObjectEntry(
 			ObjectDefinition objectDefinition, Map<String, Serializable> values)
 		throws PortalException {
@@ -997,6 +1016,9 @@ public class ObjectEntryServiceImpl extends ObjectEntryServiceBaseImpl {
 		}
 	}
 
+	private static final Log _log = LogFactoryUtil.getLog(
+		ObjectEntryServiceImpl.class);
+
 	private static final TransactionConfig _transactionConfig =
 		TransactionConfig.Factory.create(
 			Propagation.REQUIRES_NEW, new Class<?>[] {Exception.class});
@@ -1006,6 +1028,9 @@ public class ObjectEntryServiceImpl extends ObjectEntryServiceBaseImpl {
 
 	@Reference
 	private ConfigurationProvider _configurationProvider;
+
+	@Reference
+	private InlineSQLHelper _inlineSQLHelper;
 
 	@Reference
 	private JSONFactory _jsonFactory;

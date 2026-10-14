@@ -1,13 +1,22 @@
+import mockStore from 'test/mock-store';
 import React from 'react';
 import VerticalTimeline from '../VerticalTimeline';
-import {cleanup, fireEvent, render, screen} from '@testing-library/react';
+import {cleanup, fireEvent, render, screen, within} from '@testing-library/react';
+import {Provider} from 'react-redux';
 
 jest.unmock('react-dom');
 
 const TIME_ZONE_ID = 'UTC';
 
+// The raw payload view carries a copy button, which announces a successful
+// copy through the alert store.
+
 const renderTimeline = (props) =>
-	render(<VerticalTimeline timeZoneId={TIME_ZONE_ID} {...props} />);
+	render(
+		<Provider store={mockStore()}>
+			<VerticalTimeline timeZoneId={TIME_ZONE_ID} {...props} />
+		</Provider>
+	);
 
 describe('VerticalTimeline', () => {
 	afterEach(cleanup);
@@ -16,17 +25,6 @@ describe('VerticalTimeline', () => {
 		const {container} = renderTimeline({loading: true});
 
 		expect(container.querySelector('.loading-root')).toBeInTheDocument();
-	});
-
-	describe('day row', () => {
-		it('shows the day title and its event count', () => {
-			renderTimeline({
-				items: [{header: true, title: 'Yesterday', totalEvents: 3}]
-			});
-
-			expect(screen.getByText('Yesterday')).toBeInTheDocument();
-			expect(screen.getByText('3')).toBeInTheDocument();
-		});
 	});
 
 	describe('individual row', () => {
@@ -55,8 +53,8 @@ describe('VerticalTimeline', () => {
 			expect(screen.getByText('Ada Lovelace').closest('a')).toBeNull();
 		});
 
-		it('shows the raw id on its own line for an anonymous individual', () => {
-			renderTimeline({
+		it('heads an anonymous individual with their id and labels them beneath it', () => {
+			const {container} = renderTimeline({
 				items: [
 					{
 						...INDIVIDUAL_ITEM,
@@ -68,8 +66,59 @@ describe('VerticalTimeline', () => {
 				]
 			});
 
-			expect(screen.getByText('Anonymous User')).toBeInTheDocument();
-			expect(screen.getByText('e484348e-anon')).toBeInTheDocument();
+			expect(
+				container.querySelector('.individual-title')
+			).toHaveTextContent('e484348e-anon');
+			expect(
+				container.querySelector('.individual-subtitle')
+			).toHaveTextContent('Anonymous User');
+		});
+
+		it('falls back to the label alone for an anonymous individual with no id', () => {
+			const {container} = renderTimeline({
+				items: [
+					{
+						individual: true,
+						individualName: 'Anonymous User',
+						isAnonymous: true
+					}
+				]
+			});
+
+			expect(
+				container.querySelector('.individual-title')
+			).toHaveTextContent('Anonymous User');
+			expect(
+				container.querySelector('.individual-subtitle')
+			).not.toBeInTheDocument();
+		});
+
+		it('links an anonymous individual by their id, not by the generic label', () => {
+			renderTimeline({
+				items: [
+					{
+						...INDIVIDUAL_ITEM,
+						individualId: 'e484348e-anon',
+						individualName: 'Anonymous User',
+						isAnonymous: true
+					}
+				]
+			});
+
+			expect(screen.getByText('Anonymous User').closest('a')).toBeNull();
+			expect(screen.getByText('e484348e-anon').closest('a')).toHaveAttribute(
+				'href',
+				INDIVIDUAL_ITEM.individualUrl
+			);
+		});
+
+		it('shows the job title on its own line when the session carries one', () => {
+			renderTimeline({
+				items: [{...INDIVIDUAL_ITEM, jobTitle: 'Plant Manager'}]
+			});
+
+			expect(screen.getByText('Plant Manager')).toBeInTheDocument();
+			expect(screen.queryByText('ind-1')).toBeNull();
 		});
 
 		it('is not expandable', () => {
@@ -109,6 +158,21 @@ describe('VerticalTimeline', () => {
 			).toBeInTheDocument();
 		});
 
+		it('reads device, data source, then event count across its details', () => {
+			const {container} = renderTimeline({items: [SESSION_ITEM]});
+
+			const details = Array.from(
+				container.querySelector('.session-row .row-details').children
+			);
+
+			expect(details.map((detail) => detail.className)).toEqual([
+				expect.stringContaining('device-icon'),
+				expect.stringContaining('data-source-label'),
+				expect.stringContaining('event-count-pill')
+			]);
+			expect(details[2]).toHaveTextContent('2');
+		});
+
 		it('shows "in progress" when the session has no end time', () => {
 			renderTimeline({items: [{...SESSION_ITEM, endTime: undefined}]});
 
@@ -132,11 +196,36 @@ describe('VerticalTimeline', () => {
 				container.querySelector('.attributes-payload')
 			).not.toBeInTheDocument();
 
-			fireEvent.click(container.querySelector('.session-row .row-main'));
+			fireEvent.click(
+				container.querySelector('.session-row .payload-button')
+			);
 
 			expect(
 				container.querySelector('.attributes-payload')
 			).toHaveTextContent('Session Attributes');
+		});
+
+		it('titles the attributes table with the header, instead of listing it as an attribute', () => {
+			const {container} = renderTimeline({items: [SESSION_ITEM]});
+
+			fireEvent.click(
+				container.querySelector('.session-row .payload-button')
+			);
+
+			expect(
+				container.querySelector('.payload-table-title')
+			).toHaveTextContent('Session Attributes');
+			expect(screen.queryByText('header')).not.toBeInTheDocument();
+		});
+
+		it('does not expand when the row itself is clicked', () => {
+			const {container} = renderTimeline({items: [SESSION_ITEM]});
+
+			fireEvent.click(container.querySelector('.session-row .row-main'));
+
+			expect(
+				container.querySelector('.attributes-payload')
+			).not.toBeInTheDocument();
 		});
 
 		it('always shows its pages, without needing to expand', () => {
@@ -283,6 +372,76 @@ describe('VerticalTimeline', () => {
 
 			expect(screen.getByText('pageViewed')).toBeInTheDocument();
 		});
+
+		it('does not show the experience label when the page carries no experience data', () => {
+			renderTimeline({items: [PAGE_ITEM]});
+
+			expect(screen.queryByText('Experience')).not.toBeInTheDocument();
+		});
+
+		it('does not show the experience label when experienceNames is empty', () => {
+			renderTimeline({items: [{...PAGE_ITEM, experienceNames: []}]});
+
+			expect(screen.queryByText('Experience')).not.toBeInTheDocument();
+		});
+
+		it('shows the experience label when the page was served by a non-default experience', () => {
+			renderTimeline({
+				items: [
+					{...PAGE_ITEM, experienceNames: ['Q3 Promo Experience']}
+				]
+			});
+
+			expect(screen.getByText('Experience')).toBeInTheDocument();
+		});
+
+		it('names the experience in the label\'s tooltip', () => {
+			renderTimeline({
+				items: [
+					{...PAGE_ITEM, experienceNames: ['Q3 Promo Experience']}
+				]
+			});
+
+			expect(
+				screen.getByText('Experience').closest('.experience-label-root')
+			).toHaveAttribute('title', 'Q3 Promo Experience');
+		});
+
+		it('lists every distinct experience in the tooltip, one per line', () => {
+			renderTimeline({
+				items: [
+					{
+						...PAGE_ITEM,
+						experienceNames: [
+							'Q3 Promo Experience',
+							'Winter Sale Experience'
+						]
+					}
+				]
+			});
+
+			expect(
+				screen.getByText('Experience').closest('.experience-label-root')
+			).toHaveAttribute(
+				'title',
+				'Q3 Promo Experience\nWinter Sale Experience'
+			);
+		});
+
+		it('shows the experience label alongside the event count, not on a nested event', () => {
+			const {container} = renderTimeline({
+				items: [
+					{...PAGE_ITEM, experienceNames: ['Q3 Promo Experience']}
+				]
+			});
+
+			expect(
+				container.querySelector('.row-metrics .event-count-pill')
+			).toBeInTheDocument();
+			expect(
+				container.querySelector('.row-metrics .experience-label')
+			).toBeInTheDocument();
+		});
 	});
 
 	describe('event row', () => {
@@ -319,6 +478,24 @@ describe('VerticalTimeline', () => {
 			);
 		});
 
+		it('shows its icon on a sticker', () => {
+			const {container} = renderTimeline({items: [EVENT_ITEM]});
+
+			expect(
+				container.querySelector('.event-row .event-sticker .row-icon')
+			).toBeInTheDocument();
+		});
+
+		it('does not expand when the row itself is clicked', () => {
+			const {container} = renderTimeline({items: [EVENT_ITEM]});
+
+			fireEvent.click(container.querySelector('.event-row .row-main'));
+
+			expect(
+				container.querySelector('.attributes-payload')
+			).not.toBeInTheDocument();
+		});
+
 		it('reveals its own raw attributes when expanded', () => {
 			const {container} = renderTimeline({items: [EVENT_ITEM]});
 
@@ -326,11 +503,160 @@ describe('VerticalTimeline', () => {
 				container.querySelector('.attributes-payload')
 			).not.toBeInTheDocument();
 
-			fireEvent.click(container.querySelector('.event-row .row-main'));
+			fireEvent.click(
+				container.querySelector('.event-row .payload-button')
+			);
 
 			expect(
 				container.querySelector('.attributes-payload')
 			).toHaveTextContent('HubSpot');
+		});
+
+		it('lays the attributes out as a property and value table', () => {
+			const {container} = renderTimeline({items: [EVENT_ITEM]});
+
+			fireEvent.click(
+				container.querySelector('.event-row .payload-button')
+			);
+
+			expect(screen.getByText('Property')).toBeInTheDocument();
+			expect(screen.getByText('Value')).toBeInTheDocument();
+
+			expect(
+				screen.getByText('applicationId').closest('tr')
+			).toHaveTextContent('HubSpot');
+		});
+
+		it('shows the acquisition parameters in a table of their own', () => {
+			const {container} = renderTimeline({
+				items: [
+					{
+						...EVENT_ITEM,
+						attributes: {
+							...EVENT_ITEM.attributes,
+							acquisitionProperties: {utm_medium: 'email'}
+						}
+					}
+				]
+			});
+
+			fireEvent.click(
+				container.querySelector('.event-row .payload-button')
+			);
+
+			const [attributesTable, utmTable] =
+				container.querySelectorAll('.payload-table');
+
+			expect(attributesTable).toHaveTextContent('Event Attributes');
+			expect(attributesTable).not.toHaveTextContent('utm_medium');
+
+			expect(utmTable).toHaveTextContent('UTM Parameters');
+			expect(
+				screen.getByText('utm_medium').closest('tr')
+			).toHaveTextContent('email');
+		});
+
+		const expandFirstEvent = () => {
+			const {container} = renderTimeline({items: [EVENT_ITEM]});
+
+			fireEvent.click(
+				container.querySelector('.event-row .payload-button')
+			);
+
+			return container;
+		};
+
+		it('leaves the value column in the default text color', () => {
+			expandFirstEvent();
+
+			expect(
+				screen.getByText('applicationId').closest('tr').querySelector('td')
+			).not.toHaveClass('text-secondary');
+		});
+
+		describe('payload views', () => {
+			it('titles the payload and offers a table and a code view', () => {
+				expandFirstEvent();
+
+				expect(screen.getByText('Details')).toBeInTheDocument();
+				expect(screen.getByText('Table')).toBeInTheDocument();
+				expect(screen.getByText('Code')).toBeInTheDocument();
+			});
+
+			it('shows the tables first', () => {
+				const container = expandFirstEvent();
+
+				expect(container.querySelector('.payload-table')).toBeInTheDocument();
+				expect(container.querySelector('.payload-code')).not.toBeInTheDocument();
+			});
+
+			it('shows the raw payload once code is chosen', () => {
+				const container = expandFirstEvent();
+
+				fireEvent.click(screen.getByText('Code'));
+
+				expect(container.querySelector('.payload-code')).toHaveTextContent(
+					'"applicationId": "HubSpot"'
+				);
+				expect(container.querySelector('.payload-table')).not.toBeInTheDocument();
+			});
+
+			it('returns to the tables once table is chosen again', () => {
+				const container = expandFirstEvent();
+
+				fireEvent.click(screen.getByText('Code'));
+				fireEvent.click(screen.getByText('Table'));
+
+				expect(container.querySelector('.payload-table')).toBeInTheDocument();
+				expect(container.querySelector('.payload-code')).not.toBeInTheDocument();
+			});
+
+			it('offers no copy button while the tables are showing', () => {
+				const container = expandFirstEvent();
+
+				expect(
+					container.querySelector('.payload-copy')
+				).not.toBeInTheDocument();
+			});
+
+			it('offers a copy button carrying the raw payload in the code view', () => {
+				const container = expandFirstEvent();
+
+				fireEvent.click(screen.getByText('Code'));
+
+				expect(container.querySelector('.payload-copy')).toHaveAttribute(
+					'data-clipboard-text',
+					JSON.stringify(EVENT_ITEM.attributes, null, 2)
+				);
+			});
+
+			it('names the copy button after what it copies', () => {
+				const container = expandFirstEvent();
+
+				fireEvent.click(screen.getByText('Code'));
+
+				const copy = container.querySelector('.payload-copy');
+
+				expect(copy).toHaveAttribute('aria-label', 'Copy Details');
+				expect(copy).toHaveAttribute('title', 'Copy Details');
+			});
+
+			it('keeps the chosen view to the row it was chosen on', () => {
+				const {container} = renderTimeline({
+					items: [EVENT_ITEM, {...EVENT_ITEM, title: 'emailClicked'}]
+				});
+
+				const [firstRow, secondRow] = container.querySelectorAll('.event-row');
+
+				fireEvent.click(firstRow.querySelector('.payload-button'));
+				fireEvent.click(secondRow.querySelector('.payload-button'));
+
+				fireEvent.click(within(firstRow).getByText('Code'));
+
+				expect(firstRow.querySelector('.payload-code')).toBeInTheDocument();
+				expect(secondRow.querySelector('.payload-code')).not.toBeInTheDocument();
+				expect(secondRow.querySelector('.payload-table')).toBeInTheDocument();
+			});
 		});
 	});
 });

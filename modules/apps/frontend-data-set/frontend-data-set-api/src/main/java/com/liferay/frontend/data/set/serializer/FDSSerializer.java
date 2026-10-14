@@ -32,6 +32,16 @@ public interface FDSSerializer {
 	public boolean isAvailable(
 		String fdsName, HttpServletRequest httpServletRequest);
 
+	public default String serializeAPIURL(
+		String fdsName, HttpServletRequest httpServletRequest) {
+
+		return serializeAPIURL(fdsName, httpServletRequest, true, null);
+	}
+
+	public String serializeAPIURL(
+		String fdsName, HttpServletRequest httpServletRequest,
+		boolean interpolate, JSONObject tokenResolutionsJSONObject);
+
 	public default String serializeAdditionalAPIURLParameters(
 		String fdsName, HttpServletRequest httpServletRequest) {
 
@@ -40,16 +50,6 @@ public interface FDSSerializer {
 	}
 
 	public String serializeAdditionalAPIURLParameters(
-		String fdsName, HttpServletRequest httpServletRequest,
-		boolean interpolate, JSONObject tokenResolutionsJSONObject);
-
-	public default String serializeAPIURL(
-		String fdsName, HttpServletRequest httpServletRequest) {
-
-		return serializeAPIURL(fdsName, httpServletRequest, true, null);
-	}
-
-	public String serializeAPIURL(
 		String fdsName, HttpServletRequest httpServletRequest,
 		boolean interpolate, JSONObject tokenResolutionsJSONObject);
 
@@ -84,6 +84,9 @@ public interface FDSSerializer {
 	public boolean serializeSearchAsYouType(
 		String fdsName, HttpServletRequest httpServletRequest);
 
+	public boolean serializeSearchSuggestionsEnabled(
+		String fdsName, HttpServletRequest httpServletRequest);
+
 	public boolean serializeShowSearch(
 		String fdsName, HttpServletRequest httpServletRequest);
 
@@ -94,6 +97,9 @@ public interface FDSSerializer {
 		String fdsName, HttpServletRequest httpServletRequest);
 
 	public List<FDSSortItem> serializeSorts(
+		String fdsName, HttpServletRequest httpServletRequest);
+
+	public JSONObject serializeUserConfiguration(
 		String fdsName, HttpServletRequest httpServletRequest);
 
 	public JSONArray serializeViews(

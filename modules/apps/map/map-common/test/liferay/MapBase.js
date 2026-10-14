@@ -36,6 +36,8 @@ describe('MapBase', () => {
 
 		this.on = jest.fn();
 
+		this.setDraggable = jest.fn();
+
 		this.setPosition = function (location) {
 			this.location = location;
 		};
@@ -100,6 +102,36 @@ describe('MapBase', () => {
 			expect(MapImpl.MarkerImpl.mock.calls[0][0].map).toBe('map');
 		});
 
+		it('passes a draggable marker to the constructor by default', () => {
+			mapImpl._map = 'map';
+
+			mapImpl.addMarker(getLocation());
+
+			expect(MapImpl.MarkerImpl.mock.lastCall[0].draggable).toBe(true);
+		});
+
+		it('passes a fixed marker to the constructor when draggablePin is false', () => {
+			const fixedPinMapImpl = new MapImpl({draggablePin: false});
+
+			fixedPinMapImpl._map = 'map';
+
+			fixedPinMapImpl.addMarker(getLocation());
+
+			expect(MapImpl.MarkerImpl.mock.lastCall[0].draggable).toBe(false);
+		});
+
+		it('updates the existing marker when draggablePin changes', () => {
+			mapImpl._map = 'map';
+
+			mapImpl._geolocationMarker = mapImpl.addMarker(getLocation());
+
+			mapImpl.draggablePin = false;
+
+			expect(
+				mapImpl._geolocationMarker.setDraggable
+			).toHaveBeenCalledWith(false);
+		});
+
 		it('does nothing if MarkerImpl is not implemented', () => {
 			MapImpl.MarkerImpl = null;
 
@@ -121,6 +153,25 @@ describe('MapBase', () => {
 				lng: 0,
 			});
 			expect(mapImpl.zoom).toBe(2);
+		});
+
+		it('requests the browser geolocation with a timeout', () => {
+			const getCurrentPosition = jest.fn();
+
+			navigator.geolocation = {getCurrentPosition};
+
+			try {
+				new MapImpl();
+
+				expect(getCurrentPosition).toHaveBeenCalledWith(
+					expect.any(Function),
+					expect.any(Function),
+					{timeout: 10000}
+				);
+			}
+			finally {
+				delete navigator.geolocation;
+			}
 		});
 	});
 
@@ -153,6 +204,18 @@ describe('MapBase', () => {
 
 			expect(mapImpl._customControls[MapImpl.CONTROLS.SEARCH]).toBe(null);
 			expect(control.dispose).toHaveBeenCalledTimes(1);
+		});
+	});
+
+	describe('dispose()', () => {
+		it('calls destructor()', () => {
+			const destructor = jest.spyOn(mapImpl, 'destructor');
+
+			mapImpl._geoJSONLayer = {dispose: jest.fn()};
+
+			mapImpl.dispose();
+
+			expect(destructor).toHaveBeenCalledTimes(1);
 		});
 	});
 

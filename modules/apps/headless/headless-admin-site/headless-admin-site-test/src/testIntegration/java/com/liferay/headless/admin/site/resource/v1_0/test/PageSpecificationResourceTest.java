@@ -74,8 +74,8 @@ import org.junit.runner.RunWith;
  */
 @FeatureFlags(
 	featureFlags = {
-		@FeatureFlag("LPD-10622"), @FeatureFlag("LPD-35443"),
-		@FeatureFlag("LPD-57283"), @FeatureFlag("LPD-74328")
+		@FeatureFlag("LPD-10622"), @FeatureFlag("LPD-57283"),
+		@FeatureFlag("LPD-74328")
 	}
 )
 @RunWith(Arquillian.class)
@@ -272,6 +272,14 @@ public class PageSpecificationResourceTest
 
 	@Override
 	@Test
+	public void testGetSiteSitePagePageSpecificationVersionPageSpecification()
+		throws Exception {
+
+		super.testGetSiteSitePagePageSpecificationVersionPageSpecification();
+	}
+
+	@Override
+	@Test
 	public void testGetSiteSitePagePageSpecificationsPage() throws Exception {
 		ServiceContext serviceContext =
 			ServiceContextTestUtil.getServiceContext(
@@ -286,14 +294,6 @@ public class PageSpecificationResourceTest
 				pageSpecificationResource.getSiteSitePagePageSpecificationsPage(
 					testGroup.getExternalReferenceCode(),
 					layout.getExternalReferenceCode()));
-	}
-
-	@Override
-	@Test
-	public void testGetSiteSitePagePageSpecificationVersionPageSpecification()
-		throws Exception {
-
-		super.testGetSiteSitePagePageSpecificationVersionPageSpecification();
 	}
 
 	@Override
@@ -547,7 +547,7 @@ public class PageSpecificationResourceTest
 
 		return _styleBookEntryLocalService.addStyleBookEntry(
 			null, TestPropsValues.getUserId(), serviceContext.getScopeGroupId(),
-			false, null, RandomTestUtil.randomString(), null,
+			false, null, null, RandomTestUtil.randomString(), null,
 			RandomTestUtil.randomString(), serviceContext);
 	}
 
@@ -1021,7 +1021,7 @@ public class PageSpecificationResourceTest
 		StyleBookEntry styleBookEntry =
 			_styleBookEntryLocalService.addStyleBookEntry(
 				null, TestPropsValues.getUserId(), irrelevantGroup.getGroupId(),
-				false, null, RandomTestUtil.randomString(), null,
+				false, null, null, RandomTestUtil.randomString(), null,
 				RandomTestUtil.randomString(),
 				ServiceContextTestUtil.getServiceContext(
 					irrelevantGroup.getGroupId(), TestPropsValues.getUserId()));
@@ -1281,7 +1281,7 @@ public class PageSpecificationResourceTest
 		StyleBookEntry styleBookEntry =
 			_styleBookEntryLocalService.addStyleBookEntry(
 				null, TestPropsValues.getUserId(), irrelevantGroup.getGroupId(),
-				false, null, RandomTestUtil.randomString(), null,
+				false, null, null, RandomTestUtil.randomString(), null,
 				RandomTestUtil.randomString(),
 				ServiceContextTestUtil.getServiceContext(
 					irrelevantGroup.getGroupId(), TestPropsValues.getUserId()));

@@ -28,11 +28,53 @@ import {Event} from 'event-analysis/utils/types';
 import {every, isBoolean, isString, isUndefined} from 'lodash';
 import {FieldContexts, FieldOwnerTypes} from 'shared/util/constants';
 import {fromJS, Map} from 'immutable';
+import {insertAtIndex} from 'shared/util/array';
 import {Property} from 'shared/util/records';
 import {v4 as uuidv4} from 'uuid';
 
 const GROUP_ID_NAMESPACE = 'group_';
 const ROW_ID_NAMESPACE = 'row_';
+
+/**
+ * Inserts a criterion coming from the conditions library into the group at
+ * the given index, creating the group when there is none yet.
+ */
+export const buildCriterion = ({
+	defaultValue,
+	operatorName,
+	propertyName,
+	touched,
+	type,
+	valid,
+	value,
+}: Criterion): Criterion =>
+	({
+		operatorName:
+			operatorName || getSupportedOperatorsFromType(type ?? '')[0].name,
+		propertyName,
+		rowId: generateRowId(),
+		touched,
+		type,
+		valid,
+		value: isValid(value) ? value : defaultValue,
+	}) as unknown as Criterion;
+
+export const addCriterionAtIndex = (
+	criteria: CriterionGroup | null | undefined,
+	index: number,
+	criterion: Criterion
+): CriterionGroup => {
+	const newCriterion = buildCriterion(criterion);
+
+	if (!criteria) {
+		return createNewGroup([newCriterion]);
+	}
+
+	return {
+		...criteria,
+		items: insertAtIndex(criteria.items, index, newCriterion),
+	};
+};
 
 export const createInterestProperty = (name: string): Property =>
 	new Property({
@@ -41,6 +83,15 @@ export const createInterestProperty = (name: string): Property =>
 		name,
 		propertyKey: 'interest',
 		type: PropertyTypes.Interest,
+	});
+
+export const createSearchTermProperty = (name: string): Property =>
+	new Property({
+		entityName: Liferay.Language.get('individual'),
+		label: name,
+		name,
+		propertyKey: 'search-term',
+		type: PropertyTypes.SearchTerm,
 	});
 
 export const createVocabularyProperty = ({
@@ -483,6 +534,9 @@ export const findPropertyByCriterion = (
 	}
 	else if (operatorName === CustomFunctionOperators.InterestsFilter) {
 		return createInterestProperty(propertyName ?? '');
+	}
+	else if (operatorName === CustomFunctionOperators.SearchTermsFilter) {
+		return createSearchTermProperty(propertyName ?? '');
 	}
 	else if (INDIVIDUAL_PROPERTIES.find(({name}) => name === propertyName)) {
 		return INDIVIDUAL_PROPERTIES.find(({name}) => name === propertyName);

@@ -47,8 +47,6 @@ spec:
                                 value: {{ printf "%s-%s-gateway" $layout.projectId $layout.environmentId | quote }}
                             -   name: projectId
                                 value: {{ $layout.projectId | quote }}
-                            -   name: region
-                                value: {{ .Values.deploymentContext.region | quote }}
                             {{- with .Values.infrastructure.parameters }}
                             {{- toYaml . | nindent 28 }}
                             {{- end }}
@@ -64,7 +62,7 @@ spec:
                     selfHeal: true
                 managedNamespaceMetadata:
                     labels:
-                        pod-security.kubernetes.io/enforce: restricted
+                        {{- include "liferay-platform.environmentNamespaceLabels" . | nindent 24 }}
                 retry:
                     backoff:
                         duration: 30s

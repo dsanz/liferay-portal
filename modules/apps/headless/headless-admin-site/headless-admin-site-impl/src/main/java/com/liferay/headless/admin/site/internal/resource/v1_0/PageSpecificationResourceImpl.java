@@ -114,8 +114,6 @@ public class PageSpecificationResourceImpl
 					displayPageTemplateExternalReferenceCode)
 		throws Exception {
 
-		EnabledUtil.checkEnabled(contextCompany);
-
 		LayoutPageTemplateEntry layoutPageTemplateEntry =
 			_layoutPageTemplateEntryService.
 				getLayoutPageTemplateEntryByExternalReferenceCode(
@@ -146,8 +144,6 @@ public class PageSpecificationResourceImpl
 				masterPageExternalReferenceCode)
 		throws Exception {
 
-		EnabledUtil.checkEnabled(contextCompany);
-
 		LayoutPageTemplateEntry layoutPageTemplateEntry =
 			_layoutPageTemplateEntryService.
 				getLayoutPageTemplateEntryByExternalReferenceCode(
@@ -175,8 +171,6 @@ public class PageSpecificationResourceImpl
 			String siteExternalReferenceCode,
 			String pageSpecificationExternalReferenceCode)
 		throws Exception {
-
-		EnabledUtil.checkEnabled(contextCompany);
 
 		Layout layout = _getLayout(
 			GroupUtil.getGroupId(
@@ -207,8 +201,6 @@ public class PageSpecificationResourceImpl
 				pageTemplateExternalReferenceCode)
 		throws Exception {
 
-		EnabledUtil.checkEnabled(contextCompany);
-
 		LayoutPageTemplateEntry layoutPageTemplateEntry =
 			_layoutPageTemplateEntryService.
 				getLayoutPageTemplateEntryByExternalReferenceCode(
@@ -232,42 +224,6 @@ public class PageSpecificationResourceImpl
 			_toPageSpecifications(
 				_layoutLocalService.getLayout(
 					layoutPageTemplateEntry.getPlid())));
-	}
-
-	@NestedField(parentClass = SitePage.class, value = "pageSpecifications")
-	@Override
-	public Page<PageSpecification> getSiteSitePagePageSpecificationsPage(
-			String siteExternalReferenceCode,
-			@NestedFieldId(value = "externalReferenceCode") String
-				sitePageExternalReferenceCode)
-		throws Exception {
-
-		EnabledUtil.checkEnabled(contextCompany);
-
-		Layout layout = _layoutService.getLayoutByExternalReferenceCode(
-			sitePageExternalReferenceCode,
-			GroupUtil.getGroupId(
-				true, contextCompany.getCompanyId(),
-				siteExternalReferenceCode));
-
-		if (layout.isDraftLayout() || layout.isTypeAssetDisplay() ||
-			layout.isTypeUtility()) {
-
-			throw new IllegalArgumentException(
-				"This page type cannot be modified through this endpoint");
-		}
-
-		LayoutPageTemplateEntry layoutPageTemplateEntry =
-			_layoutPageTemplateEntryLocalService.
-				fetchLayoutPageTemplateEntryByPlid(layout.getPlid());
-
-		if (layoutPageTemplateEntry != null) {
-			throw new IllegalArgumentException(
-				"The provided page external reference code belongs to a page " +
-					"template and cannot be used");
-		}
-
-		return Page.of(_toPageSpecifications(layout));
 	}
 
 	@NestedField(
@@ -311,6 +267,40 @@ public class PageSpecificationResourceImpl
 		return PageSpecification.unsafeToDTO(layoutContentVersion.getData());
 	}
 
+	@NestedField(parentClass = SitePage.class, value = "pageSpecifications")
+	@Override
+	public Page<PageSpecification> getSiteSitePagePageSpecificationsPage(
+			String siteExternalReferenceCode,
+			@NestedFieldId(value = "externalReferenceCode") String
+				sitePageExternalReferenceCode)
+		throws Exception {
+
+		Layout layout = _layoutService.getLayoutByExternalReferenceCode(
+			sitePageExternalReferenceCode,
+			GroupUtil.getGroupId(
+				true, contextCompany.getCompanyId(),
+				siteExternalReferenceCode));
+
+		if (layout.isDraftLayout() || layout.isTypeAssetDisplay() ||
+			layout.isTypeUtility()) {
+
+			throw new IllegalArgumentException(
+				"This page type cannot be modified through this endpoint");
+		}
+
+		LayoutPageTemplateEntry layoutPageTemplateEntry =
+			_layoutPageTemplateEntryLocalService.
+				fetchLayoutPageTemplateEntryByPlid(layout.getPlid());
+
+		if (layoutPageTemplateEntry != null) {
+			throw new IllegalArgumentException(
+				"The provided page external reference code belongs to a page " +
+					"template and cannot be used");
+		}
+
+		return Page.of(_toPageSpecifications(layout));
+	}
+
 	@NestedField(parentClass = UtilityPage.class, value = "pageSpecifications")
 	@Override
 	public Page<PageSpecification> getSiteUtilityPagePageSpecificationsPage(
@@ -318,8 +308,6 @@ public class PageSpecificationResourceImpl
 			@NestedFieldId(value = "externalReferenceCode") String
 				utilityPageExternalReferenceCode)
 		throws Exception {
-
-		EnabledUtil.checkEnabled(contextCompany);
 
 		LayoutUtilityPageEntry layoutUtilityPageEntry =
 			_layoutUtilityPageEntryService.

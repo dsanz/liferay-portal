@@ -4720,14 +4720,6 @@
 	},
 	{
 		"classNames": [
-			"PortletSharedSearchSettings"
-		],
-		"from": "getParameterValues71",
-		"issueKey": "LPD-48215",
-		"to": "getParameterValues"
-	},
-	{
-		"classNames": [
 			"CommerceOrderItem"
 		],
 		"from": "getBookedQuantityId",
@@ -5575,6 +5567,11 @@
 		]
 	},
 	{
+		"from": "regex:Optional<String\\[\\]>\\s+(?<variableName>\\w+)\\s*=\\s*portletSharedSearchSettings\\s*\\.\\s*getParameterValues71\\s*\\(\\s*(?<param>\\w+)\\s*\\)",
+		"issueKey": "LPD-60899",
+		"to": "String[] ${variableName} = portletSharedSearchSettings.getParameterValues(${param})"
+	},
+	{
 		"classNames": [
 			"CPCompareHelperUtil"
 		],
@@ -5892,18 +5889,6 @@
 		"to": "updateStructure(StringPool.BLANK, param#0#, param#1#, param#6#.getScopeGroupId(), param#2#, DDMStructureLocalServiceUtil.getStructure(param#1#).getClassNameId(), DDMStructureLocalServiceUtil.getStructure(param#1#).getStructureKey(), param#3#, param#4#, param#5#, param#6#)"
 	},
 	{
-		"classNames": [
-			"Language",
-			"LanguageUtil"
-		],
-		"from": "get(PageContext paramName, String paramName)",
-		"hasMessage": true,
-		"issueKey": "LPD-70233",
-		"validExtensions": [
-			"java"
-		]
-	},
-	{
 		"from": "regex:(?<class>Language(?:Util)?)\\.(?<method>format|get)\\(pageContext,",
 		"issueKey": "LPD-70233",
 		"to": "${class}.${method}(request,",
@@ -6057,6 +6042,31 @@
 		],
 		"newReference": "Sites _sites",
 		"to": "_sites.updateLayoutSetPrototypesLinks"
+	},
+	{
+		"classNames": [
+			"AccountEntryLocalService",
+			"AccountEntryLocalServiceUtil",
+			"AccountEntryService",
+			"AccountEntryServiceUtil"
+		],
+		"from": "addAccountEntry(long paramName, long paramName, String paramName, String paramName, String[] paramName, String paramName, byte[] paramName, String paramName, String paramName, int paramName, ServiceContext paramName)",
+		"issueKey": "LPD-99279",
+		"to": "addAccountEntry(null, param#0#, param#1#, param#2#, param#3#, param#4#, param#5#, param#6#, param#7#, param#8#, param#9#, param#10#)"
+	},
+	{
+		"classNames": [
+			"CPDefinitionSpecificationOptionValueLocalService",
+			"CPDefinitionSpecificationOptionValueLocalServiceUtil",
+			"CPDefinitionSpecificationOptionValueService",
+			"CPDefinitionSpecificationOptionValueServiceUtil"
+		],
+		"from": "updateCPDefinitionSpecificationOptionValue(long paramName, long paramName, Map<Locale, String> paramName, double paramName, ServiceContext paramName)",
+		"issueKey": "LPD-99283",
+		"newImports": [
+			"com.liferay.petra.string.StringPool"
+		],
+		"to": "updateCPDefinitionSpecificationOptionValue(null, param#0#, param#1#, StringPool.BLANK, param#3#, param#2#, true, param#4#)"
 	},
 	{
 		"classNames": [
@@ -6331,6 +6341,95 @@
 		"validExtensions": [
 			"java",
 			"jsp"
+		]
+	},
+	{
+		"classNames": [
+			"CommerceOrderHttpHelper"
+		],
+		"from": "getCommerceCartPortletURL(HttpServletRequest paramName)",
+		"hasMessage": true,
+		"issueKey": "LPD-102414"
+	},
+	{
+		"classNames": [
+			"CommerceOrderHttpHelper"
+		],
+		"from": "getCommerceCartPortletURL(HttpServletRequest paramName, CommerceOrder paramName)",
+		"hasMessage": true,
+		"issueKey": "LPD-102414"
+	},
+	{
+		"classNames": [
+			"CommerceOrderHttpHelper"
+		],
+		"from": "getCommerceCartPortletURL(long paramName, HttpServletRequest paramName, CommerceOrder paramName)",
+		"hasMessage": true,
+		"issueKey": "LPD-102414"
+	},
+	{
+		"classNames": [
+			"CPDefinitionInventoryEngine"
+		],
+		"from": "getMinStockQuantity(CPInstance paramName)",
+		"issueKey": "LPD-102781",
+		"to": "getMinStockQuantity(0, param#0#)"
+	},
+	{
+		"classNames": [
+			"CommerceOrderLocalService",
+			"CommerceOrderLocalServiceUtil",
+			"CommerceOrderLocalServiceWrapper",
+			"CommerceOrderService",
+			"CommerceOrderServiceUtil",
+			"CommerceOrderServiceWrapper"
+		],
+		"from": "updateCommerceOrder(String paramName, long paramName, long paramName, long paramName, long paramName, String paramName, String paramName, String paramName, BigDecimal paramName, String paramName, BigDecimal paramName, BigDecimal paramName, CommerceContext paramName)",
+		"issueKey": "LPD-103276",
+		"to": "updateCommerceOrder(param#0#, param#1#, param#2#, param#3#, param#4#, param#5#, param#6#, null, param#7#, param#8#, param#9#, param#10#, param#11#)"
+	},
+	{
+		"classNames": [
+			"Language",
+			"LanguageUtil"
+		],
+		"from": "get(PageContext paramName, String paramName)",
+		"hasMessage": true,
+		"issueKey": "LPD-105365"
+	},
+	{
+		"from": "PanelCategoryKeys.CONTROL_PANEL_CONFIGURATION",
+		"issueKey": "LPD-106961",
+		"to": "PanelCategoryKeys.CONTROL_PANEL_INSTANCE",
+		"validExtensions": [
+			"java",
+			"jsp"
+		]
+	},
+	{
+		"from": "PortletCategoryKeys.CONTROL_PANEL_CONFIGURATION",
+		"issueKey": "LPD-106961",
+		"to": "PortletCategoryKeys.CONTROL_PANEL_INSTANCE",
+		"validExtensions": [
+			"java",
+			"jsp"
+		]
+	},
+	{
+		"from": "regex:\\bcontrol_panel\\.configuration(?![\\w.-])",
+		"issueKey": "LPD-106961",
+		"to": "control_panel.instance",
+		"validExtensions": [
+			"java",
+			"jsp"
+		]
+	},
+	{
+		"from": "regex:\\bcontrol_panel\\.configuration(?![\\w.-])",
+		"issueKey": "LPD-106961",
+		"to": "control_panel.object",
+		"validExtensions": [
+			"json"
 		]
 	},
 	{
@@ -6625,26 +6724,57 @@
 		"classNames": [
 			"AddressLocalService",
 			"AddressLocalServiceUtil",
-			"AddressService",
-			"AddressServiceUtil"
+			"AddressLocalServiceWrapper"
 		],
 		"from": "addAddress(long paramName, String paramName, long paramName, String paramName, String paramName, String paramName, String paramName, String paramName, long paramName, long paramName, long paramName, boolean paramName, boolean paramName)",
 		"issueKey": "LPS-193462",
 		"newImports": [
 			"com.liferay.portal.kernel.service.ServiceContextThreadLocal"
 		],
-		"to": "addAddress(null, param#0#, param#1#, param#2#, null, null, param#3#, param#4#, param#5#, param#6#, param#7#, param#8#, param#9#, param#10#, param#11#, param#12#, null, ServiceContextThreadLocal.getServiceContext())"
+		"to": "addAddress(null, param#0#, param#1#, param#2#, param#9#, param#10#, param#8#, param#6#, null, param#11#, null, param#12#, param#3#, param#4#, param#5#, null, param#7#, null, ServiceContextThreadLocal.getServiceContext())"
 	},
 	{
 		"classNames": [
 			"AddressLocalService",
 			"AddressLocalServiceUtil",
-			"AddressService",
-			"AddressServiceUtil"
+			"AddressLocalServiceWrapper"
 		],
 		"from": "addAddress(long paramName, String paramName, long paramName, String paramName, String paramName, String paramName, String paramName, String paramName, long paramName, long paramName, long paramName, boolean paramName, boolean paramName, ServiceContext paramName)",
 		"issueKey": "LPS-193462",
-		"to": "addAddress(null, param#0#, param#1#, param#2#, null, null, param#3#, param#4#, param#5#, param#6#, param#7#, param#8#, param#9#, param#10#, param#11#, param#12#, null, param#13#)"
+		"to": "addAddress(null, param#0#, param#1#, param#2#, param#9#, param#10#, param#8#, param#6#, null, param#11#, null, param#12#, param#3#, param#4#, param#5#, null, param#7#, null, param#13#)"
+	},
+	{
+		"classNames": [
+			"AddressLocalService",
+			"AddressLocalServiceUtil",
+			"AddressLocalServiceWrapper"
+		],
+		"from": "addAddress(String paramName, long paramName, String paramName, long paramName, String paramName, String paramName, String paramName, String paramName, String paramName, String paramName, String paramName, long paramName, long paramName, long paramName, boolean paramName, boolean paramName, String paramName, ServiceContext paramName)",
+		"issueKey": "LPS-193462",
+		"to": "addAddress(param#0#, param#1#, param#2#, param#3#, param#12#, param#13#, param#11#, param#9#, param#5#, param#14#, param#4#, param#15#, param#6#, param#7#, param#8#, null, param#10#, param#16#, param#17#)"
+	},
+	{
+		"classNames": [
+			"AddressService",
+			"AddressServiceUtil",
+			"AddressServiceWrapper"
+		],
+		"from": "addAddress(String paramName, long paramName, String paramName, String paramName, String paramName, String paramName, String paramName, long paramName, long paramName, long paramName, boolean paramName, boolean paramName)",
+		"issueKey": "LPS-193462",
+		"newImports": [
+			"com.liferay.portal.kernel.service.ServiceContextThreadLocal"
+		],
+		"to": "addAddress(null, param#0#, param#1#, param#8#, param#9#, param#7#, param#5#, null, param#10#, null, param#11#, param#2#, param#3#, param#4#, null, param#6#, null, ServiceContextThreadLocal.getServiceContext())"
+	},
+	{
+		"classNames": [
+			"AddressService",
+			"AddressServiceUtil",
+			"AddressServiceWrapper"
+		],
+		"from": "addAddress(String paramName, String paramName, long paramName, String paramName, String paramName, String paramName, String paramName, String paramName, String paramName, String paramName, long paramName, long paramName, long paramName, boolean paramName, boolean paramName, String paramName, ServiceContext paramName)",
+		"issueKey": "LPS-193462",
+		"to": "addAddress(param#0#, param#1#, param#2#, param#11#, param#12#, param#10#, param#8#, param#4#, param#13#, param#3#, param#14#, param#5#, param#6#, param#7#, null, param#9#, param#15#, param#16#)"
 	},
 	{
 		"classNames": [

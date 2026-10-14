@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {expect, mergeTests} from '@playwright/test';
+import {Page, expect, mergeTests} from '@playwright/test';
 import {createReadStream} from 'fs';
 import path from 'path';
 
@@ -23,12 +23,14 @@ import {systemSettingsPageTest} from '../../../fixtures/systemSettingsPageTest';
 import {uiElementsPageTest} from '../../../fixtures/uiElementsTest';
 import {webContentDisplayPageTest} from '../../../fixtures/webContentDisplayPageTest';
 import getRandomString from '../../../utils/getRandomString';
+import {normalizeRestPath} from '../../../utils/normalizeRestPath';
 import {PORTLET_URLS} from '../../../utils/portletUrls';
 import {reloadUntilVisible} from '../../../utils/reloadUntilVisible';
 import {enableLocalStaging} from '../../../utils/staging';
 import getBasicWebContentStructureId from '../../../utils/structured-content/getBasicWebContentStructureId';
 import {exportImportPagesTest} from '../../export-import-web/main/fixtures/exportImportPagesTest';
 import {stagingPageTest} from '../../export-import-web/main/fixtures/stagingPageTest';
+import {StagingPage} from '../../export-import-web/main/pages/StagingPage';
 import {journalPagesTest} from '../../journal-web/main/fixtures/journalPagesTest';
 import {portletPublishToLivePageTest} from './fixtures/portletPublishToLivePageTest';
 import {stagingConfigurationPageTest} from './fixtures/stagingConfigurationPageTest';
@@ -46,6 +48,7 @@ export const test = mergeTests(
 	portletPublishToLivePageTest,
 	sitesPageTest,
 	stagingConfigurationPageTest,
+	stagingPageTest,
 	webContentDisplayPageTest,
 	uiElementsPageTest,
 	journalPagesTest,
@@ -66,11 +69,6 @@ export const testFlagsEnabled = mergeTests(
 	stagingPageTest,
 	test,
 	webContentDisplayPageTest
-);
-
-export const testWithSitePagesAPI = mergeTests(
-	test,
-	featureFlagsTest({'LPD-35443': {enabled: true}})
 );
 
 test(
@@ -480,7 +478,7 @@ testFlagsEnabled(
 	}
 );
 
-testWithSitePagesAPI(
+test(
 	'Staging is blocked for a Site linked to a Site Template with propagation enabled',
 	{tag: '@LPD-87027'},
 	async ({
@@ -521,7 +519,7 @@ testWithSitePagesAPI(
 		await expect(async () => {
 			const sitePages = await apiHelpers.headlessAdminSite.getPages(
 				externalReferenceCode,
-				'pageSize=100&privateLayout=false'
+				'flatten=true&pageSize=100&privateLayout=false'
 			);
 
 			expect(sitePages.items.length).toBeGreaterThan(0);
@@ -539,5 +537,230 @@ testWithSitePagesAPI(
 		).toBeVisible();
 
 		await expect(stagingConfigurationPage.localLiveRadio).toBeHidden();
+	}
+);
+
+const STAGING_PROCESSES_NAMESPACE =
+	'_com_liferay_staging_processes_web_portlet_StagingProcessesPortlet_';
+
+const XSS_PAYLOAD = "<img src=x onerror=alert('XSS98204')>";
+
+// Object labels are sanitized when they are stored, so only markup survives
+
+const OBJECT_LABEL_PAYLOAD = '<b>XSS98204</b>';
+
+// The import options are rendered by the legacy export/import UI
+
+const testWithLegacyExportImportUI = mergeTests(
+	test,
+	featureFlagsTest({'LPD-57655': {enabled: false}})
+);
+
+function collectDialogs(page: Page) {
+	const dialogs: string[] = [];
+
+	page.on('dialog', async (dialog) => {
+		dialogs.push(dialog.message());
+
+		await dialog.dismiss();
+	});
+
+	return dialogs;
+}
+
+async function waitForInitialPublication(page: Page, site: Site) {
+	await page.goto(
+		`/group${site.friendlyUrlPath}-staging${PORTLET_URLS.staging}`
+	);
+
+	await reloadUntilVisible({
+		maxAttempts: 10,
+		myLocator: page.getByText('Successful', {exact: true}),
+		page,
+	});
+}
+
+async function publishAndOpenSummary(
+	page: Page,
+	site: Site,
+	stagingPage: StagingPage
+) {
+	await stagingPage.goto(`${site.friendlyUrlPath.slice(1)}-staging`);
+
+	await stagingPage.publish();
+
+	await page
+		.locator(
+			'[id="_com_liferay_staging_processes_web_portlet_StagingProcessesPortlet_publishLayoutProcesses_1"]'
+		)
+		.getByRole('button')
+		.last()
+		.click();
+
+	await page
+		.getByText('Summary', {exact: true})
+		.filter({visible: true})
+		.click();
+
+	const summary = page.frameLocator('iframe');
+
+	await expect(summary.getByText('Pages Option')).toBeVisible();
+
+	return summary;
+}
+
+test(
+	'A cmd parameter in the publish URL is not executed as JavaScript',
+	{tag: '@LPD-98204'},
+	async ({apiHelpers, page}) => {
+		const site = await apiHelpers.headlessAdminSite.postSite({
+			name: getRandomString(),
+		});
+
+		await enableLocalStaging(apiHelpers, page, site);
+
+		await waitForInitialPublication(page, site);
+
+		const dialogs = collectDialogs(page);
+
+		const searchParams = new URLSearchParams({
+			[`${STAGING_PROCESSES_NAMESPACE}cmd`]:
+				"</script><svg onload=alert('XSS98204')>",
+			[`${STAGING_PROCESSES_NAMESPACE}mvcRenderCommandName`]:
+				'/staging_processes/publish_layouts',
+		});
+
+		await page.goto(
+			`/group${site.friendlyUrlPath}-staging${PORTLET_URLS.staging}&${searchParams}`
+		);
+
+		await expect(page.getByRole('radio', {name: 'Now'})).toBeVisible();
+
+		expect(dialogs).toHaveLength(0);
+	}
+);
+
+test(
+	'A page name in the publish process summary is not executed as JavaScript',
+	{tag: '@LPD-98204'},
+	async ({apiHelpers, page, stagingPage}) => {
+		const site = await apiHelpers.headlessAdminSite.postSite({
+			name: getRandomString(),
+		});
+
+		await enableLocalStaging(apiHelpers, page, site);
+
+		await waitForInitialPublication(page, site);
+
+		const stagingSite =
+			await apiHelpers.headlessAdminUser.getSiteByFriendlyUrlPath(
+				`${site.friendlyUrlPath}-staging`
+			);
+
+		await apiHelpers.jsonWebServicesLayout.addLayout({
+			groupId: stagingSite.id,
+			title: XSS_PAYLOAD,
+		});
+
+		const dialogs = collectDialogs(page);
+
+		const summary = await publishAndOpenSummary(page, site, stagingPage);
+
+		// The payload is rendered as text, not executed
+
+		await expect(summary.getByText(XSS_PAYLOAD)).toBeVisible();
+
+		expect(dialogs).toHaveLength(0);
+	}
+);
+
+test(
+	'A web content title in the publish process summary is not executed as JavaScript',
+	{tag: '@LPD-98204'},
+	async ({apiHelpers, page, stagingPage}) => {
+		const site = await apiHelpers.headlessAdminSite.postSite({
+			name: getRandomString(),
+		});
+
+		await enableLocalStaging(apiHelpers, page, site);
+
+		await waitForInitialPublication(page, site);
+
+		const stagingSite =
+			await apiHelpers.headlessAdminUser.getSiteByFriendlyUrlPath(
+				`${site.friendlyUrlPath}-staging`
+			);
+
+		await apiHelpers.jsonWebServicesJournal.addWebContent({
+			content: getRandomString(),
+			ddmStructureId: await getBasicWebContentStructureId(apiHelpers),
+			groupId: stagingSite.id,
+			titleMap: {en_US: XSS_PAYLOAD},
+		});
+
+		const dialogs = collectDialogs(page);
+
+		const summary = await publishAndOpenSummary(page, site, stagingPage);
+
+		// The payload is rendered as text, not executed
+
+		await expect(summary.getByText(XSS_PAYLOAD)).toBeVisible();
+
+		expect(dialogs).toHaveLength(0);
+	}
+);
+
+testWithLegacyExportImportUI(
+	'An object plural label in the import options is not rendered as markup',
+	{tag: '@LPD-98204'},
+	async ({apiHelpers, exportImportPage, page}) => {
+		const objectDefinition =
+			await apiHelpers.objectAdmin.postRandomObjectDefinition({
+				scope: 'site',
+				status: {code: 0},
+			});
+
+		apiHelpers.data.push({
+			id: objectDefinition.id,
+			type: 'objectDefinition',
+		});
+
+		await apiHelpers.patch(
+			`${apiHelpers.baseUrl}object-admin/v1.0/object-definitions/${objectDefinition.id}`,
+			{pluralLabel: {en_US: OBJECT_LABEL_PAYLOAD}}
+		);
+
+		const site = await apiHelpers.headlessAdminSite.postSite({
+			name: getRandomString(),
+		});
+
+		await apiHelpers.objectEntry.postObjectEntry(
+			{textField: getRandomString()},
+			`${normalizeRestPath(objectDefinition.restContextPath)}/scopes/${site.id}`
+		);
+
+		// Export the site with the object entries
+
+		await exportImportPage.goToExport(site.friendlyUrlPath);
+
+		const filePath = await exportImportPage.export({
+			exportAllPortlets: true,
+		});
+
+		// Upload the export to another site
+
+		const targetSite = await apiHelpers.headlessAdminSite.postSite({
+			name: getRandomString(),
+		});
+
+		await exportImportPage.goToImport(targetSite.friendlyUrlPath);
+
+		await exportImportPage.selectImportFile({filePath});
+
+		// The payload is rendered as text
+
+		await expect(
+			page.getByText(OBJECT_LABEL_PAYLOAD).first()
+		).toBeVisible();
 	}
 );

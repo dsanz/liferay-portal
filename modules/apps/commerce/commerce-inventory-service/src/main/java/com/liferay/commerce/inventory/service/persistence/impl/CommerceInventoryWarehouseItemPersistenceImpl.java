@@ -842,6 +842,10 @@ public class CommerceInventoryWarehouseItemPersistenceImpl
 		}
 		else {
 			if (!Objects.equals(
+					commerceInventoryWarehouseItem.getUuid(),
+					commerceInventoryWarehouseItem.
+						getExternalReferenceCode()) &&
+				!Objects.equals(
 					commerceInventoryWarehouseItemModelImpl.
 						getColumnOriginalValue("externalReferenceCode"),
 					commerceInventoryWarehouseItem.
@@ -1313,4 +1317,4 @@ public class CommerceInventoryWarehouseItemPersistenceImpl
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-1423547638
+// LIFERAY-SERVICE-BUILDER-HASH:-842615911

@@ -54,24 +54,29 @@ public abstract class BaseIndividualResourceImpl
 	 * curl -X 'GET' 'http://localhost:8080/o/faro-rest/v1.0/workspace/{groupId}/channels/{channelId}/individuals'  -u 'test@liferay.com:test'
 	 */
 	@io.swagger.v3.oas.annotations.Operation(
-		description = "List individuals for an Analytics Cloud workspace. Optionally narrowed to an associated account, channel, segment, or interest. Use this for queries to find a person. To fetch a single individual by id, use `getWorkspaceGroupIndividual` instead."
+		description = "List individuals for an Analytics Cloud workspace. Optionally narrowed to an associated account, segment, interest, activity status, or date range, and searchable by name or email with `search`. Use this for queries to find a person. To fetch a single individual by ID, use `getWorkspaceGroupIndividual` instead."
 	)
 	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
 			@io.swagger.v3.oas.annotations.Parameter(
-				description = "Identifier of the Liferay site that owns the Analytics Cloud workspace.",
+				description = "ID of the Liferay site that owns the Analytics Cloud workspace.",
 				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
 				name = "groupId"
 			),
 			@io.swagger.v3.oas.annotations.Parameter(
-				description = "Identifier of the channel whose search terms should be listed.",
+				description = "ID of the channel whose search terms should be listed.",
 				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
 				name = "channelId"
 			),
 			@io.swagger.v3.oas.annotations.Parameter(
-				description = "Optional account id to restrict results to individuals associated with an account.",
+				description = "Optional account ID to restrict results to individuals associated with an account.",
 				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
 				name = "accountId"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				description = "Optional engagement classification to restrict results to individuals with that activity status. The set of values is defined by the analytics engine.",
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "activityStatus"
 			),
 			@io.swagger.v3.oas.annotations.Parameter(
 				description = "If true, anonymous (browser-tracked) individuals are included. Defaults to false.",
@@ -79,7 +84,7 @@ public abstract class BaseIndividualResourceImpl
 				name = "includeAnonymousUsers"
 			),
 			@io.swagger.v3.oas.annotations.Parameter(
-				description = "Optional individual segment id to restrict results to members of that segment.",
+				description = "Optional individual segment ID to restrict results to members of that segment.",
 				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
 				name = "individualSegmentId"
 			),
@@ -97,6 +102,27 @@ public abstract class BaseIndividualResourceImpl
 				description = "Page size.",
 				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
 				name = "pageSize"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				description = "Custom range end as date (e.g. 2026-01-01). Use with rangeStart as a rangeKey alternative.",
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "rangeEnd"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				description = "Date range preset. Use one of the listed enum values (e.g. LAST_30_DAYS). Mutually exclusive with rangeStart/rangeEnd. If rangeKey is set, rangeStart and rangeEnd are ignored. For custom windows, omit rangeKey and provide rangeStart and rangeEnd as dates.",
+				example = "LAST_30_DAYS",
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "rangeKey"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				description = "Custom range start as date (e.g. 2026-01-01). Use with rangeEnd as a rangeKey alternative.",
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "rangeStart"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				description = "Free-text search across individual name, email, and related fields. Empty or null returns all individuals.",
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "search"
 			),
 			@io.swagger.v3.oas.annotations.Parameter(
 				description = "Sort expression `column:asc|desc`.",
@@ -126,6 +152,9 @@ public abstract class BaseIndividualResourceImpl
 			@jakarta.ws.rs.QueryParam("accountId")
 			String accountId,
 			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@jakarta.ws.rs.QueryParam("activityStatus")
+			String activityStatus,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
 			@jakarta.ws.rs.QueryParam("includeAnonymousUsers")
 			Boolean includeAnonymousUsers,
 			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
@@ -134,6 +163,18 @@ public abstract class BaseIndividualResourceImpl
 			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
 			@jakarta.ws.rs.QueryParam("interestName")
 			String interestName,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@jakarta.ws.rs.QueryParam("rangeEnd")
+			String rangeEnd,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@jakarta.ws.rs.QueryParam("rangeKey")
+			String rangeKey,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@jakarta.ws.rs.QueryParam("rangeStart")
+			String rangeStart,
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@jakarta.ws.rs.QueryParam("search")
+			String search,
 			@jakarta.ws.rs.core.Context Pagination pagination,
 			@jakarta.ws.rs.core.Context com.liferay.portal.kernel.search.Sort[]
 				sorts)
@@ -148,12 +189,12 @@ public abstract class BaseIndividualResourceImpl
 	 * curl -X 'GET' 'http://localhost:8080/o/faro-rest/v1.0/workspace/{groupId}/individuals/{individualId}'  -u 'test@liferay.com:test'
 	 */
 	@io.swagger.v3.oas.annotations.Operation(
-		description = "Fetch a single Individual from an Analytics Cloud workspace. Optionally narrowed to a channel (also known as property). Use this to fetch a contact's full profile once you have an id. To search individuals by name, email, or other attributes, use `getWorkspaceGroupChannelIndividualsPage`."
+		description = "Fetch a single Individual from an Analytics Cloud workspace. Optionally narrowed to a channel (also known as property). Use this to fetch a contact's full profile once you have an ID. To search individuals by name, email, or other attributes, use `getWorkspaceGroupChannelIndividualsPage`."
 	)
 	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
 			@io.swagger.v3.oas.annotations.Parameter(
-				description = "Identifier of the Liferay site that owns the Analytics Cloud workspace.",
+				description = "ID of the Liferay site that owns the Analytics Cloud workspace.",
 				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
 				name = "groupId"
 			),
@@ -163,7 +204,7 @@ public abstract class BaseIndividualResourceImpl
 				name = "individualId"
 			),
 			@io.swagger.v3.oas.annotations.Parameter(
-				description = "Optional channel id to scope the lookup to a single channel.",
+				description = "Optional channel ID to scope the lookup to a single channel.",
 				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
 				name = "channelId"
 			)
@@ -645,4 +686,4 @@ public abstract class BaseIndividualResourceImpl
 		LogFactoryUtil.getLog(BaseIndividualResourceImpl.class);
 
 }
-// LIFERAY-REST-BUILDER-HASH:1719518418
+// LIFERAY-REST-BUILDER-HASH:612105376

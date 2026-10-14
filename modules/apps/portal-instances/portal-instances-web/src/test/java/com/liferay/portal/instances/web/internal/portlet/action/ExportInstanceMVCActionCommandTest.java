@@ -5,28 +5,35 @@
 
 package com.liferay.portal.instances.web.internal.portlet.action;
 
-import com.liferay.portal.instances.exporter.PortalInstanceExporter;
-import com.liferay.portal.kernel.exception.RequiredCompanyException;
+import com.liferay.headless.portal.instances.resource.v1_0.PortalInstanceExportResource;
+import com.liferay.portal.db.partition.util.DBPartitionUtil;
+import com.liferay.portal.kernel.exception.NoSuchCompanyException;
+import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.language.Language;
+import com.liferay.portal.kernel.model.Company;
+import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.portlet.JSONPortletResponseUtil;
-import com.liferay.portal.kernel.security.auth.PrincipalException;
-import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.service.CompanyLocalService;
+import com.liferay.portal.kernel.servlet.HttpHeaders;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
-import com.liferay.portal.kernel.test.portlet.MockActionRequest;
-import com.liferay.portal.kernel.test.portlet.MockActionResponse;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
-import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.HtmlUtil;
-import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.kernel.util.ContentTypes;
+import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
+import com.liferay.portal.vulcan.accept.language.AcceptLanguage;
+import com.liferay.portal.vulcan.batch.engine.resource.VulcanBatchEngineImportTaskResource;
+import com.liferay.portal.vulcan.batch.engine.resource.VulcanBatchEngineImportTaskResourceFactory;
 
 import jakarta.portlet.ActionRequest;
 import jakarta.portlet.ActionResponse;
 import jakarta.portlet.PortletRequest;
 
-import java.util.Locale;
+import jakarta.servlet.http.HttpServletRequest;
+
+import java.util.List;
+import java.util.Map;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -34,8 +41,11 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+
+import org.osgi.service.component.ComponentServiceObjects;
 
 /**
  * @author Jorge Avalos
@@ -47,147 +57,339 @@ public class ExportInstanceMVCActionCommandTest {
 		LiferayUnitTestRule.INSTANCE;
 
 	@Before
-	public void setUp() {
+	public void setUp() throws Exception {
+		_dbPartitionUtilMockedStatic = Mockito.mockStatic(
+			DBPartitionUtil.class);
+
+		_dbPartitionUtilMockedStatic.when(
+			() -> DBPartitionUtil.getExportedPartitionName(_COMPANY_ID)
+		).thenCallRealMethod();
+
 		Mockito.when(
-			_language.format(
-				Mockito.nullable(Locale.class), Mockito.anyString(),
-				Mockito.<Object>any())
-		).thenAnswer(
-			invocationOnMock ->
-				invocationOnMock.getArgument(1) + ":" +
-					invocationOnMock.getArgument(2)
+			_actionRequest.getParameter("portalInstanceId")
+		).thenReturn(
+			_PORTAL_INSTANCE_ID
 		);
 
-		_htmlUtilMockedStatic = Mockito.mockStatic(HtmlUtil.class);
-
-		_htmlUtilMockedStatic.when(
-			() -> HtmlUtil.escape(Mockito.anyString())
-		).thenAnswer(
-			invocationOnMock -> invocationOnMock.getArgument(0)
+		Mockito.when(
+			_componentServiceObjects.getService()
+		).thenReturn(
+			_portalInstanceExportResource
 		);
 
-		_jsonPortletResponseUtilMockedStatic = Mockito.mockStatic(
-			JSONPortletResponseUtil.class);
-
-		_jsonPortletResponseUtilMockedStatic.when(
-			() -> JSONPortletResponseUtil.writeJSON(
-				Mockito.any(ActionRequest.class),
-				Mockito.any(ActionResponse.class),
-				Mockito.any(JSONObject.class))
-		).then(
-			invocationOnMock -> {
-				_jsonObject = invocationOnMock.getArgument(2);
-
-				return null;
-			}
-		);
-
+		ReflectionTestUtil.setFieldValue(
+			_exportInstanceMVCActionCommand, "_companyLocalService",
+			_companyLocalService);
+		ReflectionTestUtil.setFieldValue(
+			_exportInstanceMVCActionCommand, "_componentServiceObjects",
+			_componentServiceObjects);
+		ReflectionTestUtil.setFieldValue(
+			_exportInstanceMVCActionCommand, "_jsonFactory", _jsonFactory);
 		ReflectionTestUtil.setFieldValue(
 			_exportInstanceMVCActionCommand, "_language", _language);
 		ReflectionTestUtil.setFieldValue(
-			_exportInstanceMVCActionCommand, "_portalInstanceExporter",
-			_portalInstanceExporter);
+			_exportInstanceMVCActionCommand, "_portal", _portal);
+		ReflectionTestUtil.setFieldValue(
+			_exportInstanceMVCActionCommand,
+			"_vulcanBatchEngineImportTaskResourceFactory",
+			_vulcanBatchEngineImportTaskResourceFactory);
+
+		Company company = Mockito.mock(Company.class);
+
+		Mockito.when(
+			company.getCompanyId()
+		).thenReturn(
+			_COMPANY_ID
+		);
+
+		Mockito.when(
+			_companyLocalService.getCompanyByWebId(_PORTAL_INSTANCE_ID)
+		).thenReturn(
+			company
+		);
+
+		Mockito.when(
+			_jsonFactory.createJSONObject()
+		).thenReturn(
+			_jsonObject
+		);
+
+		Mockito.when(
+			_portal.getCompany(_actionRequest)
+		).thenReturn(
+			Mockito.mock(Company.class)
+		);
+
+		Mockito.when(
+			_portal.getHttpServletRequest(_actionRequest)
+		).thenReturn(
+			_httpServletRequest
+		);
+
+		Mockito.when(
+			_portal.getLocale(_actionRequest)
+		).thenReturn(
+			LocaleUtil.US
+		);
+
+		Mockito.when(
+			_portal.getUser(_actionRequest)
+		).thenReturn(
+			Mockito.mock(User.class)
+		);
+
+		Mockito.when(
+			_vulcanBatchEngineImportTaskResourceFactory.create()
+		).thenReturn(
+			_vulcanBatchEngineImportTaskResource
+		);
 	}
 
 	@After
 	public void tearDown() {
-		_htmlUtilMockedStatic.close();
-		_jsonPortletResponseUtilMockedStatic.close();
+		_dbPartitionUtilMockedStatic.close();
 	}
 
 	@Test
-	public void testErrorForEscapedExceptionMessage() throws Exception {
-		_assertError(
-			new RequiredCompanyException(_MESSAGE),
-			"export-failed-with-message-x:" + _MESSAGE);
-
-		_htmlUtilMockedStatic.verify(() -> HtmlUtil.escape(_MESSAGE));
-	}
-
-	@Test
-	public void testErrorForMustBeOmniadminException() throws Exception {
-		PrincipalException.MustBeOmniadmin mustBeOmniadminException =
-			new PrincipalException.MustBeOmniadmin(_permissionChecker);
-
-		_assertError(
-			mustBeOmniadminException,
-			"export-failed-with-message-x:" +
-				GetterUtil.getString(mustBeOmniadminException.getMessage()));
-	}
-
-	@Test
-	public void testErrorForNullExceptionMessage() throws Exception {
-		_assertError(
-			new RequiredCompanyException(), "export-failed-with-message-x:");
-	}
-
-	@Test
-	public void testSchemaNameOnSuccess() throws Exception {
-		Mockito.when(
-			_portalInstanceExporter.exportPortalInstance(_COMPANY_ID)
-		).thenReturn(
-			_EXPORTED_PARTITION_NAME
-		);
-
-		_exportInstanceMVCActionCommand.doProcessAction(
-			_getMockActionRequest(_COMPANY_ID), new MockActionResponse());
-
-		Assert.assertEquals(
-			"the-instance-was-exported-to-the-schema-x:" +
-				_EXPORTED_PARTITION_NAME,
-			_jsonObject.getString("successMessage"));
-
-		Assert.assertFalse(_jsonObject.has("error"));
+	public void testDoProcessAction() throws Exception {
+		_processAction();
 
 		Mockito.verify(
-			_portalInstanceExporter
-		).exportPortalInstance(
-			_COMPANY_ID
+			_portalInstanceExportResource
+		).postPortalInstanceExportBatch(
+			Mockito.isNull(), Mockito.any()
 		);
 
-		_jsonPortletResponseUtilMockedStatic.verify(
-			() -> JSONPortletResponseUtil.writeJSON(
-				Mockito.any(ActionRequest.class),
-				Mockito.any(ActionResponse.class), Mockito.eq(_jsonObject)));
+		Mockito.verify(
+			_jsonObject, Mockito.never()
+		).put(
+			Mockito.eq("error"), Mockito.any(Object.class)
+		);
 	}
 
-	private void _assertError(Exception exception, String expectedError)
+	@Test
+	public void testDoProcessActionWhenTheExportedSchemaExists()
+		throws Exception {
+
+		_dbPartitionUtilMockedStatic.when(
+			() -> DBPartitionUtil.existsExportedPartition(_COMPANY_ID)
+		).thenReturn(
+			true
+		);
+
+		String message = RandomTestUtil.randomString();
+
+		Mockito.when(
+			_language.format(
+				LocaleUtil.US, "the-exported-schema-x-already-exists",
+				DBPartitionUtil.getExportedPartitionName(_COMPANY_ID))
+		).thenReturn(
+			message
+		);
+
+		_processAction();
+
+		Mockito.verify(
+			_jsonObject
+		).put(
+			"error", message
+		);
+
+		Mockito.verifyNoInteractions(_componentServiceObjects);
+	}
+
+	@Test
+	public void testDoProcessActionWhenThePortalInstanceIsDeleted()
 		throws Exception {
 
 		Mockito.when(
-			_portalInstanceExporter.exportPortalInstance(_COMPANY_ID)
+			_companyLocalService.getCompanyByWebId(_PORTAL_INSTANCE_ID)
 		).thenThrow(
-			exception
+			new NoSuchCompanyException()
 		);
 
-		_exportInstanceMVCActionCommand.doProcessAction(
-			_getMockActionRequest(_COMPANY_ID), new MockActionResponse());
+		String message = RandomTestUtil.randomString();
 
-		Assert.assertEquals(expectedError, _jsonObject.getString("error"));
-		Assert.assertFalse(_jsonObject.has("successMessage"));
+		Mockito.when(
+			_language.format(
+				LocaleUtil.US, "the-instance-x-is-no-longer-available",
+				_PORTAL_INSTANCE_ID)
+		).thenReturn(
+			message
+		);
 
-		_jsonPortletResponseUtilMockedStatic.verify(
-			() -> JSONPortletResponseUtil.writeJSON(
-				Mockito.any(ActionRequest.class),
-				Mockito.any(ActionResponse.class), Mockito.eq(_jsonObject)));
+		_processAction();
+
+		Mockito.verify(
+			_jsonObject
+		).put(
+			"error", message
+		);
+
+		Mockito.verifyNoInteractions(_componentServiceObjects);
 	}
 
-	private MockActionRequest _getMockActionRequest(long companyId) {
-		MockActionRequest mockActionRequest = new MockActionRequest();
+	@Test
+	public void testExportPortalInstanceForcesTheJSONContentType()
+		throws Exception {
 
-		mockActionRequest.addParameter("companyId", String.valueOf(companyId));
-		mockActionRequest.setAttribute(
-			WebKeys.THEME_DISPLAY, Mockito.mock(ThemeDisplay.class));
+		Mockito.when(
+			_httpServletRequest.getHeader("X-Other")
+		).thenReturn(
+			"delegated"
+		);
 
-		return mockActionRequest;
+		_exportPortalInstance();
+
+		ArgumentCaptor<HttpServletRequest> argumentCaptor =
+			ArgumentCaptor.forClass(HttpServletRequest.class);
+
+		Mockito.verify(
+			_portalInstanceExportResource
+		).setContextHttpServletRequest(
+			argumentCaptor.capture()
+		);
+
+		HttpServletRequest httpServletRequest = argumentCaptor.getValue();
+
+		Assert.assertEquals(
+			ContentTypes.APPLICATION_JSON,
+			httpServletRequest.getHeader(HttpHeaders.CONTENT_TYPE));
+		Assert.assertEquals(
+			"delegated", httpServletRequest.getHeader("X-Other"));
+	}
+
+	@Test
+	public void testExportPortalInstanceSendsThePortalInstanceId()
+		throws Exception {
+
+		_exportPortalInstance();
+
+		ArgumentCaptor<Object> argumentCaptor = ArgumentCaptor.forClass(
+			Object.class);
+
+		Mockito.verify(
+			_portalInstanceExportResource
+		).postPortalInstanceExportBatch(
+			Mockito.isNull(), argumentCaptor.capture()
+		);
+
+		List<Map<String, String>> maps =
+			(List<Map<String, String>>)argumentCaptor.getValue();
+
+		Assert.assertEquals(maps.toString(), 1, maps.size());
+
+		Map<String, String> map = maps.get(0);
+
+		Assert.assertEquals(_PORTAL_INSTANCE_ID, map.get("portalInstanceId"));
+	}
+
+	@Test
+	public void testExportPortalInstanceSetsThePreferredLocale()
+		throws Exception {
+
+		_exportPortalInstance();
+
+		ArgumentCaptor<AcceptLanguage> argumentCaptor = ArgumentCaptor.forClass(
+			AcceptLanguage.class);
+
+		Mockito.verify(
+			_portalInstanceExportResource
+		).setContextAcceptLanguage(
+			argumentCaptor.capture()
+		);
+
+		AcceptLanguage acceptLanguage = argumentCaptor.getValue();
+
+		Assert.assertEquals(LocaleUtil.US, acceptLanguage.getPreferredLocale());
+	}
+
+	@Test
+	public void testExportPortalInstanceSetsTheVulcanBatchEngineResource()
+		throws Exception {
+
+		_exportPortalInstance();
+
+		Mockito.verify(
+			_portalInstanceExportResource
+		).setVulcanBatchEngineImportTaskResource(
+			_vulcanBatchEngineImportTaskResource
+		);
+	}
+
+	@Test
+	public void testExportPortalInstanceUngetsTheService() throws Exception {
+		_exportPortalInstance();
+
+		Mockito.verify(
+			_componentServiceObjects
+		).ungetService(
+			_portalInstanceExportResource
+		);
+	}
+
+	@Test
+	public void testExportPortalInstanceUngetsTheServiceWhenTheBatchFails()
+		throws Exception {
+
+		Mockito.when(
+			_portalInstanceExportResource.postPortalInstanceExportBatch(
+				Mockito.isNull(), Mockito.any())
+		).thenThrow(
+			new IllegalStateException()
+		);
+
+		try {
+			_exportPortalInstance();
+
+			Assert.fail();
+		}
+		catch (IllegalStateException illegalStateException) {
+		}
+
+		Mockito.verify(
+			_componentServiceObjects
+		).ungetService(
+			_portalInstanceExportResource
+		);
+	}
+
+	private void _exportPortalInstance() throws Exception {
+		ReflectionTestUtil.invoke(
+			_exportInstanceMVCActionCommand, "_exportPortalInstance",
+			new Class<?>[] {ActionRequest.class}, _actionRequest);
+	}
+
+	private void _processAction() throws Exception {
+		Mockito.when(
+			_actionRequest.getLocale()
+		).thenReturn(
+			LocaleUtil.US
+		);
+
+		try (MockedStatic<JSONPortletResponseUtil>
+				jsonPortletResponseUtilMockedStatic = Mockito.mockStatic(
+					JSONPortletResponseUtil.class)) {
+
+			ReflectionTestUtil.invoke(
+				_exportInstanceMVCActionCommand, "doProcessAction",
+				new Class<?>[] {ActionRequest.class, ActionResponse.class},
+				_actionRequest, Mockito.mock(ActionResponse.class));
+		}
 	}
 
 	private static final long _COMPANY_ID = RandomTestUtil.randomLong();
 
-	private static final String _EXPORTED_PARTITION_NAME =
+	private static final String _PORTAL_INSTANCE_ID =
 		RandomTestUtil.randomString();
 
-	private static final String _MESSAGE = RandomTestUtil.randomString();
+	private final ActionRequest _actionRequest = Mockito.mock(
+		ActionRequest.class);
+	private final CompanyLocalService _companyLocalService = Mockito.mock(
+		CompanyLocalService.class);
+	private final ComponentServiceObjects<PortalInstanceExportResource>
+		_componentServiceObjects = Mockito.mock(ComponentServiceObjects.class);
+	private MockedStatic<DBPartitionUtil> _dbPartitionUtilMockedStatic;
 
 	private final ExportInstanceMVCActionCommand
 		_exportInstanceMVCActionCommand = new ExportInstanceMVCActionCommand() {
@@ -199,14 +401,19 @@ public class ExportInstanceMVCActionCommandTest {
 
 		};
 
-	private MockedStatic<HtmlUtil> _htmlUtilMockedStatic;
-	private JSONObject _jsonObject;
-	private MockedStatic<JSONPortletResponseUtil>
-		_jsonPortletResponseUtilMockedStatic;
+	private final HttpServletRequest _httpServletRequest = Mockito.mock(
+		HttpServletRequest.class);
+	private final JSONFactory _jsonFactory = Mockito.mock(JSONFactory.class);
+	private final JSONObject _jsonObject = Mockito.mock(JSONObject.class);
 	private final Language _language = Mockito.mock(Language.class);
-	private final PermissionChecker _permissionChecker = Mockito.mock(
-		PermissionChecker.class);
-	private final PortalInstanceExporter _portalInstanceExporter = Mockito.mock(
-		PortalInstanceExporter.class);
+	private final Portal _portal = Mockito.mock(Portal.class);
+	private final PortalInstanceExportResource _portalInstanceExportResource =
+		Mockito.mock(PortalInstanceExportResource.class);
+	private final VulcanBatchEngineImportTaskResource
+		_vulcanBatchEngineImportTaskResource = Mockito.mock(
+			VulcanBatchEngineImportTaskResource.class);
+	private final VulcanBatchEngineImportTaskResourceFactory
+		_vulcanBatchEngineImportTaskResourceFactory = Mockito.mock(
+			VulcanBatchEngineImportTaskResourceFactory.class);
 
 }

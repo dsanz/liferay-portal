@@ -120,6 +120,7 @@ public class ExportProcessResourceTest
 	public void testGetExportProcess() throws Exception {
 		super.testGetExportProcess();
 
+		_testGetExportProcessErrorMessageWhenStatusIsSuccessful();
 		_testGetExportProcessErrorMessageWhenStatusMessageIsNotJSON();
 	}
 
@@ -526,14 +527,6 @@ public class ExportProcessResourceTest
 	}
 
 	@Override
-	protected ExportProcess testGetExportProcessesPage_addExportProcess(
-			ExportProcess exportProcess)
-		throws Exception {
-
-		return _addExportProcess(randomExportProcess(), _getCompanyGroupId());
-	}
-
-	@Override
 	protected ProcessProgress testGetExportProcessProgress_addProcessProgress(
 			long exportProcessId, ProcessProgress processProgress)
 		throws Exception {
@@ -552,6 +545,14 @@ public class ExportProcessResourceTest
 				percentage = 50;
 			}
 		};
+	}
+
+	@Override
+	protected ExportProcess testGetExportProcessesPage_addExportProcess(
+			ExportProcess exportProcess)
+		throws Exception {
+
+		return _addExportProcess(randomExportProcess(), _getCompanyGroupId());
 	}
 
 	@Override
@@ -840,6 +841,24 @@ public class ExportProcessResourceTest
 	}
 
 	@TestInfo("LPD-102315")
+	private void _testGetExportProcessErrorMessageWhenStatusIsSuccessful()
+		throws Exception {
+
+		ExportProcess exportProcess = _addExportProcess(
+			testGroup.getGroupId(), RandomTestUtil.randomString(),
+			BackgroundTaskExecutorNames.LAYOUT_EXPORT_BACKGROUND_TASK_EXECUTOR);
+
+		_backgroundTaskLocalService.amendBackgroundTask(
+			exportProcess.getId(), null, null,
+			BackgroundTaskConstants.STATUS_SUCCESSFUL, null, null);
+
+		ExportProcess successfulExportProcess =
+			exportProcessResource.getExportProcess(exportProcess.getId());
+
+		Assert.assertNull(successfulExportProcess.getErrorMessage());
+	}
+
+	@TestInfo("LPD-102315")
 	private void _testGetExportProcessErrorMessageWhenStatusMessageIsNotJSON()
 		throws Exception {
 
@@ -1003,27 +1022,6 @@ public class ExportProcessResourceTest
 			ObjectEntry::getExternalReferenceCode);
 	}
 
-	private void _testPostExportProcessWithoutPlid(
-			UnsafeFunction
-				<ExportProcessRequest, HttpInvoker.HttpResponse, Exception>
-					unsafeFunction)
-		throws Exception {
-
-		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
-				"com.liferay.portal.vulcan.internal.jaxrs.exception.mapper." +
-					"WebApplicationExceptionMapper",
-				LoggerTestUtil.WARN)) {
-
-			ExportProcessRequest exportProcessRequest =
-				new ExportProcessRequest();
-
-			exportProcessRequest.setName(RandomTestUtil.randomString());
-
-			assertHttpResponseStatusCode(
-				400, unsafeFunction.apply(exportProcessRequest));
-		}
-	}
-
 	@TestInfo("LPD-90359")
 	private void _testPostExportProcessWithPermissions(
 			long groupId, ObjectDefinition objectDefinition,
@@ -1087,6 +1085,27 @@ public class ExportProcessResourceTest
 		Assert.assertEquals(2, jsonArray2.length());
 
 		_objectDefinitionLocalService.deleteObjectDefinition(objectDefinition);
+	}
+
+	private void _testPostExportProcessWithoutPlid(
+			UnsafeFunction
+				<ExportProcessRequest, HttpInvoker.HttpResponse, Exception>
+					unsafeFunction)
+		throws Exception {
+
+		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
+				"com.liferay.portal.vulcan.internal.jaxrs.exception.mapper." +
+					"WebApplicationExceptionMapper",
+				LoggerTestUtil.WARN)) {
+
+			ExportProcessRequest exportProcessRequest =
+				new ExportProcessRequest();
+
+			exportProcessRequest.setName(RandomTestUtil.randomString());
+
+			assertHttpResponseStatusCode(
+				400, unsafeFunction.apply(exportProcessRequest));
+		}
 	}
 
 	private static final String _PORTLET_ID =

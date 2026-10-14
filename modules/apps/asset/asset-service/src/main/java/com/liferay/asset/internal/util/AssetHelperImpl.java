@@ -354,7 +354,11 @@ public class AssetHelperImpl implements AssetHelper {
 		Locale locale = themeDisplay.getLocale();
 
 		for (long classNameId : classNameIds) {
-			String className = _portal.getClassName(classNameId);
+			String className = _portal.fetchClassName(classNameId);
+
+			if (Validator.isNull(className)) {
+				continue;
+			}
 
 			AssetRendererFactory<?> assetRendererFactory =
 				AssetRendererFactoryRegistryUtil.
@@ -854,10 +858,10 @@ public class AssetHelperImpl implements AssetHelper {
 	private PortletLocalService _portletLocalService;
 
 	@Reference
-	private Searcher _searcher;
+	private SearchRequestBuilderFactory _searchRequestBuilderFactory;
 
 	@Reference
-	private SearchRequestBuilderFactory _searchRequestBuilderFactory;
+	private Searcher _searcher;
 
 	@Reference
 	private Sorts _sorts;

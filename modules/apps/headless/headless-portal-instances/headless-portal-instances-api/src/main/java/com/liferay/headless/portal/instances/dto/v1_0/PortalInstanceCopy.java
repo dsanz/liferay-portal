@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
@@ -24,6 +25,8 @@ import jakarta.xml.bind.annotation.XmlRootElement;
 
 import java.io.Serializable;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -41,7 +44,9 @@ import java.util.function.Supplier;
 )
 @io.swagger.v3.oas.annotations.media.Schema(
 	description = "Configuration for copying a portal instance.",
-	requiredProperties = {"name", "virtualHost", "webId"}
+	requiredProperties = {
+		"name", "sourcePortalInstanceId", "virtualHost", "webId"
+	}
 )
 @JsonFilter("Liferay.Vulcan")
 @XmlRootElement(name = "PortalInstanceCopy")
@@ -141,6 +146,51 @@ public class PortalInstanceCopy implements Serializable {
 
 	@JsonIgnore
 	private Supplier<String> _nameSupplier;
+
+	@io.swagger.v3.oas.annotations.media.Schema(
+		description = "The web ID of the portal instance to copy."
+	)
+	public String getSourcePortalInstanceId() {
+		if (_sourcePortalInstanceIdSupplier != null) {
+			sourcePortalInstanceId = _sourcePortalInstanceIdSupplier.get();
+
+			_sourcePortalInstanceIdSupplier = null;
+		}
+
+		return sourcePortalInstanceId;
+	}
+
+	public void setSourcePortalInstanceId(String sourcePortalInstanceId) {
+		this.sourcePortalInstanceId = sourcePortalInstanceId;
+
+		_sourcePortalInstanceIdSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setSourcePortalInstanceId(
+		UnsafeSupplier<String, Exception>
+			sourcePortalInstanceIdUnsafeSupplier) {
+
+		_sourcePortalInstanceIdSupplier = () -> {
+			try {
+				return sourcePortalInstanceIdUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField(description = "The web ID of the portal instance to copy.")
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	@NotEmpty
+	protected String sourcePortalInstanceId;
+
+	@JsonIgnore
+	private Supplier<String> _sourcePortalInstanceIdSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema(
 		description = "The virtual host of the new portal instance."
@@ -285,6 +335,22 @@ public class PortalInstanceCopy implements Serializable {
 			sb.append("\"");
 		}
 
+		String sourcePortalInstanceId = getSourcePortalInstanceId();
+
+		if (sourcePortalInstanceId != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"sourcePortalInstanceId\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(sourcePortalInstanceId));
+
+			sb.append("\"");
+		}
+
 		String virtualHost = getVirtualHost();
 
 		if (virtualHost != null) {
@@ -410,6 +476,27 @@ public class PortalInstanceCopy implements Serializable {
 		return sb.toString();
 	}
 
+	private static String _toJSON(Object value) {
+		if (value instanceof Collection) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONArray((Collection<?>)value));
+		}
+		else if (value instanceof Map) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONObject((Map<?, ?>)value));
+		}
+		else if (value instanceof Object[]) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONArray(
+					Arrays.asList((Object[])value)));
+		}
+		else if (value instanceof String) {
+			return StringBundler.concat("\"", _escape(value), "\"");
+		}
+
+		return String.valueOf(value);
+	}
+
 	private static final String[][] _JSON_ESCAPE_STRINGS = {
 		{"\\", "\"", "\b", "\f", "\n", "\r", "\t"},
 		{"\\\\", "\\\"", "\\b", "\\f", "\\n", "\\r", "\\t"}
@@ -418,4 +505,4 @@ public class PortalInstanceCopy implements Serializable {
 	private Map<String, Serializable> _extendedProperties;
 
 }
-// LIFERAY-REST-BUILDER-HASH:1101748747
+// LIFERAY-REST-BUILDER-HASH:499692405

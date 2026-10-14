@@ -7,6 +7,7 @@ package com.liferay.portal.tools.rest.builder.internal.freemarker.tool.java.pars
 
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.Filter;
 import com.liferay.portal.kernel.util.CamelCaseUtil;
@@ -87,6 +88,10 @@ public class ResourceOpenAPIParser {
 					_visitRequestBodyMediaTypes(
 						operation.getRequestBody(),
 						requestBodyMediaTypes -> {
+							if (operation.getOperationId() == null) {
+								operation.setCalculatedOperationId(true);
+							}
+
 							String operationId = _getOperationId(
 								configYAML, operation, path, returnType,
 								schemaName,
@@ -109,7 +114,8 @@ public class ResourceOpenAPIParser {
 										operationId),
 									returnType,
 									_getParentSchema(
-										path, pathItems, schemaName));
+										configYAML, path, pathItems,
+										schemaName));
 
 							javaMethodSignatures.add(javaMethodSignature);
 
@@ -539,6 +545,33 @@ public class ResourceOpenAPIParser {
 		return validMethodNames.contains(javaMethodSignature.getMethodName());
 	}
 
+	public static boolean isObjectMethodNameSuffixOverload(
+		JavaMethodSignature javaMethodSignature,
+		List<JavaMethodSignature> javaMethodSignatures) {
+
+		Operation operation = javaMethodSignature.getOperation();
+
+		String operationId = operation.getOperationId();
+
+		if (!StringUtil.equals(
+				javaMethodSignature.getMethodName(), operationId + "Object")) {
+
+			return false;
+		}
+
+		for (JavaMethodSignature curJavaMethodSignature :
+				javaMethodSignatures) {
+
+			if (StringUtil.equals(
+					curJavaMethodSignature.getMethodName(), operationId)) {
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	private static void _addBatchJavaMethodSignature(
 		ConfigYAML configYAML, JavaMethodSignature javaMethodSignature,
 		List<JavaMethodSignature> javaMethodSignatures) {
@@ -639,7 +672,7 @@ public class ResourceOpenAPIParser {
 			return "";
 		}
 
-		StringBundler sb = new StringBundler(5);
+		StringBundler sb = new StringBundler(6);
 
 		sb.append(
 			StringBundler.concat(
@@ -663,6 +696,10 @@ public class ResourceOpenAPIParser {
 		if (parameter.getExample() != null) {
 			sb.append(
 				String.format(", example = \"%s\"", parameter.getExample()));
+		}
+
+		if (parameter.isRequired()) {
+			sb.append(String.format(", required = %s", parameter.isRequired()));
 		}
 
 		sb.append("),");
@@ -894,7 +931,9 @@ public class ResourceOpenAPIParser {
 		Schema schema = _getOperationSchema(operation, requestBodyMediaTypes);
 
 		if ((operationId != null) && operationId.endsWith("PermissionsPage") &&
-			operationId.startsWith("put") && (schema == null)) {
+			operationId.startsWith("put") && (schema == null) &&
+			(!operation.isCalculatedOperationId() ||
+			 ConfigUtil.isVersionCompatible(configYAML, 9))) {
 
 			javaMethodParameters.add(
 				new JavaMethodParameter(
@@ -1162,7 +1201,9 @@ public class ResourceOpenAPIParser {
 				String previousMethodNameSegment = operationIdSegments.get(
 					operationIdSegments.size() - 1);
 
-				if (pathName.endsWith("ExternalReferenceCode")) {
+				if (pathName.endsWith("ExternalReferenceCode") &&
+					ConfigUtil.isVersionCompatible(configYAML, 10)) {
+
 					if (!(Objects.equals(
 							previousMethodNameSegment, "AssetLibrary") ||
 						  Objects.equals(previousMethodNameSegment, "Site") ||
@@ -1351,7 +1392,8 @@ public class ResourceOpenAPIParser {
 	}
 
 	private static String _getParentSchema(
-		String path, Map<String, PathItem> pathItems, String schemaName) {
+		ConfigYAML configYAML, String path, Map<String, PathItem> pathItems,
+		String schemaName) {
 
 		String basePath = path;
 
@@ -1381,6 +1423,8 @@ public class ResourceOpenAPIParser {
 			return null;
 		}
 
+		String lastPath = basePath.substring(lastIndexOfSlash + 1);
+
 		basePath = basePath.substring(0, lastIndexOfSlash);
 
 		if (basePath.startsWith(
@@ -1393,6 +1437,22 @@ public class ResourceOpenAPIParser {
 				 basePath.startsWith("/sites/{siteId}")) {
 
 			return "Site";
+		}
+
+		if (!basePath.contains(StringPool.OPEN_CURLY_BRACE) &&
+			!lastPath.contains(StringPool.OPEN_CURLY_BRACE)) {
+
+			String prefix = StringUtil.upperCaseFirstLetter(
+				OpenAPIUtil.formatSingular(
+					configYAML,
+					CamelCaseUtil.toCamelCase(basePath.substring(1))));
+
+			String suffix = StringUtil.upperCaseFirstLetter(
+				CamelCaseUtil.toCamelCase(lastPath));
+
+			if (schemaName.equals(prefix + suffix)) {
+				return null;
+			}
 		}
 
 		basePath = basePath.replaceAll("\\{parent([^}]*)\\}", "{$1}");

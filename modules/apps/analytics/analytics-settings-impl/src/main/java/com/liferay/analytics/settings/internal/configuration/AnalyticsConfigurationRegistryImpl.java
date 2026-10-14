@@ -236,6 +236,15 @@ public class AnalyticsConfigurationRegistryImpl
 			companyId, sapEntryName);
 
 		if (sapEntry != null) {
+			if (!Objects.equals(
+					sapEntry.getAllowedServiceSignatures(),
+					_SAP_ENTRY_OBJECT[1])) {
+
+				sapEntry.setAllowedServiceSignatures(_SAP_ENTRY_OBJECT[1]);
+
+				_sapEntryLocalService.updateSAPEntry(sapEntry);
+			}
+
 			return;
 		}
 
@@ -939,6 +948,8 @@ public class AnalyticsConfigurationRegistryImpl
 		AnalyticsSecurityConstants.SERVICE_ACCESS_POLICY_NAME,
 		StringBundler.concat(
 			"com.liferay.segments.asah.rest.internal.resource.v1_0.",
+			"AsahSegmentsEntryResourceImpl#postAsahSegmentsEntry\n",
+			"com.liferay.segments.asah.rest.internal.resource.v1_0.",
 			"ExperimentResourceImpl#deleteExperiment\n",
 			"com.liferay.segments.asah.rest.internal.resource.v1_0.",
 			"ExperimentRunResourceImpl#postExperimentRun\n",
@@ -963,11 +974,11 @@ public class AnalyticsConfigurationRegistryImpl
 		new ConcurrentHashMap<>();
 
 	@Reference
-	private AnalyticsDeleteMessageLocalService
-		_analyticsDeleteMessageLocalService;
+	private AnalyticsDXPEntityBatchExporter _analyticsDXPEntityBatchExporter;
 
 	@Reference
-	private AnalyticsDXPEntityBatchExporter _analyticsDXPEntityBatchExporter;
+	private AnalyticsDeleteMessageLocalService
+		_analyticsDeleteMessageLocalService;
 
 	@Reference
 	private AnalyticsSettingsManager _analyticsSettingsManager;

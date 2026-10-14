@@ -15,6 +15,7 @@ export class ElementVariationsPage {
 	readonly experiencePicker: Locator;
 	readonly hideToggle: Locator;
 	readonly htmlInput: Locator;
+	readonly issuesAlert: Locator;
 	readonly javaScriptInput: Locator;
 	readonly languageSelector: Locator;
 	readonly nameInput: Locator;
@@ -38,18 +39,13 @@ export class ElementVariationsPage {
 		this.experiencePicker = this.sidebar.getByLabel('Experience');
 		this.hideToggle = page.getByText('Hide Page Element');
 		this.htmlInput = page.getByLabel('HTML', {exact: true});
+		this.issuesAlert = this.sidebar.locator('.alert-warning');
 		this.javaScriptInput = page.getByLabel('JavaScript', {exact: true});
 		this.languageSelector = page.getByLabel('Select a language');
 		this.nameInput = page.getByLabel('Name');
-		this.newVariationButton = page
-			.getByRole('button', {
-				name: 'New Variation',
-			})
-			.or(
-				page.getByRole('button', {
-					name: 'New',
-				})
-			);
+		this.newVariationButton = page.getByRole('button', {
+			name: 'New Variation',
+		});
 		this.page = page;
 		this.pageElementPicker = page.getByLabel('Page Element');
 		this.preview = page.frameLocator('iframe[title="Element Variations"]');
@@ -112,6 +108,10 @@ export class ElementVariationsPage {
 		await this.saveButton.click();
 
 		await this.sidebar.getByText(name).waitFor();
+	}
+
+	async showIssueVariations() {
+		await this.issuesAlert.locator('.alert-footer .btn').click();
 	}
 
 	async startElementVariationDraft() {
@@ -178,6 +178,12 @@ export class ElementVariationsPage {
 		await this.cancelButton.click();
 
 		await this.experiencePicker.waitFor();
+	}
+
+	getAppliedFilter(label: string): Locator {
+		return this.sidebar
+			.locator('.label-dismissible')
+			.filter({hasText: label});
 	}
 
 	getPageElementOption(label: string): Locator {

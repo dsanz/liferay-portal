@@ -21,6 +21,7 @@ import AssetVersionRenderer from './cell_renderers/AssetVersionRenderer';
 import AuthorRenderer from './cell_renderers/AuthorRenderer';
 import VersionRenderer from './cell_renderers/VersionRenderer';
 import {executeAsyncItemAction} from './utils/executeAsyncItemAction';
+import styleDeleteAction from './utils/styleDeleteAction';
 import transformFDSBulkActions from './utils/transformFDSBulkActions';
 
 export default function ViewVersionHistoryFDSPropsTransformer({
@@ -98,16 +99,18 @@ export default function ViewVersionHistoryFDSPropsTransformer({
 				return {
 					...action,
 					isVisible: (item: any) => Boolean(!item?.file),
+					target: 'event',
 				};
 			}
 			else if (action?.data?.id === 'view-file') {
 				return {
 					...action,
 					isVisible: (item: any) => Boolean(item?.file?.thumbnailURL),
+					target: 'event',
 				};
 			}
 
-			return action;
+			return styleDeleteAction(action);
 		}),
 		onActionDropdownItemClick({
 			action,
@@ -328,5 +331,7 @@ export default function ViewVersionHistoryFDSPropsTransformer({
 				});
 			}
 		},
+		searchAsYouType: true,
+		searchSuggestionsEnabled: true,
 	};
 }

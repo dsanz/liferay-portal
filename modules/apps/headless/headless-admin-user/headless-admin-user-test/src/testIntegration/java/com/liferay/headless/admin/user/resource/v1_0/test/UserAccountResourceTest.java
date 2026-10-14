@@ -25,6 +25,7 @@ import com.liferay.depot.constants.DepotConstants;
 import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.service.DepotEntryGroupRelLocalService;
 import com.liferay.depot.service.DepotEntryLocalService;
+import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.expando.kernel.model.ExpandoColumn;
 import com.liferay.expando.kernel.model.ExpandoColumnConstants;
@@ -34,6 +35,7 @@ import com.liferay.expando.kernel.service.ExpandoColumnLocalService;
 import com.liferay.expando.kernel.service.ExpandoTableLocalService;
 import com.liferay.headless.admin.user.client.custom.field.CustomField;
 import com.liferay.headless.admin.user.client.custom.field.CustomValue;
+import com.liferay.headless.admin.user.client.dto.v1_0.AccountBrief;
 import com.liferay.headless.admin.user.client.dto.v1_0.Creator;
 import com.liferay.headless.admin.user.client.dto.v1_0.EmailAddress;
 import com.liferay.headless.admin.user.client.dto.v1_0.OrganizationBrief;
@@ -352,6 +354,38 @@ public class UserAccountResourceTest extends BaseUserAccountResourceTestCase {
 				_accountEntryUserRelLocalService.fetchAccountEntryUserRel(
 					_accountEntry.getAccountEntryId(), user.getUserId()));
 		}
+	}
+
+	@Override
+	@Test
+	public void testGetAccountUserAccountsPage() throws Exception {
+		super.testGetAccountUserAccountsPage();
+
+		_setUpTestUserAccountResource();
+
+		long accountId = RandomTestUtil.randomLong();
+
+		HttpInvoker.HttpResponse httpResponse1 =
+			_regularUserAccountResource.getAccountUserAccountsPageHttpResponse(
+				accountId, null, null, null, null);
+
+		Assert.assertEquals(
+			Response.Status.NOT_FOUND.getStatusCode(),
+			httpResponse1.getStatusCode());
+
+		String content = httpResponse1.getContent();
+
+		Assert.assertFalse(content.contains(String.valueOf(accountId)));
+
+		AccountEntry accountEntry = _addAccountEntry();
+
+		HttpInvoker.HttpResponse httpResponse2 =
+			_regularUserAccountResource.getAccountUserAccountsPageHttpResponse(
+				accountEntry.getAccountEntryId(), null, null, null, null);
+
+		Assert.assertEquals(
+			Response.Status.NOT_FOUND.getStatusCode(),
+			httpResponse2.getStatusCode());
 	}
 
 	@Override
@@ -721,6 +755,7 @@ public class UserAccountResourceTest extends BaseUserAccountResourceTestCase {
 				"((status eq 0) or (status eq 5))"),
 			userAccount1, userAccount2, userAccount3, userAccount6);
 
+		_testGetUserAccountsPagePastLastPage();
 		_testGetUserAccountsPageWithBirthDateFilter();
 		_testGetUserAccountsPageWithCustomFields();
 		_testGetUserAccountsPageWithSortCustomField();
@@ -949,7 +984,7 @@ public class UserAccountResourceTest extends BaseUserAccountResourceTestCase {
 		_setUpTestUserAccountResource();
 
 		_assertProblem(
-			"The user account password is invalid",
+			"The user account password is invalid.",
 			() -> _regularUserAccountResource.patchUserAccountHttpResponse(
 				_regularUserAccount.getId(),
 				new UserAccount() {
@@ -986,7 +1021,7 @@ public class UserAccountResourceTest extends BaseUserAccountResourceTestCase {
 			});
 
 		_testPatchUserAccountWithGender();
-		_testPatchUserAccountWithImageExternalReferenceCode();
+		_testPatchUserAccountWithImage();
 	}
 
 	@Override
@@ -1190,7 +1225,7 @@ public class UserAccountResourceTest extends BaseUserAccountResourceTestCase {
 		_regularUserAccount.setPassword(newPassword);
 
 		_assertProblem(
-			"The user account password is invalid",
+			"The user account password is invalid.",
 			() -> _regularUserAccountResource.putUserAccountHttpResponse(
 				_regularUserAccount.getId(), _regularUserAccount));
 
@@ -1218,6 +1253,7 @@ public class UserAccountResourceTest extends BaseUserAccountResourceTestCase {
 					userAccount.setPassword(() -> null);
 				}));
 
+		_testPutUserAccountBatchWithAccountBriefs();
 		_testPutUserAccountWithImageExternalReferenceCode();
 	}
 
@@ -1248,7 +1284,7 @@ public class UserAccountResourceTest extends BaseUserAccountResourceTestCase {
 		_regularUserAccount.setPassword(newPassword);
 
 		_assertProblem(
-			"The user account password is invalid",
+			"The user account password is invalid.",
 			() ->
 				_regularUserAccountResource.
 					putUserAccountByExternalReferenceCodeHttpResponse(
@@ -1917,14 +1953,23 @@ public class UserAccountResourceTest extends BaseUserAccountResourceTestCase {
 		return _expandoColumnLocalService.updateExpandoColumn(expandoColumn);
 	}
 
-	private FileEntry _addImageFileEntry() throws Exception {
+	private FileEntry _addImageFileEntry(boolean addPermissions)
+		throws Exception {
+
 		Company company = _companyLocalService.getCompany(
 			TestPropsValues.getCompanyId());
 
 		Group group = company.getGroup();
 
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(group.getGroupId());
+
+		serviceContext.setAddGroupPermissions(addPermissions);
+		serviceContext.setAddGuestPermissions(addPermissions);
+
 		LocalRepository localRepository =
-			RepositoryProviderUtil.getLocalRepository(group.getGroupId());
+			RepositoryProviderUtil.getLocalRepository(
+				serviceContext.getScopeGroupId());
 
 		byte[] bytes = FileUtil.getBytes(getClass(), "/images/liferay.png");
 
@@ -1936,8 +1981,7 @@ public class UserAccountResourceTest extends BaseUserAccountResourceTestCase {
 			RandomTestUtil.randomString(), ContentTypes.IMAGE_PNG,
 			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
 			StringPool.BLANK, StringPool.BLANK, inputStream, bytes.length, null,
-			null, null,
-			ServiceContextTestUtil.getServiceContext(group.getGroupId()));
+			null, null, serviceContext);
 	}
 
 	private UserAccount _addUserAccount(
@@ -2181,254 +2225,12 @@ public class UserAccountResourceTest extends BaseUserAccountResourceTestCase {
 		_regularUserAccountResource = builder.authentication(
 			_regularUserAccount.getEmailAddress(),
 			_regularUserAccountCurrentPassword
+		).endpoint(
+			testCompany.getVirtualHostname(),
+			PortalUtil.getPortalServerPort(false), "http"
 		).locale(
 			LocaleUtil.getDefault()
 		).build();
-	}
-
-	private void _testGetUserAccountsPage(
-			String filterString, UserAccount... expectedUserAccounts)
-		throws Exception {
-
-		Page<UserAccount> page = userAccountResource.getUserAccountsPage(
-			null, filterString,
-			Pagination.of(1, expectedUserAccounts.length + 1), null);
-
-		Assert.assertEquals(expectedUserAccounts.length, page.getTotalCount());
-
-		assertEqualsIgnoringOrder(
-			Arrays.asList(expectedUserAccounts),
-			(List<UserAccount>)page.getItems());
-
-		if (expectedUserAccounts.length > 0) {
-			assertValid(page);
-		}
-	}
-
-	private void _testGetUserAccountsPageWithBirthDateFilter()
-		throws Exception {
-
-		UserAccount userAccount1 = randomUserAccount();
-
-		Calendar calendar = CalendarFactoryUtil.getCalendar();
-
-		calendar.set(Calendar.YEAR, 1990);
-
-		userAccount1.setBirthDate(calendar.getTime());
-
-		userAccount1 = testGetUserAccountsPage_addUserAccount(userAccount1);
-
-		testGetUserAccountsPage_addUserAccount(randomUserAccount());
-
-		DateFormat dateFormat = DateFormatFactoryUtil.getSimpleDateFormat(
-			"yyyy-MM-dd");
-
-		_testGetUserAccountsPage("(birthDate eq 1979-01-01)");
-		_testGetUserAccountsPage(
-			StringBundler.concat(
-				"(birthDate eq ", dateFormat.format(calendar.getTime()), ")"),
-			userAccount1);
-	}
-
-	private void _testGetUserAccountsPageWithCustomFields() throws Exception {
-		ExpandoTable expandoTable = _expandoTableLocalService.addTable(
-			testGroup.getCompanyId(),
-			_classNameLocalService.getClassNameId(User.class),
-			ExpandoTableConstants.DEFAULT_TABLE_NAME);
-
-		Function<Number, List<String>> function = number -> Arrays.asList(
-			number.toString(), "0" + number, "00" + number, number + "0",
-			number + "00");
-
-		_testGetUserAccountsPageWithCustomFields(
-			ExpandoColumnConstants.DOUBLE, expandoTable, function,
-			RandomTestUtil::randomDouble);
-		_testGetUserAccountsPageWithCustomFields(
-			ExpandoColumnConstants.FLOAT, expandoTable, function,
-			RandomTestUtil::randomFloat);
-
-		_testGetUserAccountsPageWithCustomFields(
-			ExpandoColumnConstants.STRING, expandoTable,
-			value -> List.of(StringUtil.quote(value)),
-			RandomTestUtil::randomString);
-	}
-
-	private <T> void _testGetUserAccountsPageWithCustomFields(
-			int expandoColumnType, ExpandoTable expandoTable,
-			Function<T, List<String>> function, Supplier<T> supplier)
-		throws Exception {
-
-		ExpandoColumn expandoColumn = _addExpandoColumn(
-			expandoColumnType, expandoTable);
-
-		UserAccount userAccount = randomUserAccount();
-
-		T value = supplier.get();
-
-		userAccount.setCustomFields(
-			() -> new CustomField[] {
-				new CustomField() {
-					{
-						customValue = new CustomValue() {
-							{
-								data = value;
-							}
-						};
-						name = expandoColumn.getName();
-					}
-				}
-			});
-
-		userAccount = testGetUserAccountsPage_addUserAccount(userAccount);
-
-		for (String filterString : function.apply(value)) {
-			_testGetUserAccountsPage(
-				StringBundler.concat(
-					"(customFields/", expandoColumn.getName(), " eq ",
-					filterString, ")"),
-				userAccount);
-		}
-
-		for (String filterString : function.apply(supplier.get())) {
-			_testGetUserAccountsPage(
-				StringBundler.concat(
-					"(customFields/", expandoColumn.getName(), " eq ",
-					filterString, ")"));
-		}
-	}
-
-	private void _testGetUserAccountsPageWithSortCustomField()
-		throws Exception {
-
-		ExpandoTable expandoTable = _expandoTableLocalService.addTable(
-			testGroup.getCompanyId(),
-			_classNameLocalService.getClassNameId(User.class),
-			ExpandoTableConstants.DEFAULT_TABLE_NAME);
-
-		_testGetUserAccountsPageWithSortCustomField(
-			expandoTable, ExpandoColumnConstants.DATE,
-			Arrays.asList(
-				"2000-07-27T00:00:00Z", "2000-07-27T10:00:00Z",
-				"2000-07-28T00:00:00Z"));
-		_testGetUserAccountsPageWithSortCustomField(
-			expandoTable, ExpandoColumnConstants.DOUBLE,
-			Arrays.asList(1.001, 01.01, 001.1));
-		_testGetUserAccountsPageWithSortCustomField(
-			expandoTable, ExpandoColumnConstants.FLOAT,
-			Arrays.asList(1.001F, 01.01F, 001.1F));
-	}
-
-	private void _testGetUserAccountsPageWithSortCustomField(
-			ExpandoTable expandoTable, int expandoColumnType,
-			List<Object> values)
-		throws Exception {
-
-		String domainName = StringUtil.randomString() + ".com";
-		ExpandoColumn expandoColumn = _addExpandoColumn(
-			expandoColumnType, expandoTable);
-
-		List<UserAccount> userAccounts = TransformUtil.transform(
-			values,
-			value -> userAccountResource.postUserAccount(
-				null, null,
-				_randomUserAccount(
-					userAccount -> {
-						userAccount.setCustomFields(
-							() -> new CustomField[] {
-								new CustomField() {
-									{
-										customValue = new CustomValue() {
-											{
-												data = value;
-											}
-										};
-										name = expandoColumn.getName();
-									}
-								}
-							});
-
-						userAccount.setEmailAddress(
-							RandomTestUtil.randomString() + '@' + domainName);
-					})));
-
-		Page<UserAccount> page = userAccountResource.getUserAccountsPage(
-			domainName, null, Pagination.of(1, 10),
-			"customFields/" + expandoColumn.getName() + ":asc");
-
-		assertEquals(userAccounts, (List<UserAccount>)page.getItems());
-
-		page = userAccountResource.getUserAccountsPage(
-			domainName, null, Pagination.of(1, 10),
-			"customFields/" + expandoColumn.getName() + ":desc");
-
-		Collections.reverse(userAccounts);
-
-		assertEquals(userAccounts, (List<UserAccount>)page.getItems());
-	}
-
-	private void _testGetUserAccountsPageWithSortFullName() throws Exception {
-		String domainName = StringUtil.randomString() + ".com";
-		List<UserAccount> userAccounts = new ArrayList<>();
-
-		userAccounts.add(
-			userAccountResource.postUserAccount(
-				null, null,
-				_randomUserAccount(
-					userAccount -> {
-						userAccount.setGivenName("aaa");
-						userAccount.setEmailAddress("aaa@" + domainName);
-					})));
-		userAccounts.add(
-			userAccountResource.postUserAccount(
-				null, null,
-				_randomUserAccount(
-					userAccount -> {
-						userAccount.setGivenName("bbb");
-						userAccount.setEmailAddress("bbb@" + domainName);
-					})));
-
-		Page<UserAccount> page = userAccountResource.getUserAccountsPage(
-			domainName, null, Pagination.of(1, 10), "name:asc");
-
-		assertEquals(userAccounts, (List<UserAccount>)page.getItems());
-
-		Collections.reverse(userAccounts);
-
-		page = userAccountResource.getUserAccountsPage(
-			domainName, null, Pagination.of(1, 10), "name:desc");
-
-		assertEquals(userAccounts, (List<UserAccount>)page.getItems());
-	}
-
-	private void _testGetUserAccountsPageWithSortId() throws Exception {
-		List<UserAccount> userAccounts = new ArrayList<>();
-
-		String domainName = StringUtil.randomString() + ".com";
-
-		userAccounts.add(
-			userAccountResource.postUserAccount(
-				null, null,
-				_randomUserAccount(
-					userAccount -> userAccount.setEmailAddress(
-						"aaa@" + domainName))));
-		userAccounts.add(
-			userAccountResource.postUserAccount(
-				null, null,
-				_randomUserAccount(
-					userAccount -> userAccount.setEmailAddress(
-						"bbb@" + domainName))));
-
-		Page<UserAccount> page = userAccountResource.getUserAccountsPage(
-			domainName, null, Pagination.of(1, 10), "id:asc");
-
-		assertEquals(userAccounts, (List<UserAccount>)page.getItems());
-
-		Collections.reverse(userAccounts);
-
-		page = userAccountResource.getUserAccountsPage(
-			domainName, null, Pagination.of(1, 10), "id:desc");
-
-		assertEquals(userAccounts, (List<UserAccount>)page.getItems());
 	}
 
 	private void _testGetUserAccountWithCustomObjectField() throws Exception {
@@ -2524,6 +2326,22 @@ public class UserAccountResourceTest extends BaseUserAccountResourceTestCase {
 
 		_assertListEntries(
 			jsonObject.getJSONArray(objectFieldName), listTypeEntryKey1);
+
+		HTTPTestUtil.invokeToJSONObject(
+			_jsonFactory.createJSONObject(
+				randomUserAccount().toString()
+			).put(
+				objectFieldName, JSONUtil.putAll(listTypeEntryKey2)
+			).toString(),
+			"headless-admin-user/v1.0/user-accounts/" + user.getUserId(),
+			Http.Method.PUT);
+
+		jsonObject = HTTPTestUtil.invokeToJSONObject(
+			null, "headless-admin-user/v1.0/user-accounts/" + user.getUserId(),
+			Http.Method.GET);
+
+		_assertListEntries(
+			jsonObject.getJSONArray(objectFieldName), listTypeEntryKey2);
 
 		JSONObject openAPIJSONObject = HTTPTestUtil.invokeToJSONObject(
 			null, "headless-admin-user/v1.0/openapi.json", Http.Method.GET);
@@ -2752,6 +2570,9 @@ public class UserAccountResourceTest extends BaseUserAccountResourceTestCase {
 		UserAccountResource userAccountResource = UserAccountResource.builder(
 		).authentication(
 			"test@liferay.com", PropsValues.DEFAULT_ADMIN_PASSWORD
+		).endpoint(
+			testCompany.getVirtualHostname(),
+			PortalUtil.getPortalServerPort(false), "http"
 		).locale(
 			LocaleUtil.getDefault()
 		).parameters(
@@ -2842,6 +2663,9 @@ public class UserAccountResourceTest extends BaseUserAccountResourceTestCase {
 
 		UserAccountResource otherUserAccountResource = builder.authentication(
 			otherUser.getEmailAddress(), "test"
+		).endpoint(
+			testCompany.getVirtualHostname(),
+			PortalUtil.getPortalServerPort(false), "http"
 		).locale(
 			LocaleUtil.getDefault()
 		).build();
@@ -2852,6 +2676,271 @@ public class UserAccountResourceTest extends BaseUserAccountResourceTestCase {
 		for (Role role : roles) {
 			Assert.assertFalse(_hasRole(role, roleBriefs));
 		}
+	}
+
+	private void _testGetUserAccountsPage(
+			String filterString, UserAccount... expectedUserAccounts)
+		throws Exception {
+
+		Page<UserAccount> page = userAccountResource.getUserAccountsPage(
+			null, filterString,
+			Pagination.of(1, expectedUserAccounts.length + 1), null);
+
+		Assert.assertEquals(expectedUserAccounts.length, page.getTotalCount());
+
+		assertEqualsIgnoringOrder(
+			Arrays.asList(expectedUserAccounts),
+			(List<UserAccount>)page.getItems());
+
+		if (expectedUserAccounts.length > 0) {
+			assertValid(page);
+		}
+	}
+
+	private void _testGetUserAccountsPagePastLastPage() throws Exception {
+		UserAccount userAccount1 = testGetUserAccountsPage_addUserAccount(
+			randomUserAccount());
+		UserAccount userAccount2 = testGetUserAccountsPage_addUserAccount(
+			randomUserAccount());
+
+		Page<UserAccount> page = userAccountResource.getUserAccountsPage(
+			null,
+			String.format(
+				"id in ('%s','%s')", userAccount1.getId(),
+				userAccount2.getId()),
+			Pagination.of(3, 1), null);
+
+		Assert.assertEquals(2, page.getLastPage());
+		Assert.assertEquals(2, page.getTotalCount());
+
+		Assert.assertEquals(
+			Collections.emptyList(), (List<UserAccount>)page.getItems());
+	}
+
+	private void _testGetUserAccountsPageWithBirthDateFilter()
+		throws Exception {
+
+		UserAccount userAccount1 = randomUserAccount();
+
+		Calendar calendar = CalendarFactoryUtil.getCalendar();
+
+		calendar.set(Calendar.YEAR, 1990);
+
+		userAccount1.setBirthDate(calendar.getTime());
+
+		userAccount1 = testGetUserAccountsPage_addUserAccount(userAccount1);
+
+		testGetUserAccountsPage_addUserAccount(randomUserAccount());
+
+		DateFormat dateFormat = DateFormatFactoryUtil.getSimpleDateFormat(
+			"yyyy-MM-dd");
+
+		_testGetUserAccountsPage("(birthDate eq 1979-01-01)");
+		_testGetUserAccountsPage(
+			StringBundler.concat(
+				"(birthDate eq ", dateFormat.format(calendar.getTime()), ")"),
+			userAccount1);
+	}
+
+	private void _testGetUserAccountsPageWithCustomFields() throws Exception {
+		ExpandoTable expandoTable = _expandoTableLocalService.addTable(
+			testGroup.getCompanyId(),
+			_classNameLocalService.getClassNameId(User.class),
+			ExpandoTableConstants.DEFAULT_TABLE_NAME);
+
+		Function<Number, List<String>> function = number -> Arrays.asList(
+			number.toString(), "0" + number, "00" + number, number + "0",
+			number + "00");
+
+		_testGetUserAccountsPageWithCustomFields(
+			ExpandoColumnConstants.DOUBLE, expandoTable, function,
+			RandomTestUtil::randomDouble);
+		_testGetUserAccountsPageWithCustomFields(
+			ExpandoColumnConstants.FLOAT, expandoTable, function,
+			RandomTestUtil::randomFloat);
+
+		_testGetUserAccountsPageWithCustomFields(
+			ExpandoColumnConstants.STRING, expandoTable,
+			value -> List.of(StringUtil.quote(value)),
+			RandomTestUtil::randomString);
+	}
+
+	private <T> void _testGetUserAccountsPageWithCustomFields(
+			int expandoColumnType, ExpandoTable expandoTable,
+			Function<T, List<String>> function, Supplier<T> supplier)
+		throws Exception {
+
+		ExpandoColumn expandoColumn = _addExpandoColumn(
+			expandoColumnType, expandoTable);
+
+		UserAccount userAccount = randomUserAccount();
+
+		T value = supplier.get();
+
+		userAccount.setCustomFields(
+			() -> new CustomField[] {
+				new CustomField() {
+					{
+						customValue = new CustomValue() {
+							{
+								data = value;
+							}
+						};
+						name = expandoColumn.getName();
+					}
+				}
+			});
+
+		userAccount = testGetUserAccountsPage_addUserAccount(userAccount);
+
+		for (String filterString : function.apply(value)) {
+			_testGetUserAccountsPage(
+				StringBundler.concat(
+					"(customFields/", expandoColumn.getName(), " eq ",
+					filterString, ")"),
+				userAccount);
+		}
+
+		for (String filterString : function.apply(supplier.get())) {
+			_testGetUserAccountsPage(
+				StringBundler.concat(
+					"(customFields/", expandoColumn.getName(), " eq ",
+					filterString, ")"));
+		}
+	}
+
+	private void _testGetUserAccountsPageWithSortCustomField()
+		throws Exception {
+
+		ExpandoTable expandoTable = _expandoTableLocalService.addTable(
+			testGroup.getCompanyId(),
+			_classNameLocalService.getClassNameId(User.class),
+			ExpandoTableConstants.DEFAULT_TABLE_NAME);
+
+		_testGetUserAccountsPageWithSortCustomField(
+			expandoTable, ExpandoColumnConstants.DATE,
+			Arrays.asList(
+				"2000-07-27T00:00:00Z", "2000-07-27T10:00:00Z",
+				"2000-07-28T00:00:00Z"));
+		_testGetUserAccountsPageWithSortCustomField(
+			expandoTable, ExpandoColumnConstants.DOUBLE,
+			Arrays.asList(1.001, 01.01, 001.1));
+		_testGetUserAccountsPageWithSortCustomField(
+			expandoTable, ExpandoColumnConstants.FLOAT,
+			Arrays.asList(1.001F, 01.01F, 001.1F));
+	}
+
+	private void _testGetUserAccountsPageWithSortCustomField(
+			ExpandoTable expandoTable, int expandoColumnType,
+			List<Object> values)
+		throws Exception {
+
+		String domainName = StringUtil.randomString() + ".com";
+		ExpandoColumn expandoColumn = _addExpandoColumn(
+			expandoColumnType, expandoTable);
+
+		List<UserAccount> userAccounts = TransformUtil.transform(
+			values,
+			value -> userAccountResource.postUserAccount(
+				null, null,
+				_randomUserAccount(
+					userAccount -> {
+						userAccount.setCustomFields(
+							() -> new CustomField[] {
+								new CustomField() {
+									{
+										customValue = new CustomValue() {
+											{
+												data = value;
+											}
+										};
+										name = expandoColumn.getName();
+									}
+								}
+							});
+
+						userAccount.setEmailAddress(
+							RandomTestUtil.randomString() + '@' + domainName);
+					})));
+
+		Page<UserAccount> page = userAccountResource.getUserAccountsPage(
+			domainName, null, Pagination.of(1, 10),
+			"customFields/" + expandoColumn.getName() + ":asc");
+
+		assertEquals(userAccounts, (List<UserAccount>)page.getItems());
+
+		page = userAccountResource.getUserAccountsPage(
+			domainName, null, Pagination.of(1, 10),
+			"customFields/" + expandoColumn.getName() + ":desc");
+
+		Collections.reverse(userAccounts);
+
+		assertEquals(userAccounts, (List<UserAccount>)page.getItems());
+	}
+
+	private void _testGetUserAccountsPageWithSortFullName() throws Exception {
+		String domainName = StringUtil.randomString() + ".com";
+		List<UserAccount> userAccounts = new ArrayList<>();
+
+		userAccounts.add(
+			userAccountResource.postUserAccount(
+				null, null,
+				_randomUserAccount(
+					userAccount -> {
+						userAccount.setGivenName("aaa");
+						userAccount.setEmailAddress("aaa@" + domainName);
+					})));
+		userAccounts.add(
+			userAccountResource.postUserAccount(
+				null, null,
+				_randomUserAccount(
+					userAccount -> {
+						userAccount.setGivenName("bbb");
+						userAccount.setEmailAddress("bbb@" + domainName);
+					})));
+
+		Page<UserAccount> page = userAccountResource.getUserAccountsPage(
+			domainName, null, Pagination.of(1, 10), "name:asc");
+
+		assertEquals(userAccounts, (List<UserAccount>)page.getItems());
+
+		Collections.reverse(userAccounts);
+
+		page = userAccountResource.getUserAccountsPage(
+			domainName, null, Pagination.of(1, 10), "name:desc");
+
+		assertEquals(userAccounts, (List<UserAccount>)page.getItems());
+	}
+
+	private void _testGetUserAccountsPageWithSortId() throws Exception {
+		List<UserAccount> userAccounts = new ArrayList<>();
+
+		String domainName = StringUtil.randomString() + ".com";
+
+		userAccounts.add(
+			userAccountResource.postUserAccount(
+				null, null,
+				_randomUserAccount(
+					userAccount -> userAccount.setEmailAddress(
+						"aaa@" + domainName))));
+		userAccounts.add(
+			userAccountResource.postUserAccount(
+				null, null,
+				_randomUserAccount(
+					userAccount -> userAccount.setEmailAddress(
+						"bbb@" + domainName))));
+
+		Page<UserAccount> page = userAccountResource.getUserAccountsPage(
+			domainName, null, Pagination.of(1, 10), "id:asc");
+
+		assertEquals(userAccounts, (List<UserAccount>)page.getItems());
+
+		Collections.reverse(userAccounts);
+
+		page = userAccountResource.getUserAccountsPage(
+			domainName, null, Pagination.of(1, 10), "id:desc");
+
+		assertEquals(userAccounts, (List<UserAccount>)page.getItems());
 	}
 
 	private void _testPatchUserAccountWithGender() throws Exception {
@@ -2908,24 +2997,73 @@ public class UserAccountResourceTest extends BaseUserAccountResourceTestCase {
 		}
 	}
 
-	private void _testPatchUserAccountWithImageExternalReferenceCode()
-		throws Exception {
+	private void _testPatchUserAccountWithImage() throws Exception {
+		_setUpTestUserAccountResource();
 
-		UserAccount postUserAccount = testPatchUserAccount_addUserAccount();
+		FileEntry fileEntry = _addImageFileEntry(false);
 
-		UserAccount randomPatchUserAccount = randomPatchUserAccount();
+		UserAccount userAccount = new UserAccount() {
+			{
+				imageExternalReferenceCode =
+					fileEntry.getExternalReferenceCode();
+			}
+		};
 
-		FileEntry fileEntry = _addImageFileEntry();
+		HttpInvoker.HttpResponse httpResponse =
+			_regularUserAccountResource.patchUserAccountHttpResponse(
+				_regularUserAccount.getId(), userAccount);
 
-		randomPatchUserAccount.setImageExternalReferenceCode(
-			fileEntry.getExternalReferenceCode());
+		Assert.assertEquals(
+			Response.Status.FORBIDDEN.getStatusCode(),
+			httpResponse.getStatusCode());
 
-		randomPatchUserAccount.setImageId(0L);
+		userAccount = new UserAccount() {
+			{
+				imageId = fileEntry.getFileEntryId();
+			}
+		};
 
-		UserAccount patchUserAccount = userAccountResource.patchUserAccount(
-			postUserAccount.getId(), randomPatchUserAccount);
+		httpResponse = _regularUserAccountResource.patchUserAccountHttpResponse(
+			_regularUserAccount.getId(), userAccount);
 
-		Assert.assertTrue(patchUserAccount.getImageId() > 0);
+		Assert.assertEquals(
+			Response.Status.FORBIDDEN.getStatusCode(),
+			httpResponse.getStatusCode());
+
+		Role role = RoleTestUtil.addRole(RoleConstants.TYPE_REGULAR);
+
+		_resourcePermissionLocalService.setResourcePermissions(
+			TestPropsValues.getCompanyId(), DLFileEntry.class.getName(),
+			ResourceConstants.SCOPE_INDIVIDUAL,
+			String.valueOf(fileEntry.getFileEntryId()), role.getRoleId(),
+			new String[] {ActionKeys.VIEW});
+
+		_userLocalService.addRoleUsers(
+			role.getRoleId(), new long[] {_regularUserAccount.getId()});
+
+		userAccount = new UserAccount() {
+			{
+				imageExternalReferenceCode =
+					fileEntry.getExternalReferenceCode();
+				imageId = 0L;
+			}
+		};
+
+		userAccount = _regularUserAccountResource.patchUserAccount(
+			_regularUserAccount.getId(), userAccount);
+
+		Assert.assertTrue(userAccount.getImageId() > 0);
+
+		userAccount = new UserAccount() {
+			{
+				imageId = fileEntry.getFileEntryId();
+			}
+		};
+
+		userAccount = _regularUserAccountResource.patchUserAccount(
+			_regularUserAccount.getId(), userAccount);
+
+		Assert.assertTrue(userAccount.getImageId() > 0);
 	}
 
 	private void _testPostAccountUserAccountsByExternalReferenceCodeByEmailAddressWithRoleId()
@@ -3074,7 +3212,7 @@ public class UserAccountResourceTest extends BaseUserAccountResourceTestCase {
 				Problem problem = problemException.getProblem();
 
 				Assert.assertEquals(
-					"The captcha value is invalid", problem.getTitle());
+					"The captcha value is invalid.", problem.getTitle());
 			}
 
 			captcha = captchaResource.getCaptchaChallenge();
@@ -3153,7 +3291,7 @@ public class UserAccountResourceTest extends BaseUserAccountResourceTestCase {
 
 		UserAccount randomUserAccount = randomUserAccount();
 
-		FileEntry fileEntry = _addImageFileEntry();
+		FileEntry fileEntry = _addImageFileEntry(true);
 
 		randomUserAccount.setImageExternalReferenceCode(
 			fileEntry.getExternalReferenceCode());
@@ -3196,6 +3334,65 @@ public class UserAccountResourceTest extends BaseUserAccountResourceTestCase {
 			objectValidationRule);
 	}
 
+	private void _testPutUserAccountBatchWithAccountBriefs() throws Exception {
+		_setUpTestUserAccountResource();
+
+		_accountEntryUserRelLocalService.addAccountEntryUserRel(
+			_accountEntry.getAccountEntryId(), _regularUserAccount.getId());
+
+		UserAccount userAccount = _randomUserAccount(
+			randomUserAccount -> {
+				randomUserAccount.setAccountBriefs(() -> new AccountBrief[0]);
+				randomUserAccount.setCurrentPassword(() -> null);
+				randomUserAccount.setId(_regularUserAccount::getId);
+				randomUserAccount.setPassword(() -> null);
+			});
+
+		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
+				"com.liferay.batch.engine.internal." +
+					"BatchEngineImportTaskExecutorImpl",
+				LoggerTestUtil.OFF)) {
+
+			JSONObject[] jsonObjects = new JSONObject[1];
+
+			HTTPTestUtil.customize(
+			).withCredentials(
+				_regularUserAccount.getEmailAddress(),
+				_regularUserAccountCurrentPassword
+			).apply(
+				() ->
+					jsonObjects[0] = HTTPTestUtil.invokeToJSONObject(
+						JSONUtil.putAll(
+							_jsonFactory.createJSONObject(
+								userAccount.toString())
+						).toString(),
+						"headless-admin-user/v1.0/user-accounts/batch",
+						Http.Method.PUT)
+			);
+
+			_waitForFinish("FAILED", true, jsonObjects[0]);
+		}
+
+		Assert.assertNotNull(
+			_accountEntryUserRelLocalService.fetchAccountEntryUserRel(
+				_accountEntry.getAccountEntryId(),
+				_regularUserAccount.getId()));
+
+		_waitForFinish(
+			"COMPLETED", true,
+			HTTPTestUtil.invokeToJSONObject(
+				JSONUtil.putAll(
+					_jsonFactory.createJSONObject(userAccount.toString())
+				).toString(),
+				"headless-admin-user/v1.0/user-accounts/batch",
+				Http.Method.PUT));
+
+		Assert.assertNull(
+			_accountEntryUserRelLocalService.fetchAccountEntryUserRel(
+				_accountEntry.getAccountEntryId(),
+				_regularUserAccount.getId()));
+	}
+
 	private void _testPutUserAccountByExternalReferenceCodeWithImageExternalReferenceCode()
 		throws Exception {
 
@@ -3204,7 +3401,7 @@ public class UserAccountResourceTest extends BaseUserAccountResourceTestCase {
 
 		UserAccount randomPutUserAccount = randomUserAccount();
 
-		FileEntry fileEntry = _addImageFileEntry();
+		FileEntry fileEntry = _addImageFileEntry(true);
 
 		randomPutUserAccount.setImageExternalReferenceCode(
 			fileEntry.getExternalReferenceCode());
@@ -3226,7 +3423,7 @@ public class UserAccountResourceTest extends BaseUserAccountResourceTestCase {
 
 		UserAccount randomPutUserAccount = randomUserAccount();
 
-		FileEntry fileEntry = _addImageFileEntry();
+		FileEntry fileEntry = _addImageFileEntry(true);
 
 		randomPutUserAccount.setImageExternalReferenceCode(
 			fileEntry.getExternalReferenceCode());

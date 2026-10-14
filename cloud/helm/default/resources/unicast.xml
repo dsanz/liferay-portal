@@ -3,10 +3,10 @@
 <config
 	xmlns="urn:org:jgroups"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="urn:org:jgroups http://www.jgroups.org/schema/jgroups-4.1.xsd"
+	xsi:schemaLocation="urn:org:jgroups http://www.jgroups.org/schema/jgroups-5.5.xsd"
 >
 	<TCP
-		bind_port="{{ (index .Values.service.ports 0).port }}"
+		bind_port="{{ include "liferay.servicePort" (dict "portName" .channelPortName "ports" .Values.service.ports) }}"
 		max_bundle_size="64K"
 		port_range="1"
 		recv_buf_size="${tcp.recv_buf_size:5M}"
@@ -18,7 +18,7 @@
 		thread_pool.min_threads="2"
 	/>
 	<dns.DNS_PING
-		dns_query='_cluster._tcp.{{ include "liferay.name" $ }}-headless.{{ include "liferay.namespace" $ }}.svc.cluster.local'
+		dns_query='_{{ .channelPortName }}._tcp.{{ include "liferay.name" $ }}-headless.{{ include "liferay.namespace" $ }}.svc.cluster.local'
 		dns_record_type="SRV"
 	/>
 	<MERGE3 max_interval="30000" min_interval="10000" />
@@ -29,7 +29,7 @@
 	<pbcast.NAKACK2 discard_delivered_msgs="true" use_mcast_xmit="false" />
 	<UNICAST3 />
 	<pbcast.STABLE
-		stability_delay="1000" desired_avg_gossip="50000" max_bytes="4M"
+		desired_avg_gossip="50000" max_bytes="4M"
 	/>
 	<pbcast.GMS
 		print_local_addr="true" join_timeout="2000"

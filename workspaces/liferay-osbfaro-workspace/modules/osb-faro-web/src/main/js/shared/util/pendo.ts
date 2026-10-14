@@ -11,9 +11,8 @@ export enum TrackingConsentValues {
 export class Pendo {
 
 	/**
-	 * Returns the stored tracking consent decision, or `null` when the user
-	 * has not made a decision yet. Uses the same cookie name as the DXP
-	 * tracking script so the consent model stays consistent across products.
+	 * Returns the stored consent decision, or `null` when there is none. Reads
+	 * the cookie the DXP tracking script uses, so the two agree.
 	 */
 	getUserConsent(): TrackingConsentValues | null {
 		return (
@@ -31,12 +30,21 @@ export class Pendo {
 			return;
 		}
 
+		// Workspaces migrated from Analytics Cloud keep the corp project they
+		// were always reported under, so their Pendo account does not change.
+		// LDP workspaces carry no corp project and fall back to the account,
+		// then to the workspace itself, so every workspace gets a stable id.
+
 		const data = {
 			account: {
-				...(project.corpProjectUuid && {
-					id: project.corpProjectUuid,
-				}),
-				name: project.corpProjectName,
+				id:
+					project.corpProjectUuid ||
+					project.accountKey ||
+					String(project.groupId),
+				name:
+					project.corpProjectName ||
+					project.accountName ||
+					project.name,
 				planLevel: project.faroSubscription.get('name'),
 			},
 			visitor: {
@@ -66,11 +74,11 @@ export class Pendo {
 
 	/**
 	 * Appends the agent loader on demand. On the page load where the user
-	 * accepts tracking, external-scripts.js already skipped the loader (no
-	 * consent existed when the page was rendered), so it must be injected
-	 * here for tracking to start without a reload. Outside production
-	 * external-scripts.js always appends the inert stub, so a defined `pendo`
-	 * is also what keeps this method from running there.
+	 * accepts tracking, the loader was already skipped (no consent existed
+	 * when the page was rendered), so it must be injected here for tracking to
+	 * start without a reload. Outside production the inert stub is always
+	 * appended, so a defined `pendo` is also what keeps this method from
+	 * running there. See `pendo-script.ts` for what gets appended.
 	 */
 	private injectAgent() {
 		if (typeof pendo !== 'undefined') {
@@ -96,7 +104,7 @@ export class Pendo {
 
 			// Before the user accepts tracking the page must not request
 			// anything from pendo.io, not even the agent script: an empty
-			// entry is filtered out by external-scripts.js.
+			// snippet keeps `pendo-script.ts` from adding one.
 
 			if (this.getUserConsent() !== TrackingConsentValues.Accepted) {
 				return '';

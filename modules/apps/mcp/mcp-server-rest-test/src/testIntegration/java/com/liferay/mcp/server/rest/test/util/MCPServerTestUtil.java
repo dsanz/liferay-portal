@@ -10,8 +10,10 @@ import com.liferay.batch.engine.unit.BatchEngineUnitThreadLocal;
 import com.liferay.object.constants.ObjectEntryFolderConstants;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
+import com.liferay.object.model.ObjectRelationship;
 import com.liferay.object.service.ObjectDefinitionLocalServiceUtil;
 import com.liferay.object.service.ObjectEntryLocalServiceUtil;
+import com.liferay.object.service.ObjectRelationshipLocalServiceUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
@@ -92,7 +94,8 @@ public class MCPServerTestUtil {
 	}
 
 	public static ObjectEntry addMCPServerProfileObjectEntry(
-			String description, String name, String... tools)
+			String description, String instructions, String name,
+			String... tools)
 		throws Exception {
 
 		ObjectDefinition objectDefinition =
@@ -110,9 +113,11 @@ public class MCPServerTestUtil {
 				HashMapBuilder.<String, Serializable>put(
 					"description", description
 				).put(
+					"instructions", instructions
+				).put(
 					"name", name
 				).put(
-					"profileStatus", "active"
+					"profileStatus", "inactive"
 				).build(),
 				ServiceContextTestUtil.getServiceContext());
 
@@ -124,12 +129,26 @@ public class MCPServerTestUtil {
 				parts[1], parts[0]);
 		}
 
-		return mcpServerProfileObjectEntry;
+		if (tools.length == 0) {
+			return mcpServerProfileObjectEntry;
+		}
+
+		return updateMCPServerProfileStatus(
+			mcpServerProfileObjectEntry, "active");
 	}
 
 	public static ObjectEntry addMCPServerProfileToolObjectEntry(
 			String mcpServerProfileExternalReferenceCode, String toolName,
 			String toolSetName)
+		throws Exception {
+
+		return addMCPServerProfileToolObjectEntry(
+			mcpServerProfileExternalReferenceCode, null, toolName, toolSetName);
+	}
+
+	public static ObjectEntry addMCPServerProfileToolObjectEntry(
+			String mcpServerProfileExternalReferenceCode, String restrictFields,
+			String toolName, String toolSetName)
 		throws Exception {
 
 		ObjectDefinition mcpServerProfileObjectDefinition =
@@ -156,6 +175,8 @@ public class MCPServerTestUtil {
 			HashMapBuilder.<String, Serializable>put(
 				"r_mcpServerProfileToTools_l_mcpServerProfileId",
 				mcpServerProfileObjectEntry.getObjectEntryId()
+			).put(
+				"restrictFields", () -> restrictFields
 			).put(
 				"toolName", toolName
 			).put(
@@ -354,6 +375,21 @@ public class MCPServerTestUtil {
 		return mcpServerProfileDataMaskObjectEntries;
 	}
 
+	public static List<ObjectEntry> getMCPServerProfileToolObjectEntries(
+			ObjectEntry mcpServerProfileObjectEntry)
+		throws Exception {
+
+		ObjectRelationship objectRelationship =
+			ObjectRelationshipLocalServiceUtil.getObjectRelationship(
+				mcpServerProfileObjectEntry.getObjectDefinitionId(),
+				"mcpServerProfileToTools");
+
+		return ObjectEntryLocalServiceUtil.getOneToManyObjectEntries(
+			0, objectRelationship.getObjectRelationshipId(), null, false,
+			mcpServerProfileObjectEntry.getObjectEntryId(), true, null,
+			QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
+	}
+
 	public static void processBatchEngineUnits() {
 		String prefix = ".com.liferay.mcp.server.rest.internal.batch.";
 
@@ -376,6 +412,49 @@ public class MCPServerTestUtil {
 				prefix + "01.list.type.definition",
 				prefix + "02.object.definition", prefix + "03.object.entry"
 			});
+	}
+
+	public static ObjectEntry updateMCPServerProfileStatus(
+			ObjectEntry mcpServerProfileObjectEntry, String profileStatus)
+		throws Exception {
+
+		return ObjectEntryLocalServiceUtil.updateObjectEntry(
+			TestPropsValues.getUserId(),
+			mcpServerProfileObjectEntry.getObjectEntryId(),
+			mcpServerProfileObjectEntry.getObjectEntryFolderId(),
+			HashMapBuilder.<String, Serializable>putAll(
+				mcpServerProfileObjectEntry.getValues()
+			).put(
+				"profileStatus", profileStatus
+			).build(),
+			ServiceContextTestUtil.getServiceContext());
+	}
+
+	public static void updateMCPServerProfileToolObjectEntry(
+			ObjectEntry mcpServerProfileToolObjectEntry,
+			Map<String, Serializable> values)
+		throws Exception {
+
+		ObjectEntryLocalServiceUtil.updateObjectEntry(
+			TestPropsValues.getUserId(),
+			mcpServerProfileToolObjectEntry.getObjectEntryId(), 0,
+			HashMapBuilder.<String, Serializable>putAll(
+				mcpServerProfileToolObjectEntry.getValues()
+			).putAll(
+				values
+			).build(),
+			ServiceContextTestUtil.getServiceContext());
+	}
+
+	public static void updateMCPServerProfileToolRestrictFields(
+			ObjectEntry mcpServerProfileToolObjectEntry, String restrictFields)
+		throws Exception {
+
+		updateMCPServerProfileToolObjectEntry(
+			mcpServerProfileToolObjectEntry,
+			HashMapBuilder.<String, Serializable>put(
+				"restrictFields", restrictFields
+			).build());
 	}
 
 	private static ObjectEntry _fetchObjectEntry(

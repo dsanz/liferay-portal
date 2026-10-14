@@ -9,16 +9,23 @@ import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.vulcan.dto.converter.DTOConverter;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterRegistry;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
+import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 /**
  * @author Rubén Pulido
@@ -29,31 +36,65 @@ public class DTOConverterRegistryImpl implements DTOConverterRegistry {
 
 	@Override
 	public Set<String> getDTOClassNames() {
-		return _serviceTrackerMap.keySet();
+		Set<String> dtoClassNames = new HashSet<>();
+
+		for (String dtoClassName : _serviceTrackerMap.keySet()) {
+			if (_getDTOConverter(dtoClassName) != null) {
+				dtoClassNames.add(dtoClassName);
+			}
+		}
+
+		return dtoClassNames;
 	}
 
 	@Override
 	public DTOConverter<?, ?> getDTOConverter(String dtoClassName) {
-		return _serviceTrackerMap.getService(dtoClassName);
+		return _getDTOConverter(dtoClassName);
+	}
+
+	@Override
+	public DTOConverter<?, ?> getDTOConverter(
+		String dtoClassName, String type) {
+
+		if (!Validator.isBlank(type)) {
+			DTOConverter<?, ?> dtoConverter = _getDTOConverter(
+				_getKey(dtoClassName, type));
+
+			if (dtoConverter != null) {
+				return dtoConverter;
+			}
+		}
+
+		return _getDTOConverter(dtoClassName);
 	}
 
 	@Override
 	public DTOConverter<?, ?> getDTOConverter(
 		String applicationName, String dtoClassName, String version) {
 
-		return _serviceTrackerMap.getService(
+		return _getDTOConverter(
 			_getKey(applicationName, dtoClassName, version));
 	}
 
 	@Activate
 	protected void activate(BundleContext bundleContext) {
-		_serviceTrackerMap = ServiceTrackerMapFactory.openSingleValueMap(
+		_serviceTrackerMap = ServiceTrackerMapFactory.openMultiValueMap(
 			bundleContext,
 			(Class<DTOConverter<?, ?>>)(Class<?>)DTOConverter.class,
 			"(dto.class.name=*)",
 			(serviceReference, emitter) -> {
 				String dtoClassName = (String)serviceReference.getProperty(
 					"dto.class.name");
+
+				String[] types = _getTypes(serviceReference);
+
+				if (types.length > 0) {
+					for (String type : types) {
+						emitter.emit(_getKey(dtoClassName, type));
+					}
+
+					return;
+				}
 
 				emitter.emit(dtoClassName);
 
@@ -68,12 +109,60 @@ public class DTOConverterRegistryImpl implements DTOConverterRegistry {
 					emitter.emit(
 						_getKey(applicationName, dtoClassName, version));
 				}
-			});
+			},
+			new DTOConverterServiceTrackerCustomizer(bundleContext));
 	}
 
 	@Deactivate
 	protected void deactivate() {
 		_serviceTrackerMap.close();
+	}
+
+	private DTOConverter<?, ?> _getDTOConverter(String key) {
+		List<DTOConverterHolder> dtoConverterHolders =
+			_serviceTrackerMap.getService(key);
+
+		if (ListUtil.isEmpty(dtoConverterHolders)) {
+			return null;
+		}
+
+		if (dtoConverterHolders.size() == 1) {
+			DTOConverterHolder dtoConverterHolder = dtoConverterHolders.get(0);
+
+			return dtoConverterHolder.getDTOConverter();
+		}
+
+		DTOConverterHolder defaultDTOConverterHolder = null;
+
+		for (DTOConverterHolder dtoConverterHolder : dtoConverterHolders) {
+			if (!dtoConverterHolder.isDefault()) {
+				continue;
+			}
+
+			if (defaultDTOConverterHolder == null) {
+				defaultDTOConverterHolder = dtoConverterHolder;
+
+				continue;
+			}
+
+			if (defaultDTOConverterHolder.getServiceRanking() ==
+					dtoConverterHolder.getServiceRanking()) {
+
+				return null;
+			}
+
+			break;
+		}
+
+		if (defaultDTOConverterHolder == null) {
+			return null;
+		}
+
+		return defaultDTOConverterHolder.getDTOConverter();
+	}
+
+	private String _getKey(String dtoClassName, String type) {
+		return StringBundler.concat(dtoClassName, StringPool.POUND, type);
 	}
 
 	private String _getKey(
@@ -84,6 +173,91 @@ public class DTOConverterRegistryImpl implements DTOConverterRegistry {
 			version);
 	}
 
-	private ServiceTrackerMap<String, DTOConverter<?, ?>> _serviceTrackerMap;
+	private String[] _getTypes(
+		ServiceReference<DTOConverter<?, ?>> serviceReference) {
+
+		Object types = serviceReference.getProperty("dto.class.type");
+
+		if (types == null) {
+			return new String[0];
+		}
+
+		if (types instanceof String[]) {
+			return (String[])types;
+		}
+
+		return new String[] {String.valueOf(types)};
+	}
+
+	private ServiceTrackerMap<String, List<DTOConverterHolder>>
+		_serviceTrackerMap;
+
+	private static class DTOConverterHolder {
+
+		public DTOConverterHolder(
+			boolean defaultDTOConverter, DTOConverter<?, ?> dtoConverter,
+			int serviceRanking) {
+
+			_defaultDTOConverter = defaultDTOConverter;
+			_dtoConverter = dtoConverter;
+			_serviceRanking = serviceRanking;
+		}
+
+		public DTOConverter<?, ?> getDTOConverter() {
+			return _dtoConverter;
+		}
+
+		public int getServiceRanking() {
+			return _serviceRanking;
+		}
+
+		public boolean isDefault() {
+			return _defaultDTOConverter;
+		}
+
+		private final boolean _defaultDTOConverter;
+		private final DTOConverter<?, ?> _dtoConverter;
+		private final int _serviceRanking;
+
+	}
+
+	private static class DTOConverterServiceTrackerCustomizer
+		implements ServiceTrackerCustomizer
+			<DTOConverter<?, ?>, DTOConverterHolder> {
+
+		public DTOConverterServiceTrackerCustomizer(
+			BundleContext bundleContext) {
+
+			_bundleContext = bundleContext;
+		}
+
+		@Override
+		public DTOConverterHolder addingService(
+			ServiceReference<DTOConverter<?, ?>> serviceReference) {
+
+			return new DTOConverterHolder(
+				GetterUtil.getBoolean(serviceReference.getProperty("default")),
+				_bundleContext.getService(serviceReference),
+				GetterUtil.getInteger(
+					serviceReference.getProperty(Constants.SERVICE_RANKING)));
+		}
+
+		@Override
+		public void modifiedService(
+			ServiceReference<DTOConverter<?, ?>> serviceReference,
+			DTOConverterHolder dtoConverterHolder) {
+		}
+
+		@Override
+		public void removedService(
+			ServiceReference<DTOConverter<?, ?>> serviceReference,
+			DTOConverterHolder dtoConverterHolder) {
+
+			_bundleContext.ungetService(serviceReference);
+		}
+
+		private final BundleContext _bundleContext;
+
+	}
 
 }

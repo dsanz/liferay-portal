@@ -13,6 +13,8 @@ import com.liferay.dynamic.data.mapping.test.util.DDMStructureTestUtil;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.test.util.JournalTestUtil;
 import com.liferay.petra.function.UnsafeBiConsumer;
+import com.liferay.petra.function.UnsafeRunnable;
+import com.liferay.portal.configuration.test.util.CompanyConfigurationTemporarySwapper;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
@@ -23,9 +25,12 @@ import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.RoleTestUtil;
+import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.FileUtil;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.xml.Document;
+import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.kernel.xml.SAXReaderUtil;
 
 import java.io.ByteArrayInputStream;
@@ -40,21 +45,16 @@ public class TranslationTestUtil {
 			Group group, DDMFormDeserializer ddmFormDeserializer)
 		throws Exception {
 
-		DDMFormDeserializerDeserializeRequest.Builder builder =
-			DDMFormDeserializerDeserializeRequest.Builder.newBuilder(
-				readFileToString("test-ddm-form.json"));
+		return _getJournalArticle(
+			group, ddmFormDeserializer, "test-journal-content.xml");
+	}
 
-		DDMFormDeserializerDeserializeResponse
-			ddmFormDeserializerDeserializeResponse =
-				ddmFormDeserializer.deserialize(builder.build());
+	public static JournalArticle getJournalArticleWithRichHTML(
+			Group group, DDMFormDeserializer ddmFormDeserializer)
+		throws Exception {
 
-		DDMStructure ddmStructure = DDMStructureTestUtil.addStructure(
-			group.getGroupId(), JournalArticle.class.getName(),
-			ddmFormDeserializerDeserializeResponse.getDDMForm());
-
-		return JournalTestUtil.addArticleWithXMLContent(
-			group.getGroupId(), readFileToString("test-journal-content.xml"),
-			ddmStructure.getStructureKey(), null);
+		return _getJournalArticle(
+			group, ddmFormDeserializer, "test-journal-content-rich-html.xml");
 	}
 
 	public static InputStream readFileToInputStream(String fileName)
@@ -70,7 +70,29 @@ public class TranslationTestUtil {
 	public static String toFormattedString(String xml) throws Exception {
 		Document document = SAXReaderUtil.read(xml);
 
+		Element rootElement = document.getRootElement();
+
+		rootElement.sortAttributes(true);
+
 		return document.formattedString();
+	}
+
+	public static void withHTMLInlineCodeProtectionEnabled(
+			UnsafeRunnable<Exception> unsafeRunnable)
+		throws Exception {
+
+		try (CompanyConfigurationTemporarySwapper
+				companyConfigurationTemporarySwapper =
+					new CompanyConfigurationTemporarySwapper(
+						TestPropsValues.getCompanyId(),
+						"com.liferay.translation.internal.configuration." +
+							"TranslationCompanyConfiguration",
+						HashMapDictionaryBuilder.<String, Object>put(
+							"htmlInlineCodeProtectionEnabled", true
+						).build())) {
+
+			unsafeRunnable.run();
+		}
 	}
 
 	public static void withRegularUser(
@@ -84,6 +106,28 @@ public class TranslationTestUtil {
 		return FileUtil.getBytes(
 			TranslationTestUtil.class,
 			"/com/liferay/translation/dependencies/" + fileName);
+	}
+
+	private static JournalArticle _getJournalArticle(
+			Group group, DDMFormDeserializer ddmFormDeserializer,
+			String contentFileName)
+		throws Exception {
+
+		DDMFormDeserializerDeserializeRequest.Builder builder =
+			DDMFormDeserializerDeserializeRequest.Builder.newBuilder(
+				readFileToString("test-ddm-form.json"));
+
+		DDMFormDeserializerDeserializeResponse
+			ddmFormDeserializerDeserializeResponse =
+				ddmFormDeserializer.deserialize(builder.build());
+
+		DDMStructure ddmStructure = DDMStructureTestUtil.addStructure(
+			group.getGroupId(), JournalArticle.class.getName(),
+			ddmFormDeserializerDeserializeResponse.getDDMForm());
+
+		return JournalTestUtil.addArticleWithXMLContent(
+			group.getGroupId(), readFileToString(contentFileName),
+			ddmStructure.getStructureKey(), null);
 	}
 
 	private static void _withUser(

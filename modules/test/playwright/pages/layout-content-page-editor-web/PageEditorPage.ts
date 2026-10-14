@@ -786,7 +786,21 @@ export class PageEditorPage {
 
 		const iframe = this.page.frameLocator('iframe[title="Select"]');
 
+		const iframeElement = await this.page
+			.locator('iframe[title="Select"]')
+			.elementHandle();
+
+		const frame = await iframeElement.contentFrame();
+
 		await iframe.getByRole('link', {name: type}).click();
+
+		await frame.waitForURL((url) =>
+			url.searchParams
+				.get(
+					'_com_liferay_item_selector_web_portlet_ItemSelectorPortlet_selectedTab'
+				)
+				?.endsWith(`_${type}`)
+		);
 
 		// Filter Collection in case there are multiple pages
 
@@ -964,6 +978,12 @@ export class PageEditorPage {
 		await this.waitForChangesSaved();
 	}
 
+	async deselectItem() {
+		await this.page
+			.locator('.page-editor__theme-adapter-buttons')
+			.dispatchEvent('click');
+	}
+
 	async dragToFragment({
 		drop = true,
 		position,
@@ -1085,6 +1105,15 @@ export class PageEditorPage {
 
 		await this.goToSidebarTab('Browser');
 
+		// Wait for the tree to finish expanding, since its animation shifts
+		// the nodes below the expanding one
+
+		const collapsingNodes = this.page.locator(
+			'.page-editor__page-structure__structure-tree .collapsing'
+		);
+
+		await expect(collapsingNodes).toHaveCount(0);
+
 		const sourceNode = this.page
 			.locator('.page-editor__page-structure__tree-node', {
 				hasText: source.label,
@@ -1122,11 +1151,14 @@ export class PageEditorPage {
 					: /drag-over-top/;
 
 		// Move over the target until the drop indicator appears. The target
-		// box is recomputed on every pass because starting the drag can shift
-		// the tree. Each pass also approaches from a nearby point so the
-		// pointer keeps moving and Chromium keeps firing dragover events.
+		// box is recomputed on every pass, once the tree has finished
+		// expanding, because starting the drag can shift the tree. Each pass
+		// also approaches from a nearby point so the pointer keeps moving and
+		// Chromium keeps firing dragover events.
 
 		await expect(async () => {
+			await expect(collapsingNodes).toHaveCount(0, {timeout: 1000});
+
 			const targetBox = await targetNode.boundingBox();
 
 			const y =
@@ -1963,40 +1995,32 @@ export class PageEditorPage {
 		customMappingButtonLocator?: Locator;
 		field?: string;
 	}) {
-		if (customMappingButtonLocator) {
-			await customMappingButtonLocator.click();
-		}
-		else {
-			await this.selectItemMappingButton.click();
-		}
+
+		// Open the recent items menu, or the item selector when there are no
+		// recent items
+
+		const selectItemMenuItem = this.page.getByRole('menuitem', {
+			name: 'Select Item...',
+		});
+
+		await clickAndExpectToBeVisible({
+			target: selectItemMenuItem.or(
+				this.page.locator('iframe[title="Select"]')
+			),
+			timeout: 2000,
+			trigger: customMappingButtonLocator
+				? customMappingButtonLocator
+				: this.selectItemMappingButton,
+		});
 
 		const recentItem = this.page.getByRole('menuitem', {name: entry});
 
 		if (await recentItem.isVisible()) {
-			recentItem.click();
+			await recentItem.click();
 		}
 		else {
-			const hasRecentItems = await this.page
-				.getByRole('menuitem', {name: 'Select Item...'})
-				.isVisible();
-
-			if (hasRecentItems) {
-				if (customMappingButtonLocator) {
-					await customMappingButtonLocator.click();
-				}
-				else {
-					await this.selectItemMappingButton.click();
-				}
-
-				await clickAndExpectToBeVisible({
-					autoClick: true,
-					target: this.page.getByRole('menuitem', {
-						name: 'Select Item...',
-					}),
-					trigger: customMappingButtonLocator
-						? customMappingButtonLocator
-						: this.selectItemMappingButton,
-				});
+			if (await selectItemMenuItem.isVisible()) {
+				await selectItemMenuItem.click();
 			}
 
 			const iframe = this.page.frameLocator('iframe[title="Select"]');

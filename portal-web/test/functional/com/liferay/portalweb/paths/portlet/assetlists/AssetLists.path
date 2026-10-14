@@ -17,7 +17,7 @@
 </tr>
 <tr>
 	<td>ASSET_LIST_ENTRY_TITLE</td>
-	<td>//*[contains(@class,'name-column')]//a[contains(.,'${key_title}')] | //*[contains(@class,'list-group-item')]//p[contains(.,'${key_title}')]</td>
+	<td>//*[contains(@class,'name-column')]//a[contains(.,'${key_title}')] | //*[contains(@class,'list-group-item')]//p[contains(.,'${key_title}')] | //*[contains(@class,'list-group-item')]//div[contains(@class,'h5')]/a[contains(.,'${key_title}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -63,6 +63,39 @@
 <tr>
 	<td>VARIATION_TITLE</td>
 	<td>//nav[@role='navigation']//a[normalize-space()='${key_variation}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+
+<!--FILTER-->
+
+<tr>
+	<td>FILTER_CONDITION_OPTION</td>
+	<td>//*[@role='option'][normalize-space()='${key_option}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FILTER_CONDITION_PICKER</td>
+	<td>xpath=(//div[contains(@class,'condition-builder__row')])[last()]//button[@aria-label='${key_picker}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FILTER_CONDITION_PICKER_VALUE</td>
+	<td>xpath=(//div[contains(@class,'condition-builder__row')])[last()]//button[@aria-label='${key_picker}'][normalize-space()='${key_value}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FILTER_CONDITION_SELECT_BUTTON</td>
+	<td>xpath=(//div[contains(@class,'condition-builder__row')])[last()]//button[@aria-haspopup='dialog']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FILTER_CONDITION_VALUE</td>
+	<td>xpath=(//div[contains(@class,'condition-builder__row')])[last()]//input[@aria-label='Value']</td>
 	<td></td>
 </tr>
 <tr>

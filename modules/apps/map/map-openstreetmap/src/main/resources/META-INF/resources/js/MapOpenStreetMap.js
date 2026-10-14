@@ -61,6 +61,29 @@ class MapOpenStreetMap extends MapBase {
 	}
 
 	/**
+	 * Stops observing the container and removes the Leaflet map so it releases
+	 * its DOM and window listeners instead of staying in memory. It also lets
+	 * the container element hold a new map, which Leaflet refuses while the
+	 * old map is attached.
+	 * @review
+	 */
+	destructor() {
+		super.destructor();
+
+		if (this._resizeObserver) {
+			this._resizeObserver.disconnect();
+
+			this._resizeObserver = null;
+		}
+
+		if (this._map) {
+			this._map.remove();
+
+			this._map = null;
+		}
+	}
+
+	/**
 	 * @inheritDoc
 	 * @review
 	 */
@@ -76,10 +99,19 @@ class MapOpenStreetMap extends MapBase {
 			zoom: this.zoom,
 		};
 
-		const map = L.map(
-			document.querySelector(this.boundingBox),
-			Object.assign(mapConfig, controlsConfig)
-		);
+		const container = document.querySelector(this.boundingBox);
+
+		const map = L.map(container, Object.assign(mapConfig, controlsConfig));
+
+		// Keeps the tiles fully rendered and the center in view when the map
+		// is created inside a hidden element, such as an inactive tab.
+		// Leaflet measures its container only on creation and on window
+		// resize, so without this it keeps a zero size and draws a single
+		// corner of tiles once the element is shown.
+
+		this._resizeObserver = new ResizeObserver(() => map.invalidateSize());
+
+		this._resizeObserver.observe(container);
 
 		if (this.data?.features?.length) {
 			const bounds = new L.LatLngBounds();

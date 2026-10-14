@@ -4,9 +4,9 @@
  */
 
 import {
+	Group,
 	ReferencedStructure,
 	RelatedContent,
-	RepeatableGroup,
 	Structure,
 	StructureChild,
 } from '../../types/Structure';
@@ -30,8 +30,8 @@ export default function cloneChild({
 }): StructureChild {
 	const uuid = getUuid();
 
-	if (child.type === 'repeatable-group') {
-		const group: RepeatableGroup = {
+	if (child.type === 'group') {
+		const group: Group = {
 			...child,
 			children: new Map(),
 			erc: getRandomId(),

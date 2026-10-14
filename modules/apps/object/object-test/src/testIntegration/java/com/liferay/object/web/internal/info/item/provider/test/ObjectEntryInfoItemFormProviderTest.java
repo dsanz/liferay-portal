@@ -268,6 +268,7 @@ public class ObjectEntryInfoItemFormProviderTest {
 	public void testGetInfoForm() throws Exception {
 		_testGetInfoFormWithAttachmentObjectField();
 		_testGetInfoFormWithCategorization();
+		_testGetInfoFormWithCircularReference();
 		_testGetInfoFormWithEdgeObjectRelationship();
 		_testGetInfoFormWithEnableObjectEntrySchedule();
 		_testGetInfoFormWithManyToManyObjectRelationship();
@@ -288,7 +289,7 @@ public class ObjectEntryInfoItemFormProviderTest {
 		ObjectDefinition objectDefinition =
 			_objectDefinitionLocalService.addCustomObjectDefinition(
 				null, TestPropsValues.getUserId(),
-				objectFolder.getObjectFolderId(), null, true, false, true,
+				objectFolder.getObjectFolderId(), null, null, true, false, true,
 				false, true, false, false, false, false, null,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				ObjectDefinitionTestUtil.getRandomName(), null, null,
@@ -332,8 +333,9 @@ public class ObjectEntryInfoItemFormProviderTest {
 		throws Exception {
 
 		return _objectDefinitionLocalService.addCustomObjectDefinition(
-			null, TestPropsValues.getUserId(), 0, null, enableCategorization,
-			false, true, false, true, false, false, false, false, null,
+			null, TestPropsValues.getUserId(), 0, null, null,
+			enableCategorization, false, true, false, true, false, false, false,
+			false, null,
 			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 			ObjectDefinitionTestUtil.getRandomName(), null, null,
 			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
@@ -487,6 +489,45 @@ public class ObjectEntryInfoItemFormProviderTest {
 			TagsInfoFieldType.INSTANCE, tagNamesInfoField.getInfoFieldType());
 	}
 
+	private void _testGetInfoFormWithCircularReference() throws Exception {
+		ObjectRelationship objectRelationship =
+			ObjectRelationshipTestUtil.addObjectRelationship(
+				_objectRelationshipLocalService, _objectDefinitionAA,
+				_objectDefinitionA);
+
+		Node node = _tree.getNode(_objectDefinitionAA.getObjectDefinitionId());
+
+		Edge edge = node.getEdge();
+
+		ObjectRelationship edgeObjectRelationship =
+			_objectRelationshipLocalService.getObjectRelationship(
+				edge.getObjectRelationshipId());
+
+		try (PropsTemporarySwapper propsTemporarySwapper =
+				new PropsTemporarySwapper(
+					"feature.flag.LPD-60546", Boolean.FALSE.toString())) {
+
+			InfoForm infoForm = _getInfoForm(_objectDefinitionA);
+
+			InfoFieldSet infoFieldSet =
+				(InfoFieldSet)infoForm.getInfoFieldSetEntry(
+					_objectDefinitionA.getName());
+
+			InfoFieldSet relationshipInfoFieldSet =
+				(InfoFieldSet)infoFieldSet.getInfoFieldSetEntry(
+					edgeObjectRelationship.getName());
+
+			Assert.assertNotNull(
+				relationshipInfoFieldSet.getInfoFieldSetEntry("able"));
+			Assert.assertNull(
+				relationshipInfoFieldSet.getInfoFieldSetEntry(
+					objectRelationship.getName()));
+		}
+
+		_objectRelationshipLocalService.deleteObjectRelationship(
+			objectRelationship);
+	}
+
 	private void _testGetInfoFormWithEdgeObjectRelationship() throws Exception {
 		Node node = _tree.getNode(_objectDefinitionAA.getObjectDefinitionId());
 
@@ -601,26 +642,6 @@ public class ObjectEntryInfoItemFormProviderTest {
 				"picklistObjectFieldName"));
 	}
 
-	private void _testGetInfoFormWithoutCategorization() throws Exception {
-		_objectDefinition = _addObjectDefinition(
-			false,
-			new TextObjectFieldBuilder(
-			).labelMap(
-				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString())
-			).name(
-				"a" + RandomTestUtil.randomString()
-			).build());
-
-		_objectDefinition =
-			_objectDefinitionLocalService.publishCustomObjectDefinition(
-				TestPropsValues.getUserId(),
-				_objectDefinition.getObjectDefinitionId());
-
-		InfoForm infoForm = _getInfoForm(_objectDefinition);
-
-		Assert.assertNull(infoForm.getInfoFieldSetEntry("categorization"));
-	}
-
 	private void _testGetInfoFormWithPicklistObjectField() throws Exception {
 		_assertOptionInfoFieldTypes(
 			_childInfoForm, _listTypeEntry1.getKey(), _listTypeEntry2.getKey());
@@ -732,6 +753,26 @@ public class ObjectEntryInfoItemFormProviderTest {
 			_objectRelationship.getObjectFieldId2());
 
 		Assert.assertNull(_childInfoForm.getInfoField(objectField.getName()));
+	}
+
+	private void _testGetInfoFormWithoutCategorization() throws Exception {
+		_objectDefinition = _addObjectDefinition(
+			false,
+			new TextObjectFieldBuilder(
+			).labelMap(
+				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString())
+			).name(
+				"a" + RandomTestUtil.randomString()
+			).build());
+
+		_objectDefinition =
+			_objectDefinitionLocalService.publishCustomObjectDefinition(
+				TestPropsValues.getUserId(),
+				_objectDefinition.getObjectDefinitionId());
+
+		InfoForm infoForm = _getInfoForm(_objectDefinition);
+
+		Assert.assertNull(infoForm.getInfoFieldSetEntry("categorization"));
 	}
 
 	private ServiceContext _updateServiceContext(

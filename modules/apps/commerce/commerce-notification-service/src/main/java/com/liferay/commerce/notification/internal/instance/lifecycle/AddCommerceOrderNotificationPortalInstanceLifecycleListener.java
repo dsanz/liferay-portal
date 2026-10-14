@@ -17,7 +17,6 @@ import com.liferay.object.service.ObjectActionLocalService;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectFieldLocalService;
 import com.liferay.petra.string.StringBundler;
-import com.liferay.petra.string.StringPool;
 import com.liferay.portal.instance.lifecycle.BasePortalInstanceLifecycleListener;
 import com.liferay.portal.instance.lifecycle.PortalInstanceLifecycleListener;
 import com.liferay.portal.kernel.exception.NoSuchUserException;
@@ -121,7 +120,7 @@ public class AddCommerceOrderNotificationPortalInstanceLifecycleListener
 		notificationContext.setNotificationRecipientSettings(
 			_notificationRecipientSettingLocalService.
 				createNotificationRecipientSettings(
-					0L, notificationTemplate.getRecipients(), user));
+					0L, null, notificationTemplate.getRecipients(), user));
 		notificationContext.setNotificationTemplate(
 			NotificationUtil.toNotificationTemplate(
 				0L, notificationTemplate, _objectDefinitionLocalService, user));
@@ -155,7 +154,7 @@ public class AddCommerceOrderNotificationPortalInstanceLifecycleListener
 		_objectActionLocalService.addObjectAction(
 			"L_COMMERCE_ORDER_NOTIFICATION", user.getUserId(),
 			objectDefinition.getObjectDefinitionId(), false, "orderStatus == 1",
-			StringPool.BLANK, null,
+			null, null,
 			Collections.singletonMap(
 				LocaleUtil.getDefault(), "Commerce Order Notification"),
 			"commerceOrderNotification", "notification",

@@ -27,8 +27,8 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(
 	property = {
-		"panel.app.order:Integer=250",
-		"panel.category.key=" + PanelCategoryKeys.CONTROL_PANEL_CONFIGURATION
+		"panel.app.order:Integer=300",
+		"panel.category.key=" + PanelCategoryKeys.CONTROL_PANEL_INSTANCE
 	},
 	service = PanelApp.class
 )
@@ -54,7 +54,7 @@ public class MCPServerPanelApp extends BasePanelApp {
 		throws PortalException {
 
 		if (!FeatureFlagManagerUtil.isEnabled(
-				group.getCompanyId(), "LPD-89575")) {
+				group.getCompanyId(), "LPD-63311")) {
 
 			return false;
 		}

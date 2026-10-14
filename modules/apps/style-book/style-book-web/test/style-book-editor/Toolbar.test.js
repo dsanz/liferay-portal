@@ -99,7 +99,7 @@ const TestComponent = ({frontendTokensValuesRef}) => {
 	return null;
 };
 
-const renderComponent = () => {
+const renderComponent = (initialState = {}) => {
 	const frontendTokensValuesRef = React.createRef();
 
 	render(
@@ -111,6 +111,7 @@ const renderComponent = () => {
 				previewLayoutType: 'lalala',
 				redoHistory: STATE.redoHistory,
 				undoHistory: STATE.undoHistory,
+				...initialState,
 			}}
 		>
 			<TestComponent frontendTokensValuesRef={frontendTokensValuesRef} />
@@ -140,7 +141,7 @@ describe('Toolbar', () => {
 			userEvent.click(screen.getByLabelText('undo'));
 		});
 
-		expect(saveDraft).toBeCalledWith({
+		expect(saveDraft).toHaveBeenCalledWith({
 			...STATE.frontendTokensValues,
 			brandColor2: {
 				cssVariableMapping: 'brand-color-2',
@@ -166,7 +167,7 @@ describe('Toolbar', () => {
 			userEvent.click(screen.getByLabelText('redo'));
 		});
 
-		expect(saveDraft).toBeCalledWith({
+		expect(saveDraft).toHaveBeenCalledWith({
 			...STATE.frontendTokensValues,
 			brandColor2: {
 				cssVariableMapping: 'brand-color-2',
@@ -198,7 +199,7 @@ describe('Toolbar', () => {
 			userEvent.click(undoButton);
 		});
 
-		expect(saveDraft).nthCalledWith(2, {
+		expect(saveDraft).toHaveBeenNthCalledWith(2, {
 			brandColor2: {
 				cssVariableMapping: 'brand-color-2',
 				value: 'gray',
@@ -236,7 +237,7 @@ describe('Toolbar', () => {
 			userEvent.click(redoButton);
 		});
 
-		expect(saveDraft).nthCalledWith(2, {
+		expect(saveDraft).toHaveBeenNthCalledWith(2, {
 			brandColor2: {
 				cssVariableMapping: 'brand-color-2',
 				value: 'yellow',
@@ -268,7 +269,7 @@ describe('Toolbar', () => {
 			userEvent.click(screen.getByText('undo-all'));
 		});
 
-		expect(saveDraft).toBeCalledWith({
+		expect(saveDraft).toHaveBeenCalledWith({
 			brandColor2: {
 				cssVariableMapping: 'brand-color-2',
 				value: 'gray',
@@ -289,5 +290,142 @@ describe('Toolbar', () => {
 				value: 'blue',
 			},
 		});
+	});
+
+	it('Undo all removes a token with no saved value and redo reapplies each change', async () => {
+		const frontendTokensValuesRef = renderComponent({
+			frontendTokensValues: {
+				testColor1: {
+					cssVariableMapping: 'test-color-1',
+					value: '222',
+				},
+			},
+			redoHistory: [],
+			undoHistory: [
+				{
+					label: 'Test Color 1',
+					name: 'testColor1',
+					value: {
+						cssVariableMapping: 'test-color-1',
+						value: '111',
+					},
+				},
+				{
+					label: 'Test Color 1',
+					name: 'testColor1',
+				},
+			],
+		});
+
+		await act(async () => {
+			userEvent.click(screen.getByText('undo-all'));
+		});
+
+		expect(saveDraft).toHaveBeenCalledWith({});
+
+		expect(frontendTokensValuesRef.current).not.toHaveProperty(
+			'testColor1'
+		);
+
+		const redoButton = screen.getByLabelText('redo');
+
+		await act(async () => {
+			userEvent.click(redoButton);
+		});
+
+		expect(saveDraft).toHaveBeenNthCalledWith(2, {
+			testColor1: {
+				cssVariableMapping: 'test-color-1',
+				value: '111',
+			},
+		});
+
+		expect(frontendTokensValuesRef.current).toMatchObject({
+			testColor1: {
+				cssVariableMapping: 'test-color-1',
+				value: '111',
+			},
+		});
+
+		await act(async () => {
+			userEvent.click(redoButton);
+		});
+
+		expect(saveDraft).toHaveBeenNthCalledWith(3, {
+			testColor1: {
+				cssVariableMapping: 'test-color-1',
+				value: '222',
+			},
+		});
+
+		expect(frontendTokensValuesRef.current).toMatchObject({
+			testColor1: {
+				cssVariableMapping: 'test-color-1',
+				value: '222',
+			},
+		});
+	});
+
+	it('Undo after a multi-step redo undoes changes one step at a time', async () => {
+		const frontendTokensValuesRef = renderComponent({
+			frontendTokensValues: {},
+			redoHistory: [
+				{
+					label: 'Test Color 1',
+					name: 'testColor1',
+					value: {
+						cssVariableMapping: 'test-color-1',
+						value: '111',
+					},
+				},
+				{
+					label: 'Test Color 1',
+					name: 'testColor1',
+					value: {
+						cssVariableMapping: 'test-color-1',
+						value: '222',
+					},
+				},
+			],
+			undoHistory: [],
+		});
+
+		await act(async () => {
+			userEvent.click(screen.getByLabelText('history'));
+		});
+
+		await act(async () => {
+			userEvent.click(screen.getAllByText('update Test Color 1')[0]);
+		});
+
+		expect(saveDraft).toHaveBeenCalledWith({
+			testColor1: {
+				cssVariableMapping: 'test-color-1',
+				value: '222',
+			},
+		});
+
+		const undoButton = screen.getByLabelText('undo');
+
+		await act(async () => {
+			userEvent.click(undoButton);
+		});
+
+		expect(saveDraft).toHaveBeenNthCalledWith(2, {
+			testColor1: {
+				cssVariableMapping: 'test-color-1',
+				value: '111',
+			},
+		});
+
+		await act(async () => {
+			userEvent.click(undoButton);
+		});
+
+		expect(saveDraft).toHaveBeenNthCalledWith(3, {});
+
+		expect(frontendTokensValuesRef.current).not.toHaveProperty(
+			'testColor1'
+		);
 	});
 });

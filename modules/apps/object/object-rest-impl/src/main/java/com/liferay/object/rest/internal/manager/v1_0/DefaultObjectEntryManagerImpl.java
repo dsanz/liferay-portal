@@ -15,6 +15,7 @@ import com.liferay.exportimport.attachment.ExportImportAttachmentManager;
 import com.liferay.exportimport.kernel.lar.ExportImportThreadLocal;
 import com.liferay.object.action.engine.ObjectActionEngine;
 import com.liferay.object.comment.ObjectEntryComment;
+import com.liferay.object.configuration.ObjectConfiguration;
 import com.liferay.object.constants.ObjectActionKeys;
 import com.liferay.object.constants.ObjectActionTriggerConstants;
 import com.liferay.object.constants.ObjectDefinitionConstants;
@@ -45,6 +46,7 @@ import com.liferay.object.model.ObjectField;
 import com.liferay.object.model.ObjectFolder;
 import com.liferay.object.model.ObjectRelationship;
 import com.liferay.object.model.ObjectRelationshipModel;
+import com.liferay.object.model.bag.ObjectFieldBag;
 import com.liferay.object.related.models.ObjectRelatedModelsProvider;
 import com.liferay.object.related.models.ObjectRelatedModelsProviderRegistry;
 import com.liferay.object.relationship.util.ObjectRelationshipUtil;
@@ -91,6 +93,7 @@ import com.liferay.petra.sql.dsl.Table;
 import com.liferay.petra.sql.dsl.expression.Predicate;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
@@ -133,6 +136,7 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.GroupThreadLocal;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.InetAddressUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MapUtil;
@@ -180,8 +184,10 @@ import java.io.IOException;
 import java.io.Serializable;
 
 import java.net.HttpURLConnection;
+import java.net.InetAddress;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.UnknownHostException;
 
 import java.text.ParseException;
 
@@ -228,10 +234,6 @@ public class DefaultObjectEntryManagerImpl
 					dtoConverterContext.getUser());
 			}
 		}
-
-		validateReadOnlyObjectFields(
-			null, getGroupId(objectDefinition, scopeKey), objectDefinition,
-			objectEntry);
 
 		ServiceContext serviceContext = _createServiceContext(
 			dtoConverterContext, objectDefinition, objectEntry, scopeKey);
@@ -1465,6 +1467,39 @@ public class DefaultObjectEntryManagerImpl
 
 	@Override
 	public ObjectEntry updateObjectEntry(
+			DTOConverterContext dtoConverterContext,
+			ObjectDefinition objectDefinition, ObjectEntry objectEntry,
+			String scopeKey,
+			com.liferay.object.model.ObjectEntry serviceBuilderObjectEntry)
+		throws Exception {
+
+		_checkObjectEntryStatus(serviceBuilderObjectEntry);
+
+		validateReadOnlyObjectFields(
+			objectDefinition, objectEntry, serviceBuilderObjectEntry);
+
+		ServiceContext serviceContext = _createServiceContext(
+			dtoConverterContext, objectDefinition, objectEntry, scopeKey);
+
+		serviceContext.setCompanyId(serviceBuilderObjectEntry.getCompanyId());
+
+		return _toUpdatedObjectEntry(
+			dtoConverterContext, objectDefinition, objectEntry, false, scopeKey,
+			_objectEntryService.updateObjectEntry(
+				serviceBuilderObjectEntry.getObjectEntryId(),
+				_getObjectEntryFolderId(
+					objectDefinition.getCompanyId(),
+					getGroupId(objectDefinition, scopeKey), objectEntry,
+					objectDefinition, serviceContext),
+				_toObjectValues(
+					0L, dtoConverterContext.getLocale(), objectDefinition,
+					objectEntry, scopeKey, serviceContext),
+				serviceContext),
+			serviceContext);
+	}
+
+	@Override
+	public ObjectEntry updateObjectEntry(
 			long companyId, DTOConverterContext dtoConverterContext,
 			String externalReferenceCode, ObjectDefinition objectDefinition,
 			ObjectEntry objectEntry, String scopeKey)
@@ -2150,6 +2185,7 @@ public class DefaultObjectEntryManagerImpl
 		return ServiceContextUtil.createServiceContext(
 			objectDefinition.getCompanyId(),
 			objectDefinition.isEnableCategorization(),
+			objectDefinition.isEnableFriendlyURLCustomization(),
 			getGroupId(objectDefinition, scopeKey),
 			dtoConverterContext.getLocale(), modelPermissions, objectEntry,
 			objectEntryComments, dtoConverterContext.getUserId());
@@ -3069,6 +3105,9 @@ public class DefaultObjectEntryManagerImpl
 				WorkflowConstants.STATUS_ANY);
 		}
 
+		objectEntryLocalService.loadValues(
+			objectDefinition, serviceBuilderObjectEntries);
+
 		return Page.of(
 			serviceBuilderObjectEntries, pagination, objectEntriesCount);
 	}
@@ -3299,7 +3338,7 @@ public class DefaultObjectEntryManagerImpl
 			ServiceContext serviceContext)
 		throws Exception {
 
-		if (propertyValue == null) {
+		if (!(propertyValue instanceof Map<?, ?>)) {
 			return 0;
 		}
 
@@ -3346,26 +3385,26 @@ public class DefaultObjectEntryManagerImpl
 				URL url = _exportImportAttachmentManager.getURL(
 					fileEntry.getFileURL());
 
-				if (Objects.equals(url.getProtocol(), "file")) {
-					throw new UnsupportedOperationException(
-						StringBundler.concat(
-							"Unable to download file from ",
-							fileEntry.getFileURL(), ", unsupported protocol: ",
-							url.getProtocol()));
-				}
+				_validateFileURL(
+					objectField.getCompanyId(), fileEntry.getFileURL(), url);
 
 				URLConnection urlConnection = url.openConnection();
 
-				if ((urlConnection instanceof
-						HttpURLConnection httpURLConnection) &&
-					(httpURLConnection.getResponseCode() !=
-						HttpURLConnection.HTTP_OK)) {
+				if (urlConnection instanceof
+						HttpURLConnection httpURLConnection) {
 
-					throw new IllegalArgumentException(
-						StringBundler.concat(
-							"Unable to download file from ",
-							fileEntry.getFileURL(), ", unexpected HTTP code: ",
-							httpURLConnection.getResponseCode()));
+					httpURLConnection.setInstanceFollowRedirects(false);
+
+					if (httpURLConnection.getResponseCode() !=
+							HttpURLConnection.HTTP_OK) {
+
+						throw new IllegalArgumentException(
+							StringBundler.concat(
+								"Unable to download file from ",
+								fileEntry.getFileURL(),
+								" because of unexpected HTTP response code ",
+								httpURLConnection.getResponseCode()));
+					}
 				}
 
 				fileContent = StreamUtil.toByteArray(
@@ -3611,6 +3650,17 @@ public class DefaultObjectEntryManagerImpl
 		}
 	}
 
+	private Object _toDTO(
+			BaseModel<?> baseModel,
+			com.liferay.object.model.ObjectEntry serviceBuilderObjectEntry,
+			SystemObjectDefinitionManager systemObjectDefinitionManager)
+		throws Exception {
+
+		return ObjectEntryDTOConverterUtil.toDTO(
+			baseModel, _dtoConverterRegistry, systemObjectDefinitionManager,
+			_userLocalService.getUser(serviceBuilderObjectEntry.getUserId()));
+	}
+
 	private Date _toDate(Locale locale, String valueString) {
 		if (Validator.isNull(valueString)) {
 			return null;
@@ -3634,17 +3684,6 @@ public class DefaultObjectEntryManagerImpl
 					parseException2);
 			}
 		}
-	}
-
-	private Object _toDTO(
-			BaseModel<?> baseModel,
-			com.liferay.object.model.ObjectEntry serviceBuilderObjectEntry,
-			SystemObjectDefinitionManager systemObjectDefinitionManager)
-		throws Exception {
-
-		return ObjectEntryDTOConverterUtil.toDTO(
-			baseModel, _dtoConverterRegistry, systemObjectDefinitionManager,
-			_userLocalService.getUser(serviceBuilderObjectEntry.getUserId()));
 	}
 
 	private List<ObjectEntry> _toObjectEntries(
@@ -3913,10 +3952,9 @@ public class DefaultObjectEntryManagerImpl
 
 		relationshipObjectFieldIds.remove(allowedRelationshipObjectFieldId);
 
-		for (ObjectField objectField :
-				objectFieldLocalService.getObjectFields(
-					objectDefinition.getObjectDefinitionId())) {
+		ObjectFieldBag objectFieldBag = objectDefinition.getObjectFieldBag();
 
+		for (ObjectField objectField : objectFieldBag.getObjectFields()) {
 			if (relationshipObjectFieldIds.contains(
 					objectField.getObjectFieldId())) {
 
@@ -3939,7 +3977,8 @@ public class DefaultObjectEntryManagerImpl
 
 				Map<String, Object> localizedValues =
 					objectFieldBusinessType.getLocalizedValues(
-						objectField, serviceContext.getUserId(), properties);
+						getGroupId(objectDefinition, scopeKey), objectField,
+						serviceContext.getUserId(), properties);
 
 				if (localizedValues != null) {
 					values.put(
@@ -4005,6 +4044,27 @@ public class DefaultObjectEntryManagerImpl
 		}
 
 		return values;
+	}
+
+	private ObjectEntry _toUpdatedObjectEntry(
+			DTOConverterContext dtoConverterContext,
+			ObjectDefinition objectDefinition, ObjectEntry objectEntry,
+			boolean partialUpdateNestedObjectEntries, String scopeKey,
+			com.liferay.object.model.ObjectEntry serviceBuilderObjectEntry,
+			ServiceContext serviceContext)
+		throws Exception {
+
+		return _toObjectEntry(
+			dtoConverterContext, objectDefinition,
+			_addOrUpdateNestedObjectEntries(
+				dtoConverterContext, objectDefinition, objectEntry,
+				_getObjectRelationships(objectDefinition, objectEntry),
+				partialUpdateNestedObjectEntries,
+				_updateStatus(
+					dtoConverterContext, objectEntry, serviceBuilderObjectEntry,
+					serviceContext),
+				scopeKey),
+			null);
 	}
 
 	private void _updateDuplicateObjectEntryName(
@@ -4098,9 +4158,7 @@ public class DefaultObjectEntryManagerImpl
 			serviceBuilderObjectEntry, skipCheckRootDescendantNode);
 
 		validateReadOnlyObjectFields(
-			serviceBuilderObjectEntry.getExternalReferenceCode(),
-			serviceBuilderObjectEntry.getGroupId(), objectDefinition,
-			objectEntry);
+			objectDefinition, objectEntry, serviceBuilderObjectEntry);
 
 		String scopeKey = String.valueOf(
 			serviceBuilderObjectEntry.getGroupId());
@@ -4141,17 +4199,9 @@ public class DefaultObjectEntryManagerImpl
 				values, serviceContext);
 		}
 
-		return _toObjectEntry(
-			dtoConverterContext, objectDefinition,
-			_addOrUpdateNestedObjectEntries(
-				dtoConverterContext, objectDefinition, objectEntry,
-				_getObjectRelationships(objectDefinition, objectEntry),
-				partialUpdate,
-				_updateStatus(
-					dtoConverterContext, objectEntry, serviceBuilderObjectEntry,
-					serviceContext),
-				scopeKey),
-			null);
+		return _toUpdatedObjectEntry(
+			dtoConverterContext, objectDefinition, objectEntry, partialUpdate,
+			scopeKey, serviceBuilderObjectEntry, serviceContext);
 	}
 
 	private ObjectEntry _updateObjectEntry(
@@ -4168,40 +4218,36 @@ public class DefaultObjectEntryManagerImpl
 				externalReferenceCode, groupId,
 				objectDefinition.getObjectDefinitionId());
 
-		if (serviceBuilderObjectEntry != null) {
-			_checkObjectEntryStatus(serviceBuilderObjectEntry);
+		if (serviceBuilderObjectEntry == null) {
+			validateReadOnlyObjectFields(
+				externalReferenceCode, groupId, objectDefinition, objectEntry);
 		}
+		else {
+			_checkObjectEntryStatus(serviceBuilderObjectEntry);
 
-		validateReadOnlyObjectFields(
-			externalReferenceCode, groupId, objectDefinition, objectEntry);
+			validateReadOnlyObjectFields(
+				objectDefinition, objectEntry, serviceBuilderObjectEntry);
+		}
 
 		ServiceContext serviceContext = _createServiceContext(
 			dtoConverterContext, objectDefinition, objectEntry, scopeKey);
 
 		serviceContext.setCompanyId(companyId);
 
-		return _toObjectEntry(
-			dtoConverterContext, objectDefinition,
-			_addOrUpdateNestedObjectEntries(
-				dtoConverterContext, objectDefinition, objectEntry,
-				_getObjectRelationships(objectDefinition, objectEntry),
-				partialUpdateNestedObjectEntries,
-				_updateStatus(
-					dtoConverterContext, objectEntry,
-					_objectEntryService.addOrUpdateObjectEntry(
-						externalReferenceCode, groupId,
-						objectDefinition.getObjectDefinitionId(),
-						_getObjectEntryFolderId(
-							objectDefinition.getCompanyId(), groupId,
-							objectEntry, objectDefinition, serviceContext),
-						_toObjectValues(
-							0L, dtoConverterContext.getLocale(),
-							objectDefinition, objectEntry, scopeKey,
-							serviceContext),
-						serviceContext),
-					serviceContext),
-				scopeKey),
-			null);
+		return _toUpdatedObjectEntry(
+			dtoConverterContext, objectDefinition, objectEntry,
+			partialUpdateNestedObjectEntries, scopeKey,
+			_objectEntryService.addOrUpdateObjectEntry(
+				externalReferenceCode, groupId,
+				objectDefinition.getObjectDefinitionId(),
+				_getObjectEntryFolderId(
+					objectDefinition.getCompanyId(), groupId, objectEntry,
+					objectDefinition, serviceContext),
+				_toObjectValues(
+					0L, dtoConverterContext.getLocale(), objectDefinition,
+					objectEntry, scopeKey, serviceContext),
+				serviceContext),
+			serviceContext);
 	}
 
 	private ObjectEntry _updateRelatedObjectEntry(
@@ -4296,6 +4342,77 @@ public class DefaultObjectEntryManagerImpl
 			serviceContext);
 	}
 
+	private void _validateFileURL(long companyId, String fileURL, URL url)
+		throws Exception {
+
+		String protocol = url.getProtocol();
+
+		if (Objects.equals(protocol, "lar")) {
+			return;
+		}
+
+		if (!Objects.equals(protocol, Http.HTTP) &&
+			!Objects.equals(protocol, Http.HTTPS)) {
+
+			throw new UnsupportedOperationException(
+				StringBundler.concat(
+					"Unable to download file from ", fileURL,
+					" because protocol ", protocol, " is not supported"));
+		}
+
+		String host = url.getHost();
+
+		if (Validator.isBlank(host)) {
+			throw new IllegalArgumentException(
+				"Unable to download file from " + fileURL +
+					" because host is not defined");
+		}
+
+		ObjectConfiguration objectConfiguration =
+			_configurationProvider.getCompanyConfiguration(
+				ObjectConfiguration.class, companyId);
+
+		String[] attachmentFileURLHostsAllowed =
+			objectConfiguration.attachmentFileURLHostsAllowed();
+
+		if (ArrayUtil.isNotEmpty(attachmentFileURLHostsAllowed) &&
+			!ArrayUtil.contains(attachmentFileURLHostsAllowed, host, true)) {
+
+			throw new IllegalArgumentException(
+				StringBundler.concat(
+					"Unable to download file from ", fileURL, " because host ",
+					host, " is not allowed"));
+		}
+
+		if (objectConfiguration.attachmentFileURLLocalNetworkAccessEnabled()) {
+			return;
+		}
+
+		try {
+			InetAddress inetAddress = InetAddressUtil.getInetAddressByName(
+				host);
+
+			if ((inetAddress == null) ||
+				InetAddressUtil.isLocalInetAddress(inetAddress)) {
+
+				throw new IllegalArgumentException(
+					StringBundler.concat(
+						"Unable to download file from ", fileURL,
+						" because host ", host, " is not allowed"));
+			}
+		}
+		catch (UnknownHostException unknownHostException) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(unknownHostException);
+			}
+
+			throw new IllegalArgumentException(
+				StringBundler.concat(
+					"Unable to download file from ", fileURL, " because host ",
+					host, " is unknown"));
+		}
+	}
+
 	private static final Log _log = LogFactoryUtil.getLog(
 		DefaultObjectEntryManagerImpl.class);
 
@@ -4307,6 +4424,9 @@ public class DefaultObjectEntryManagerImpl
 
 	@Reference
 	private ClassNameLocalService _classNameLocalService;
+
+	@Reference
+	private ConfigurationProvider _configurationProvider;
 
 	@Reference
 	private DepotEntryLocalService _depotEntryLocalService;

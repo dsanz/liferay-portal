@@ -1,30 +1,33 @@
 import mockStore, {mockStoreDataLDP} from 'test/mock-store';
 import React from 'react';
 import Sidebar from '../index';
-import {Provider} from 'react-redux';
-import {render} from '@testing-library/react';
+import {fireEvent, render, screen} from '@testing-library/react';
+import {Map} from 'immutable';
 import {MemoryRouter} from 'react-router';
-import {User} from 'shared/util/records';
+import {Provider} from 'react-redux';
 
 const defaultProps = {
 	activePathname: '',
 	channelId: '123',
-	currentUser: new User({emailAddress: 'test@test.com', name: 'Test Test'}),
-	groupId: '23'
+	containerRef: React.createRef(),
+	groupId: '23',
+	onCollapsedChange: jest.fn()
 };
+
+const renderSidebar = (props = {}) =>
+	render(
+		<Provider store={mockStore(mockStoreDataLDP)}>
+			<MemoryRouter>
+				<Sidebar {...defaultProps} {...props} />
+			</MemoryRouter>
+		</Provider>
+	);
 
 jest.unmock('react-dom');
 
-jest.mock('shared/util/feature-flags', () => ({
-	...jest.requireActual('shared/util/feature-flags'),
-	ENABLE_CAMPAIGNS: false
-}));
-
-const featureFlags = jest.requireMock('shared/util/feature-flags');
-
 describe('Sidebar', () => {
-	beforeEach(() => {
-		featureFlags.ENABLE_CAMPAIGNS = false;
+	afterEach(() => {
+		delete document.body.clientWidth;
 	});
 
 	it('should render', () => {
@@ -48,8 +51,8 @@ describe('Sidebar', () => {
 			</Provider>
 		);
 
-		expect(container.querySelector('.sidebar-root')).toHaveClass(
-			'collapsed'
+		expect(container.querySelector('.sidebar-root')).toHaveAttribute(
+			'inert'
 		);
 	});
 
@@ -67,9 +70,10 @@ describe('Sidebar', () => {
 			</Provider>
 		);
 
-		expect(
-			container.querySelector('.sidebar-item-root.active').firstChild
-		).toHaveAttribute('href', activePathName);
+		expect(container.querySelector('.nav-link.active')).toHaveAttribute(
+			'href',
+			activePathName
+		);
 	});
 
 	it('should render lifecycle and accounts items when LDP is enabled', () => {
@@ -85,21 +89,7 @@ describe('Sidebar', () => {
 		expect(queryByText('Accounts')).toBeTruthy();
 	});
 
-	it('should not render the campaigns item while the feature flag is off', () => {
-		const {queryByText} = render(
-			<Provider store={mockStore(mockStoreDataLDP)}>
-				<MemoryRouter>
-					<Sidebar {...defaultProps} />
-				</MemoryRouter>
-			</Provider>
-		);
-
-		expect(queryByText('Campaigns')).toBeNull();
-	});
-
-	it('should render the campaigns item when the feature flag is on', () => {
-		featureFlags.ENABLE_CAMPAIGNS = true;
-
+	it('should render the campaigns item when LDP is enabled', () => {
 		const {queryByText} = render(
 			<Provider store={mockStore(mockStoreDataLDP)}>
 				<MemoryRouter>
@@ -114,9 +104,7 @@ describe('Sidebar', () => {
 		);
 	});
 
-	it('should not render the campaigns item when the feature flag is on but LDP is not enabled', () => {
-		featureFlags.ENABLE_CAMPAIGNS = true;
-
+	it('should not render the campaigns item when LDP is not enabled', () => {
 		const {queryByText} = render(
 			<Provider store={mockStore()}>
 				<MemoryRouter>
@@ -139,5 +127,111 @@ describe('Sidebar', () => {
 
 		expect(queryByText('Lifecycles')).toBeNull();
 		expect(queryByText('Accounts')).toBeNull();
+	});
+
+	it('should default a section to expanded when nothing is stored for it', () => {
+		render(
+			<Provider store={mockStore(mockStoreDataLDP)}>
+				<MemoryRouter>
+					<Sidebar {...defaultProps} collapsedSections={new Map()} />
+				</MemoryRouter>
+			</Provider>
+		);
+
+		expect(
+			screen.getByRole('menuitem', {name: 'Touchpoints'})
+		).toHaveAttribute('aria-expanded', 'true');
+	});
+
+	it('should collapse a section whose collapsedSections entry is true', () => {
+		render(
+			<Provider store={mockStore(mockStoreDataLDP)}>
+				<MemoryRouter>
+					<Sidebar
+						{...defaultProps}
+						collapsedSections={new Map({touchpoints: true})}
+					/>
+				</MemoryRouter>
+			</Provider>
+		);
+
+		expect(
+			screen.getByRole('menuitem', {name: 'Touchpoints'})
+		).toHaveAttribute('aria-expanded', 'false');
+	});
+
+	it('should call onSectionToggle with the section key when its header is clicked', () => {
+		const onSectionToggle = jest.fn();
+
+		render(
+			<Provider store={mockStore(mockStoreDataLDP)}>
+				<MemoryRouter>
+					<Sidebar
+						{...defaultProps}
+						onSectionToggle={onSectionToggle}
+					/>
+				</MemoryRouter>
+			</Provider>
+		);
+
+		fireEvent.click(screen.getByRole('menuitem', {name: 'Touchpoints'}));
+
+		expect(onSectionToggle).toHaveBeenCalledWith('touchpoints', true);
+	});
+
+	it('should close on mobile when it mounts', () => {
+		const onCollapsedChange = jest.fn();
+
+		renderSidebar({onCollapsedChange});
+
+		expect(onCollapsedChange).toHaveBeenCalledWith(true);
+	});
+
+	it('should close on mobile after navigating', () => {
+		const onCollapsedChange = jest.fn();
+
+		const {rerender} = renderSidebar({onCollapsedChange});
+
+		onCollapsedChange.mockClear();
+
+		rerender(
+			<Provider store={mockStore(mockStoreDataLDP)}>
+				<MemoryRouter>
+					<Sidebar
+						{...defaultProps}
+						activePathname="/workspace/23/123/sites"
+						onCollapsedChange={onCollapsedChange}
+					/>
+				</MemoryRouter>
+			</Provider>
+		);
+
+		expect(onCollapsedChange).toHaveBeenCalledWith(true);
+	});
+
+	it('should close from its close button on mobile', () => {
+		const onCollapsedChange = jest.fn();
+
+		renderSidebar({onCollapsedChange});
+
+		onCollapsedChange.mockClear();
+
+		fireEvent.click(screen.getByRole('button', {name: 'Close'}));
+
+		expect(onCollapsedChange).toHaveBeenCalledWith(true);
+	});
+
+	it('should keep its state and have no close button on desktop', () => {
+		Object.defineProperty(document.body, 'clientWidth', {
+			configurable: true,
+			value: 1024
+		});
+
+		const onCollapsedChange = jest.fn();
+
+		renderSidebar({onCollapsedChange});
+
+		expect(onCollapsedChange).not.toHaveBeenCalled();
+		expect(screen.queryByRole('button', {name: 'Close'})).toBeNull();
 	});
 });

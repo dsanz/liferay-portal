@@ -7,8 +7,8 @@ package com.liferay.object.web.internal.asset.model;
 
 import com.liferay.asset.display.page.portlet.AssetDisplayPageFriendlyURLProvider;
 import com.liferay.asset.kernel.model.BaseJSPAssetRenderer;
+import com.liferay.document.library.helper.DLURLHelper;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
-import com.liferay.document.library.util.DLURLHelper;
 import com.liferay.info.item.ClassPKInfoItemIdentifier;
 import com.liferay.info.item.InfoItemReference;
 import com.liferay.object.constants.ObjectFieldConstants;
@@ -30,19 +30,21 @@ import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
-import com.liferay.portal.kernel.portlet.PortletURLFactoryUtil;
+import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
-import com.liferay.portal.kernel.theme.PortletDisplay;
+import com.liferay.portal.kernel.servlet.HttpHeaders;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.trash.TrashRenderer;
 import com.liferay.portal.kernel.util.Constants;
+import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 
 import jakarta.portlet.PortletRequest;
@@ -63,7 +65,7 @@ public class ObjectEntryAssetRenderer
 	public ObjectEntryAssetRenderer(
 		AssetDisplayPageFriendlyURLProvider assetDisplayPageFriendlyURLProvider,
 		DLAppLocalService dlAppLocalService, DLURLHelper dlURLHelper,
-		ObjectDefinition objectDefinition, ObjectEntry objectEntry,
+		ObjectEntry objectEntry,
 		ObjectEntryDisplayContextFactory objectEntryDisplayContextFactory,
 		ObjectEntryService objectEntryService,
 		ObjectFieldLocalService objectFieldLocalService) {
@@ -72,7 +74,6 @@ public class ObjectEntryAssetRenderer
 			assetDisplayPageFriendlyURLProvider;
 		_dlAppLocalService = dlAppLocalService;
 		_dlURLHelper = dlURLHelper;
-		_objectDefinition = objectDefinition;
 		_objectEntry = objectEntry;
 		_objectEntryDisplayContextFactory = objectEntryDisplayContextFactory;
 		_objectEntryService = objectEntryService;
@@ -100,6 +101,12 @@ public class ObjectEntryAssetRenderer
 	}
 
 	@Override
+	public String getIconCssClass() {
+		return ObjectEntryAssetRendererFactory.getIconCssClass(
+			_objectEntry.getObjectDefinition());
+	}
+
+	@Override
 	public String getJspPath(
 		HttpServletRequest httpServletRequest, String template) {
 
@@ -114,7 +121,9 @@ public class ObjectEntryAssetRenderer
 
 	@Override
 	public String getPortletId() {
-		return _objectDefinition.getPortletId();
+		ObjectDefinition objectDefinition = _objectEntry.getObjectDefinition();
+
+		return objectDefinition.getPortletId();
 	}
 
 	@Override
@@ -122,7 +131,9 @@ public class ObjectEntryAssetRenderer
 			boolean editable, ThemeDisplay themeDisplay)
 		throws Exception {
 
-		if (_objectDefinition.isCMS()) {
+		ObjectDefinition objectDefinition = _objectEntry.getObjectDefinition();
+
+		if (objectDefinition.isCMS()) {
 			return getURLSharingNotification(editable, themeDisplay);
 		}
 
@@ -153,17 +164,21 @@ public class ObjectEntryAssetRenderer
 
 	@Override
 	public String getType() {
-		return _objectDefinition.getName();
+		ObjectDefinition objectDefinition = _objectEntry.getObjectDefinition();
+
+		return objectDefinition.getName();
 	}
 
 	@Override
 	public String getURLDownload(ThemeDisplay themeDisplay) {
-		if (!_objectDefinition.isCMS()) {
+		ObjectDefinition objectDefinition = _objectEntry.getObjectDefinition();
+
+		if (!objectDefinition.isCMS()) {
 			return null;
 		}
 
 		ObjectField objectField = _objectFieldLocalService.fetchObjectField(
-			_objectDefinition.getObjectDefinitionId(), "file");
+			objectDefinition.getObjectDefinitionId(), "file");
 
 		if ((objectField == null) ||
 			!objectField.compareBusinessType(
@@ -179,7 +194,7 @@ public class ObjectEntryAssetRenderer
 					MapUtil.getLong(
 						_objectEntry.getValues(), objectField.getName())),
 				_objectEntry.getGroupId(),
-				_objectDefinition.getExternalReferenceCode(), _objectEntry,
+				objectDefinition.getExternalReferenceCode(), _objectEntry,
 				_objectEntryService, objectField,
 				_getPermissionChecker(themeDisplay), themeDisplay);
 		}
@@ -205,7 +220,9 @@ public class ObjectEntryAssetRenderer
 			group = themeDisplay.getScopeGroup();
 		}
 
-		if (_objectDefinition.isCMS()) {
+		ObjectDefinition objectDefinition = _objectEntry.getObjectDefinition();
+
+		if (objectDefinition.isCMS()) {
 			return PortletURLBuilder.create(
 				PortalUtil.getControlPanelPortletURL(
 					httpServletRequest, group,
@@ -220,7 +237,7 @@ public class ObjectEntryAssetRenderer
 
 		return PortletURLBuilder.create(
 			PortalUtil.getControlPanelPortletURL(
-				httpServletRequest, group, _objectDefinition.getPortletId(), 0,
+				httpServletRequest, group, objectDefinition.getPortletId(), 0,
 				0, PortletRequest.RENDER_PHASE)
 		).setMVCRenderCommandName(
 			"/object_entries/edit_object_entry"
@@ -249,13 +266,20 @@ public class ObjectEntryAssetRenderer
 			return null;
 		}
 
-		if (!_objectDefinition.isCMS()) {
+		ObjectDefinition objectDefinition = _objectEntry.getObjectDefinition();
+
+		if (!objectDefinition.isCMS()) {
 			return getURLViewInContext(themeDisplay, StringPool.BLANK);
 		}
 
-		PortletURL portletURL = PortletURLFactoryUtil.create(
-			themeDisplay.getRequest(), _getPortletDisplayId(themeDisplay),
-			PortletRequest.RENDER_PHASE);
+		HttpServletRequest httpServletRequest = themeDisplay.getRequest();
+
+		String redirect = PortalUtil.escapeRedirect(
+			httpServletRequest.getHeader(HttpHeaders.REFERER));
+
+		if (Validator.isNull(redirect)) {
+			redirect = themeDisplay.getURLHome();
+		}
 
 		if (editable) {
 			return StringBundler.concat(
@@ -263,14 +287,16 @@ public class ObjectEntryAssetRenderer
 				GroupConstants.CMS_FRIENDLY_URL,
 				"/edit_content_item?objectEntryId=",
 				_objectEntry.getObjectEntryId(), "&p_l_mode=", Constants.EDIT,
-				"&redirect=", portletURL);
+				"&redirect=", HtmlUtil.escapeURL(redirect));
 		}
 
 		return StringBundler.concat(
-			themeDisplay.getPortalURL(),
-			themeDisplay.getPathFriendlyURLPublic(),
-			GroupConstants.CMS_FRIENDLY_URL, "/view-asset?objectEntryId=",
-			_objectEntry.getObjectEntryId(), "&backURL=", portletURL);
+			themeDisplay.getPortalURL(), themeDisplay.getPathMain(),
+			GroupConstants.CMS_FRIENDLY_URL,
+			"/edit_content_item?objectEntryId=",
+			_objectEntry.getObjectEntryId(), "&p_l_mode=", Constants.READ,
+			"&p_p_state=", LiferayWindowState.POP_UP, "&redirect=",
+			HtmlUtil.escapeURL(redirect));
 	}
 
 	@Override
@@ -365,7 +391,8 @@ public class ObjectEntryAssetRenderer
 		throws Exception {
 
 		httpServletRequest.setAttribute(
-			ObjectWebKeys.OBJECT_DEFINITION, _objectDefinition);
+			ObjectWebKeys.OBJECT_DEFINITION,
+			_objectEntry.getObjectDefinition());
 		httpServletRequest.setAttribute(
 			ObjectWebKeys.OBJECT_ENTRY_EXTERNAL_REFERENCE_CODE,
 			_objectEntry.getExternalReferenceCode());
@@ -384,7 +411,9 @@ public class ObjectEntryAssetRenderer
 
 	@Override
 	public boolean isCommentable() {
-		return _objectDefinition.isEnableComments();
+		ObjectDefinition objectDefinition = _objectEntry.getObjectDefinition();
+
+		return objectDefinition.isEnableComments();
 	}
 
 	private PermissionChecker _getPermissionChecker(ThemeDisplay themeDisplay) {
@@ -398,16 +427,6 @@ public class ObjectEntryAssetRenderer
 		return permissionChecker;
 	}
 
-	private String _getPortletDisplayId(ThemeDisplay themeDisplay) {
-		PortletDisplay portletDisplay = themeDisplay.getPortletDisplay();
-
-		if (portletDisplay == null) {
-			return "com_liferay_notifications_web_portlet_NotificationsPortlet";
-		}
-
-		return portletDisplay.getId();
-	}
-
 	private static final Log _log = LogFactoryUtil.getLog(
 		ObjectEntryAssetRenderer.class);
 
@@ -415,7 +434,6 @@ public class ObjectEntryAssetRenderer
 		_assetDisplayPageFriendlyURLProvider;
 	private final DLAppLocalService _dlAppLocalService;
 	private final DLURLHelper _dlURLHelper;
-	private final ObjectDefinition _objectDefinition;
 	private final ObjectEntry _objectEntry;
 	private final ObjectEntryDisplayContextFactory
 		_objectEntryDisplayContextFactory;

@@ -6,6 +6,7 @@
 package com.liferay.site.navigation.admin.web.internal.portlet.action;
 
 import com.liferay.petra.io.unsync.UnsyncStringWriter;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.model.LayoutSet;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCResourceCommand;
@@ -27,10 +28,6 @@ import jakarta.portlet.ResourceResponse;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -90,20 +87,32 @@ public class GetSiteNavigationMenuPreviewMVCResourceCommand
 
 		httpServletRequest.setAttribute(WebKeys.THEME_DISPLAY, themeDisplay);
 
-		Document document = Jsoup.parse(
-			ThemeUtil.include(
-				ServletContextPool.get(StringPool.BLANK), httpServletRequest,
-				httpServletResponse, "portal_normal.ftl", layoutSet.getTheme(),
-				false));
+		String html = ThemeUtil.include(
+			ServletContextPool.get(StringPool.BLANK), httpServletRequest,
+			httpServletResponse, "portal_normal.ftl", layoutSet.getTheme(),
+			false);
 
-		Element bodyElement = document.body();
+		int bodyCloseTagIndex = html.lastIndexOf("</body>");
+		int bodyTagIndex = html.indexOf("<body", html.indexOf("</head>"));
 
-		bodyElement.html(unsyncStringWriter.toString());
+		if ((bodyCloseTagIndex == -1) || (bodyTagIndex == -1)) {
+			ServletResponseUtil.write(
+				httpServletResponse, unsyncStringWriter.toString());
 
-		ServletResponseUtil.write(httpServletResponse, document.html());
+			return;
+		}
 
-		ServletResponseUtil.write(
-			httpServletResponse, unsyncStringWriter.toString());
+		StringBundler sb = new StringBundler(3);
+
+		int bodyTagEndIndex =
+			html.indexOf(StringPool.GREATER_THAN, bodyTagIndex) + 1;
+
+		sb.append(html.substring(0, bodyTagEndIndex));
+
+		sb.append(unsyncStringWriter.toString());
+		sb.append(html.substring(bodyCloseTagIndex));
+
+		ServletResponseUtil.write(httpServletResponse, sb.toString());
 	}
 
 	@Reference

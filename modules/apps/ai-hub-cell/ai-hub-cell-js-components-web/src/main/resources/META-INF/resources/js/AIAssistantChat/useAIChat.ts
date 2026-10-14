@@ -40,6 +40,7 @@ export interface AIChat {
 	getContextRef: React.MutableRefObject<(() => ChatContext) | undefined>;
 	giveThumbsUp: (index: number, item: Message) => void;
 	isGenerating: boolean;
+	lastMessageRef: React.RefObject<HTMLDivElement>;
 	markFeedbackGiven: (index: number) => void;
 	message: string;
 	messages: Message[];
@@ -67,6 +68,7 @@ interface UseAIChatProps {
 	onAction?: (outcome: AIAssistantActionOutcome) => void;
 	onCloseRequested?: () => void;
 	onOpenRequested?: (options?: {expanded?: boolean}) => void;
+	sessionKey?: number;
 	triggerRef?: React.RefObject<HTMLButtonElement | null>;
 }
 
@@ -80,6 +82,7 @@ export default function useAIChat({
 	onAction: onActionProp,
 	onCloseRequested,
 	onOpenRequested,
+	sessionKey,
 	triggerRef,
 }: UseAIChatProps): AIChat {
 	const [feedbackGiven, setFeedbackGiven] = useState<Record<number, boolean>>(
@@ -92,6 +95,7 @@ export default function useAIChat({
 	const [reportContext, setReportContext] =
 		useState<AIChatReportContext | null>(null);
 
+	const firstRenderRef = useRef<boolean>(true);
 	const enableFreeFormCategorizationRef = useRef<boolean>(
 		enableFreeFormCategorization
 	);
@@ -108,6 +112,7 @@ export default function useAIChat({
 	const chatbotExternalReferenceCodeRef = useRef<string | undefined>(
 		chatbotExternalReferenceCode
 	);
+	const lastMessageRef = useRef<HTMLDivElement | null>(null);
 	const messagesContainerRef = useRef<HTMLDivElement | null>(null);
 	const sourceLanguageIdRef = useRef<string>(
 		Liferay.ThemeDisplay.getLanguageId()
@@ -122,6 +127,25 @@ export default function useAIChat({
 	const onOpenRequestedRef = useRef<
 		((options?: {expanded?: boolean}) => void) | undefined
 	>(onOpenRequested);
+
+	useEffect(() => {
+		if (firstRenderRef.current) {
+			firstRenderRef.current = false;
+
+			return;
+		}
+
+		setMessages([]);
+		setFeedbackGiven({});
+		setGeneratingBalloons([]);
+		setMessage('');
+		setReportContext(null);
+		setIsGenerating(false);
+		contextRef.current = undefined;
+		initialMessageSentRef.current = false;
+		eventSourceReference.current = null;
+		runtimeContextRef.current = {};
+	}, [sessionKey]);
 
 	useEffect(() => {
 		chatbotExternalReferenceCodeRef.current = chatbotExternalReferenceCode;
@@ -145,6 +169,7 @@ export default function useAIChat({
 		onActionProp,
 		onCloseRequested,
 		onOpenRequested,
+		sessionKey,
 	]);
 
 	const onAction = useCallback((outcome: AIAssistantActionOutcome) => {
@@ -183,9 +208,58 @@ export default function useAIChat({
 		});
 	}, []);
 
+	const scrollToMessage = useCallback((element?: Element | null) => {
+		const container = messagesContainerRef.current;
+
+		if (!container || !element) {
+			return;
+		}
+
+		container.scrollTo?.({
+			behavior: 'smooth',
+			top:
+				element.getBoundingClientRect().top -
+				container.getBoundingClientRect().top +
+				container.scrollTop,
+		});
+	}, []);
+
 	useEffect(() => {
-		scrollToBottom();
-	}, [generatingBalloons, isGenerating, messages, scrollToBottom]);
+		const lastMessage = messages.at(-1);
+
+		if (
+			isGenerating ||
+			generatingBalloons.length ||
+			!lastMessage ||
+			lastMessage.sender === 'user'
+		) {
+			scrollToBottom();
+
+			return;
+		}
+
+		if (lastMessage.images?.length) {
+			const previousMessage = messages.at(-2);
+
+			if (previousMessage?.sender === 'user' || !previousMessage?.text) {
+				scrollToBottom();
+
+				return;
+			}
+
+			scrollToMessage(lastMessageRef.current?.previousElementSibling);
+
+			return;
+		}
+
+		scrollToMessage(lastMessageRef.current);
+	}, [
+		generatingBalloons,
+		isGenerating,
+		messages,
+		scrollToBottom,
+		scrollToMessage,
+	]);
 
 	useEffect(() => {
 		const onLocaleChanged = ({languageId}: {languageId: string}) => {
@@ -446,7 +520,11 @@ export default function useAIChat({
 		return () => {
 			closeAIAssistantChatConnection();
 		};
-	}, [closeAIAssistantChatConnection, openAIAssistantChatConnection]);
+	}, [
+		closeAIAssistantChatConnection,
+		openAIAssistantChatConnection,
+		sessionKey,
+	]);
 
 	useEffect(() => {
 		const handleOpen = (payload: {
@@ -579,6 +657,7 @@ export default function useAIChat({
 		getContextRef,
 		giveThumbsUp,
 		isGenerating: isGenerating || !!generatingBalloons.length,
+		lastMessageRef,
 		markFeedbackGiven,
 		message,
 		messages,

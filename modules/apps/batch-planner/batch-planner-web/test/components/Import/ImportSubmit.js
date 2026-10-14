@@ -34,13 +34,14 @@ const BASE_PROPS = {
 const internalFieldName = 'name';
 const externalFieldName = 'external';
 
-let mockApi;
 const externalReferenceCode = '1234';
 
 configure({asyncUtilTimeout: 5000});
 
 describe('ImportSubmit', () => {
 	beforeEach(() => {
+		fetchMock.mockGlobal();
+
 		const form = document.createElement('form');
 
 		form.innerHTML = `
@@ -50,13 +51,13 @@ describe('ImportSubmit', () => {
 
 		document.body.appendChild(form);
 
-		mockApi = fetchMock.mock(BASE_PROPS.formImportURL, () => ({
+		fetchMock.route(BASE_PROPS.formImportURL, () => ({
 			externalReferenceCode,
 		}));
 	});
 
 	afterEach(() => {
-		fetchMock.restore();
+		fetchMock.hardReset();
 	});
 
 	it('must show modal preview ', () => {
@@ -78,24 +79,20 @@ describe('ImportSubmit', () => {
 			externalReferenceCode
 		);
 
-		mockApi.mock(
-			importTaskStatusURL,
-			{
-				body: {
-					className:
-						'com.liferay.headless.commerce.delivery.catalog.dto.v1_0.Product',
-					contentType: 'CSV',
-					endTime: null,
-					errorMessage: null,
-					executeStatus: PROCESS_STARTED,
-					externalReferenceCode,
-					processedItemsCount: 25,
-					startTime: '2021-11-10T10:36:08Z',
-					totalItemsCount: 50,
-				},
+		fetchMock.route(importTaskStatusURL, {
+			body: {
+				className:
+					'com.liferay.headless.commerce.delivery.catalog.dto.v1_0.Product',
+				contentType: 'CSV',
+				endTime: null,
+				errorMessage: null,
+				executeStatus: PROCESS_STARTED,
+				externalReferenceCode,
+				processedItemsCount: 25,
+				startTime: '2021-11-10T10:36:08Z',
+				totalItemsCount: 50,
 			},
-			{sendAsJson: false}
-		);
+		});
 		const {getByText} = render(<ImportSubmit {...BASE_PROPS} />);
 
 		act(() => {
@@ -118,7 +115,9 @@ describe('ImportSubmit', () => {
 				jest.advanceTimersByTime(POLL_INTERVAL);
 			});
 
-			expect(mockApi.called(importTaskStatusURL)).toBeTruthy();
+			expect(
+				fetchMock.callHistory.called(importTaskStatusURL)
+			).toBeTruthy();
 
 			expect(
 				getByText(Liferay.Language.get('done'), {

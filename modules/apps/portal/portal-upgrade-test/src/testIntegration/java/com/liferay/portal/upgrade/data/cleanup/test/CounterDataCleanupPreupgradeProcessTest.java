@@ -24,6 +24,7 @@ import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.PropsValues;
 import com.liferay.portal.test.log.LogCapture;
+import com.liferay.portal.test.log.LogEntry;
 import com.liferay.portal.test.log.LoggerTestUtil;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.upgrade.data.cleanup.CounterDataCleanupPreupgradeProcess;
@@ -67,6 +68,31 @@ public class CounterDataCleanupPreupgradeProcessTest
 	}
 
 	@Test
+	public void testUpgradeCTCollectionSpecificCounter() throws Exception {
+		long ctCollectionId =
+			CounterLocalServiceUtil.increment(CTCollection.class.getName()) +
+				1000;
+
+		_test(
+			(UnsafeRunnable<Exception>)() -> runSQL(
+				"delete from CTCollection where ctCollectionId = " +
+					ctCollectionId),
+			(UnsafeRunnable<Exception>)() -> runSQL(
+				StringBundler.concat(
+					"insert into CTCollection (mvccVersion, ctCollectionId) ",
+					"values (0, ", ctCollectionId, ")")),
+			(UnsafeConsumer<List<String>, Exception>)messages -> {
+				Assert.assertEquals(messages.toString(), 1, messages.size());
+				Assert.assertTrue(
+					messages.toString(),
+					messages.contains(
+						StringBundler.concat(
+							"Counter ", CTCollection.class.getName(),
+							" has been reset to value ", ctCollectionId)));
+			});
+	}
+
+	@Test
 	public void testUpgradeCompanyDoesNotAffectKernelCounter()
 		throws Exception {
 
@@ -100,31 +126,6 @@ public class CounterDataCleanupPreupgradeProcessTest
 				else {
 					Assert.assertTrue(messages.toString(), messages.isEmpty());
 				}
-			});
-	}
-
-	@Test
-	public void testUpgradeCTCollectionSpecificCounter() throws Exception {
-		long ctCollectionId =
-			CounterLocalServiceUtil.increment(CTCollection.class.getName()) +
-				1000;
-
-		_test(
-			(UnsafeRunnable<Exception>)() -> runSQL(
-				"delete from CTCollection where ctCollectionId = " +
-					ctCollectionId),
-			(UnsafeRunnable<Exception>)() -> runSQL(
-				StringBundler.concat(
-					"insert into CTCollection (mvccVersion, ctCollectionId) ",
-					"values (0, ", ctCollectionId, ")")),
-			(UnsafeConsumer<List<String>, Exception>)messages -> {
-				Assert.assertEquals(messages.toString(), 1, messages.size());
-				Assert.assertTrue(
-					messages.toString(),
-					messages.contains(
-						StringBundler.concat(
-							"Counter ", CTCollection.class.getName(),
-							" has been reset to value ", ctCollectionId)));
 			});
 	}
 
@@ -188,6 +189,43 @@ public class CounterDataCleanupPreupgradeProcessTest
 			(UnsafeConsumer<List<String>, Exception>)
 				messages -> Assert.assertTrue(
 					messages.toString(), messages.isEmpty()));
+	}
+
+	@Test
+	public void testUpgradeCustomCounterWithoutTable() throws Exception {
+		String tableName =
+			_TABLE_NAME + "_x_" + CompanyThreadLocal.getCompanyId();
+
+		String counterName = StringBundler.concat(
+			"com.", RandomTestUtil.randomString(), StringPool.PERIOD,
+			tableName);
+
+		runSQL(
+			"insert into Counter (name, currentId) values ('" + counterName +
+				"', 100 )");
+
+		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
+				CounterDataCleanupPreupgradeProcess.class.getName(),
+				LoggerTestUtil.INFO)) {
+
+			upgrade();
+
+			List<LogEntry> logEntries = logCapture.getLogEntries();
+
+			Assert.assertEquals(logEntries.toString(), 1, logEntries.size());
+
+			LogEntry logEntry = logEntries.get(0);
+
+			Assert.assertEquals(
+				StringBundler.concat(
+					"Skipping counter ", counterName, " because table ",
+					tableName, " does not exist"),
+				logEntry.getMessage());
+			Assert.assertEquals(LoggerTestUtil.WARN, logEntry.getPriority());
+		}
+		finally {
+			runSQL("delete from Counter where name = '" + counterName + "'");
+		}
 	}
 
 	@Test

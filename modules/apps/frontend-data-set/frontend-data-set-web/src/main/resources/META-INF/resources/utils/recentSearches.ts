@@ -3,14 +3,15 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {checkConsent, localStorage} from 'frontend-js-web';
+import functionalStorage from './functionalStorage';
 
 const DEFAULT_MAX_ENTRIES = 20;
 
 const STORAGE_KEY_PREFIX = 'LFR_RECENT_SEARCHES_';
 
 /**
- * Stores a search query, most recent first.
+ * Stores a search query, most recent first, and returns the queries stored
+ * afterwards.
  *
  * Queries are deduplicated case insensitively, and a query that continues a
  * stored query within the same word replaces it, so typing "pant" and then
@@ -27,11 +28,11 @@ function add(
 	fdsName: string,
 	query: string,
 	{maxEntries = DEFAULT_MAX_ENTRIES}: {maxEntries?: number} = {}
-): void {
+): string[] {
 	const search = query.trim();
 
 	if (!search) {
-		return;
+		return get(fdsName);
 	}
 
 	const recentSearches = get(fdsName);
@@ -41,10 +42,10 @@ function add(
 			_continuesWord(search, recentSearch)
 		)
 	) {
-		return;
+		return recentSearches;
 	}
 
-	_setRecentSearches(
+	return _setRecentSearches(
 		fdsName,
 		[
 			search,
@@ -58,19 +59,15 @@ function add(
 }
 
 /**
- * Removes every stored search query for a Data Set.
+ * Removes every stored search query for a Data Set and returns the queries
+ * stored afterwards.
  *
  * @param fdsName Name of the Data Set
  */
-function clear(fdsName: string): void {
-	try {
-		_checkConsentFunctionalCookies();
+function clear(fdsName: string): string[] {
+	functionalStorage.remove(_getStorageKey(fdsName));
 
-		localStorage.removeItem(_getStorageKey(fdsName));
-	}
-	catch (error) {
-		_logStorageWarning(error);
-	}
+	return get(fdsName);
 }
 
 /**
@@ -80,21 +77,11 @@ function clear(fdsName: string): void {
  * @param fdsName Name of the Data Set
  */
 function get(fdsName: string): string[] {
-	let recentSearches;
+	const storageKey = _getStorageKey(fdsName);
 
-	try {
-		_checkConsentFunctionalCookies();
+	const recentSearches = functionalStorage.get(storageKey);
 
-		recentSearches = JSON.parse(
-			localStorage.getItem(
-				_getStorageKey(fdsName),
-				localStorage.TYPES.FUNCTIONAL
-			) as string
-		);
-	}
-	catch (error) {
-		_logStorageWarning(error);
-
+	if (recentSearches === null) {
 		return [];
 	}
 
@@ -102,7 +89,7 @@ function get(fdsName: string): string[] {
 		!Array.isArray(recentSearches) ||
 		recentSearches.some((recentSearch) => typeof recentSearch !== 'string')
 	) {
-		_logStorageWarning('malformed data');
+		functionalStorage.logWarning(storageKey, 'malformed data');
 
 		return [];
 	}
@@ -111,24 +98,19 @@ function get(fdsName: string): string[] {
 }
 
 /**
- * Removes a single stored search query, matched case insensitively.
+ * Removes a single stored search query, matched case insensitively, and returns
+ * the queries stored afterwards.
  *
  * @param fdsName Name of the Data Set
  * @param query The search query to remove
  */
-function remove(fdsName: string, query: string): void {
-	_setRecentSearches(
+function remove(fdsName: string, query: string): string[] {
+	return _setRecentSearches(
 		fdsName,
 		get(fdsName).filter(
 			(recentSearch) => !_isSameSearch(recentSearch, query)
 		)
 	);
-}
-
-function _checkConsentFunctionalCookies() {
-	if (!checkConsent(localStorage.TYPES.FUNCTIONAL)) {
-		throw new Error('There is no consent for functional cookies');
-	}
 }
 
 function _continuesWord(prefix: string, search: string): boolean {
@@ -154,28 +136,17 @@ function _normalize(search: string): string {
 	return search.trim().toLowerCase();
 }
 
-function _logStorageWarning(error: unknown) {
-	if (process.env.NODE_ENV === 'development') {
-		console.warn(
-			'Recent searches could not be accessed in browser storage',
-			error
-		);
-	}
-}
+// The queries are read back rather than returned as written, so a write that
+// browser storage rejects cannot leave the caller showing a history the Data
+// Set does not have
 
-function _setRecentSearches(fdsName: string, recentSearches: string[]): void {
-	try {
-		_checkConsentFunctionalCookies();
+function _setRecentSearches(
+	fdsName: string,
+	recentSearches: string[]
+): string[] {
+	functionalStorage.set(_getStorageKey(fdsName), recentSearches);
 
-		localStorage.setItem(
-			_getStorageKey(fdsName),
-			JSON.stringify(recentSearches),
-			localStorage.TYPES.FUNCTIONAL
-		);
-	}
-	catch (error) {
-		_logStorageWarning(error);
-	}
+	return get(fdsName);
 }
 
 export default {

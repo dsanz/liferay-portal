@@ -31,7 +31,9 @@ import com.liferay.layout.page.template.info.item.provider.DisplayPageInfoItemFi
 import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
 import com.liferay.layout.page.template.service.LayoutPageTemplateEntryService;
 import com.liferay.layout.page.template.util.LayoutPageTemplateEntryUtil;
+import com.liferay.petra.function.UnsafeSupplierValue;
 import com.liferay.petra.function.transform.TransformUtil;
+import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
@@ -99,6 +101,12 @@ public class DisplayPageInfoItemFieldSetProviderImpl
 
 		List<InfoFieldValue<Object>> infoFieldValues = new ArrayList<>();
 
+		UnsafeSupplierValue<String, Exception>
+			defaultDisplayPageURLUnsafeSupplierValue =
+				new UnsafeSupplierValue<>(
+					() -> _getDefaultDisplayPageURL(
+						infoItemReference, object, themeDisplay));
+
 		infoFieldValues.add(
 			new InfoFieldValue<>(
 				InfoField.builder(
@@ -110,16 +118,18 @@ public class DisplayPageInfoItemFieldSetProviderImpl
 				).labelInfoLocalizedValue(
 					InfoLocalizedValue.localize(getClass(), "default")
 				).build(),
-				_getDefaultDisplayPageURL(
-					infoItemReference, object, themeDisplay)));
+				() -> {
+					try {
+						return defaultDisplayPageURLUnsafeSupplierValue.
+							getValue();
+					}
+					catch (Exception exception) {
+						return ReflectionUtil.throwException(exception);
+					}
+				}));
 
 		long classNameId = _portal.getClassNameId(
 			infoItemReference.getClassName());
-
-		Group group = themeDisplay.getScopeGroup();
-
-		String groupFriendlyURL = _portal.getGroupFriendlyURL(
-			group.getPublicLayoutSet(), themeDisplay, false, false);
 
 		List<LayoutPageTemplateEntry> layoutPageTemplateEntries =
 			_layoutPageTemplateEntryService.getLayoutPageTemplateEntries(
@@ -129,6 +139,15 @@ public class DisplayPageInfoItemFieldSetProviderImpl
 					themeDisplay.getScopeGroupId()),
 				LayoutPageTemplateEntryTypeConstants.DISPLAY_PAGE,
 				WorkflowConstants.STATUS_APPROVED);
+
+		if (layoutPageTemplateEntries.isEmpty()) {
+			return infoFieldValues;
+		}
+
+		Group group = themeDisplay.getScopeGroup();
+
+		String groupFriendlyURL = _portal.getGroupFriendlyURL(
+			group.getPublicLayoutSet(), themeDisplay, false, false);
 
 		for (LayoutPageTemplateEntry layoutPageTemplateEntry :
 				layoutPageTemplateEntries) {
@@ -281,13 +300,13 @@ public class DisplayPageInfoItemFieldSetProviderImpl
 							layoutPageTemplateEntry.
 								getLayoutPageTemplateEntryId()))
 				).name(
-					layoutPageTemplateEntry.getName()
+					_getName(layoutPageTemplateEntry, scopeGroupId)
 				).externalUniqueId(
 					_getExternalUniqueId(
 						layoutPageTemplateEntry.getExternalReferenceCode())
 				).labelInfoLocalizedValue(
-					InfoLocalizedValue.singleValue(
-						layoutPageTemplateEntry.getName())
+					_getLabelInfoLocalizedValue(
+						layoutPageTemplateEntry, scopeGroupId)
 				).build());
 		}
 
@@ -329,7 +348,8 @@ public class DisplayPageInfoItemFieldSetProviderImpl
 							layoutPageTemplateEntry.
 								getLayoutPageTemplateEntryId()))
 				).name(
-					layoutPageTemplateEntry.getName()
+					_getName(
+						layoutPageTemplateEntry, themeDisplay.getScopeGroupId())
 				).attribute(
 					URLInfoFieldType.NOFOLLOW, Boolean.TRUE
 				).externalUniqueId(
@@ -348,7 +368,8 @@ public class DisplayPageInfoItemFieldSetProviderImpl
 					_getUniqueId(
 						layoutPageTemplateEntry.getLayoutPageTemplateEntryKey())
 				).name(
-					layoutPageTemplateEntry.getName()
+					_getName(
+						layoutPageTemplateEntry, themeDisplay.getScopeGroupId())
 				).attribute(
 					URLInfoFieldType.NOFOLLOW, Boolean.TRUE
 				).externalUniqueId(
@@ -382,9 +403,36 @@ public class DisplayPageInfoItemFieldSetProviderImpl
 		return StringPool.BLANK;
 	}
 
-	private String _getUniqueId(String id) {
-		return LayoutPageTemplateEntry.class.getSimpleName() +
-			StringPool.UNDERLINE + id;
+	private InfoLocalizedValue<String> _getLabelInfoLocalizedValue(
+		LayoutPageTemplateEntry layoutPageTemplateEntry, long scopeGroupId) {
+
+		if (layoutPageTemplateEntry.getGroupId() != scopeGroupId) {
+			Group group = _groupLocalService.fetchGroup(
+				layoutPageTemplateEntry.getGroupId());
+
+			if ((group != null) && group.isDepot()) {
+				return new FunctionInfoLocalizedValue<>(
+					locale -> StringBundler.concat(
+						layoutPageTemplateEntry.getName(), StringPool.SPACE,
+						StringPool.OPEN_PARENTHESIS, group.getName(locale),
+						StringPool.CLOSE_PARENTHESIS));
+			}
+		}
+
+		return InfoLocalizedValue.singleValue(
+			layoutPageTemplateEntry.getName());
+	}
+
+	private String _getName(
+		LayoutPageTemplateEntry layoutPageTemplateEntry, long scopeGroupId) {
+
+		if (layoutPageTemplateEntry.getGroupId() == scopeGroupId) {
+			return layoutPageTemplateEntry.getName();
+		}
+
+		return _getUniqueId(
+			String.valueOf(
+				layoutPageTemplateEntry.getLayoutPageTemplateEntryId()));
 	}
 
 	private String _getURLSeparator() {
@@ -400,6 +448,11 @@ public class DisplayPageInfoItemFieldSetProviderImpl
 		}
 
 		return FriendlyURLResolverConstants.URL_SEPARATOR_X_CUSTOM_ASSET;
+	}
+
+	private String _getUniqueId(String id) {
+		return LayoutPageTemplateEntry.class.getSimpleName() +
+			StringPool.UNDERLINE + id;
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

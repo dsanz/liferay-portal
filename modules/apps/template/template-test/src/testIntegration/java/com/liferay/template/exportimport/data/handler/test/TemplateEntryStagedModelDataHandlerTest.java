@@ -25,6 +25,7 @@ import com.liferay.portal.kernel.test.TestInfo;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Time;
@@ -91,17 +92,10 @@ public class TemplateEntryStagedModelDataHandlerTest
 		Assert.assertEquals(
 			templateEntry.getCreateDate(),
 			importedTemplateEntry.getCreateDate());
-		Assert.assertEquals(
-			templateEntry.getModifiedDate(),
-			importedTemplateEntry.getModifiedDate());
-	}
-
-	@Test
-	@TestInfo("LPD-32929")
-	public void testExportImportTemplateEntryWithoutVariation()
-		throws Exception {
-
-		_asserExportImportTemplateEntry(StringPool.BLANK, StringPool.BLANK);
+		Assert.assertTrue(
+			DateUtil.equals(
+				templateEntry.getModifiedDate(),
+				importedTemplateEntry.getModifiedDate()));
 	}
 
 	@Test
@@ -151,6 +145,14 @@ public class TemplateEntryStagedModelDataHandlerTest
 		_asserExportImportTemplateEntry(
 			String.valueOf(ddmStructure.getStructureId()),
 			String.valueOf(ddmStructure.getStructureId()));
+	}
+
+	@Test
+	@TestInfo("LPD-32929")
+	public void testExportImportTemplateEntryWithoutVariation()
+		throws Exception {
+
+		_asserExportImportTemplateEntry(StringPool.BLANK, StringPool.BLANK);
 	}
 
 	@Override

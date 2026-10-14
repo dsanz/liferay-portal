@@ -8,10 +8,12 @@ package com.liferay.jenkins.results.parser;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintStream;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -21,6 +23,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 /**
@@ -35,15 +38,13 @@ public class JenkinsMasterTest extends com.liferay.jenkins.results.parser.Test {
 
 		Environment.setInstance(Mockito.mock(Environment.class));
 
-		UrlReader urlReader = mockUrlReader();
+		mockURLReaders();
 
 		_setUpMaster(
-			"test-9-1",
 			read(new File(dependenciesDirs.get(0), "computer-api.json")),
-			urlReader);
+			"test-9-1");
 		_setUpMaster(
-			"test-9-2", _getRunningBuildsComputerAPIJSONObject().toString(),
-			urlReader);
+			_getRunningBuildsComputerAPIJSONObject().toString(), "test-9-2");
 
 		_jenkinsMaster = JenkinsMasterTestUtil.getJenkinsMaster(
 			"test-9-1", "http://test-9-1");
@@ -55,6 +56,248 @@ public class JenkinsMasterTest extends com.liferay.jenkins.results.parser.Test {
 		super.tearDown();
 
 		JenkinsMaster.maxRecentBatchAge = 120 * 1000;
+	}
+
+	@Test
+	public void testExecuteBashCommand() throws Exception {
+		Shell shell = mockShell();
+
+		String command = "cat " + RandomTestUtil.randomString();
+
+		setShellCommandOutput(command, shell, RandomTestUtil.randomString());
+
+		_jenkinsMaster.executeBashCommand(command);
+
+		Shell.ExecutionRequest executionRequest = _getExecutionRequest(shell);
+
+		Assert.assertEquals(1000 * 60 * 5, executionRequest.getTimeout());
+
+		String sshCommand = _getSSHCommand(executionRequest);
+
+		Assert.assertTrue(
+			sshCommand, sshCommand.contains("-o ConnectTimeout=60 "));
+	}
+
+	@Test
+	public void testExecuteBashCommandNonzeroExitValue() throws Exception {
+		Shell shell = mockShell();
+
+		String command = "cat " + RandomTestUtil.randomString();
+
+		setShellCommandExitValue(command, shell, 255);
+
+		try {
+			_jenkinsMaster.executeBashCommand(command, _MILLIS_TIMEOUT);
+
+			Assert.fail();
+		}
+		catch (RuntimeException runtimeException) {
+			String message = runtimeException.getMessage();
+
+			Assert.assertTrue(message, message.contains("test-9-1"));
+		}
+	}
+
+	@Test
+	public void testExecuteBashCommandTimedOut() throws Exception {
+		Shell shell = mockShell();
+
+		String command = "cat " + RandomTestUtil.randomString();
+
+		Mockito.doThrow(
+			new TimeoutException()
+		).when(
+			shell
+		).doExecute(
+			Mockito.argThat(
+				executionRequest -> hasCommand(executionRequest, command))
+		);
+
+		try {
+			_jenkinsMaster.executeBashCommand(command, _MILLIS_TIMEOUT);
+
+			Assert.fail();
+		}
+		catch (RuntimeException runtimeException) {
+			Throwable throwable = runtimeException.getCause();
+
+			Assert.assertTrue(
+				String.valueOf(throwable),
+				throwable instanceof TimeoutException);
+		}
+	}
+
+	@Test
+	public void testExecuteBashCommandTimeout() throws Exception {
+		Shell shell = mockShell();
+
+		String command = "cat " + RandomTestUtil.randomString();
+
+		setShellCommandOutput(command, shell, RandomTestUtil.randomString());
+
+		_jenkinsMaster.executeBashCommand(command, _MILLIS_TIMEOUT);
+
+		Shell.ExecutionRequest executionRequest = _getExecutionRequest(shell);
+
+		Assert.assertEquals(_MILLIS_TIMEOUT, executionRequest.getTimeout());
+
+		String sshCommand = _getSSHCommand(executionRequest);
+
+		Assert.assertTrue(
+			sshCommand, sshCommand.contains("-o ConnectTimeout=10 "));
+	}
+
+	@Test
+	public void testExecuteBashCommandTimeoutBelowTwoSeconds()
+		throws Exception {
+
+		Shell shell = mockShell();
+
+		String command = "cat " + RandomTestUtil.randomString();
+
+		setShellCommandOutput(command, shell, RandomTestUtil.randomString());
+
+		_jenkinsMaster.executeBashCommand(
+			command, _MILLIS_TIMEOUT_BELOW_TWO_SECONDS);
+
+		Shell.ExecutionRequest executionRequest = _getExecutionRequest(shell);
+
+		Assert.assertEquals(
+			_MILLIS_TIMEOUT_BELOW_TWO_SECONDS, executionRequest.getTimeout());
+
+		String sshCommand = _getSSHCommand(executionRequest);
+
+		Assert.assertFalse(sshCommand, sshCommand.contains("ConnectTimeout"));
+
+		Assert.assertTrue(
+			sshCommand, sshCommand.contains("-o NumberOfPasswordPrompts=0"));
+	}
+
+	@Test
+	public void testExecuteBashCommandTimeoutNotPositive() throws Exception {
+		Shell shell = mockShell();
+
+		String command = "cat " + RandomTestUtil.randomString();
+
+		setShellCommandOutput(command, shell, RandomTestUtil.randomString());
+
+		for (long timeout : new long[] {0, -1, Long.MIN_VALUE}) {
+			try {
+				_jenkinsMaster.executeBashCommand(command, timeout);
+
+				Assert.fail(String.valueOf(timeout));
+			}
+			catch (IllegalArgumentException illegalArgumentException) {
+				String message = illegalArgumentException.getMessage();
+
+				Assert.assertTrue(
+					message, message.contains("Invalid timeout: " + timeout));
+			}
+		}
+
+		Mockito.verify(
+			shell, Mockito.never()
+		).doExecute(
+			Mockito.any(Shell.ExecutionRequest.class)
+		);
+	}
+
+	@Test
+	public void testFetchQueueItem() throws Exception {
+		mockURLReaders();
+
+		String executableURL =
+			"https://" + RandomTestUtil.randomString() + "/job/" +
+				RandomTestUtil.randomString() + "/1/";
+
+		_testFetchQueueItem(
+			false, executableURL,
+			new JSONObject(
+			).put(
+				"cancelled", false
+			).put(
+				"executable",
+				new JSONObject(
+				).put(
+					"url", executableURL
+				)
+			));
+
+		_testFetchQueueItem(
+			false, null,
+			new JSONObject(
+			).put(
+				"why", RandomTestUtil.randomString()
+			));
+		_testFetchQueueItem(
+			true, executableURL,
+			new JSONObject(
+			).put(
+				"cancelled", true
+			).put(
+				"executable",
+				new JSONObject(
+				).put(
+					"url", executableURL
+				)
+			));
+	}
+
+	@Test
+	public void testFetchQueueItemFailure() throws Exception {
+		mockURLReaders();
+
+		long queueId = _getQueueId();
+
+		String queueItemAPIURL = _getQueueItemAPIURL(queueId);
+
+		IOException ioException1 = new IOException(
+			RandomTestUtil.randomString());
+
+		setURLReaderException(ioException1, queueItemAPIURL);
+
+		IOException ioException2 = Assert.assertThrows(
+			IOException.class, () -> _jenkinsMaster.fetchQueueItem(queueId));
+
+		Assert.assertEquals(
+			ioException1.getMessage(), ioException2.getMessage());
+
+		Assert.assertNull(_jenkinsMaster.getQueueItem(queueId));
+	}
+
+	@Test
+	public void testFetchQueueItemNotFound() throws Exception {
+		mockURLReaders();
+
+		long queueId = _getQueueId();
+
+		String queueItemAPIURL = _getQueueItemAPIURL(queueId);
+
+		setURLReaderOutput("", queueItemAPIURL);
+
+		Assert.assertNull(_jenkinsMaster.fetchQueueItem(queueId));
+
+		queueId = _getQueueId();
+
+		queueItemAPIURL = _getQueueItemAPIURL(queueId);
+
+		setURLReaderOutput(
+			new JSONObject(
+			).put(
+				"why", RandomTestUtil.randomString()
+			).toString(),
+			queueItemAPIURL);
+
+		Assert.assertNull(_jenkinsMaster.fetchQueueItem(queueId));
+
+		queueId = _getQueueId();
+
+		queueItemAPIURL = _getQueueItemAPIURL(queueId);
+
+		setURLReaderException(
+			new FileNotFoundException(queueItemAPIURL), queueItemAPIURL);
+
+		Assert.assertNull(_jenkinsMaster.fetchQueueItem(queueId));
 	}
 
 	@Test
@@ -86,29 +329,47 @@ public class JenkinsMasterTest extends com.liferay.jenkins.results.parser.Test {
 
 	@Test
 	public void testGetQueueItem() throws Exception {
-		UrlReader urlReader = mockUrlReader();
+		mockURLReaders();
 
-		setUrlReaderOutput(
+		String executableURL =
+			"https://" + RandomTestUtil.randomString() + "/job/" +
+				RandomTestUtil.randomString() + "/1/";
+
+		setURLReaderOutput(
 			new JSONObject(
+			).put(
+				"cancelled", true
+			).put(
+				"executable",
+				new JSONObject(
+				).put(
+					"url", executableURL
+				)
 			).put(
 				"id", 7800
 			).toString(),
-			"http://test-9-1/queue/item/7800/api/json", urlReader);
+			JenkinsResultsParserUtil.fixURL(
+				JenkinsResultsParserUtil.combine(
+					"http://test-9-1/queue/item/7800/api/json?tree=",
+					"actions[parameters[name,value]],cancelled,",
+					"executable[url],id,inQueueSince,task[name,url],url,why")));
 
 		JenkinsMaster.QueueItem queueItem = _jenkinsMaster.getQueueItem(7800);
 
 		Assert.assertEquals(7800, queueItem.getId());
+		Assert.assertEquals(executableURL, queueItem.getExecutableURL());
+
+		Assert.assertTrue(queueItem.isCancelled());
 	}
 
 	@Test
 	public void testGetQueueItemNotFound() throws Exception {
-		UrlReader urlReader = mockUrlReader();
+		mockURLReaders();
 
 		String queueItemAPIURL = "http://test-9-1/queue/item/7800/api/json";
 
-		setUrlReaderException(
-			new FileNotFoundException(queueItemAPIURL), queueItemAPIURL,
-			urlReader);
+		setURLReaderException(
+			new FileNotFoundException(queueItemAPIURL), queueItemAPIURL);
 
 		ByteArrayOutputStream byteArrayOutputStream =
 			new ByteArrayOutputStream();
@@ -124,6 +385,51 @@ public class JenkinsMasterTest extends com.liferay.jenkins.results.parser.Test {
 		}
 
 		Assert.assertEquals("", byteArrayOutputStream.toString());
+	}
+
+	@Test
+	public void testGetQueueItems() throws Exception {
+		mockURLReaders();
+
+		_setQueueItemIds(_getQueueId(), _getQueueId());
+
+		List<JenkinsMaster.QueueItem> queueItems =
+			_jenkinsMaster.getQueueItems();
+
+		Assert.assertEquals(queueItems.toString(), 2, queueItems.size());
+
+		queueItems.clear();
+
+		List<JenkinsMaster.QueueItem> cachedQueueItems =
+			_jenkinsMaster.getQueueItems();
+
+		Assert.assertEquals(
+			cachedQueueItems.toString(), 2, cachedQueueItems.size());
+
+		_setQueueItemIds(_getQueueId());
+
+		List<JenkinsMaster.QueueItem> refreshedQueueItems =
+			_jenkinsMaster.getQueueItems();
+
+		Assert.assertEquals(
+			cachedQueueItems.toString(), 2, cachedQueueItems.size());
+		Assert.assertEquals(
+			refreshedQueueItems.toString(), 1, refreshedQueueItems.size());
+	}
+
+	@Test
+	public void testGetQueueItemsFailure() throws Exception {
+		mockURLReaders();
+
+		ReflectionTestUtil.setFieldValue(
+			_jenkinsMaster, "_queueUpdateTime", null);
+
+		setURLReaderException(
+			new IOException(RandomTestUtil.randomString()),
+			"http://test-9-1/queue/api/json");
+
+		Assert.assertThrows(
+			RuntimeException.class, _jenkinsMaster::getQueueItems);
 	}
 
 	@Test
@@ -228,6 +534,31 @@ public class JenkinsMasterTest extends com.liferay.jenkins.results.parser.Test {
 		Assert.assertEquals(runningBuilds.toString(), 3, runningBuilds.size());
 	}
 
+	private Shell.ExecutionRequest _getExecutionRequest(Shell shell)
+		throws Exception {
+
+		ArgumentCaptor<Shell.ExecutionRequest> argumentCaptor =
+			ArgumentCaptor.forClass(Shell.ExecutionRequest.class);
+
+		Mockito.verify(
+			shell
+		).doExecute(
+			argumentCaptor.capture()
+		);
+
+		return argumentCaptor.getValue();
+	}
+
+	private long _getQueueId() {
+		return Math.abs(RandomTestUtil.randomLong() % 1000000) + 1;
+	}
+
+	private String _getQueueItemAPIURL(long queueId) {
+		return JenkinsResultsParserUtil.combine(
+			"http://test-9-1/queue/item/", String.valueOf(queueId),
+			"/api/json");
+	}
+
 	private JenkinsMaster.RunningBuild _getRunningBuild(
 		String buildURL, List<JenkinsMaster.RunningBuild> runningBuilds) {
 
@@ -268,26 +599,71 @@ public class JenkinsMasterTest extends com.liferay.jenkins.results.parser.Test {
 					RandomTestUtil.randomLong())));
 	}
 
-	private void _setUpMaster(
-			String masterName, String computerAPIJSON, UrlReader urlReader)
+	private String _getSSHCommand(Shell.ExecutionRequest executionRequest) {
+		return executionRequest.getCommands()[0];
+	}
+
+	private void _setQueueItemIds(long... queueIds) throws Exception {
+		JSONArray itemsJSONArray = new JSONArray();
+
+		for (long queueId : queueIds) {
+			itemsJSONArray.put(
+				new JSONObject(
+				).put(
+					"id", queueId
+				));
+		}
+
+		setURLReaderOutput(
+			new JSONObject(
+			).put(
+				"items", itemsJSONArray
+			).toString(),
+			"http://test-9-1/queue/api/json");
+
+		ReflectionTestUtil.setFieldValue(
+			_jenkinsMaster, "_queueUpdateTime", null);
+	}
+
+	private void _setUpMaster(String computerAPIJSON, String masterName)
 		throws Exception {
 
 		String masterURL = "http://" + masterName;
 
-		setUrlReaderOutput(
+		setURLReaderOutput(
 			new JSONObject(
 			).put(
 				"items", new JSONArray()
 			).toString(),
-			masterURL + "/queue/api/json", urlReader);
-		setUrlReaderOutput(
+			masterURL + "/queue/api/json");
+		setURLReaderOutput(
 			new JSONObject(
 			).put(
 				"mode", "NORMAL"
 			).toString(),
-			masterURL + "/api/json?tree=mode", urlReader);
-		setUrlReaderOutput(
-			computerAPIJSON, masterURL + "/computer/api/json", urlReader);
+			masterURL + "/api/json?tree=mode");
+		setURLReaderOutput(computerAPIJSON, masterURL + "/computer/api/json");
+	}
+
+	private void _testFetchQueueItem(
+			boolean cancelled, String executableURL,
+			JSONObject queueItemJSONObject)
+		throws Exception {
+
+		long queueId = _getQueueId();
+
+		setURLReaderOutput(
+			queueItemJSONObject.put(
+				"id", queueId
+			).toString(),
+			_getQueueItemAPIURL(queueId));
+
+		JenkinsMaster.QueueItem queueItem = _jenkinsMaster.fetchQueueItem(
+			queueId);
+
+		Assert.assertEquals(cancelled, queueItem.isCancelled());
+		Assert.assertEquals(executableURL, queueItem.getExecutableURL());
+		Assert.assertEquals(queueId, queueItem.getId());
 	}
 
 	private static final String _BUILD_URL_FLYWEIGHT =
@@ -301,6 +677,10 @@ public class JenkinsMasterTest extends com.liferay.jenkins.results.parser.Test {
 
 	private static final long _LIKELY_STUCK_ESTIMATED_DURATION =
 		RandomTestUtil.randomLong();
+
+	private static final long _MILLIS_TIMEOUT = 20000;
+
+	private static final long _MILLIS_TIMEOUT_BELOW_TWO_SECONDS = 500;
 
 	private JenkinsMaster _jenkinsMaster;
 

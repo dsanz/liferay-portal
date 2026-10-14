@@ -8,7 +8,7 @@ import {Locator, Page} from '@playwright/test';
 import {waitForAlert} from '../../../../utils/waitForAlert';
 
 export class EditConnectorPage {
-	readonly apiSchemaInput: Locator;
+	readonly activeToggle: Locator;
 	readonly connectorSelect: Locator;
 	readonly nameInput: Locator;
 	readonly page: Page;
@@ -16,7 +16,7 @@ export class EditConnectorPage {
 	readonly saveButton: Locator;
 
 	constructor(page: Page) {
-		this.apiSchemaInput = page.getByRole('textbox', {name: 'API Schema'});
+		this.activeToggle = page.getByRole('switch', {name: 'Active'});
 		this.connectorSelect = page.getByRole('combobox', {name: 'Connector'});
 		this.nameInput = page.getByRole('textbox', {name: 'Name'});
 		this.page = page;
@@ -28,9 +28,11 @@ export class EditConnectorPage {
 	}
 
 	async createConnector({
+		active = false,
 		connector,
 		name,
 	}: {
+		active?: boolean;
 		connector: string;
 		name: string;
 	}) {
@@ -38,11 +40,24 @@ export class EditConnectorPage {
 
 		await this.connectorSelect.selectOption({label: connector});
 
+		if (active) {
+			await this.activeToggle.click();
+		}
+
 		await this.saveButton.click();
 
 		await waitForAlert(
 			this.page,
 			`Success:${name} was published successfully.`
+		);
+	}
+
+	async updateConnector({name}: {name: string}) {
+		await this.saveButton.click();
+
+		await waitForAlert(
+			this.page,
+			`Success:${name} was updated successfully.`
 		);
 	}
 }

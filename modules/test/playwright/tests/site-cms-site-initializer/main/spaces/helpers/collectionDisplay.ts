@@ -210,22 +210,22 @@ export async function createDynamicCollectionWithFilterViaUI(
 
 	await expect(page.locator('#scopeContent')).toContainText(spaceName);
 
-	// Add the tag / category filter. The condition row defaults to "Tags"; the
-	// "of the following" select chooses the property. The filter value picker is
-	// opened by the last "Select" button (the first one belongs to Scope).
-
-	await expandPanel(page, 'Filter', '#filterContent');
-
-	await page.getByLabel('of the following').selectOption(filterProperty);
+	// Add the tag / category filter. The value picker only shows up once the
+	// condition has a field, an operator, and a quantifier.
 
 	const isTag = filterProperty === 'assetTags';
 
-	await page
-		.getByRole('button', {
-			exact: !isTag,
-			name: isTag ? 'Select Tags' : 'Select',
-		})
-		.last()
+	await collectionsPage.addFilterConditions([
+		{
+			field: isTag ? 'Tags' : 'Categories',
+			operator: 'Contains',
+			quantifier: 'Any of the Following',
+		},
+	]);
+
+	await collectionsPage
+		.getFilterConditionRow(0)
+		.getByRole('button', {name: /^Select/})
 		.click();
 
 	// Pick the value, then confirm with "Done". The Tags picker is a table inside

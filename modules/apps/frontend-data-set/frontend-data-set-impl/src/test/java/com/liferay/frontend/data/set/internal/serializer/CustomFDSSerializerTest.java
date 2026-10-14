@@ -8,6 +8,7 @@ package com.liferay.frontend.data.set.internal.serializer;
 import com.liferay.client.extension.type.FDSCellRendererCET;
 import com.liferay.client.extension.type.FDSFilterCET;
 import com.liferay.client.extension.type.manager.CETManager;
+import com.liferay.frontend.data.set.action.FDSBulkActions;
 import com.liferay.frontend.data.set.constants.FDSEntityFieldTypes;
 import com.liferay.frontend.data.set.internal.url.FDSAPIURLResolverRegistryImpl;
 import com.liferay.frontend.data.set.model.FDSActionDropdownItem;
@@ -61,6 +62,8 @@ import org.junit.Test;
 
 import org.mockito.Mockito;
 
+import org.osgi.framework.ServiceRegistration;
+
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
 
@@ -99,44 +102,6 @@ public class CustomFDSSerializerTest extends BaseFDSSerializerTestCase {
 		);
 
 		_resetFDSSerializer();
-	}
-
-	@Test
-	public void testSerializeAdditionalAPIURLParameters() throws Exception {
-
-		// No parameters
-
-		ServiceTrackerMap
-			<String,
-			 ServiceTrackerCustomizerFactory.ServiceWrapper<FDSAPIURLResolver>>
-				serviceTrackerMap = ServiceTrackerMapFactory.openSingleValueMap(
-					bundleContext, FDSAPIURLResolver.class,
-					"fds.rest.application.key",
-					ServiceTrackerCustomizerFactory.
-						<FDSAPIURLResolver>serviceWrapper(bundleContext));
-
-		FDSAPIURLResolverRegistry fdsAPIURLResolverRegistry =
-			new FDSAPIURLResolverRegistryImpl(serviceTrackerMap);
-
-		_resetFDSSerializer(fdsAPIURLResolverRegistry);
-
-		_mockSerializeAdditionalAPIURLParameters(FDS_NAMES[0], "");
-
-		Assert.assertNull(
-			_customFDSSerializer.serializeAdditionalAPIURLParameters(
-				FDS_NAMES[0], httpServletRequest));
-
-		// Parameters
-
-		_resetFDSSerializer(fdsAPIURLResolverRegistry);
-
-		_mockSerializeAdditionalAPIURLParameters(
-			FDS_NAMES[0], API_URL_PARAMETERS);
-
-		Assert.assertEquals(
-			API_URL_PARAMETERS,
-			_customFDSSerializer.serializeAdditionalAPIURLParameters(
-				FDS_NAMES[0], httpServletRequest));
 	}
 
 	@Test
@@ -227,6 +192,73 @@ public class CustomFDSSerializerTest extends BaseFDSSerializerTestCase {
 				FDS_NAMES[0], httpServletRequest));
 
 		serviceTrackerMap.close();
+	}
+
+	@Test
+	public void testSerializeAdditionalAPIURLParameters() throws Exception {
+
+		// No parameters
+
+		ServiceTrackerMap
+			<String,
+			 ServiceTrackerCustomizerFactory.ServiceWrapper<FDSAPIURLResolver>>
+				serviceTrackerMap = ServiceTrackerMapFactory.openSingleValueMap(
+					bundleContext, FDSAPIURLResolver.class,
+					"fds.rest.application.key",
+					ServiceTrackerCustomizerFactory.
+						<FDSAPIURLResolver>serviceWrapper(bundleContext));
+
+		FDSAPIURLResolverRegistry fdsAPIURLResolverRegistry =
+			new FDSAPIURLResolverRegistryImpl(serviceTrackerMap);
+
+		_resetFDSSerializer(fdsAPIURLResolverRegistry);
+
+		_mockSerializeAdditionalAPIURLParameters(FDS_NAMES[0], "");
+
+		Assert.assertNull(
+			_customFDSSerializer.serializeAdditionalAPIURLParameters(
+				FDS_NAMES[0], httpServletRequest));
+
+		// Parameters
+
+		_resetFDSSerializer(fdsAPIURLResolverRegistry);
+
+		_mockSerializeAdditionalAPIURLParameters(
+			FDS_NAMES[0], API_URL_PARAMETERS);
+
+		Assert.assertEquals(
+			API_URL_PARAMETERS,
+			_customFDSSerializer.serializeAdditionalAPIURLParameters(
+				FDS_NAMES[0], httpServletRequest));
+	}
+
+	@Test
+	public void testSerializeBulkActions() throws Exception {
+		Mockito.when(
+			_customFDSSerializer.serializeBulkActions(
+				FDS_NAMES[0], httpServletRequest)
+		).thenCallRealMethod();
+
+		Assert.assertEquals(
+			Collections.emptyList(),
+			_customFDSSerializer.serializeBulkActions(
+				FDS_NAMES[0], httpServletRequest));
+
+		List<FDSActionDropdownItem> fdsActionDropdownItems = ListUtil.fromArray(
+			new FDSActionDropdownItem(
+				null, ICONS[0], IDS[0], LABELS[0],
+				RandomTestUtil.randomString(), RandomTestUtil.randomString(),
+				RandomTestUtil.randomString()));
+
+		ServiceRegistration<FDSBulkActions> serviceRegistration =
+			registerFDSBulkActions(fdsActionDropdownItems, FDS_NAMES[0]);
+
+		Assert.assertEquals(
+			fdsActionDropdownItems,
+			_customFDSSerializer.serializeBulkActions(
+				FDS_NAMES[0], httpServletRequest));
+
+		serviceRegistration.unregister();
 	}
 
 	@Test
@@ -913,7 +945,6 @@ public class CustomFDSSerializerTest extends BaseFDSSerializerTestCase {
 			HashMapBuilder.<String, Object>put(
 				"searchAsYouType", true
 			).build());
-
 		_mockSerializeSearchAsYouType(FDS_NAMES[1], Collections.emptyMap());
 
 		Assert.assertTrue(
@@ -921,6 +952,26 @@ public class CustomFDSSerializerTest extends BaseFDSSerializerTestCase {
 				FDS_NAMES[0], httpServletRequest));
 		Assert.assertFalse(
 			_customFDSSerializer.serializeSearchAsYouType(
+				FDS_NAMES[1], httpServletRequest));
+
+		_resetFDSSerializer();
+	}
+
+	@Test
+	public void testSerializeSearchSuggestionsEnabled() throws Exception {
+		_mockSerializeSearchSuggestionsEnabled(
+			FDS_NAMES[0],
+			HashMapBuilder.<String, Object>put(
+				"searchSuggestionsEnabled", true
+			).build());
+		_mockSerializeSearchSuggestionsEnabled(
+			FDS_NAMES[1], Collections.emptyMap());
+
+		Assert.assertTrue(
+			_customFDSSerializer.serializeSearchSuggestionsEnabled(
+				FDS_NAMES[0], httpServletRequest));
+		Assert.assertFalse(
+			_customFDSSerializer.serializeSearchSuggestionsEnabled(
 				FDS_NAMES[1], httpServletRequest));
 
 		_resetFDSSerializer();
@@ -1394,41 +1445,6 @@ public class CustomFDSSerializerTest extends BaseFDSSerializerTestCase {
 		return dropdownItems.size();
 	}
 
-	private void _mockSerializeAdditionalAPIURLParameters(
-		String fdsName, String additionalAPIURLParameters) {
-
-		Mockito.when(
-			_customFDSSerializer.createFDSAPIURLBuilder(
-				httpServletRequest, REST_APPLICATION, REST_ENDPOINT,
-				REST_SCHEMA)
-		).thenCallRealMethod();
-
-		Mockito.when(
-			_customFDSSerializer.getDataSetObjectEntryProperties(
-				fdsName, httpServletRequest)
-		).thenReturn(
-			HashMapBuilder.<String, Object>put(
-				"additionalAPIURLParameters", additionalAPIURLParameters
-			).put(
-				"restApplication", REST_APPLICATION
-			).put(
-				"restEndpoint", REST_ENDPOINT
-			).put(
-				"restSchema", REST_SCHEMA
-			).build()
-		);
-
-		Mockito.when(
-			_customFDSSerializer.serializeAdditionalAPIURLParameters(
-				fdsName, httpServletRequest)
-		).thenCallRealMethod();
-
-		Mockito.when(
-			_customFDSSerializer.serializeAdditionalAPIURLParameters(
-				fdsName, httpServletRequest, true, null)
-		).thenCallRealMethod();
-	}
-
 	private void _mockSerializeAPIURL(String fdsName, String[] fieldNames) {
 		Mockito.when(
 			_customFDSSerializer.createFDSAPIURLBuilder(
@@ -1477,6 +1493,41 @@ public class CustomFDSSerializerTest extends BaseFDSSerializerTestCase {
 
 		Mockito.when(
 			_customFDSSerializer.serializeAPIURL(
+				fdsName, httpServletRequest, true, null)
+		).thenCallRealMethod();
+	}
+
+	private void _mockSerializeAdditionalAPIURLParameters(
+		String fdsName, String additionalAPIURLParameters) {
+
+		Mockito.when(
+			_customFDSSerializer.createFDSAPIURLBuilder(
+				httpServletRequest, REST_APPLICATION, REST_ENDPOINT,
+				REST_SCHEMA)
+		).thenCallRealMethod();
+
+		Mockito.when(
+			_customFDSSerializer.getDataSetObjectEntryProperties(
+				fdsName, httpServletRequest)
+		).thenReturn(
+			HashMapBuilder.<String, Object>put(
+				"additionalAPIURLParameters", additionalAPIURLParameters
+			).put(
+				"restApplication", REST_APPLICATION
+			).put(
+				"restEndpoint", REST_ENDPOINT
+			).put(
+				"restSchema", REST_SCHEMA
+			).build()
+		);
+
+		Mockito.when(
+			_customFDSSerializer.serializeAdditionalAPIURLParameters(
+				fdsName, httpServletRequest)
+		).thenCallRealMethod();
+
+		Mockito.when(
+			_customFDSSerializer.serializeAdditionalAPIURLParameters(
 				fdsName, httpServletRequest, true, null)
 		).thenCallRealMethod();
 	}
@@ -1634,6 +1685,22 @@ public class CustomFDSSerializerTest extends BaseFDSSerializerTestCase {
 
 		Mockito.when(
 			_customFDSSerializer.serializeSearchAsYouType(
+				fdsName, httpServletRequest)
+		).thenCallRealMethod();
+	}
+
+	private void _mockSerializeSearchSuggestionsEnabled(
+		String fdsName, Map<String, Object> properties) {
+
+		Mockito.when(
+			_customFDSSerializer.getDataSetObjectEntryProperties(
+				fdsName, httpServletRequest)
+		).thenReturn(
+			properties
+		);
+
+		Mockito.when(
+			_customFDSSerializer.serializeSearchSuggestionsEnabled(
 				fdsName, httpServletRequest)
 		).thenCallRealMethod();
 	}

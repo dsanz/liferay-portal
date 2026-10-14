@@ -101,6 +101,7 @@ public class CompareObjectEntryVersionsCMSServletTest
 
 	@Test
 	public void testCompareObjectEntryVersions() throws Exception {
+		_testCompareObjectEntryVersionsWithBooleanObjectField();
 		_testCompareObjectEntryVersionsWithDateObjectField();
 		_testCompareObjectEntryVersionsWithInvalidContent();
 		_testCompareObjectEntryVersionsWithRichTextObjectField();
@@ -225,6 +226,83 @@ public class CompareObjectEntryVersionsCMSServletTest
 		return _service(content.getBytes(), user);
 	}
 
+	private void _testCompareObjectEntryVersionsWithBooleanObjectField()
+		throws Exception {
+
+		ObjectDefinition objectDefinition =
+			ObjectDefinitionTestUtil.publishObjectDefinition(
+				true, false, true, ObjectDefinitionTestUtil.getRandomName(),
+				ListUtil.fromArray(
+					ObjectFieldUtil.createObjectField(
+						ObjectFieldConstants.BUSINESS_TYPE_BOOLEAN,
+						ObjectFieldConstants.DB_TYPE_BOOLEAN, false, false,
+						null, "Alpha", "alpha", false),
+					ObjectFieldUtil.createObjectField(
+						ObjectFieldConstants.BUSINESS_TYPE_TEXT,
+						ObjectFieldConstants.DB_TYPE_STRING, false, false, null,
+						"Beta", "beta", false)),
+				0, ObjectDefinitionConstants.SCOPE_COMPANY,
+				TestPropsValues.getUserId());
+
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext();
+
+		ObjectEntry objectEntry = _objectEntryLocalService.addObjectEntry(
+			0, TestPropsValues.getUserId(),
+			objectDefinition.getObjectDefinitionId(), 0, "en_US",
+			HashMapBuilder.<String, Serializable>put(
+				"alpha", true
+			).put(
+				"beta", RandomTestUtil.randomString()
+			).build(),
+			serviceContext);
+
+		objectEntry = _objectEntryLocalService.updateObjectEntry(
+			TestPropsValues.getUserId(), objectEntry.getObjectEntryId(), 0,
+			HashMapBuilder.<String, Serializable>put(
+				"alpha", true
+			).put(
+				"beta", RandomTestUtil.randomString()
+			).build(),
+			serviceContext);
+
+		Assert.assertEquals(2, objectEntry.getVersion());
+
+		JSONObject diffsJSONObject = _toDiffsJSONObject(
+			_service(
+				objectEntry.getObjectEntryId(), 1, 2,
+				TestPropsValues.getUser()));
+
+		JSONObject sourceJSONObject = diffsJSONObject.getJSONObject("source");
+		JSONObject targetJSONObject = diffsJSONObject.getJSONObject("target");
+
+		Assert.assertEquals("Yes", sourceJSONObject.getString("alpha"));
+		Assert.assertEquals("Yes", targetJSONObject.getString("alpha"));
+
+		objectEntry = _objectEntryLocalService.updateObjectEntry(
+			TestPropsValues.getUserId(), objectEntry.getObjectEntryId(), 0,
+			HashMapBuilder.<String, Serializable>put(
+				"alpha", false
+			).build(),
+			serviceContext);
+
+		Assert.assertEquals(3, objectEntry.getVersion());
+
+		diffsJSONObject = _toDiffsJSONObject(
+			_service(
+				objectEntry.getObjectEntryId(), 2, 3,
+				TestPropsValues.getUser()));
+
+		sourceJSONObject = diffsJSONObject.getJSONObject("source");
+		targetJSONObject = diffsJSONObject.getJSONObject("target");
+
+		_assertDiffHtml("Yes", sourceJSONObject.getString("alpha"), "No");
+		_assertDiffHtml("No", targetJSONObject.getString("alpha"), "Yes");
+
+		_objectDefinitionLocalService.deleteObjectDefinition(
+			objectDefinition.getObjectDefinitionId());
+	}
+
 	private void _testCompareObjectEntryVersionsWithDateObjectField()
 		throws Exception {
 
@@ -293,73 +371,6 @@ public class CompareObjectEntryVersionsCMSServletTest
 			mockHttpServletResponse.getStatus());
 	}
 
-	private void _testCompareObjectEntryVersionsWithoutUpdatePermission()
-		throws Exception {
-
-		ObjectEntry objectEntry = _addObjectEntry(
-			RandomTestUtil.randomString(), RandomTestUtil.randomString());
-
-		objectEntry = _updateObjectEntry(
-			objectEntry, RandomTestUtil.randomString(),
-			RandomTestUtil.randomString());
-
-		User user = UserTestUtil.addUser();
-
-		_addModelResourcePermissions(
-			new String[] {ActionKeys.VIEW}, objectEntry.getObjectEntryId(),
-			user);
-
-		PermissionChecker permissionChecker =
-			PermissionThreadLocal.getPermissionChecker();
-		String name = PrincipalThreadLocal.getName();
-
-		PermissionThreadLocal.setPermissionChecker(
-			PermissionCheckerFactoryUtil.create(user));
-		PrincipalThreadLocal.setName(user.getUserId());
-
-		ObjectEntry viewableObjectEntry = _objectEntryService.getObjectEntry(
-			objectEntry.getObjectEntryId());
-
-		Assert.assertEquals(
-			objectEntry.getObjectEntryId(),
-			viewableObjectEntry.getObjectEntryId());
-
-		MockHttpServletResponse mockHttpServletResponse = _service(
-			objectEntry.getObjectEntryId(), 1, 2, user);
-
-		Assert.assertEquals(
-			HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-			mockHttpServletResponse.getStatus());
-		Assert.assertEquals(
-			StringPool.BLANK, mockHttpServletResponse.getContentAsString());
-
-		_addModelResourcePermissions(
-			new String[] {ActionKeys.UPDATE, ActionKeys.VIEW},
-			objectEntry.getObjectEntryId(), user);
-
-		PermissionThreadLocal.setPermissionChecker(
-			PermissionCheckerFactoryUtil.create(user));
-
-		mockHttpServletResponse = _service(
-			objectEntry.getObjectEntryId(), 1, 2, user);
-
-		Assert.assertEquals(
-			HttpServletResponse.SC_OK, mockHttpServletResponse.getStatus());
-
-		JSONObject diffsJSONObject = _toDiffsJSONObject(
-			mockHttpServletResponse);
-
-		JSONObject targetJSONObject = diffsJSONObject.getJSONObject("target");
-
-		Assert.assertTrue(
-			targetJSONObject.toString(), targetJSONObject.has("title"));
-
-		PermissionThreadLocal.setPermissionChecker(permissionChecker);
-		PrincipalThreadLocal.setName(name);
-
-		_userLocalService.deleteUser(user);
-	}
-
 	private void _testCompareObjectEntryVersionsWithRichTextObjectField()
 		throws Exception {
 
@@ -406,8 +417,10 @@ public class CompareObjectEntryVersionsCMSServletTest
 	private void _testCompareObjectEntryVersionsWithSameVersions()
 		throws Exception {
 
+		String content = RandomTestUtil.randomString();
+
 		ObjectEntry objectEntry = _addObjectEntry(
-			RandomTestUtil.randomString(), RandomTestUtil.randomString());
+			content, RandomTestUtil.randomString());
 
 		MockHttpServletResponse mockHttpServletResponse = _service(
 			objectEntry.getObjectEntryId(), 1, 1, TestPropsValues.getUser());
@@ -425,9 +438,12 @@ public class CompareObjectEntryVersionsCMSServletTest
 		JSONObject targetJSONObject = diffsJSONObject.getJSONObject("target");
 
 		Assert.assertEquals(
-			sourceJSONObject.toString(), 0, sourceJSONObject.length());
+			sourceJSONObject.toString(), 1, sourceJSONObject.length());
 		Assert.assertEquals(
-			targetJSONObject.toString(), 0, targetJSONObject.length());
+			targetJSONObject.toString(), 1, targetJSONObject.length());
+
+		Assert.assertEquals(content, sourceJSONObject.getString("content"));
+		Assert.assertEquals(content, targetJSONObject.getString("content"));
 	}
 
 	private void _testCompareObjectEntryVersionsWithTextObjectField()
@@ -459,16 +475,81 @@ public class CompareObjectEntryVersionsCMSServletTest
 		JSONObject sourceJSONObject = diffsJSONObject.getJSONObject("source");
 		JSONObject targetJSONObject = diffsJSONObject.getJSONObject("target");
 
-		Assert.assertFalse(
-			sourceJSONObject.toString(), sourceJSONObject.has("content"));
-		Assert.assertFalse(
-			targetJSONObject.toString(), targetJSONObject.has("content"));
+		Assert.assertEquals(content, sourceJSONObject.getString("content"));
+		Assert.assertEquals(content, targetJSONObject.getString("content"));
 
 		String sourceDiff = sourceJSONObject.getString("title");
 		String targetDiff = targetJSONObject.getString("title");
 
 		_assertDiffHtml(sourceTitle, sourceDiff, targetTitle);
 		_assertDiffHtml(targetTitle, targetDiff, sourceTitle);
+	}
+
+	private void _testCompareObjectEntryVersionsWithoutUpdatePermission()
+		throws Exception {
+
+		ObjectEntry objectEntry = _addObjectEntry(
+			RandomTestUtil.randomString(), RandomTestUtil.randomString());
+
+		objectEntry = _updateObjectEntry(
+			objectEntry, RandomTestUtil.randomString(),
+			RandomTestUtil.randomString());
+
+		User user = UserTestUtil.addUser();
+
+		_addModelResourcePermissions(
+			new String[] {ActionKeys.VIEW}, objectEntry.getObjectEntryId(),
+			user);
+
+		PermissionChecker permissionChecker =
+			PermissionThreadLocal.getPermissionChecker();
+		String name = PrincipalThreadLocal.getName();
+
+		PermissionThreadLocal.setPermissionChecker(
+			PermissionCheckerFactoryUtil.create(user));
+		PrincipalThreadLocal.setName(user.getUserId());
+
+		ObjectEntry viewableObjectEntry = _objectEntryService.getObjectEntry(
+			objectEntry.getObjectEntryId());
+
+		Assert.assertEquals(
+			objectEntry.getObjectEntryId(),
+			viewableObjectEntry.getObjectEntryId());
+
+		MockHttpServletResponse mockHttpServletResponse = _service(
+			objectEntry.getObjectEntryId(), 1, 2, user);
+
+		Assert.assertEquals(
+			StringPool.BLANK, mockHttpServletResponse.getContentAsString());
+		Assert.assertEquals(
+			HttpServletResponse.SC_FORBIDDEN,
+			mockHttpServletResponse.getStatus());
+
+		_addModelResourcePermissions(
+			new String[] {ActionKeys.UPDATE, ActionKeys.VIEW},
+			objectEntry.getObjectEntryId(), user);
+
+		PermissionThreadLocal.setPermissionChecker(
+			PermissionCheckerFactoryUtil.create(user));
+
+		mockHttpServletResponse = _service(
+			objectEntry.getObjectEntryId(), 1, 2, user);
+
+		Assert.assertEquals(
+			HttpServletResponse.SC_OK, mockHttpServletResponse.getStatus());
+
+		JSONObject diffsJSONObject = _toDiffsJSONObject(
+			mockHttpServletResponse);
+
+		JSONObject targetJSONObject = diffsJSONObject.getJSONObject("target");
+
+		Assert.assertTrue(
+			targetJSONObject.toString(), targetJSONObject.has("title"));
+
+		PermissionThreadLocal.setPermissionChecker(permissionChecker);
+		PrincipalThreadLocal.setName(name);
+
+		_userLocalService.deleteUser(user);
 	}
 
 	private JSONObject _toDiffsJSONObject(

@@ -69,8 +69,37 @@ export default function openSelectionModal<
 	let processCloseFn: () => void;
 	let selectedItem: OpenSelectionModalSelectedItem;
 
+	const toSelectedItem = (node: HTMLInputElement) => {
+		let item: OpenSelectionModalSelectedItem = {};
+
+		if (node.value) {
+			item.value = node.value;
+		}
+
+		if (!getSelectedItemsOnly && node.checked) {
+			item.checked = node.checked;
+		}
+
+		if (node.dataset?.id && node.dataset.name) {
+			item = {...item, ...node.dataset};
+		}
+		else {
+			const row: HTMLElement | null = node.closest('dd, tr, li');
+
+			if (row && Object.keys(row.dataset).length) {
+				item = {...item, ...row.dataset};
+			}
+		}
+
+		return item;
+	};
+
 	const select = () => {
-		if (multiple && !selectedItem && iframeWindowObj) {
+		if (!iframeWindowObj) {
+			return;
+		}
+
+		if (multiple && !selectedItem) {
 			const searchContainer =
 				iframeWindowObj.document.querySelector('.searchcontainer');
 
@@ -88,37 +117,30 @@ export default function openSelectionModal<
 
 						// @ts-ignore
 
-						allSelectedNodes.map((node) => {
-							let item: OpenSelectionModalSelectedItem = {};
-
-							if (node.value) {
-								item.value = node.value;
-							}
-
-							if (!getSelectedItemsOnly && node.checked) {
-								item.checked = node.checked;
-							}
-
-							if (node.dataset?.id && node.dataset.name) {
-								item = {...item, ...node.dataset};
-							}
-							else {
-								const row: HTMLElement | null =
-									node.closest('dd, tr, li');
-
-								if (row && Object.keys(row.dataset).length) {
-									item = {...item, ...row.dataset};
-								}
-							}
-
-							return item;
-						})
+						allSelectedNodes.map(toSelectedItem)
 					);
 
 					processCloseFn();
 				});
 			}
 			else {
+				const checkedNodes: HTMLInputElement[] = Array.from(
+					iframeWindowObj.document.querySelectorAll(
+						'input[type="checkbox"]:checked:not(:disabled)'
+					)
+				);
+
+				onSelect(
+
+					// @ts-ignore
+
+					checkedNodes
+						.filter(
+							(node) => node.name && node.closest('dd, tr, li')
+						)
+						.map(toSelectedItem)
+				);
+
 				processCloseFn();
 			}
 		}
@@ -184,6 +206,7 @@ export default function openSelectionModal<
 				]
 			: undefined,
 		containerProps,
+		disableButtonsOnLoading: multiple,
 		height,
 		id: id || selectEventName,
 		iframeBodyCssClass,

@@ -460,8 +460,8 @@ public class DisplayPageTypeSiteNavigationMenuItemTypeTest {
 	public void testIsAvailable() throws Exception {
 		ObjectDefinition objectDefinition =
 			_objectDefinitionLocalService.addCustomObjectDefinition(
-				null, TestPropsValues.getUserId(), 0, null, true, false, true,
-				false, true, false, false, false, false, null,
+				null, TestPropsValues.getUserId(), 0, null, null, true, false,
+				true, false, true, false, false, false, false, null,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				"TestObject", null, "control_panel.sites",
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
@@ -566,10 +566,13 @@ public class DisplayPageTypeSiteNavigationMenuItemTypeTest {
 				AssetCategory.class.getName(),
 				typeSettingsUnicodeProperties.toString(), _serviceContext);
 
+		List<SiteNavigationMenuItem> siteNavigationMenuItems =
+			_siteNavigationMenuItemLocalService.getSiteNavigationMenuItems(
+				siteNavigationMenu.getSiteNavigationMenuId());
+
 		Assert.assertEquals(
-			1,
-			_siteNavigationMenuItemLocalService.getSiteNavigationMenuItemsCount(
-				siteNavigationMenu.getSiteNavigationMenuId()));
+			siteNavigationMenuItems.toString(), 1,
+			siteNavigationMenuItems.size());
 
 		ThemeDisplay themeDisplay = _getThemeDisplay();
 
@@ -800,10 +803,13 @@ public class DisplayPageTypeSiteNavigationMenuItemTypeTest {
 				).buildString(),
 				_serviceContext);
 
+		List<SiteNavigationMenuItem> siteNavigationMenuItems =
+			_siteNavigationMenuItemLocalService.getSiteNavigationMenuItems(
+				siteNavigationMenu.getSiteNavigationMenuId());
+
 		Assert.assertEquals(
-			1,
-			_siteNavigationMenuItemLocalService.getSiteNavigationMenuItemsCount(
-				siteNavigationMenu.getSiteNavigationMenuId()));
+			siteNavigationMenuItems.toString(), 1,
+			siteNavigationMenuItems.size());
 
 		SiteNavigationMenuItemType siteNavigationMenuItemType =
 			_siteNavigationMenuItemTypeRegistry.getSiteNavigationMenuItemType(

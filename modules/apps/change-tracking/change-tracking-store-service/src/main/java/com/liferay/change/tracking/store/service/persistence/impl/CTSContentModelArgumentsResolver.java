@@ -137,4 +137,4 @@ public class CTSContentModelArgumentsResolver implements ArgumentsResolver {
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-1658812116
+// LIFERAY-SERVICE-BUILDER-HASH:2082867360

@@ -217,6 +217,7 @@ public class DLFileEntryCTTest {
 			_group.getFriendlyURL(), title);
 
 		_assertHasFiles(friendlyURL);
+		_assertHasFilesWithoutPreviewCTCollectionId(friendlyURL);
 
 		StringBundler sb = new StringBundler(8);
 
@@ -232,6 +233,7 @@ public class DLFileEntryCTTest {
 		friendlyURL = sb.toString();
 
 		_assertHasFiles(friendlyURL);
+		_assertHasFilesWithoutPreviewCTCollectionId(friendlyURL);
 	}
 
 	@Test
@@ -374,6 +376,27 @@ public class DLFileEntryCTTest {
 		mockHttpServletRequest.setServletPath(StringPool.BLANK);
 
 		Assert.assertTrue(WebServerServlet.hasFiles(mockHttpServletRequest));
+	}
+
+	private void _assertHasFilesWithoutPreviewCTCollectionId(String friendlyURL)
+		throws Exception {
+
+		MockHttpServletRequest mockHttpServletRequest =
+			new MockHttpServletRequest(Method.GET, "/documents" + friendlyURL);
+
+		mockHttpServletRequest.setAttribute(
+			WebKeys.USER, TestPropsValues.getUser());
+		mockHttpServletRequest.setContextPath("/documents");
+		mockHttpServletRequest.setPathInfo(friendlyURL);
+		mockHttpServletRequest.setServletPath(StringPool.BLANK);
+
+		try (SafeCloseable safeCloseable =
+				CTCollectionThreadLocal.setCTCollectionIdWithSafeCloseable(
+					_ctCollection.getCtCollectionId())) {
+
+			Assert.assertTrue(
+				WebServerServlet.hasFiles(mockHttpServletRequest));
+		}
 	}
 
 	@Inject

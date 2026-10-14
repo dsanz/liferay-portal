@@ -37,11 +37,8 @@ import {
 	SitesMetricQuery,
 	SitesTabsQuery,
 } from 'shared/components/metric-card/queries';
-import {
-	AttributeTypes,
-	DataTypes,
-	DateGroupings,
-} from 'event-analysis/utils/types';
+import {DataTypes} from 'shared/types/DataTypes';
+import {AttributeTypes, DateGroupings} from 'event-analysis/utils/types';
 import {
 	CompositionTypes,
 	DATA_RETENTION_PERIOD_KEY,
@@ -174,21 +171,34 @@ export function mockAssetAppearsOnReq(variables, empty) {
 	};
 }
 
-export function mockAssetMetricReq({empty, metricName, queryName, rangeKey}) {
+export function mockAssetMetricReq({
+	empty,
+	metricName,
+	queryName,
+	rangeKey,
+	type,
+}) {
 	return {
 		request: {
 			query: AssetMetricQuery(queryName)(metricName),
+
+			// `useAssetVariables` reads `type` as a switch rather than sending
+			// it: object entries are the one asset type queried without
+			// `channelId` and `title`.
+
 			variables: {
 				assetId: '123',
-				channelId: '456',
 				devices: 'Any',
 				interval: 'D',
 				location: 'Any',
 				rangeEnd: null,
 				rangeKey,
 				rangeStart: null,
-				title: 'My awesome asset',
 				touchpoint: 'https://liferay.com',
+				...(type !== 'objectEntry' && {
+					channelId: '456',
+					title: 'My awesome asset',
+				}),
 			},
 		},
 		result: {

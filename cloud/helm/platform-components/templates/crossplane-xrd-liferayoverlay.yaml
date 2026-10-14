@@ -42,12 +42,8 @@ spec:
                                 projectId:
                                     minLength: 1
                                     type: string
-                                region:
-                                    minLength: 1
-                                    type: string
                             required:
                                 -   projectId
-                                -   region
                             type: object
                     type: object
             served: true

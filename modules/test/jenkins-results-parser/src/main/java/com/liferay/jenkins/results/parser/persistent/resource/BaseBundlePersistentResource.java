@@ -13,6 +13,7 @@ import com.liferay.jenkins.results.parser.JenkinsAPIUtil;
 import com.liferay.jenkins.results.parser.JenkinsCohort;
 import com.liferay.jenkins.results.parser.JenkinsMaster;
 import com.liferay.jenkins.results.parser.JenkinsResultsParserUtil;
+import com.liferay.jenkins.results.parser.JenkinsStopBuildUtil;
 import com.liferay.jenkins.results.parser.ReinvokeRule;
 import com.liferay.jenkins.results.parser.SlaveOfflineRule;
 import com.liferay.jenkins.results.parser.SubrepositoryWorkspace;
@@ -25,6 +26,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
@@ -58,7 +60,7 @@ public abstract class BaseBundlePersistentResource
 			getBundleWorkspaceGitRepository();
 
 		sb.append("/");
-		sb.append(getType());
+		sb.append(getS3ObjectPathName());
 		sb.append("/");
 		sb.append(bundleWorkspaceGitRepository.getName());
 		sb.append("/");
@@ -99,6 +101,10 @@ public abstract class BaseBundlePersistentResource
 		return artifactNames;
 	}
 
+	protected String getAxisVariable() {
+		return String.valueOf(getType());
+	}
+
 	protected abstract WorkspaceGitRepository getBundleWorkspaceGitRepository();
 
 	@Override
@@ -108,6 +114,10 @@ public abstract class BaseBundlePersistentResource
 		}
 
 		return super.getCurrentTopLevelBuildURL();
+	}
+
+	protected String getS3ObjectPathName() {
+		return String.valueOf(getType());
 	}
 
 	@Override
@@ -125,7 +135,12 @@ public abstract class BaseBundlePersistentResource
 			return "Waiting for bundles at " + getProducerBuildURL();
 		}
 		else if (status == Status.IN_QUEUE) {
-			return "In queue at " + _getProducerJobURL();
+			if (JenkinsResultsParserUtil.isNullOrEmpty(_queueItemWhy)) {
+				return "In queue at " + _getProducerJobURL();
+			}
+
+			return JenkinsResultsParserUtil.combine(
+				"In queue at ", _getProducerJobURL(), ": ", _queueItemWhy);
 		}
 		else if (status == Status.SUCCESS) {
 			return "Completed bundles at " + getProducerBuildURL();
@@ -184,14 +199,27 @@ public abstract class BaseBundlePersistentResource
 		);
 	}
 
+	@Override
+	protected void setStatus(Status status) {
+		if (status != Status.IN_QUEUE) {
+			_queueItemWhy = null;
+		}
+
+		super.setStatus(status);
+	}
+
 	protected void start() {
+		_queueItemWhy = null;
+
 		_invokeBuild();
 
-		print("Start building bundles at " + _getProducerJobURL());
+		if (getStatus() == Status.IN_QUEUE) {
+			print("Start building bundles at " + _getProducerJobURL());
+		}
 	}
 
 	@Override
-	protected void update() {
+	protected synchronized void update() {
 		JSONObject dataJSONObject = getDataJSONObject();
 
 		if (dataJSONObject == null) {
@@ -244,9 +272,7 @@ public abstract class BaseBundlePersistentResource
 			Status status = getStatus();
 
 			if (status == Status.FAILED) {
-				if (_isTransientFailure(_build) ||
-					(_redispatchAttempts < _MAX_REDISPATCH_ATTEMPTS)) {
-
+				if (_redispatchAttempts < _MAX_REDISPATCH_ATTEMPTS) {
 					_redispatchBuild(dataJSONObject);
 				}
 				else {
@@ -261,6 +287,14 @@ public abstract class BaseBundlePersistentResource
 				 (status == Status.IN_PROGRESS)) &&
 				_isControllerBuildFinished()) {
 
+				if (_redispatchAttempts >= _MAX_REDISPATCH_ATTEMPTS) {
+					print("No redispatch attempts remaining");
+
+					setStatus(Status.FAILED);
+
+					return;
+				}
+
 				print(
 					"Redispatching bundles after controller build completed " +
 						"at " + getControllerBuildURL());
@@ -270,17 +304,58 @@ public abstract class BaseBundlePersistentResource
 				return;
 			}
 
-			if (isMissing()) {
-				_missingCount++;
-
-				if (_missingCount >= _MAX_MISSING_COUNT) {
-					start();
-
-					_missingCount = 0;
-
-					return;
-				}
+			if (status != Status.SUCCESS) {
+				return;
 			}
+
+			if (!isMissing()) {
+				_missingArtifactsCount = 0;
+
+				touch();
+
+				return;
+			}
+
+			_missingArtifactsCount++;
+
+			if (_missingArtifactsCount < _MAX_MISSING_COUNT) {
+				print(
+					JenkinsResultsParserUtil.combine(
+						"WARNING: Unable to find bundle artifacts (",
+						String.valueOf(_missingArtifactsCount), " of ",
+						String.valueOf(_MAX_MISSING_COUNT), ")"));
+
+				setStatus(Status.IN_PROGRESS);
+
+				return;
+			}
+
+			_missingArtifactsCount = 0;
+
+			if (_redispatchAttempts >= _MAX_REDISPATCH_ATTEMPTS) {
+				print("No redispatch attempts remaining");
+
+				setStatus(Status.FAILED);
+
+				return;
+			}
+
+			print(
+				"Redispatching bundles after artifacts went missing from " +
+					getControllerBuildURL());
+
+			_redispatchBuild(dataJSONObject);
+
+			return;
+		}
+
+		String controllerBuildURL = dataJSONObject.optString(
+			"controller_build_url");
+
+		if (!JenkinsResultsParserUtil.isNullOrEmpty(controllerBuildURL) &&
+			!Objects.equals(controllerBuildURL, getControllerBuildURL())) {
+
+			_relinquishControl(controllerBuildURL);
 
 			return;
 		}
@@ -288,6 +363,30 @@ public abstract class BaseBundlePersistentResource
 		Status status = getStatus();
 
 		if (status == Status.NOT_STARTED) {
+			if (getProducerQueueId() <= 0) {
+				if (_failedInvocationsCount >= _MAX_FAILED_INVOCATIONS_COUNT) {
+					print("No invocation attempts remaining");
+
+					setStatus(Status.FAILED);
+
+					save();
+
+					return;
+				}
+
+				_failedInvocationsCount++;
+
+				print(
+					JenkinsResultsParserUtil.combine(
+						"Retrying bundles invocation (",
+						String.valueOf(_failedInvocationsCount), " of ",
+						String.valueOf(_MAX_FAILED_INVOCATIONS_COUNT), ")"));
+
+				start();
+
+				return;
+			}
+
 			if (_transientReinvocationCount <
 					_MAX_TRANSIENT_REINVOCATION_COUNT) {
 
@@ -297,28 +396,92 @@ public abstract class BaseBundlePersistentResource
 			}
 			else {
 				print("No transient reinvocation attempts remaining");
+
+				setStatus(Status.FAILED);
+
+				save();
 			}
 
 			return;
 		}
 
 		if (status == Status.IN_QUEUE) {
+			List<JenkinsMaster.QueueItem> queueItems;
+
 			JenkinsMaster producerJenkinsMaster = getProducerJenkinsMaster();
+
+			try {
+				queueItems = producerJenkinsMaster.getQueueItems();
+			}
+			catch (RuntimeException runtimeException) {
+				_recordLookupFailure(runtimeException, "queue items");
+
+				return;
+			}
 
 			long producerQueueId = getProducerQueueId();
 
-			for (JenkinsMaster.QueueItem queueItem :
-					producerJenkinsMaster.getQueueItems()) {
+			for (JenkinsMaster.QueueItem queueItem : queueItems) {
+				if (queueItem.getId() != producerQueueId) {
+					continue;
+				}
 
-				if (queueItem.getId() == producerQueueId) {
+				_lookupFailuresCount = 0;
+				_missingCount = 0;
+				_queueItemWhy = queueItem.getWhy();
+
+				long queueDuration =
+					JenkinsResultsParserUtil.getCurrentTimeMillis() -
+						queueItem.getInQueueSince();
+
+				if (queueDuration > _MAX_QUEUE_DURATION) {
+					_reinvokeQueueItem(queueDuration, queueItem);
+				}
+
+				return;
+			}
+
+			String producerBuildURL = null;
+			JenkinsMaster.QueueItem queueItem = null;
+
+			try {
+				queueItem = producerJenkinsMaster.fetchQueueItem(
+					producerQueueId);
+
+				if (queueItem == null) {
+					producerBuildURL = JenkinsResultsParserUtil.fetchBuildURL(
+						_JOB_NAME, producerJenkinsMaster, producerQueueId);
+				}
+			}
+			catch (Exception exception) {
+				_recordLookupFailure(
+					exception, "queue item " + producerQueueId);
+
+				return;
+			}
+
+			_lookupFailuresCount = 0;
+
+			if (queueItem != null) {
+				if (queueItem.isCancelled()) {
+					_reinvokeCancelledQueueItem();
+
+					return;
+				}
+
+				producerBuildURL = queueItem.getExecutableURL();
+
+				if (!JenkinsResultsParserUtil.isURL(producerBuildURL)) {
+					_missingCount = 0;
+					_queueItemWhy = queueItem.getWhy();
+
 					return;
 				}
 			}
 
-			String producerBuildURL = JenkinsResultsParserUtil.getBuildURL(
-				_JOB_NAME, producerJenkinsMaster, producerQueueId);
-
 			if (JenkinsResultsParserUtil.isURL(producerBuildURL)) {
+				_missingCount = 0;
+
 				setStatus(Status.IN_PROGRESS);
 
 				setProducerBuildURL(producerBuildURL);
@@ -339,7 +502,26 @@ public abstract class BaseBundlePersistentResource
 			if (_missingCount >= _MAX_MISSING_COUNT) {
 				_missingCount = 0;
 
-				print("Reinvoking bundles after missing queue item");
+				if (_queueReinvocationsCount >=
+						_MAX_QUEUE_REINVOCATIONS_COUNT) {
+
+					print("No queue reinvocation attempts remaining");
+
+					setStatus(Status.FAILED);
+
+					save();
+
+					return;
+				}
+
+				_queueReinvocationsCount++;
+
+				print(
+					JenkinsResultsParserUtil.combine(
+						"Reinvoking bundles (",
+						String.valueOf(_queueReinvocationsCount), " of ",
+						String.valueOf(_MAX_QUEUE_REINVOCATIONS_COUNT),
+						") after missing queue item"));
 
 				start();
 			}
@@ -350,7 +532,7 @@ public abstract class BaseBundlePersistentResource
 		String producerBuildURL = getProducerBuildURL();
 
 		if (!JenkinsResultsParserUtil.isURL(producerBuildURL)) {
-			print("WARNING: Unable to find producer build url");
+			print("WARNING: Unable to find producer build URL");
 
 			return;
 		}
@@ -401,10 +583,6 @@ public abstract class BaseBundlePersistentResource
 
 			save();
 		}
-	}
-
-	private String _getAxisVariable() {
-		return String.valueOf(getType());
 	}
 
 	private String _getBaseInvocationURL() {
@@ -536,17 +714,35 @@ public abstract class BaseBundlePersistentResource
 
 		buildParameters.putAll(_getTopLevelJenkinsBuildParameters());
 
-		buildParameters.put("AXIS_VARIABLE", _getAxisVariable());
+		buildParameters.put("AXIS_VARIABLE", getAxisVariable());
 		buildParameters.put("BUILD_PRIORITY", _BUILD_PRIORITY);
 		buildParameters.put("JOB_VARIANT", _JOB_VARIANT);
 		buildParameters.put("PARENT_BUILD_URL", getCurrentTopLevelBuildURL());
 		buildParameters.put("SLAVE_LABEL", "slave-bundle-builder");
 
-		setProducerQueueId(
-			JenkinsResultsParserUtil.invokeJenkinsBuild(
-				producerJenkinsMaster, _JOB_NAME, buildParameters));
+		long producerQueueId = 0;
 
-		setStatus(Status.IN_QUEUE);
+		try {
+			producerQueueId = JenkinsResultsParserUtil.invokeJenkinsBuild(
+				producerJenkinsMaster, _JOB_NAME, buildParameters);
+		}
+		catch (RuntimeException runtimeException) {
+			print(
+				JenkinsResultsParserUtil.combine(
+					"WARNING: Unable to invoke bundles at ",
+					_getProducerJobURL(), ": ", runtimeException.getMessage()));
+		}
+
+		setProducerQueueId(producerQueueId);
+
+		if (producerQueueId > 0) {
+			_failedInvocationsCount = 0;
+
+			setStatus(Status.IN_QUEUE);
+		}
+		else {
+			setStatus(Status.NOT_STARTED);
+		}
 
 		save();
 	}
@@ -585,6 +781,26 @@ public abstract class BaseBundlePersistentResource
 		}
 
 		return false;
+	}
+
+	private void _recordLookupFailure(Exception exception, String lookupName) {
+		_lookupFailuresCount++;
+
+		print(
+			JenkinsResultsParserUtil.combine(
+				"WARNING: Unable to look up ", lookupName, " at ",
+				_getProducerJobURL(), " (",
+				String.valueOf(_lookupFailuresCount), " of ",
+				String.valueOf(_MAX_LOOKUP_FAILURES_COUNT), "): ",
+				exception.getMessage()));
+
+		if (_lookupFailuresCount >= _MAX_LOOKUP_FAILURES_COUNT) {
+			print("No lookup attempts remaining");
+
+			setStatus(Status.FAILED);
+
+			save();
+		}
 	}
 
 	private void _redispatchBuild(JSONObject cachedDataJSONObject) {
@@ -667,11 +883,109 @@ public abstract class BaseBundlePersistentResource
 
 		_invokeBuild();
 
+		if (getStatus() == Status.IN_QUEUE) {
+			print(
+				JenkinsResultsParserUtil.combine(
+					"Redispatching bundles (",
+					String.valueOf(_redispatchAttempts), " of ",
+					String.valueOf(_MAX_REDISPATCH_ATTEMPTS), ") at ",
+					_getProducerJobURL()));
+		}
+		else {
+			print(
+				JenkinsResultsParserUtil.combine(
+					"WARNING: Unable to redispatch bundles (",
+					String.valueOf(_redispatchAttempts), " of ",
+					String.valueOf(_MAX_REDISPATCH_ATTEMPTS), ") at ",
+					_getProducerJobURL()));
+		}
+	}
+
+	private void _reinvokeCancelledQueueItem() {
+		if (_cancelledReinvocationsCount >=
+				_MAX_CANCELLED_REINVOCATIONS_COUNT) {
+
+			print("No cancelled queue item reinvocation attempts remaining");
+
+			setStatus(Status.FAILED);
+
+			save();
+
+			return;
+		}
+
+		_cancelledReinvocationsCount++;
+
 		print(
 			JenkinsResultsParserUtil.combine(
-				"Redispatching bundles (", String.valueOf(_redispatchAttempts),
-				" of ", String.valueOf(_MAX_REDISPATCH_ATTEMPTS), ") at ",
-				_getProducerJobURL()));
+				"Reinvoking bundles (",
+				String.valueOf(_cancelledReinvocationsCount), " of ",
+				String.valueOf(_MAX_CANCELLED_REINVOCATIONS_COUNT),
+				") after queue item ", String.valueOf(getProducerQueueId()),
+				" was cancelled at ", _getProducerJobURL()));
+
+		_missingCount = 0;
+
+		start();
+	}
+
+	private void _reinvokeQueueItem(
+		long queueDuration, JenkinsMaster.QueueItem queueItem) {
+
+		if (_queueReinvocationsCount >= _MAX_QUEUE_REINVOCATIONS_COUNT) {
+			print("No queue reinvocation attempts remaining");
+
+			return;
+		}
+
+		_queueReinvocationsCount++;
+
+		print(
+			JenkinsResultsParserUtil.combine(
+				"Reinvoking bundles (",
+				String.valueOf(_queueReinvocationsCount), " of ",
+				String.valueOf(_MAX_QUEUE_REINVOCATIONS_COUNT), ") after ",
+				JenkinsResultsParserUtil.toDurationString(queueDuration),
+				" in queue at ", _getProducerJobURL(), ": ",
+				queueItem.getWhy()));
+
+		try {
+			JenkinsStopBuildUtil.cancelQueueItem(
+				queueItem.getJenkinsMaster(), queueItem.getId());
+		}
+		catch (Exception exception) {
+			print(
+				JenkinsResultsParserUtil.combine(
+					"WARNING: Unable to cancel queue item ",
+					String.valueOf(queueItem.getId()), ": ",
+					exception.getMessage()));
+		}
+
+		start();
+	}
+
+	private void _relinquishControl(String controllerBuildURL) {
+		print(
+			"Following bundles at " + controllerBuildURL +
+				" after another build took control");
+
+		long producerQueueId = getProducerQueueId();
+
+		if ((getStatus() == Status.IN_QUEUE) && (producerQueueId > 0)) {
+			try {
+				JenkinsStopBuildUtil.cancelQueueItem(
+					getProducerJenkinsMaster(), producerQueueId);
+			}
+			catch (Exception exception) {
+				print(
+					JenkinsResultsParserUtil.combine(
+						"WARNING: Unable to cancel queue item ",
+						String.valueOf(producerQueueId), ": ",
+						exception.getMessage()));
+			}
+		}
+
+		setControllerBuildURL(controllerBuildURL);
 	}
 
 	private void _updateBuild(String producerBuildURL) {
@@ -721,11 +1035,21 @@ public abstract class BaseBundlePersistentResource
 
 	private static final String _JOB_VARIANT = "app-server-bundle-builder";
 
+	private static final int _MAX_CANCELLED_REINVOCATIONS_COUNT = 10;
+
 	private static final int _MAX_FAIL_COUNT = 2;
+
+	private static final int _MAX_FAILED_INVOCATIONS_COUNT = 5;
+
+	private static final int _MAX_LOOKUP_FAILURES_COUNT = 10;
 
 	private static final int _MAX_MISSING_COUNT = 2;
 
-	private static final int _MAX_REDISPATCH_ATTEMPTS = 1;
+	private static final long _MAX_QUEUE_DURATION = 1000 * 60 * 30;
+
+	private static final int _MAX_QUEUE_REINVOCATIONS_COUNT = 2;
+
+	private static final int _MAX_REDISPATCH_ATTEMPTS = 2;
 
 	private static final int _MAX_TRANSIENT_REINVOCATION_COUNT = 2;
 
@@ -735,8 +1059,14 @@ public abstract class BaseBundlePersistentResource
 		"https?://(?<cohortName>test-\\d+)(\\.liferay\\.com)?");
 
 	private Build _build;
+	private int _cancelledReinvocationsCount;
 	private int _failCount;
+	private int _failedInvocationsCount;
+	private int _lookupFailuresCount;
+	private int _missingArtifactsCount;
 	private int _missingCount;
+	private String _queueItemWhy;
+	private int _queueReinvocationsCount;
 	private int _redispatchAttempts;
 	private JSONArray _redispatchHistoryJSONArray = new JSONArray();
 	private final TopLevelBuild _topLevelBuild;

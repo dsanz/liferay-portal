@@ -14,6 +14,7 @@ import jakarta.annotation.Generated;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -204,6 +205,26 @@ public class CountrySerDes {
 			sb.append("\"number\": ");
 
 			sb.append(country.getNumber());
+		}
+
+		if (country.getPermissions() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"permissions\": ");
+
+			sb.append("[");
+
+			for (int i = 0; i < country.getPermissions().length; i++) {
+				sb.append(country.getPermissions()[i]);
+
+				if ((i + 1) < country.getPermissions().length) {
+					sb.append(", ");
+				}
+			}
+
+			sb.append("]");
 		}
 
 		if (country.getPosition() != null) {
@@ -397,6 +418,13 @@ public class CountrySerDes {
 			map.put("number", String.valueOf(country.getNumber()));
 		}
 
+		if (country.getPermissions() == null) {
+			map.put("permissions", null);
+		}
+		else {
+			map.put("permissions", String.valueOf(country.getPermissions()));
+		}
+
 		if (country.getPosition() == null) {
 			map.put("position", null);
 		}
@@ -499,6 +527,9 @@ public class CountrySerDes {
 				return false;
 			}
 			else if (Objects.equals(jsonParserFieldName, "number")) {
+				return false;
+			}
+			else if (Objects.equals(jsonParserFieldName, "permissions")) {
 				return false;
 			}
 			else if (Objects.equals(jsonParserFieldName, "position")) {
@@ -604,6 +635,26 @@ public class CountrySerDes {
 						Integer.valueOf((String)jsonParserFieldValue));
 				}
 			}
+			else if (Objects.equals(jsonParserFieldName, "permissions")) {
+				if (jsonParserFieldValue != null) {
+					Object[] jsonParserFieldValues =
+						(Object[])jsonParserFieldValue;
+
+					com.liferay.headless.admin.address.client.permission.
+						Permission[] permissionsArray = new
+						com.liferay.headless.admin.address.client.permission.
+							Permission[jsonParserFieldValues.length];
+
+					for (int i = 0; i < permissionsArray.length; i++) {
+						permissionsArray[i] =
+							com.liferay.headless.admin.address.client.
+								permission.Permission.toDTO(
+									(String)jsonParserFieldValues[i]);
+					}
+
+					country.setPermissions(permissionsArray);
+				}
+			}
 			else if (Objects.equals(jsonParserFieldName, "position")) {
 				if (jsonParserFieldValue != null) {
 					country.setPosition(
@@ -696,6 +747,12 @@ public class CountrySerDes {
 			return "null";
 		}
 
+		if (value instanceof Collection) {
+			Collection<?> collection = (Collection<?>)value;
+
+			return _toJSON(collection.toArray());
+		}
+
 		if (value instanceof Map) {
 			return _toJSON((Map)value);
 		}
@@ -728,4 +785,4 @@ public class CountrySerDes {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:452815966
+// LIFERAY-REST-BUILDER-HASH:-1570286083

@@ -21,6 +21,8 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.TextFormatter;
 import com.liferay.portal.kernel.util.Validator;
 
@@ -54,7 +56,35 @@ public class ObjectFieldImpl extends ObjectFieldBaseImpl {
 			};
 		}
 
+		if (compareBusinessType(ObjectFieldConstants.BUSINESS_TYPE_LOCATION)) {
+			return new String[] {
+				"address_" + getDBColumnName(), "latitude_" + getDBColumnName(),
+				"longitude_" + getDBColumnName()
+			};
+		}
+
 		return new String[] {getDBColumnName()};
+	}
+
+	@Override
+	public String getDefaultDBColumnName() {
+		if (compareBusinessType(ObjectFieldConstants.BUSINESS_TYPE_LOCATION)) {
+			return "address_" + getDBColumnName();
+		}
+
+		return getDBColumnName();
+	}
+
+	@Override
+	public String getDefaultLanguageId() {
+		String xml = getLabel();
+
+		if (xml == null) {
+			return "";
+		}
+
+		return LocalizationUtil.getDefaultLanguageId(
+			xml, LocaleUtil.getDefault());
 	}
 
 	@Override
@@ -111,6 +141,17 @@ public class ObjectFieldImpl extends ObjectFieldBaseImpl {
 		}
 
 		return true;
+	}
+
+	@Override
+	public boolean hasMultipleDBColumns() {
+		if (compareBusinessType(ObjectFieldConstants.BUSINESS_TYPE_ASSIGNEE) ||
+			compareBusinessType(ObjectFieldConstants.BUSINESS_TYPE_LOCATION)) {
+
+			return true;
+		}
+
+		return false;
 	}
 
 	@Override

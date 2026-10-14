@@ -3,12 +3,12 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
+import ClayEmptyState from '@clayui/empty-state';
 import {openToast} from 'frontend-js-components-web';
 import {PropTypes} from 'prop-types';
 import React, {Component} from 'react';
 
 import {sub} from '../../utils/language.es';
-import ClayEmptyState, {DISPLAY_STATES} from './ClayEmptyState.es';
 
 class ErrorBoundary extends Component {
 	static propTypes = {
@@ -50,7 +50,7 @@ class ErrorBoundary extends Component {
 			? !this.props.toast && (
 					<ClayEmptyState
 						description={this.state.message}
-						displayState={DISPLAY_STATES.EMPTY}
+						imgSrc={`${Liferay.ThemeDisplay.getPathThemeImages()}/states/empty_state.svg`}
 						title={Liferay.Language.get('unable-to-load-content')}
 					/>
 				)

@@ -29,12 +29,24 @@ import org.osgi.service.component.annotations.Reference;
 /**
  * @author Rafael Praxedes
  */
-@Component(service = {IndexReindexer.class, WorkflowMetricsReindexer.class})
+@Component(
+	property = {
+		"search.index.category=workflow", "workflow.metrics.reindexer.key=task"
+	},
+	service = {IndexReindexer.class, WorkflowMetricsReindexer.class}
+)
 public class TaskWorkflowMetricsReindexer extends BaseWorkflowMetricsReindexer {
 
 	@Override
 	public String getKey() {
 		return "task";
+	}
+
+	@Override
+	protected void onAfterReindex(long companyId, ExecutionMode executionMode)
+		throws Exception {
+
+		_nodeWorkflowMetricsReindexer.reindex(companyId, executionMode);
 	}
 
 	@Override
@@ -99,6 +111,9 @@ public class TaskWorkflowMetricsReindexer extends BaseWorkflowMetricsReindexer {
 	@Reference
 	private KaleoTaskInstanceTokenLocalService
 		_kaleoTaskInstanceTokenLocalService;
+
+	@Reference(target = "(workflow.metrics.reindexer.key=node)")
+	private IndexReindexer _nodeWorkflowMetricsReindexer;
 
 	@Reference
 	private TaskWorkflowMetricsIndexer _taskWorkflowMetricsIndexer;

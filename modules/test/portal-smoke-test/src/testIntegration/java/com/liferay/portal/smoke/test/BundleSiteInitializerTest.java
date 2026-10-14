@@ -180,6 +180,7 @@ import com.liferay.portal.kernel.settings.Settings;
 import com.liferay.portal.kernel.settings.SettingsLocator;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DataGuard;
+import com.liferay.portal.kernel.test.util.FeatureFlagTestUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
@@ -357,9 +358,14 @@ public class BundleSiteInitializerTest {
 		}
 	}
 
-	@FeatureFlag("LPD-76864")
+	@FeatureFlags(
+		featureFlags = {@FeatureFlag("LPD-57283"), @FeatureFlag("LPD-76864")}
+	)
 	@Test
 	public void testInitializeFromBundle() throws Exception {
+		FeatureFlagTestUtil.invokeFeatureFlagListeners(
+			TestPropsValues.getCompanyId(), true, "LPD-57283");
+
 		Bundle bundle1 = _getBundle(
 			"/com.liferay.site.initializer.extender.test.bundle.1.jar");
 		Bundle bundle2 = _getBundle(
@@ -442,25 +448,133 @@ public class BundleSiteInitializerTest {
 		}
 	}
 
-	@FeatureFlag("LPD-76864")
+	@FeatureFlags(
+		featureFlags = {
+			@FeatureFlag(enable = false, value = "LPD-57283"),
+			@FeatureFlag("LPD-76864")
+		}
+	)
+	@Test
+	public void testInitializeFromBundleWithDesignLibraryFeatureFlagDisabled()
+		throws Exception {
+
+		Bundle bundle1 = _getBundle(
+			"/com.liferay.site.initializer.extender.test.bundle.1.jar");
+		Bundle bundle2 = _getBundle(
+			"/com.liferay.site.initializer.extender.test.bundle.2.jar");
+
+		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
+				"com.liferay.site.initializer.extender.internal." +
+					"BundleSiteInitializer",
+				LoggerTestUtil.INFO)) {
+
+			SiteInitializer siteInitializer1 =
+				_siteInitializerRegistry.getSiteInitializer(
+					bundle1.getSymbolicName());
+
+			siteInitializer1.initialize(_group.getGroupId());
+
+			SiteInitializer siteInitializer2 =
+				_siteInitializerRegistry.getSiteInitializer(
+					bundle2.getSymbolicName());
+
+			siteInitializer2.initialize(_group.getGroupId());
+
+			List<LogEntry> logEntries = logCapture.getLogEntries();
+
+			Assert.assertTrue(
+				logEntries.toString(),
+				_hasLogEntryMessage(
+					logEntries,
+					"Skipping design library since LPD-57283 is disabled"));
+			Assert.assertFalse(
+				logEntries.toString(),
+				_hasLogEntryMessage(
+					logEntries,
+					"Unable to get design library Test Design Library 1"));
+
+			Assert.assertNull(
+				_groupLocalService.fetchGroup(
+					_serviceContext.getCompanyId(), "Test Design Library 1"));
+		}
+		finally {
+			bundle1.uninstall();
+			bundle2.uninstall();
+		}
+	}
+
+	@FeatureFlags(
+		featureFlags = {@FeatureFlag("LPD-57283"), @FeatureFlag("LPD-76864")}
+	)
 	@Test
 	public void testInitializeFromFile() throws Exception {
+		FeatureFlagTestUtil.invokeFeatureFlagListeners(
+			TestPropsValues.getCompanyId(), true, "LPD-57283");
+
 		File tempDir1 = _getTempDir(
 			"/com.liferay.site.initializer.extender.test.bundle.1.jar");
 		File tempDir2 = _getTempDir(
 			"/com.liferay.site.initializer.extender.test.bundle.2.jar");
 
-		try {
+		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
+				"com.liferay.site.initializer.extender.internal." +
+					"BundleSiteInitializer",
+				LoggerTestUtil.ERROR)) {
+
 			_test1(
 				_siteInitializerFactory.create(
 					new File(tempDir1, "site-initializer"), null));
 			_test2(
 				_siteInitializerFactory.create(
 					new File(tempDir2, "site-initializer"), null));
+
+			List<LogEntry> logEntries = logCapture.getLogEntries();
+
+			Assert.assertTrue(
+				logEntries.toString(),
+				_hasLogEntryMessage(
+					logEntries,
+					"Design library Test Design Library 1 has no path"));
 		}
 		finally {
 			FileUtil.deltree(tempDir1);
 			FileUtil.deltree(tempDir2);
+		}
+	}
+
+	@Test
+	public void testInitializeFromFileWithoutLayoutSetTheme() throws Exception {
+		_updateLookAndFeel(false, "cms_WAR_cmstheme");
+		_updateLookAndFeel(true, "cms_WAR_cmstheme");
+
+		File tempDir = FileUtil.createTempFolder();
+
+		try {
+			File siteInitializerDir = new File(tempDir, "site-initializer");
+
+			siteInitializerDir.mkdirs();
+
+			SiteInitializer siteInitializer = _siteInitializerFactory.create(
+				siteInitializerDir, null);
+
+			siteInitializer.initialize(_group.getGroupId());
+
+			LayoutSet privateLayoutSet = _layoutSetLocalService.fetchLayoutSet(
+				_group.getGroupId(), true);
+
+			Theme privateTheme = privateLayoutSet.getTheme();
+
+			Assert.assertEquals("CMS", privateTheme.getName());
+
+			LayoutSet publicLayoutSet = _layoutSetLocalService.fetchLayoutSet(
+				_group.getGroupId(), false);
+
+			Theme publicTheme = publicLayoutSet.getTheme();
+
+			Assert.assertEquals("CMS", publicTheme.getName());
+		}
+		finally {
+			FileUtil.deltree(tempDir);
 		}
 	}
 
@@ -902,6 +1016,109 @@ public class BundleSiteInitializerTest {
 		_assertAssetLinkEntries(blogPosting.getId(), 2);
 	}
 
+	private void _assertCPDefinition() throws Exception {
+		CPDefinition cpDefinition =
+			_cpDefinitionLocalService.
+				fetchCPDefinitionByCProductExternalReferenceCode(
+					"TESTCOMMERCEPRODUCT1", _group.getCompanyId(), false);
+
+		Assert.assertNotNull(cpDefinition);
+		Assert.assertEquals("Test Commerce Product", cpDefinition.getName());
+
+		_assertCPDefinitionSpecificationOptionValue(cpDefinition, 1);
+
+		CPAttachmentFileEntry cpAttachmentFileEntry =
+			_cpDefinitionLocalService.getDefaultImageCPAttachmentFileEntry(
+				cpDefinition.getCPDefinitionId());
+
+		Assert.assertNotNull(cpAttachmentFileEntry);
+
+		FileEntry fileEntry = cpAttachmentFileEntry.fetchFileEntry();
+
+		Assert.assertEquals(
+			"test_commerce_product.png", fileEntry.getFileName());
+	}
+
+	private void _assertCPDefinitionSpecificationOptionValue(
+			CPDefinition cpDefinition, int cpDefinitionValuesCount)
+		throws Exception {
+
+		Assert.assertEquals(
+			cpDefinitionValuesCount,
+			_cpDefinitionSpecificationOptionValueLocalService.
+				getCPDefinitionSpecificationOptionValuesCount(
+					cpDefinition.getCPDefinitionId(), null));
+	}
+
+	private void _assertCPInstanceProperties() throws Exception {
+		CPDefinition cpDefinition =
+			_cpDefinitionLocalService.
+				fetchCPDefinitionByCProductExternalReferenceCode(
+					"TESTCOMMERCEPRODUCT1", _group.getCompanyId(), false);
+
+		CPInstance cpInstance1 = _cpInstanceLocalService.getCPInstance(
+			cpDefinition.getCPDefinitionId(), "TEST VALUE 1");
+
+		Assert.assertNotNull(cpInstance1);
+
+		BigDecimal actualPrice = cpInstance1.getPrice();
+
+		Assert.assertEquals(60.0, actualPrice.doubleValue(), 0.0001);
+
+		BigDecimal actualPromoPrice = cpInstance1.getPromoPrice();
+
+		Assert.assertEquals(25.0, actualPromoPrice.doubleValue(), 0.0001);
+
+		CPInstance cpInstance2 = _cpInstanceLocalService.getCPInstance(
+			cpDefinition.getCPDefinitionId(), "TEST VALUE 2");
+
+		Assert.assertNotNull(cpInstance2);
+		Assert.assertTrue(cpInstance2.isSubscriptionEnabled());
+	}
+
+	private void _assertCPOption() throws Exception {
+		CPOption cpOption1 = _cpOptionLocalService.fetchCPOption(
+			_group.getCompanyId(), "test-option-1");
+
+		Assert.assertNotNull(cpOption1);
+		Assert.assertEquals(
+			"Test Option 1", cpOption1.getName(LocaleUtil.getSiteDefault()));
+
+		CPOption cpOption2 = _cpOptionLocalService.fetchCPOption(
+			_group.getCompanyId(), "test-option-2");
+
+		Assert.assertNotNull(cpOption2);
+		Assert.assertEquals(
+			"Test Option 2", cpOption2.getName(LocaleUtil.getSiteDefault()));
+
+		CPDefinition cpDefinition =
+			_cpDefinitionLocalService.
+				fetchCPDefinitionByCProductExternalReferenceCode(
+					"TESTCOMMERCEPRODUCT1", _group.getCompanyId(), false);
+
+		Assert.assertNotNull(cpDefinition);
+
+		List<CPDefinitionOptionRel> cpDefinitionOptionRels =
+			cpDefinition.getCPDefinitionOptionRels();
+
+		Assert.assertEquals(
+			cpDefinitionOptionRels.toString(), 2,
+			cpDefinitionOptionRels.size());
+	}
+
+	private void _assertCPOptionCategory() throws Exception {
+		CPOptionCategory cpOptionCategory =
+			_cpOptionCategoryLocalService.fetchCPOptionCategory(
+				_serviceContext.getCompanyId(),
+				"test-commerce-specification-key-1");
+
+		Assert.assertNotNull(cpOptionCategory);
+		Assert.assertEquals(1.0, cpOptionCategory.getPriority(), 0);
+		Assert.assertEquals(
+			"Test Commerce Specification 1",
+			cpOptionCategory.getTitle(LocaleUtil.getSiteDefault()));
+	}
+
 	private void _assertClientExtension() throws Exception {
 		ClientExtensionEntry clientExtensionEntry =
 			_clientExtensionEntryLocalService.
@@ -1250,191 +1467,6 @@ public class BundleSiteInitializerTest {
 		Assert.assertTrue(cpSpecificationOption.getCPOptionCategoryId() > 0);
 	}
 
-	private void _assertCPDefinition() throws Exception {
-		CPDefinition cpDefinition =
-			_cpDefinitionLocalService.
-				fetchCPDefinitionByCProductExternalReferenceCode(
-					"TESTCOMMERCEPRODUCT1", _group.getCompanyId(), false);
-
-		Assert.assertNotNull(cpDefinition);
-		Assert.assertEquals("Test Commerce Product", cpDefinition.getName());
-
-		_assertCPDefinitionSpecificationOptionValue(cpDefinition, 1);
-
-		CPAttachmentFileEntry cpAttachmentFileEntry =
-			_cpDefinitionLocalService.getDefaultImageCPAttachmentFileEntry(
-				cpDefinition.getCPDefinitionId());
-
-		Assert.assertNotNull(cpAttachmentFileEntry);
-
-		FileEntry fileEntry = cpAttachmentFileEntry.fetchFileEntry();
-
-		Assert.assertEquals(
-			"test_commerce_product.png", fileEntry.getFileName());
-	}
-
-	private void _assertCPDefinitionSpecificationOptionValue(
-			CPDefinition cpDefinition, int cpDefinitionValuesCount)
-		throws Exception {
-
-		Assert.assertEquals(
-			cpDefinitionValuesCount,
-			_cpDefinitionSpecificationOptionValueLocalService.
-				getCPDefinitionSpecificationOptionValuesCount(
-					cpDefinition.getCPDefinitionId(), null));
-	}
-
-	private void _assertCPInstanceProperties() throws Exception {
-		CPDefinition cpDefinition =
-			_cpDefinitionLocalService.
-				fetchCPDefinitionByCProductExternalReferenceCode(
-					"TESTCOMMERCEPRODUCT1", _group.getCompanyId(), false);
-
-		CPInstance cpInstance1 = _cpInstanceLocalService.getCPInstance(
-			cpDefinition.getCPDefinitionId(), "TEST VALUE 1");
-
-		Assert.assertNotNull(cpInstance1);
-
-		BigDecimal actualPrice = cpInstance1.getPrice();
-
-		Assert.assertEquals(60.0, actualPrice.doubleValue(), 0.0001);
-
-		BigDecimal actualPromoPrice = cpInstance1.getPromoPrice();
-
-		Assert.assertEquals(25.0, actualPromoPrice.doubleValue(), 0.0001);
-
-		CPInstance cpInstance2 = _cpInstanceLocalService.getCPInstance(
-			cpDefinition.getCPDefinitionId(), "TEST VALUE 2");
-
-		Assert.assertNotNull(cpInstance2);
-		Assert.assertTrue(cpInstance2.isSubscriptionEnabled());
-	}
-
-	private void _assertCPOption() throws Exception {
-		CPOption cpOption1 = _cpOptionLocalService.fetchCPOption(
-			_group.getCompanyId(), "test-option-1");
-
-		Assert.assertNotNull(cpOption1);
-		Assert.assertEquals(
-			"Test Option 1", cpOption1.getName(LocaleUtil.getSiteDefault()));
-
-		CPOption cpOption2 = _cpOptionLocalService.fetchCPOption(
-			_group.getCompanyId(), "test-option-2");
-
-		Assert.assertNotNull(cpOption2);
-		Assert.assertEquals(
-			"Test Option 2", cpOption2.getName(LocaleUtil.getSiteDefault()));
-
-		CPDefinition cpDefinition =
-			_cpDefinitionLocalService.
-				fetchCPDefinitionByCProductExternalReferenceCode(
-					"TESTCOMMERCEPRODUCT1", _group.getCompanyId(), false);
-
-		Assert.assertNotNull(cpDefinition);
-
-		List<CPDefinitionOptionRel> cpDefinitionOptionRels =
-			cpDefinition.getCPDefinitionOptionRels();
-
-		Assert.assertEquals(
-			cpDefinitionOptionRels.toString(), 2,
-			cpDefinitionOptionRels.size());
-	}
-
-	private void _assertCPOptionCategory() throws Exception {
-		CPOptionCategory cpOptionCategory =
-			_cpOptionCategoryLocalService.fetchCPOptionCategory(
-				_serviceContext.getCompanyId(),
-				"test-commerce-specification-key-1");
-
-		Assert.assertNotNull(cpOptionCategory);
-		Assert.assertEquals(1.0, cpOptionCategory.getPriority(), 0);
-		Assert.assertEquals(
-			"Test Commerce Specification 1",
-			cpOptionCategory.getTitle(LocaleUtil.getSiteDefault()));
-	}
-
-	private void _assertDataDefinition1() throws Exception {
-		DataDefinitionResource.Builder dataDefinitionResourceBuilder =
-			_dataDefinitionResourceFactory.create();
-
-		DataDefinitionResource dataDefinitionResource =
-			dataDefinitionResourceBuilder.user(
-				_serviceContext.fetchUser()
-			).build();
-
-		DataDefinition dataDefinition =
-			dataDefinitionResource.
-				getSiteDataDefinitionByContentTypeByDataDefinitionKey(
-					_serviceContext.getScopeGroupId(), "journal",
-					"test-data-definition-1");
-
-		Map<String, Object> description = dataDefinition.getDescription();
-
-		Assert.assertEquals(
-			"Test Data Definition Description 1", description.get("en_US"));
-
-		Map<String, Object> name = dataDefinition.getName();
-
-		Assert.assertEquals("Test Data Definition Name 1", name.get("en_US"));
-
-		dataDefinition =
-			dataDefinitionResource.
-				getSiteDataDefinitionByContentTypeByDataDefinitionKey(
-					_serviceContext.getScopeGroupId(), "journal",
-					"test-data-definition-2");
-
-		description = dataDefinition.getDescription();
-
-		Assert.assertEquals(
-			"Test Data Definition Description 2", description.get("en_US"));
-
-		name = dataDefinition.getName();
-
-		Assert.assertEquals("Test Data Definition Name 2", name.get("en_US"));
-	}
-
-	private void _assertDataDefinition2() throws Exception {
-		DataDefinitionResource.Builder dataDefinitionResourceBuilder =
-			_dataDefinitionResourceFactory.create();
-
-		DataDefinitionResource dataDefinitionResource =
-			dataDefinitionResourceBuilder.user(
-				_serviceContext.fetchUser()
-			).build();
-
-		DataDefinition dataDefinition =
-			dataDefinitionResource.
-				getSiteDataDefinitionByContentTypeByDataDefinitionKey(
-					_serviceContext.getScopeGroupId(), "journal",
-					"test-data-definition-1");
-
-		Map<String, Object> description = dataDefinition.getDescription();
-
-		Assert.assertEquals(
-			"Test Data Definition Description 1", description.get("en_US"));
-
-		Map<String, Object> name = dataDefinition.getName();
-
-		Assert.assertEquals("Test Data Definition Name 1", name.get("en_US"));
-
-		dataDefinition =
-			dataDefinitionResource.
-				getSiteDataDefinitionByContentTypeByDataDefinitionKey(
-					_serviceContext.getScopeGroupId(), "journal",
-					"test-data-definition-2");
-
-		description = dataDefinition.getDescription();
-
-		Assert.assertEquals(
-			"Test Data Definition Description 2 Update",
-			description.get("en_US"));
-
-		name = dataDefinition.getName();
-
-		Assert.assertEquals(
-			"Test Data Definition Name 2 Update", name.get("en_US"));
-	}
-
 	private void _assertDDMStructure() {
 		DDMStructure ddmStructure = _ddmStructureLocalService.fetchStructure(
 			_group.getGroupId(),
@@ -1546,6 +1578,170 @@ public class BundleSiteInitializerTest {
 		Assert.assertEquals("${entries?size}", ddmTemplate.getScript());
 	}
 
+	private void _assertDLFileEntry1() throws Exception {
+		DLFileEntry dlFileEntry = _dlFileEntryLocalService.getFileEntry(
+			_group.getGroupId(), DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+			"Table of Contents.md");
+
+		String string = new String(
+			StreamUtil.toByteArray(
+				_dlFileEntryLocalService.getFileAsStream(
+					dlFileEntry.getFileEntryId(), dlFileEntry.getVersion())));
+
+		Assert.assertTrue(string.contains("## Old Testament"));
+		Assert.assertTrue(string.contains("1. Genesis"));
+		Assert.assertTrue(string.contains("## New Testament"));
+		Assert.assertTrue(string.contains("1. Revelation"));
+	}
+
+	private void _assertDLFileEntry2() throws Exception {
+		DLFileEntry dlFileEntry = _dlFileEntryLocalService.getFileEntry(
+			_group.getGroupId(), DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+			"Table of Contents.md");
+
+		String string = new String(
+			StreamUtil.toByteArray(
+				_dlFileEntryLocalService.getFileAsStream(
+					dlFileEntry.getFileEntryId(), dlFileEntry.getVersion())));
+
+		Assert.assertTrue(string.contains("## Old Testament"));
+		Assert.assertTrue(string.contains("1. Genesis"));
+		Assert.assertTrue(string.contains("## New Testament"));
+		Assert.assertTrue(string.contains("1. Revelation"));
+		Assert.assertTrue(string.contains("## Content Update"));
+		Assert.assertTrue(string.contains("1. Test Update"));
+
+		DLFolder dlFolder = _dlFolderLocalService.fetchFolder(
+			_group.getGroupId(), DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+			"Old Testament");
+
+		Assert.assertNotNull(dlFolder);
+
+		dlFileEntry = _dlFileEntryLocalService.getFileEntry(
+			_group.getGroupId(), dlFolder.getFolderId(), "Genesis.txt");
+
+		Assert.assertNotNull(dlFileEntry);
+
+		string = new String(
+			StreamUtil.toByteArray(
+				_dlFileEntryLocalService.getFileAsStream(
+					dlFileEntry.getFileEntryId(), dlFileEntry.getVersion())));
+
+		Assert.assertTrue(string.isEmpty());
+
+		DLFolder notesDLFolder = _dlFolderLocalService.fetchFolder(
+			_group.getGroupId(), dlFolder.getFolderId(), "Notes");
+
+		dlFileEntry = _dlFileEntryLocalService.getFileEntry(
+			_group.getGroupId(), notesDLFolder.getFolderId(), "Summary.md");
+
+		string = new String(
+			StreamUtil.toByteArray(
+				_dlFileEntryLocalService.getFileAsStream(
+					dlFileEntry.getFileEntryId(), dlFileEntry.getVersion())));
+
+		Assert.assertEquals("## Old Testament Notes Update", string);
+
+		dlFolder = _dlFolderLocalService.fetchFolder(
+			_group.getGroupId(), DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+			"New Testament");
+
+		notesDLFolder = _dlFolderLocalService.fetchFolder(
+			_group.getGroupId(), dlFolder.getFolderId(), "Notes");
+
+		dlFileEntry = _dlFileEntryLocalService.getFileEntry(
+			_group.getGroupId(), notesDLFolder.getFolderId(), "Summary.md");
+
+		string = new String(
+			StreamUtil.toByteArray(
+				_dlFileEntryLocalService.getFileAsStream(
+					dlFileEntry.getFileEntryId(), dlFileEntry.getVersion())));
+
+		Assert.assertEquals("## New Testament Notes Update", string);
+	}
+
+	private void _assertDataDefinition1() throws Exception {
+		DataDefinitionResource.Builder dataDefinitionResourceBuilder =
+			_dataDefinitionResourceFactory.create();
+
+		DataDefinitionResource dataDefinitionResource =
+			dataDefinitionResourceBuilder.user(
+				_serviceContext.fetchUser()
+			).build();
+
+		DataDefinition dataDefinition =
+			dataDefinitionResource.
+				getSiteDataDefinitionByContentTypeByDataDefinitionKey(
+					_serviceContext.getScopeGroupId(), "journal",
+					"test-data-definition-1");
+
+		Map<String, Object> description = dataDefinition.getDescription();
+
+		Assert.assertEquals(
+			"Test Data Definition Description 1", description.get("en_US"));
+
+		Map<String, Object> name = dataDefinition.getName();
+
+		Assert.assertEquals("Test Data Definition Name 1", name.get("en_US"));
+
+		dataDefinition =
+			dataDefinitionResource.
+				getSiteDataDefinitionByContentTypeByDataDefinitionKey(
+					_serviceContext.getScopeGroupId(), "journal",
+					"test-data-definition-2");
+
+		description = dataDefinition.getDescription();
+
+		Assert.assertEquals(
+			"Test Data Definition Description 2", description.get("en_US"));
+
+		name = dataDefinition.getName();
+
+		Assert.assertEquals("Test Data Definition Name 2", name.get("en_US"));
+	}
+
+	private void _assertDataDefinition2() throws Exception {
+		DataDefinitionResource.Builder dataDefinitionResourceBuilder =
+			_dataDefinitionResourceFactory.create();
+
+		DataDefinitionResource dataDefinitionResource =
+			dataDefinitionResourceBuilder.user(
+				_serviceContext.fetchUser()
+			).build();
+
+		DataDefinition dataDefinition =
+			dataDefinitionResource.
+				getSiteDataDefinitionByContentTypeByDataDefinitionKey(
+					_serviceContext.getScopeGroupId(), "journal",
+					"test-data-definition-1");
+
+		Map<String, Object> description = dataDefinition.getDescription();
+
+		Assert.assertEquals(
+			"Test Data Definition Description 1", description.get("en_US"));
+
+		Map<String, Object> name = dataDefinition.getName();
+
+		Assert.assertEquals("Test Data Definition Name 1", name.get("en_US"));
+
+		dataDefinition =
+			dataDefinitionResource.
+				getSiteDataDefinitionByContentTypeByDataDefinitionKey(
+					_serviceContext.getScopeGroupId(), "journal",
+					"test-data-definition-2");
+
+		description = dataDefinition.getDescription();
+
+		Assert.assertEquals(
+			"Test Data Definition Description 2 Update",
+			description.get("en_US"));
+
+		name = dataDefinition.getName();
+
+		Assert.assertEquals(
+			"Test Data Definition Name 2 Update", name.get("en_US"));
+	}
+
 	private void _assertDefaultCPDisplayLayout1(CommerceChannel commerceChannel)
 		throws Exception {
 
@@ -1628,7 +1824,7 @@ public class BundleSiteInitializerTest {
 			_depotEntryLocalService.getGroupConnectedDepotEntries(
 				_group.getGroupId(), DepotConstants.TYPE_ANY, -1, -1);
 
-		Assert.assertEquals(depotEntries.toString(), 3, depotEntries.size());
+		Assert.assertEquals(depotEntries.toString(), 5, depotEntries.size());
 
 		List<DepotAppCustomization> depotAppCustomizations =
 			_depotAppCustomizationLocalService.getDepotAppCustomizations(
@@ -1664,56 +1860,87 @@ public class BundleSiteInitializerTest {
 			).getEnabled());
 	}
 
-	private void _assertDLFileEntry1() throws Exception {
-		DLFileEntry dlFileEntry = _dlFileEntryLocalService.getFileEntry(
-			_group.getGroupId(), DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
-			"Table of Contents.md");
+	private void _assertDesignLibraryDepotEntries2() throws Exception {
+		Group group1 = _getDesignLibraryGroup("Test Design Library 1");
 
-		String string = new String(
-			StreamUtil.toByteArray(
-				_dlFileEntryLocalService.getFileAsStream(
-					dlFileEntry.getFileEntryId(), dlFileEntry.getVersion())));
+		_assertDesignLibraryDepotEntryType(group1);
 
-		Assert.assertTrue(string.contains("## Old Testament"));
-		Assert.assertTrue(string.contains("1. Genesis"));
-		Assert.assertTrue(string.contains("## New Testament"));
-		Assert.assertTrue(string.contains("1. Revelation"));
+		Group group2 = _getDesignLibraryGroup("Test Design Library 2");
+
+		_assertDesignLibraryDepotEntryType(group2);
+
+		_assertDesignLibraryFragmentEntry(
+			group1, "test-design-library-1-fragment-entry",
+			"Test Design Library 1 Fragment Entry");
+		_assertDesignLibraryFragmentEntry(
+			group2, "test-design-library-2-fragment-entry",
+			"Test Design Library 2 Fragment Entry");
+		_assertDesignLibraryStyleBookEntry(
+			group1, "test-design-library-1-style-book",
+			"Test Design Library 1 Style Book Entry");
+		_assertDesignLibraryStyleBookEntry(
+			group2, "test-design-library-2-style-book",
+			"Test Design Library 2 Style Book Entry");
+
+		Assert.assertNull(
+			_fragmentEntryLocalService.fetchFragmentEntry(
+				group1.getGroupId(), "test-design-library-2-fragment-entry"));
+		Assert.assertNull(
+			_fragmentEntryLocalService.fetchFragmentEntry(
+				group2.getGroupId(), "test-design-library-1-fragment-entry"));
+		Assert.assertNull(
+			_styleBookEntryLocalService.fetchStyleBookEntry(
+				group1.getGroupId(), "test-design-library-2-style-book"));
+		Assert.assertNull(
+			_styleBookEntryLocalService.fetchStyleBookEntry(
+				group2.getGroupId(), "test-design-library-1-style-book"));
+
+		List<DepotAppCustomization> depotAppCustomizations =
+			_depotAppCustomizationLocalService.getDepotAppCustomizations(
+				group2.getClassPK());
+
+		Assert.assertTrue(
+			depotAppCustomizations.toString(),
+			depotAppCustomizations.isEmpty());
 	}
 
-	private void _assertDLFileEntry2() throws Exception {
-		DLFileEntry dlFileEntry = _dlFileEntryLocalService.getFileEntry(
-			_group.getGroupId(), DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
-			"Table of Contents.md");
+	private void _assertDesignLibraryDepotEntryType(Group group)
+		throws Exception {
 
-		String string = new String(
-			StreamUtil.toByteArray(
-				_dlFileEntryLocalService.getFileAsStream(
-					dlFileEntry.getFileEntryId(), dlFileEntry.getVersion())));
+		DepotEntry depotEntry = _depotEntryLocalService.getDepotEntry(
+			group.getClassPK());
 
-		Assert.assertTrue(string.contains("## Old Testament"));
-		Assert.assertTrue(string.contains("1. Genesis"));
-		Assert.assertTrue(string.contains("## New Testament"));
-		Assert.assertTrue(string.contains("1. Revelation"));
-		Assert.assertTrue(string.contains("## Content Update"));
-		Assert.assertTrue(string.contains("1. Test Update"));
+		Assert.assertEquals(
+			DepotConstants.TYPE_DESIGN_LIBRARY, depotEntry.getType());
+	}
 
-		DLFolder dlFolder = _dlFolderLocalService.fetchFolder(
-			_group.getGroupId(), DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
-			"Old Testament");
+	private void _assertDesignLibraryFragmentEntry(
+		Group group, String fragmentEntryKey, String fragmentEntryName) {
 
-		Assert.assertNotNull(dlFolder);
+		FragmentEntry fragmentEntry =
+			_fragmentEntryLocalService.fetchFragmentEntry(
+				group.getGroupId(), fragmentEntryKey);
 
-		dlFileEntry = _dlFileEntryLocalService.getFileEntry(
-			_group.getGroupId(), dlFolder.getFolderId(), "Genesis.txt");
+		Assert.assertNotNull(fragmentEntry);
+		Assert.assertEquals(fragmentEntryName, fragmentEntry.getName());
 
-		Assert.assertNotNull(dlFileEntry);
+		Assert.assertNull(
+			_fragmentEntryLocalService.fetchFragmentEntry(
+				_group.getGroupId(), fragmentEntryKey));
+	}
 
-		string = new String(
-			StreamUtil.toByteArray(
-				_dlFileEntryLocalService.getFileAsStream(
-					dlFileEntry.getFileEntryId(), dlFileEntry.getVersion())));
+	private void _assertDesignLibraryStyleBookEntry(
+		Group group, String styleBookEntryKey, String styleBookEntryName) {
 
-		Assert.assertTrue(string.isEmpty());
+		StyleBookEntry styleBookEntry =
+			_styleBookEntryLocalService.fetchStyleBookEntry(
+				group.getGroupId(), styleBookEntryKey);
+
+		Assert.assertEquals(styleBookEntryName, styleBookEntry.getName());
+
+		Assert.assertNull(
+			_styleBookEntryLocalService.fetchStyleBookEntry(
+				_group.getGroupId(), styleBookEntryKey));
 	}
 
 	private void _assertExpandoColumns1() {
@@ -2236,16 +2463,6 @@ public class BundleSiteInitializerTest {
 			_portal.getClassName(layoutPageTemplateEntry.getClassNameId()));
 	}
 
-	private void _assertLayouts1() throws Exception {
-		_assertPrivateLayouts1();
-		_assertPublicLayouts1();
-	}
-
-	private void _assertLayouts2() throws Exception {
-		_assertPrivateLayouts2();
-		_assertPublicLayouts2();
-	}
-
 	private void _assertLayoutSets1() throws Exception {
 		LayoutSet privateLayoutSet = _layoutSetLocalService.fetchLayoutSet(
 			_group.getGroupId(), true);
@@ -2374,6 +2591,16 @@ public class BundleSiteInitializerTest {
 			layoutUtilityPageEntry.getType());
 		Assert.assertFalse(
 			layoutUtilityPageEntry.isDefaultLayoutUtilityPageEntry());
+	}
+
+	private void _assertLayouts1() throws Exception {
+		_assertPrivateLayouts1();
+		_assertPublicLayouts1();
+	}
+
+	private void _assertLayouts2() throws Exception {
+		_assertPrivateLayouts2();
+		_assertPublicLayouts2();
 	}
 
 	private void _assertListTypeDefinitions1() throws Exception {
@@ -2519,8 +2746,6 @@ public class BundleSiteInitializerTest {
 				getNotificationTemplateByExternalReferenceCode(
 					"TESTNOTIFICATIONTEMPLATE1");
 
-		Assert.assertNotNull(notificationTemplate);
-
 		Map<String, String> bodyMap = notificationTemplate.getBody();
 
 		Assert.assertEquals(
@@ -2555,8 +2780,6 @@ public class BundleSiteInitializerTest {
 				getNotificationTemplateByExternalReferenceCode(
 					"TESTNOTIFICATIONTEMPLATE2");
 
-		Assert.assertNotNull(notificationTemplate);
-
 		bodyMap = notificationTemplate.getBody();
 
 		Assert.assertEquals(
@@ -2590,8 +2813,6 @@ public class BundleSiteInitializerTest {
 				getNotificationTemplateByExternalReferenceCode(
 					"TESTNOTIFICATIONTEMPLATE1");
 
-		Assert.assertNotNull(notificationTemplate);
-
 		Map<String, String> bodyMap = notificationTemplate.getBody();
 
 		Assert.assertEquals(
@@ -2613,8 +2834,6 @@ public class BundleSiteInitializerTest {
 			notificationTemplateResource.
 				getNotificationTemplateByExternalReferenceCode(
 					"TESTNOTIFICATIONTEMPLATE2");
-
-		Assert.assertNotNull(notificationTemplate);
 
 		bodyMap = notificationTemplate.getBody();
 
@@ -2638,8 +2857,6 @@ public class BundleSiteInitializerTest {
 			notificationTemplateResource.
 				getNotificationTemplateByExternalReferenceCode(
 					"TESTNOTIFICATIONTEMPLATE3");
-
-		Assert.assertNotNull(notificationTemplate);
 
 		bodyMap = notificationTemplate.getBody();
 
@@ -3157,12 +3374,6 @@ public class BundleSiteInitializerTest {
 		_assertAccountOrganizationRelsCount(organization, 0);
 	}
 
-	private void _assertPermissions() throws Exception {
-		_assertRoles();
-
-		_assertResourcePermission1();
-	}
-
 	private void _assertPLOEntries1() {
 		PLOEntry ploEntry1 = _ploEntryLocalService.fetchPLOEntry(
 			_group.getCompanyId(), "test-portal-language-override-1", "en_US");
@@ -3189,6 +3400,12 @@ public class BundleSiteInitializerTest {
 
 		Assert.assertEquals(
 			"Test Portal Language Override 2 Update", ploEntry2.getValue());
+	}
+
+	private void _assertPermissions() throws Exception {
+		_assertRoles();
+
+		_assertResourcePermission1();
 	}
 
 	private void _assertPortletSettings() {
@@ -3663,6 +3880,19 @@ public class BundleSiteInitializerTest {
 
 		_assertResourceAction(
 			new String[] {"UPDATE", "VIEW"}, resourcePermission);
+
+		role = _roleLocalService.fetchRole(
+			_group.getCompanyId(), "Test Role 3");
+
+		resourcePermission =
+			_resourcePermissionLocalService.fetchResourcePermission(
+				_group.getCompanyId(), "com.liferay.commerce.product",
+				ResourceConstants.SCOPE_COMPANY,
+				String.valueOf(_group.getCompanyId()), role.getRoleId());
+
+		Assert.assertNotNull(resourcePermission);
+
+		_assertResourceAction(new String[] {"VIEW_PRICE"}, resourcePermission);
 	}
 
 	private void _assertResourcePermission2() throws Exception {
@@ -3754,6 +3984,16 @@ public class BundleSiteInitializerTest {
 
 		_assertResourceAction(
 			new String[] {"UPDATE", "VIEW"}, resourcePermission);
+
+		role = _roleLocalService.fetchRole(
+			_group.getCompanyId(), "Test Role 3");
+
+		Assert.assertFalse(
+			_resourcePermissionLocalService.hasResourcePermission(
+				_group.getCompanyId(), "com.liferay.commerce.product",
+				ResourceConstants.SCOPE_COMPANY,
+				String.valueOf(_group.getCompanyId()), role.getRoleId(),
+				"VIEW_PRICE"));
 	}
 
 	private void _assertRoles() {
@@ -3836,6 +4076,89 @@ public class BundleSiteInitializerTest {
 		Assert.assertEquals(
 			allowedServiceSignatures2.toString(), 5,
 			allowedServiceSignatures2.size());
+	}
+
+	private void _assertSXPBlueprint1() throws Exception {
+		SXPBlueprintResource.Builder sxpBlueprintResourceBuilder =
+			_sxpBlueprintResourceFactory.create();
+
+		SXPBlueprintResource sxpBlueprintResource =
+			sxpBlueprintResourceBuilder.user(
+				_serviceContext.fetchUser()
+			).build();
+
+		SXPBlueprint sxpBlueprint =
+			sxpBlueprintResource.getSXPBlueprintByExternalReferenceCode(
+				"TESTSXPBLUEPRINT1");
+
+		Assert.assertNotNull(sxpBlueprint);
+		_assertSearchableAssetTypes(
+			new String[] {"com.liferay.journal.model.JournalArticle"},
+			sxpBlueprint.getConfiguration());
+		Assert.assertEquals("Test SXBlueprint 1", sxpBlueprint.getTitle());
+
+		sxpBlueprint =
+			sxpBlueprintResource.getSXPBlueprintByExternalReferenceCode(
+				"TESTSXPBLUEPRINT2");
+
+		Assert.assertNotNull(sxpBlueprint);
+		Assert.assertFalse(
+			sxpBlueprint.toString(
+			).contains(
+				"[$TAXONOMY_CATEGORY_ID:/site-initializer/taxonomy-" +
+					"vocabularies/company/test-asset-vocabulary-1/test-asset-" +
+						"category-1.json$]"
+			));
+		_assertSearchableAssetTypes(
+			new String[] {
+				"com.liferay.document.library.kernel.model.DLFileEntry"
+			},
+			sxpBlueprint.getConfiguration());
+		Assert.assertEquals("Test SXBlueprint 2", sxpBlueprint.getTitle());
+	}
+
+	private void _assertSXPBlueprint2() throws Exception {
+		SXPBlueprintResource.Builder sxpBlueprintResourceBuilder =
+			_sxpBlueprintResourceFactory.create();
+
+		SXPBlueprintResource sxpBlueprintResource =
+			sxpBlueprintResourceBuilder.user(
+				_serviceContext.fetchUser()
+			).build();
+
+		SXPBlueprint sxpBlueprint =
+			sxpBlueprintResource.getSXPBlueprintByExternalReferenceCode(
+				"TESTSXPBLUEPRINT1");
+
+		Assert.assertNotNull(sxpBlueprint);
+		_assertSearchableAssetTypes(
+			new String[] {"com.liferay.journal.model.JournalArticle"},
+			sxpBlueprint.getConfiguration());
+		Assert.assertEquals("Test SXBlueprint 1", sxpBlueprint.getTitle());
+
+		sxpBlueprint =
+			sxpBlueprintResource.getSXPBlueprintByExternalReferenceCode(
+				"TESTSXPBLUEPRINT2");
+
+		Assert.assertNotNull(sxpBlueprint);
+		_assertSearchableAssetTypes(
+			new String[] {
+				"com.liferay.document.library.kernel.model.DLFileEntry",
+				"com.liferay.journal.model.JournalArticle"
+			},
+			sxpBlueprint.getConfiguration());
+		Assert.assertEquals(
+			"Test SXBlueprint 2 Update", sxpBlueprint.getTitle());
+
+		sxpBlueprint =
+			sxpBlueprintResource.getSXPBlueprintByExternalReferenceCode(
+				"TESTSXPBLUEPRINT3");
+
+		Assert.assertNotNull(sxpBlueprint);
+		_assertSearchableAssetTypes(
+			new String[] {"com.liferay.portal.kernel.model.User"},
+			sxpBlueprint.getConfiguration());
+		Assert.assertEquals("Test SXBlueprint 3", sxpBlueprint.getTitle());
 	}
 
 	private void _assertSearchableAssetTypes(
@@ -4225,89 +4548,6 @@ public class BundleSiteInitializerTest {
 			frontendTokensValues.contains("blockquote-small-color"));
 	}
 
-	private void _assertSXPBlueprint1() throws Exception {
-		SXPBlueprintResource.Builder sxpBlueprintResourceBuilder =
-			_sxpBlueprintResourceFactory.create();
-
-		SXPBlueprintResource sxpBlueprintResource =
-			sxpBlueprintResourceBuilder.user(
-				_serviceContext.fetchUser()
-			).build();
-
-		SXPBlueprint sxpBlueprint =
-			sxpBlueprintResource.getSXPBlueprintByExternalReferenceCode(
-				"TESTSXPBLUEPRINT1");
-
-		Assert.assertNotNull(sxpBlueprint);
-		_assertSearchableAssetTypes(
-			new String[] {"com.liferay.journal.model.JournalArticle"},
-			sxpBlueprint.getConfiguration());
-		Assert.assertEquals("Test SXBlueprint 1", sxpBlueprint.getTitle());
-
-		sxpBlueprint =
-			sxpBlueprintResource.getSXPBlueprintByExternalReferenceCode(
-				"TESTSXPBLUEPRINT2");
-
-		Assert.assertNotNull(sxpBlueprint);
-		Assert.assertFalse(
-			sxpBlueprint.toString(
-			).contains(
-				"[$TAXONOMY_CATEGORY_ID:/site-initializer/taxonomy-" +
-					"vocabularies/company/test-asset-vocabulary-1/test-asset-" +
-						"category-1.json$]"
-			));
-		_assertSearchableAssetTypes(
-			new String[] {
-				"com.liferay.document.library.kernel.model.DLFileEntry"
-			},
-			sxpBlueprint.getConfiguration());
-		Assert.assertEquals("Test SXBlueprint 2", sxpBlueprint.getTitle());
-	}
-
-	private void _assertSXPBlueprint2() throws Exception {
-		SXPBlueprintResource.Builder sxpBlueprintResourceBuilder =
-			_sxpBlueprintResourceFactory.create();
-
-		SXPBlueprintResource sxpBlueprintResource =
-			sxpBlueprintResourceBuilder.user(
-				_serviceContext.fetchUser()
-			).build();
-
-		SXPBlueprint sxpBlueprint =
-			sxpBlueprintResource.getSXPBlueprintByExternalReferenceCode(
-				"TESTSXPBLUEPRINT1");
-
-		Assert.assertNotNull(sxpBlueprint);
-		_assertSearchableAssetTypes(
-			new String[] {"com.liferay.journal.model.JournalArticle"},
-			sxpBlueprint.getConfiguration());
-		Assert.assertEquals("Test SXBlueprint 1", sxpBlueprint.getTitle());
-
-		sxpBlueprint =
-			sxpBlueprintResource.getSXPBlueprintByExternalReferenceCode(
-				"TESTSXPBLUEPRINT2");
-
-		Assert.assertNotNull(sxpBlueprint);
-		_assertSearchableAssetTypes(
-			new String[] {
-				"com.liferay.document.library.kernel.model.DLFileEntry",
-				"com.liferay.journal.model.JournalArticle"
-			},
-			sxpBlueprint.getConfiguration());
-		Assert.assertEquals(
-			"Test SXBlueprint 2 Update", sxpBlueprint.getTitle());
-
-		sxpBlueprint =
-			sxpBlueprintResource.getSXPBlueprintByExternalReferenceCode(
-				"TESTSXPBLUEPRINT3");
-
-		Assert.assertNotNull(sxpBlueprint);
-		_assertSearchableAssetTypes(
-			new String[] {"com.liferay.portal.kernel.model.User"},
-			sxpBlueprint.getConfiguration());
-		Assert.assertEquals("Test SXBlueprint 3", sxpBlueprint.getTitle());
-	}
-
 	private void _assertUserAccounts1() throws Exception {
 		UserAccountResource.Builder userAccountResourceBuilder =
 			_userAccountResourceFactory.create();
@@ -4646,6 +4886,11 @@ public class BundleSiteInitializerTest {
 		return bundle;
 	}
 
+	private Group _getDesignLibraryGroup(String designLibraryName) {
+		return _groupLocalService.fetchGroup(
+			_serviceContext.getCompanyId(), designLibraryName);
+	}
+
 	private Configuration _getFactoryConfiguration(
 			String factoryPid, ExtendedObjectClassDefinition.Scope scope,
 			Serializable scopePK)
@@ -4764,6 +5009,7 @@ public class BundleSiteInitializerTest {
 		_assertDataDefinition2();
 		_assertDDMTemplate2();
 		_assertDepotEntries2();
+		_assertDesignLibraryDepotEntries2();
 		_assertDLFileEntry2();
 		_assertExpandoColumns2();
 		_assertExpandoValues2();
@@ -4783,6 +5029,17 @@ public class BundleSiteInitializerTest {
 		_assertSiteNavigationMenu2();
 		_assertSXPBlueprint2();
 		_assertUserAccounts2();
+	}
+
+	private void _updateLookAndFeel(boolean privateLayout, String themeId)
+		throws Exception {
+
+		LayoutSet layoutSet = _layoutSetLocalService.getLayoutSet(
+			_group.getGroupId(), privateLayout);
+
+		_layoutSetLocalService.updateLookAndFeel(
+			_group.getGroupId(), privateLayout, themeId,
+			layoutSet.getColorSchemeId(), layoutSet.getCss());
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

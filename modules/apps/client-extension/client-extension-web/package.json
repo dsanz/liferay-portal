@@ -10,8 +10,7 @@
 		"classnames": "2.3.1",
 		"frontend-js-components-web": "*",
 		"frontend-js-web": "*",
-		"react": "18.2.0",
-		"uuid": "9.0.0"
+		"react": "18.2.0"
 	},
 	"main": "js/index.ts",
 	"name": "@liferay/client-extension-web",
@@ -22,5 +21,5 @@
 		"format": "node-scripts format",
 		"test": "node-scripts test"
 	},
-	"version": "1.0.102"
+	"version": "1.0.103"
 }

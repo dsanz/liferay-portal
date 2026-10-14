@@ -39,6 +39,10 @@ import {toLocale} from 'shared/util/numbers';
 
 const {stark: CHART_BLUE} = CHART_COLOR_NAMES;
 
+const X_AXIS_PADDING = 20;
+
+const MAX_BAR_WIDTH = X_AXIS_PADDING * 2;
+
 interface IChartProps<T> extends React.HTMLAttributes<HTMLElement> {
 	alwaysShowSelectedTooltip: boolean;
 	chartView?: ChartView;
@@ -57,6 +61,7 @@ interface IChartProps<T> extends React.HTMLAttributes<HTMLElement> {
 
 interface IActivitiesHistoryProps<initDateType = number> {
 	intervalInitDate: initDateType;
+	totalCampaignResponses?: number;
 	totalEvents: number;
 	totalSessions?: number;
 	uniqueVisitors?: number;
@@ -106,7 +111,12 @@ const ActivitiesChart: React.FC<
 				return null;
 			}
 
-			const {intervalInitDate, totalEvents, totalSessions} = data;
+			const {
+				intervalInitDate,
+				totalCampaignResponses,
+				totalEvents,
+				totalSessions,
+			} = data;
 
 			const rows: ChartTooltipRow[] = tooltipRenderRows
 				? tooltipRenderRows(data)
@@ -118,6 +128,10 @@ const ActivitiesChart: React.FC<
 						{
 							label: Liferay.Language.get('sessions'),
 							value: toLocale(totalSessions),
+						},
+						{
+							label: Liferay.Language.get('campaign-responses'),
+							value: toLocale(totalCampaignResponses ?? 0),
 						},
 					];
 
@@ -156,6 +170,9 @@ const ActivitiesChart: React.FC<
 	const showFixedTooltip = hasSelectedPoint && mouseOutside;
 
 	const yAxisWidth = getYAxisWidth(history, 'totalEvents');
+
+	const formatTick = (value: number | string) =>
+		formatXAxisDate(value, rangeSelectors.rangeKey, interval, dateKeysIMap);
 
 	return (
 		<ResponsiveContainer height={height}>
@@ -197,16 +214,10 @@ const ActivitiesChart: React.FC<
 					axisLine={{stroke: AXIS.borderStroke}}
 					dataKey="intervalInitDate"
 					domain={['dataMin', 'dataMax']}
-					interval="preserveStart"
-					padding={{left: 20, right: 20}}
-					tick={getAxisTickText('x', (value) =>
-						formatXAxisDate(
-							value,
-							rangeSelectors.rangeKey,
-							interval,
-							dateKeysIMap
-						)
-					)}
+					interval="preserveStartEnd"
+					padding={{left: X_AXIS_PADDING, right: X_AXIS_PADDING}}
+					tick={getAxisTickText('x', formatTick)}
+					tickFormatter={formatTick}
 					tickLine={false}
 					tickMargin={12}
 					ticks={intervals.filter((v): v is number => v !== null)}
@@ -300,6 +311,7 @@ const ActivitiesChart: React.FC<
 						animationDuration={ANIMATION_DURATION.bar}
 						dataKey="totalEvents"
 						fill={CHART_BLUE}
+						maxBarSize={MAX_BAR_WIDTH}
 						onMouseEnter={(e, index) => setHoverIndex(index)}
 						onMouseLeave={() => setHoverIndex(-1)}
 					>

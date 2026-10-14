@@ -119,4 +119,4 @@ public class RegionLocalizationModelArgumentsResolver
 		new ConcurrentHashMap<>();
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:2002603493
+// LIFERAY-SERVICE-BUILDER-HASH:1228149155

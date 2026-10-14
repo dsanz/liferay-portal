@@ -5,8 +5,8 @@
 
 import {expect, mergeTests} from '@playwright/test';
 
-import {apiHelpersTest} from '../../../fixtures/apiHelpersTest';
 import {changeTrackingPagesTest} from '../../../fixtures/changeTrackingPagesTest';
+import {dataApiHelpersTest} from '../../../fixtures/dataApiHelpersTest';
 import {documentLibraryPagesTest} from '../../../fixtures/documentLibraryPages.fixtures';
 import {isolatedSiteTest} from '../../../fixtures/isolatedSiteTest';
 import {workflowPagesTest} from '../../../fixtures/workflowPagesTest';
@@ -23,7 +23,7 @@ import {blogsPagesTest} from '../../blogs-web/main/fixtures/blogsPagesTest';
 import {journalPagesTest} from '../../journal-web/main/fixtures/journalPagesTest';
 
 export const test = mergeTests(
-	apiHelpersTest,
+	dataApiHelpersTest,
 	blogsPagesTest,
 	changeTrackingPagesTest,
 	documentLibraryPagesTest,
@@ -486,7 +486,7 @@ test('LPD-26155 Conflict warning is visible when content is edited in more than 
 	const timelineButton = page.locator('.change-tracking-timeline-button svg');
 	await timelineButton.waitFor();
 
-	await expect(timelineButton).toHaveCSS('color', 'rgb(255, 182, 141)');
+	await expect(timelineButton).toHaveCSS('color', 'rgb(255, 192, 153)');
 
 	await timelineButton.click();
 
@@ -566,7 +566,7 @@ test('LPD-37842 Timeline icon is yellow for cross-publication edits.', async ({
 	const timelineButton = page.locator('.change-tracking-timeline-button svg');
 	await timelineButton.waitFor();
 
-	await expect(timelineButton).toHaveCSS('color', 'rgb(255, 182, 141)');
+	await expect(timelineButton).toHaveCSS('color', 'rgb(255, 192, 153)');
 
 	await apiHelpers.headlessChangeTracking.deleteCTCollection(
 		ctCollection2.body.id
@@ -623,12 +623,15 @@ test('LPD-39412 Assert publication timeline history is enabled for templates', a
 		.getByPlaceholder('Untitled Template')
 		.pressSequentially(title2, {delay: 50});
 
-	await Promise.all([
-		page.waitForLoadState('load'),
-		page
-			.getByRole('button', {exact: true, name: 'Save and Continue'})
-			.click(),
-	]);
+	await expect(page.locator('[id$="JournalPortlet_name_en_US"]')).toHaveValue(
+		title2
+	);
+
+	await page
+		.getByRole('button', {exact: true, name: 'Save and Continue'})
+		.click();
+
+	await page.waitForURL(/ddmTemplateId=/);
 
 	const timelineButton = page.getByLabel('timeline-button');
 	await timelineButton.waitFor();
@@ -705,7 +708,7 @@ test('LPD-73283 Conflict warning is visible when content is edited in other inco
 		);
 		await timelineButton.waitFor();
 
-		await expect(timelineButton).toHaveCSS('color', 'rgb(255, 182, 141)');
+		await expect(timelineButton).toHaveCSS('color', 'rgb(255, 192, 153)');
 
 		await timelineButton.click();
 

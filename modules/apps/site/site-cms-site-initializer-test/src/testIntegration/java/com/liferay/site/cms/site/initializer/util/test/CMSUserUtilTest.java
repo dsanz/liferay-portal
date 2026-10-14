@@ -10,6 +10,7 @@ import com.liferay.depot.constants.DepotConstants;
 import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.petra.function.transform.TransformUtil;
+import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
@@ -17,6 +18,8 @@ import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUti
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
+import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
+import com.liferay.portal.kernel.test.util.CompanyTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
@@ -105,6 +108,41 @@ public class CMSUserUtilTest {
 		_depotEntryLocalService.deleteDepotEntry(depotEntry2);
 	}
 
+	@Test
+	public void testIsAssignableUser() throws Exception {
+		_company = CompanyTestUtil.addCompany();
+
+		User companyAdminUser = UserTestUtil.addCompanyAdminUser(_company);
+
+		User user = UserTestUtil.addUser(_company);
+
+		PermissionChecker userPermissionChecker =
+			PermissionCheckerFactoryUtil.create(user);
+
+		Assert.assertFalse(
+			CMSUserUtil.isAssignableUser(
+				userPermissionChecker, companyAdminUser));
+		Assert.assertTrue(
+			CMSUserUtil.isAssignableUser(userPermissionChecker, user));
+
+		PermissionChecker companyAdminUserPermissionChecker =
+			PermissionCheckerFactoryUtil.create(companyAdminUser);
+
+		Assert.assertFalse(
+			CMSUserUtil.isAssignableUser(
+				companyAdminUserPermissionChecker, TestPropsValues.getUser()));
+		Assert.assertTrue(
+			CMSUserUtil.isAssignableUser(
+				companyAdminUserPermissionChecker, companyAdminUser));
+
+		PermissionChecker omniadminPermissionChecker =
+			PermissionCheckerFactoryUtil.create(TestPropsValues.getUser());
+
+		Assert.assertTrue(
+			CMSUserUtil.isAssignableUser(
+				omniadminPermissionChecker, companyAdminUser));
+	}
+
 	private DepotEntry _addDepotEntry() throws Exception {
 		return _depotEntryLocalService.addDepotEntry(
 			RandomTestUtil.randomLocaleStringMap(),
@@ -128,6 +166,9 @@ public class CMSUserUtilTest {
 			PermissionCheckerFactoryUtil.create(user));
 		PrincipalThreadLocal.setName(user.getUserId());
 	}
+
+	@DeleteAfterTestRun
+	private Company _company;
 
 	@Inject
 	private DepotEntryLocalService _depotEntryLocalService;

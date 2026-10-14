@@ -43,6 +43,7 @@ import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
+import com.liferay.portal.kernel.dao.orm.ModelRemovalThreadLocal;
 import com.liferay.portal.kernel.dao.orm.ORMException;
 import com.liferay.portal.kernel.dao.orm.OrderFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.Projection;
@@ -645,17 +646,17 @@ public class BasePersistenceImpl
 	}
 
 	@Override
-	public DataSource getDataSource() {
-		return _dataSource;
-	}
-
-	@Override
 	public DB getDB() {
 		if (_db == null) {
 			_db = DBManagerUtil.getDB(getDialect(), _dataSource);
 		}
 
 		return _db;
+	}
+
+	@Override
+	public DataSource getDataSource() {
+		return _dataSource;
 	}
 
 	public String getDefaultOrderBySQL() {
@@ -747,10 +748,11 @@ public class BasePersistenceImpl
 	}
 
 	@Override
-	public void reassociateIfAbsent(T model) {
+	@SuppressWarnings("unchecked")
+	public T reassociateIfAbsent(T model) {
 		Session session = getCurrentSession();
 
-		session.reassociateIfAbsent(
+		return (T)session.reassociateIfAbsent(
 			_modelImplClass, model.getPrimaryKeyObj(), model);
 	}
 
@@ -824,7 +826,14 @@ public class BasePersistenceImpl
 			modelListener.onBeforeRemove(model);
 		}
 
-		T removedModel = function.apply(model);
+		T removedModel = null;
+
+		try (SafeCloseable safeCloseable =
+				ModelRemovalThreadLocal.setRemovingBaseModelWithSafeCloseable(
+					model)) {
+
+			removedModel = function.apply(model);
+		}
 
 		if (removedModel != null) {
 			model = removedModel;
@@ -1092,6 +1101,10 @@ public class BasePersistenceImpl
 		return finderPath;
 	}
 
+	protected CTPersistenceHelper getCTPersistenceHelper() {
+		return null;
+	}
+
 	protected ClassLoader getClassLoader() {
 		Class<?> clazz = getClass();
 
@@ -1131,10 +1144,6 @@ public class BasePersistenceImpl
 		}
 
 		return fieldName;
-	}
-
-	protected CTPersistenceHelper getCTPersistenceHelper() {
-		return null;
 	}
 
 	protected EntityCache getEntityCache() {
@@ -1908,9 +1917,9 @@ public class BasePersistenceImpl
 		).build();
 
 	private String _countSQL;
-	private int _databaseOrderByMaxColumns;
 	private long _dataLimitModelMaxCount;
 	private DataSource _dataSource;
+	private int _databaseOrderByMaxColumns;
 	private DB _db;
 	private Map<String, String> _dbColumnNames = Collections.emptyMap();
 	private String _defaultOrderByJPQL;
@@ -1920,8 +1929,8 @@ public class BasePersistenceImpl
 	private String _entityAliasPrefix;
 	private String _filterPKColumnName;
 	private FinderPath _finderPathCountAll;
-	private FinderPath _finderPathWithoutPaginationFindAll;
 	private FinderPath _finderPathWithPaginationFindAll;
+	private FinderPath _finderPathWithoutPaginationFindAll;
 	private Class<T> _modelClass;
 	private Class<? extends T> _modelImplClass;
 	private ModelPKType _modelPKType = ModelPKType.COMPOUND;

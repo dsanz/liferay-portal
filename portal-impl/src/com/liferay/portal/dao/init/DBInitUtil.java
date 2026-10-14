@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.ReleaseConstants;
+import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.PropsUtil;
@@ -30,7 +31,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-import java.util.Date;
 import java.util.Objects;
 import java.util.Properties;
 
@@ -54,7 +54,7 @@ public class DBInitUtil {
 
 		_writeDataSource = _initDataSource("jdbc.write.");
 
-		if ((_readDataSource != null) && (_writeDataSource != null)) {
+		if (isReadWriteDataSource()) {
 			_dataSource = new DynamicDataSource(
 				_readDataSource, _writeDataSource);
 		}
@@ -77,6 +77,14 @@ public class DBInitUtil {
 		_dataSource = new LazyConnectionDataSourceProxy(_dataSource);
 	}
 
+	public static boolean isReadWriteDataSource() {
+		if ((_readDataSource != null) && (_writeDataSource != null)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	private static boolean _checkDefaultRelease(Connection connection) {
 		try {
 			if (!PortalUpgradeProcess.hasPortalRelease(connection)) {
@@ -85,12 +93,10 @@ public class DBInitUtil {
 				_setDBNew();
 			}
 
-			Date currentBuildDate = PortalUpgradeProcess.getCurrentBuildDate(
-				connection);
-
 			StartupHelperUtil.setNewRelease(
-				(currentBuildDate == null) ? true :
-					currentBuildDate.before(ReleaseInfo.getBuildDate()));
+				!DateUtil.equals(
+					PortalUpgradeProcess.getCurrentBuildDate(connection),
+					ReleaseInfo.getBuildDate()));
 
 			return true;
 		}

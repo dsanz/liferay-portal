@@ -56,6 +56,9 @@ const Settings = ({
 	const [searchAsYouType, setSearchAsYouType] = useState(
 		dataSet.searchAsYouType ?? false
 	);
+	const [searchSuggestionsEnabled, setSearchSuggestionsEnabled] = useState(
+		dataSet.searchSuggestionsEnabled ?? false
+	);
 	const [showSearch, setShowSearch] = useState(dataSet.showSearch ?? true);
 	const [visualizationModes, setVisualizationModes] = useState<
 		Array<TVisualizationMode>
@@ -101,6 +104,7 @@ const Settings = ({
 			defaultVisualizationMode,
 			hideManagementBarInEmptyState,
 			searchAsYouType,
+			searchSuggestionsEnabled,
 			showSearch,
 			snapshotsEnabled,
 		};
@@ -451,7 +455,7 @@ const Settings = ({
 						</ClayLayout.Col>
 					</ClayLayout.Row>
 
-					<ClayLayout.Row className="align-items-center justify-content-between">
+					<ClayLayout.Row className="align-items-center justify-content-between mb-4">
 						<ClayLayout.Col size={9}>
 							<div>
 								<label htmlFor="search-as-you-type-toggle">
@@ -474,6 +478,33 @@ const Settings = ({
 								id="search-as-you-type-toggle"
 								onToggle={setSearchAsYouType}
 								toggled={searchAsYouType}
+							/>
+						</ClayLayout.Col>
+					</ClayLayout.Row>
+
+					<ClayLayout.Row className="align-items-center justify-content-between">
+						<ClayLayout.Col size={9}>
+							<div>
+								<label htmlFor="search-suggestions-toggle">
+									{Liferay.Language.get(
+										'enable-search-suggestions'
+									)}
+								</label>
+							</div>
+
+							<div>
+								{Liferay.Language.get(
+									'enable-search-suggestions-help'
+								)}
+							</div>
+						</ClayLayout.Col>
+
+						<ClayLayout.Col className="align-self-start" size={1}>
+							<ClayToggle
+								disabled={!showSearch}
+								id="search-suggestions-toggle"
+								onToggle={setSearchSuggestionsEnabled}
+								toggled={searchSuggestionsEnabled}
 							/>
 						</ClayLayout.Col>
 					</ClayLayout.Row>

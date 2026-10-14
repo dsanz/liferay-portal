@@ -13,6 +13,11 @@ import React, {useEffect, useMemo, useRef, useState} from 'react';
 
 import OmniSearchResultHeader from './OmniSearchResultHeader';
 import OmniSearchResultRow from './OmniSearchResultRow';
+import {
+	deleteRecentSearch,
+	getRecentSearches,
+	saveRecentSearch,
+} from './recentSearches';
 import useKeyboardNavigation, {Section} from './useKeyboardNavigation';
 
 import '../css/OmniSearch.scss';
@@ -38,6 +43,8 @@ export default function OmniSearch({resultsURL}: {resultsURL: string}) {
 		OmniSearchSection[] | null
 	>(null);
 	const [query, setQuery] = useState<string>('');
+	const [recentSearches, setRecentSearches] =
+		useState<string[]>(getRecentSearches);
 	const [visible, setVisible] = useState<boolean>(false);
 
 	const inputRef = useRef<HTMLInputElement>(null);
@@ -46,31 +53,58 @@ export default function OmniSearch({resultsURL}: {resultsURL: string}) {
 		onClose: () => setVisible(false),
 	});
 
-	const sections: Section[] = useMemo(
-		() =>
-			(omniSearchSections ?? []).map((section) => ({
-				icon: section.icon,
-				items: section.omniSearchResults.map((result, index) => ({
-					description: result.description,
-					icon: result.icon,
-					key: `${section.title}-${index}-${result.title}`,
-					onClick: () => {
-						if (result.url) {
-							navigate(result.url);
-						}
-					},
-					title: result.title,
-				})),
-				key: section.title,
-				label: section.title,
-			})),
-		[omniSearchSections]
-	);
+	const sections: Section[] = useMemo(() => {
+		if (omniSearchSections === null) {
+			if (!recentSearches.length) {
+				return [];
+			}
 
-	const {activeIndex, onInputKeyDown, sectionOffsets} = useKeyboardNavigation(
-		sections,
-		() => setVisible(true)
-	);
+			return [
+				{
+					icon: 'time',
+					items: recentSearches.map((recentSearch) => ({
+						icon: 'time',
+						key: `recent-${recentSearch}`,
+						onClick: () => setQuery(recentSearch),
+						onDelete: () => {
+							setRecentSearches(deleteRecentSearch(recentSearch));
+
+							inputRef.current?.focus();
+						},
+						title: recentSearch,
+					})),
+					key: 'recent',
+					label: Liferay.Language.get('recent-searches'),
+				},
+			];
+		}
+
+		return omniSearchSections.map((section) => ({
+			icon: section.icon,
+			items: section.omniSearchResults.map((result, index) => ({
+				description: result.description,
+				icon: result.icon,
+				key: `${section.title}-${index}-${result.title}`,
+				onClick: () => {
+					const trimmedQuery = query.trim();
+
+					if (trimmedQuery) {
+						setRecentSearches(saveRecentSearch(trimmedQuery));
+					}
+
+					if (result.url) {
+						navigate(result.url);
+					}
+				},
+				title: result.title,
+			})),
+			key: section.title,
+			label: section.title,
+		}));
+	}, [omniSearchSections, query, recentSearches]);
+
+	const {activeIndex, onDeleteKeyDown, onInputKeyDown, sectionOffsets} =
+		useKeyboardNavigation(sections, () => setVisible(true), inputRef);
 
 	useEffect(() => {
 		if (!visible) {
@@ -149,14 +183,16 @@ export default function OmniSearch({resultsURL}: {resultsURL: string}) {
 		<>
 			<ClayButtonWithIcon
 				aria-haspopup="dialog"
-				aria-label={`${Liferay.Language.get('omni-search')} (Ctrl+K)`}
+				aria-label={Liferay.Language.get('omni-search')}
 				className="control-menu-nav-link lfr-portal-tooltip"
 				data-qa-id="omniSearch"
+				data-title={getOpenOmniSearchTooltipMarkup()}
+				data-title-set-as-html
+				data-tooltip-align="bottom-left"
 				displayType="unstyled"
 				onClick={() => setVisible(true)}
 				size="sm"
 				symbol="search"
-				title={`${Liferay.Language.get('omni-search')} (Ctrl+K)`}
 			/>
 
 			{visible && (
@@ -242,6 +278,10 @@ export default function OmniSearch({resultsURL}: {resultsURL: string}) {
 													item={item}
 													key={item.key}
 													onClick={item.onClick}
+													onDelete={item.onDelete}
+													onDeleteKeyDown={
+														onDeleteKeyDown
+													}
 												/>
 											);
 										})}
@@ -263,5 +303,18 @@ export default function OmniSearch({resultsURL}: {resultsURL: string}) {
 				</ClayModal>
 			)}
 		</>
+	);
+}
+
+function getOpenOmniSearchTooltipMarkup() {
+	const commandKey = Liferay.Browser.isMac() ? '⌘' : 'Ctrl';
+
+	return (
+		`<div>${Liferay.Language.get('omni-search')}</div>` +
+		`<kbd class="c-kbd c-kbd-dark mt-1">` +
+		`<kbd class="c-kbd">${commandKey}</kbd>` +
+		`<span class="c-kbd-separator">+</span>` +
+		`<kbd class="c-kbd">K</kbd>` +
+		`</kbd>`
 	);
 }

@@ -97,6 +97,17 @@ describe('[CMS Dashboard] ReviewDuplicateTopicsModal', () => {
 		]);
 	});
 
+	it('searches as the user types and offers search suggestions', async () => {
+		renderComponent();
+
+		await waitFor(() => expect(mockFrontendDataSet).toHaveBeenCalled());
+
+		const [props] = mockFrontendDataSet.mock.calls[0];
+
+		expect(props.searchAsYouType).toBe(true);
+		expect(props.searchSuggestionsEnabled).toBe(true);
+	});
+
 	it('filters the search by the repeated titles', async () => {
 		renderComponent();
 
@@ -157,6 +168,10 @@ describe('[CMS Dashboard] ReviewDuplicateTopicsModal', () => {
 		).toBeInTheDocument();
 
 		expect(mockFrontendDataSet).not.toHaveBeenCalled();
+
+		expect(
+			document.querySelector('img[src*="_reduced_motion"]')
+		).not.toBeInTheDocument();
 	});
 
 	it('keeps the search out of the dashboard URL', async () => {

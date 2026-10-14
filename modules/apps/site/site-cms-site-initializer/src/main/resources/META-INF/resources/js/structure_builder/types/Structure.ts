@@ -44,23 +44,35 @@ export type RelatedContent = {
 	uuid: Uuid;
 };
 
-export type RepeatableGroup = {
+type BaseGroup = {
 	children: Map<Uuid, StructureChild>;
-	erc: string;
+	erc?: string;
 	label: Liferay.Language.LocalizedValue<string>;
-	name: string;
+	name?: string;
 	parent: Uuid;
-	relationshipERC: string;
-	relationshipName: string;
-	type: 'repeatable-group';
+	relationshipERC?: string;
+	relationshipName?: string;
+	type: 'group';
 	uuid: Uuid;
 };
 
+export type NonRepeatableGroup = BaseGroup & {isRepeatable: false};
+
+export type RepeatableGroup = BaseGroup & {
+	erc: string;
+	isRepeatable: true;
+	name: string;
+	relationshipERC: string;
+	relationshipName: string;
+};
+
+export type Group = NonRepeatableGroup | RepeatableGroup;
+
 export type StructureChild =
 	| Field
+	| Group
 	| ReferencedStructure
-	| RelatedContent
-	| RepeatableGroup;
+	| RelatedContent;
 
 export type Structure = {
 	children: Map<Uuid, StructureChild>;
@@ -74,6 +86,7 @@ export type Structure = {
 	spaces: Spaces;
 	status: Status;
 	system: boolean;
+	titleFieldName: string;
 	type: StructureType;
 	uuid: Uuid;
 	workflows: Workflows;

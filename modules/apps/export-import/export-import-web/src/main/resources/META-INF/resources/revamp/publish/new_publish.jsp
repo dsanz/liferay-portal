@@ -39,6 +39,7 @@ renderResponse.setTitle(publishProcessDisplayContext.getTitle(scheduledPublishPr
 
 <clay:container-fluid
 	cssClass="container-form-lg"
+	size="lg"
 >
 	<div class="sheet">
 		<span aria-hidden="true" class="loading-animation mb-9 mt-8"></span>
@@ -66,6 +67,8 @@ renderResponse.setTitle(publishProcessDisplayContext.getTitle(scheduledPublishPr
 				).put(
 					"privateLayoutsAvailable", publishSourceGroup.isPrivateLayoutsEnabled() && publishSourceGroup.hasPrivateLayouts()
 				).build()
+			).put(
+				"processesBackURL", HttpComponentsUtil.setParameter(backURL, liferayPortletResponse.getNamespace() + "tabs1", "processes")
 			).put(
 				"publishPreviewAPIURL", publishProcessDisplayContext.getPublishPreviewAPIURL()
 			).put(

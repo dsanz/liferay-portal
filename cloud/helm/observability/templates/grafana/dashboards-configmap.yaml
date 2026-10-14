@@ -1,20 +1,31 @@
+{{- $azureDatasourceUid := include "observability.azureMonitorDatasourceUid" . -}}
+{{- $azureResourceGroupName := "" -}}
+{{- $azureSubscriptionId := "" -}}
+{{- with .Values.azure -}}
+{{- $azureResourceGroupName = (.resourceGroupName | default "") -}}
+{{- $azureSubscriptionId = (.subscriptionId | default "") -}}
+{{- end -}}
+{{- $cloudProvider := .Values.cloudProvider -}}
 {{- $datasourceUid := include "observability.datasourceUid" . -}}
 {{- $folder := .Values.dashboards.folder -}}
 {{- $items := deepCopy .Values.dashboards.items -}}
 {{- $namespace := include "observability.namespace" . -}}
-{{- $esNamespaceSuffix := "" -}}
 {{- $nsLabel := "namespace" -}}
-{{- if eq .Values.cloudProvider "gcp" -}}
-{{- $esNamespaceSuffix = "-elasticsearch" -}}
+{{- if eq $cloudProvider "gcp" -}}
 {{- $nsLabel = "exported_namespace" -}}
 {{- end -}}
 {{- $region := "" -}}
 {{- with .Values.aws -}}
 {{- $region = (.region | default "") -}}
 {{- end -}}
-{{- if eq .Values.cloudProvider "aws" -}}
+{{- if eq $cloudProvider "aws" -}}
 {{- if hasKey $items "backups" -}}
 {{- $_ := set (index $items "backups") "file" "dashboards/backups-aws.json" -}}
+{{- end -}}
+{{- end -}}
+{{- if eq $cloudProvider "azure" -}}
+{{- if hasKey $items "backups" -}}
+{{- $_ := set (index $items "backups") "file" "dashboards/backups-azure.json" -}}
 {{- end -}}
 {{- end -}}
 {{- $activeTileStyle := "ch-tile" -}}
@@ -55,12 +66,21 @@
 {{- if not $raw -}}
 {{- fail (printf "Dashboard file %s not found in chart" $entry.file) -}}
 {{- end -}}
-{{- $rendered := $raw | replace "${DS_PROMETHEUS}" $datasourceUid | replace "${ES_NAMESPACE_SUFFIX}" $esNamespaceSuffix | replace "${NS_LABEL}" $nsLabel | replace "${region}" $region -}}
+{{- $rendered := $raw | replace "${AZURE_RESOURCE_GROUP}" $azureResourceGroupName | replace "${AZURE_SUBSCRIPTION_ID}" $azureSubscriptionId | replace "${CLOUD_PROVIDER}" $cloudProvider | replace "${DS_AZURE_MONITOR}" $azureDatasourceUid | replace "${DS_PROMETHEUS}" $datasourceUid | replace "${NS_LABEL}" $nsLabel | replace "${region}" $region -}}
 {{- if hasKey $dashboardHeaders $key -}}
 {{- $rendered = $rendered | replace "\"${HEADER_HTML}\"" (tpl ($.Files.Get "dashboards/html/dashboard-header.html") (index $dashboardHeaders $key) | toJson) -}}
 {{- end -}}
-{{- if and (eq $key "backups") (eq $.Values.cloudProvider "aws") -}}
+{{- if and (eq $key "backups") (eq $cloudProvider "aws") -}}
 {{- $rendered = $rendered | replace "\"${AWS_BACKUP_HTML}\"" (tpl ($.Files.Get "dashboards/html/aws-backup.html") (dict "region" $region) | toJson) -}}
+{{- end -}}
+{{- if and (eq $key "backups") (eq $cloudProvider "azure") -}}
+{{- $azureBackupCtx := dict "argoWfDescription" $argoWfDescription "argoWfHref" $argoWfHref "argoWfTileStyle" "azb-tile-muted" "resourceGroupName" $azureResourceGroupName "subscriptionId" $azureSubscriptionId -}}
+{{- if $.Values.centralHub.argoWorkflowsURL -}}
+{{- $_ := set $azureBackupCtx "argoWfDescription" "Submit the Backup Restore Cluster Workflow Template Into the ${environment} Namespace" -}}
+{{- $_ := set $azureBackupCtx "argoWfHref" (printf "%s/cluster-workflow-templates/backup-restore-cluster-workflow-template?sidePanel=true" (trimSuffix "/" $.Values.centralHub.argoWorkflowsURL)) -}}
+{{- $_ := set $azureBackupCtx "argoWfTileStyle" "azb-tile" -}}
+{{- end -}}
+{{- $rendered = $rendered | replace "\"${AZURE_BACKUP_HTML}\"" (tpl ($.Files.Get "dashboards/html/azure-backup.html") $azureBackupCtx | toJson) -}}
 {{- end -}}
 {{- if eq $key "central-hub" -}}
 {{- $centralHubCtx := dict "argocdDescription" $argocdDescription "argocdHref" $argocdHref "argocdTileStyle" $argocdTileStyle "argoWfDescription" $argoWfDescription "argoWfHref" $argoWfHref "argoWfTileStyle" $argoWfTileStyle "gitDescription" $gitDescription "gitHref" $gitHref "gitTileStyle" $gitTileStyle -}}

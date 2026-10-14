@@ -8,6 +8,7 @@ package com.liferay.headless.delivery.resource.v1_0.test;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.headless.delivery.client.dto.v1_0.MessageBoardAttachment;
 import com.liferay.headless.delivery.client.http.HttpInvoker;
+import com.liferay.headless.delivery.client.pagination.Page;
 import com.liferay.headless.delivery.client.resource.v1_0.MessageBoardAttachmentResource;
 import com.liferay.message.boards.constants.MBCategoryConstants;
 import com.liferay.message.boards.model.MBMessage;
@@ -17,6 +18,7 @@ import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.test.constants.TestDataConstants;
+import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
@@ -24,11 +26,14 @@ import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.PropsValues;
 
 import java.io.File;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Assert;
@@ -59,26 +64,7 @@ public class MessageBoardAttachmentResourceTest
 	public void testDeleteMessageBoardAttachment() throws Exception {
 		super.testDeleteMessageBoardAttachment();
 
-		// Message board attachment without permission
-
-		MessageBoardAttachment messageBoardAttachment =
-			_addRestrictedMessageBoardAttachment();
-
-		MessageBoardAttachmentResource
-			userWithoutPermissionsMessageBoardAttachmentResource =
-				_getUserWithoutPermissionsMessageBoardAttachmentResource();
-
-		assertHttpResponseStatusCode(
-			403,
-			userWithoutPermissionsMessageBoardAttachmentResource.
-				deleteMessageBoardAttachmentHttpResponse(
-					messageBoardAttachment.getId()));
-
-		assertHttpResponseStatusCode(
-			200,
-			messageBoardAttachmentResource.
-				getMessageBoardAttachmentHttpResponse(
-					messageBoardAttachment.getId()));
+		_testDeleteMessageBoardAttachmentWithoutPermission();
 	}
 
 	@Override
@@ -89,44 +75,13 @@ public class MessageBoardAttachmentResourceTest
 		super.
 			testDeleteSiteMessageBoardMessageByExternalReferenceCodeMessageBoardMessageExternalReferenceCodeMessageBoardAttachmentByExternalReferenceCode();
 
-		MessageBoardAttachment messageBoardAttachment =
-			testDeleteSiteMessageBoardMessageByExternalReferenceCodeMessageBoardMessageExternalReferenceCodeMessageBoardAttachmentByExternalReferenceCode_addMessageBoardAttachment();
+		_testDeleteSiteMessageBoardMessageByExternalReferenceCodeMessageBoardMessageExternalReferenceCodeMessageBoardAttachmentByExternalReferenceCodeWithDifferentMessageBoardMessage();
 
-		// Message board attachment associated to a different message board
-		// message
+		_testDeleteSiteMessageBoardMessageByExternalReferenceCodeMessageBoardMessageExternalReferenceCodeMessageBoardAttachmentByExternalReferenceCodeWithNonexistentMessageBoardAttachment();
 
-		MBMessage mbMessage = _mbMessage;
+		_testDeleteSiteMessageBoardMessageByExternalReferenceCodeMessageBoardMessageExternalReferenceCodeMessageBoardAttachmentByExternalReferenceCodeWithNonexistentMessageBoardMessage();
 
-		MessageBoardAttachment newMessageBoardAttachment =
-			testDeleteSiteMessageBoardMessageByExternalReferenceCodeMessageBoardMessageExternalReferenceCodeMessageBoardAttachmentByExternalReferenceCode_addMessageBoardAttachment();
-
-		assertHttpResponseStatusCode(
-			404,
-			messageBoardAttachmentResource.
-				deleteSiteMessageBoardMessageByExternalReferenceCodeMessageBoardMessageExternalReferenceCodeMessageBoardAttachmentByExternalReferenceCodeHttpResponse(
-					testDeleteSiteMessageBoardMessageByExternalReferenceCodeMessageBoardMessageExternalReferenceCodeMessageBoardAttachmentByExternalReferenceCode_getSiteId(),
-					mbMessage.getExternalReferenceCode(),
-					newMessageBoardAttachment.getExternalReferenceCode()));
-
-		// Nonexistent message board message
-
-		assertHttpResponseStatusCode(
-			404,
-			messageBoardAttachmentResource.
-				deleteSiteMessageBoardMessageByExternalReferenceCodeMessageBoardMessageExternalReferenceCodeMessageBoardAttachmentByExternalReferenceCodeHttpResponse(
-					testDeleteSiteMessageBoardMessageByExternalReferenceCodeMessageBoardMessageExternalReferenceCodeMessageBoardAttachmentByExternalReferenceCode_getSiteId(),
-					RandomTestUtil.randomString(),
-					messageBoardAttachment.getExternalReferenceCode()));
-
-		// Nonexistent message board message attachment
-
-		assertHttpResponseStatusCode(
-			404,
-			messageBoardAttachmentResource.
-				deleteSiteMessageBoardMessageByExternalReferenceCodeMessageBoardMessageExternalReferenceCodeMessageBoardAttachmentByExternalReferenceCodeHttpResponse(
-					testDeleteSiteMessageBoardMessageByExternalReferenceCodeMessageBoardMessageExternalReferenceCodeMessageBoardAttachmentByExternalReferenceCode_getSiteId(),
-					testDeleteSiteMessageBoardMessageByExternalReferenceCodeMessageBoardMessageExternalReferenceCodeMessageBoardAttachmentByExternalReferenceCode_getMessageBoardMessageExternalReferenceCode(),
-					RandomTestUtil.randomString()));
+		_testDeleteSiteMessageBoardMessageByExternalReferenceCodeMessageBoardMessageExternalReferenceCodeMessageBoardAttachmentByExternalReferenceCodeWithoutUpdatePermission();
 	}
 
 	@Override
@@ -134,20 +89,7 @@ public class MessageBoardAttachmentResourceTest
 	public void testGetMessageBoardAttachment() throws Exception {
 		super.testGetMessageBoardAttachment();
 
-		// Message board attachment without permission
-
-		MessageBoardAttachment messageBoardAttachment =
-			_addRestrictedMessageBoardAttachment();
-
-		MessageBoardAttachmentResource
-			userWithoutPermissionsMessageBoardAttachmentResource =
-				_getUserWithoutPermissionsMessageBoardAttachmentResource();
-
-		assertHttpResponseStatusCode(
-			404,
-			userWithoutPermissionsMessageBoardAttachmentResource.
-				getMessageBoardAttachmentHttpResponse(
-					messageBoardAttachment.getId()));
+		_testGetMessageBoardAttachmentWithoutPermission();
 	}
 
 	@Ignore
@@ -181,6 +123,18 @@ public class MessageBoardAttachmentResourceTest
 
 		Assert.assertEquals(
 			"text/plain", postMessageBoardAttachment.getEncodingFormat());
+
+		_testPostMessageBoardMessageMessageBoardAttachmentWithoutUpdatePermission();
+	}
+
+	@Override
+	@Test
+	public void testPostMessageBoardThreadMessageBoardAttachment()
+		throws Exception {
+
+		super.testPostMessageBoardThreadMessageBoardAttachment();
+
+		_testPostMessageBoardThreadMessageBoardAttachmentWithoutUpdatePermission();
 	}
 
 	@Override
@@ -383,13 +337,23 @@ public class MessageBoardAttachmentResourceTest
 				getMultipartFiles());
 	}
 
-	private MessageBoardAttachmentResource
-			_getUserWithoutPermissionsMessageBoardAttachmentResource()
-		throws Exception {
+	private MBMessage _addSiteMBMessage() throws Exception {
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(
+				testGroup.getGroupId(), TestPropsValues.getUserId());
 
-		String password = RandomTestUtil.randomString();
+		serviceContext.setAddGroupPermissions(true);
+		serviceContext.setAddGuestPermissions(false);
 
-		User user = UserTestUtil.addUser(testCompany, password);
+		return MBTestUtil.addMessage(
+			testGroup.getGroupId(), TestPropsValues.getUserId(),
+			MBCategoryConstants.DEFAULT_PARENT_CATEGORY_ID,
+			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
+			serviceContext);
+	}
+
+	private MessageBoardAttachmentResource _getMessageBoardAttachmentResource(
+		User user, String password) {
 
 		return MessageBoardAttachmentResource.builder(
 		).authentication(
@@ -400,6 +364,35 @@ public class MessageBoardAttachmentResourceTest
 		).locale(
 			LocaleUtil.getDefault()
 		).build();
+	}
+
+	private MessageBoardAttachmentResource
+			_getSiteMemberMessageBoardAttachmentResource()
+		throws Exception {
+
+		String password = RandomTestUtil.randomString();
+
+		User user = UserTestUtil.addUser(testCompany, password);
+
+		_users.add(user);
+
+		UserLocalServiceUtil.addGroupUsers(
+			testGroup.getGroupId(), new long[] {user.getUserId()});
+
+		return _getMessageBoardAttachmentResource(user, password);
+	}
+
+	private MessageBoardAttachmentResource
+			_getUserWithoutPermissionsMessageBoardAttachmentResource()
+		throws Exception {
+
+		String password = RandomTestUtil.randomString();
+
+		User user = UserTestUtil.addUser(testCompany, password);
+
+		_users.add(user);
+
+		return _getMessageBoardAttachmentResource(user, password);
 	}
 
 	private String _read(String url) throws Exception {
@@ -415,8 +408,187 @@ public class MessageBoardAttachmentResourceTest
 		return httpResponse.getContent();
 	}
 
+	private void _testDeleteMessageBoardAttachmentWithoutPermission()
+		throws Exception {
+
+		MessageBoardAttachment messageBoardAttachment =
+			_addRestrictedMessageBoardAttachment();
+
+		MessageBoardAttachmentResource
+			userWithoutPermissionsMessageBoardAttachmentResource =
+				_getUserWithoutPermissionsMessageBoardAttachmentResource();
+
+		assertHttpResponseStatusCode(
+			403,
+			userWithoutPermissionsMessageBoardAttachmentResource.
+				deleteMessageBoardAttachmentHttpResponse(
+					messageBoardAttachment.getId()));
+
+		assertHttpResponseStatusCode(
+			200,
+			messageBoardAttachmentResource.
+				getMessageBoardAttachmentHttpResponse(
+					messageBoardAttachment.getId()));
+	}
+
+	private void _testDeleteSiteMessageBoardMessageByExternalReferenceCodeMessageBoardMessageExternalReferenceCodeMessageBoardAttachmentByExternalReferenceCodeWithDifferentMessageBoardMessage()
+		throws Exception {
+
+		testDeleteSiteMessageBoardMessageByExternalReferenceCodeMessageBoardMessageExternalReferenceCodeMessageBoardAttachmentByExternalReferenceCode_addMessageBoardAttachment();
+
+		MBMessage mbMessage = _mbMessage;
+
+		MessageBoardAttachment messageBoardAttachment =
+			testDeleteSiteMessageBoardMessageByExternalReferenceCodeMessageBoardMessageExternalReferenceCodeMessageBoardAttachmentByExternalReferenceCode_addMessageBoardAttachment();
+
+		assertHttpResponseStatusCode(
+			404,
+			messageBoardAttachmentResource.
+				deleteSiteMessageBoardMessageByExternalReferenceCodeMessageBoardMessageExternalReferenceCodeMessageBoardAttachmentByExternalReferenceCodeHttpResponse(
+					testDeleteSiteMessageBoardMessageByExternalReferenceCodeMessageBoardMessageExternalReferenceCodeMessageBoardAttachmentByExternalReferenceCode_getSiteId(),
+					mbMessage.getExternalReferenceCode(),
+					messageBoardAttachment.getExternalReferenceCode()));
+	}
+
+	private void _testDeleteSiteMessageBoardMessageByExternalReferenceCodeMessageBoardMessageExternalReferenceCodeMessageBoardAttachmentByExternalReferenceCodeWithNonexistentMessageBoardAttachment()
+		throws Exception {
+
+		testDeleteSiteMessageBoardMessageByExternalReferenceCodeMessageBoardMessageExternalReferenceCodeMessageBoardAttachmentByExternalReferenceCode_addMessageBoardAttachment();
+
+		assertHttpResponseStatusCode(
+			404,
+			messageBoardAttachmentResource.
+				deleteSiteMessageBoardMessageByExternalReferenceCodeMessageBoardMessageExternalReferenceCodeMessageBoardAttachmentByExternalReferenceCodeHttpResponse(
+					testDeleteSiteMessageBoardMessageByExternalReferenceCodeMessageBoardMessageExternalReferenceCodeMessageBoardAttachmentByExternalReferenceCode_getSiteId(),
+					testDeleteSiteMessageBoardMessageByExternalReferenceCodeMessageBoardMessageExternalReferenceCodeMessageBoardAttachmentByExternalReferenceCode_getMessageBoardMessageExternalReferenceCode(),
+					RandomTestUtil.randomString()));
+	}
+
+	private void _testDeleteSiteMessageBoardMessageByExternalReferenceCodeMessageBoardMessageExternalReferenceCodeMessageBoardAttachmentByExternalReferenceCodeWithNonexistentMessageBoardMessage()
+		throws Exception {
+
+		MessageBoardAttachment messageBoardAttachment =
+			testDeleteSiteMessageBoardMessageByExternalReferenceCodeMessageBoardMessageExternalReferenceCodeMessageBoardAttachmentByExternalReferenceCode_addMessageBoardAttachment();
+
+		assertHttpResponseStatusCode(
+			404,
+			messageBoardAttachmentResource.
+				deleteSiteMessageBoardMessageByExternalReferenceCodeMessageBoardMessageExternalReferenceCodeMessageBoardAttachmentByExternalReferenceCodeHttpResponse(
+					testDeleteSiteMessageBoardMessageByExternalReferenceCodeMessageBoardMessageExternalReferenceCodeMessageBoardAttachmentByExternalReferenceCode_getSiteId(),
+					RandomTestUtil.randomString(),
+					messageBoardAttachment.getExternalReferenceCode()));
+	}
+
+	private void _testDeleteSiteMessageBoardMessageByExternalReferenceCodeMessageBoardMessageExternalReferenceCodeMessageBoardAttachmentByExternalReferenceCodeWithoutUpdatePermission()
+		throws Exception {
+
+		MBMessage mbMessage = _addSiteMBMessage();
+
+		MessageBoardAttachment messageBoardAttachment =
+			messageBoardAttachmentResource.
+				postMessageBoardMessageMessageBoardAttachment(
+					mbMessage.getMessageId(), randomMessageBoardAttachment(),
+					getMultipartFiles());
+
+		MessageBoardAttachmentResource
+			siteMemberMessageBoardAttachmentResource =
+				_getSiteMemberMessageBoardAttachmentResource();
+
+		assertHttpResponseStatusCode(
+			200,
+			siteMemberMessageBoardAttachmentResource.
+				getSiteMessageBoardMessageByExternalReferenceCodeMessageBoardMessageExternalReferenceCodeMessageBoardAttachmentByExternalReferenceCodeHttpResponse(
+					testGroup.getGroupId(),
+					mbMessage.getExternalReferenceCode(),
+					messageBoardAttachment.getExternalReferenceCode()));
+
+		assertHttpResponseStatusCode(
+			403,
+			siteMemberMessageBoardAttachmentResource.
+				deleteSiteMessageBoardMessageByExternalReferenceCodeMessageBoardMessageExternalReferenceCodeMessageBoardAttachmentByExternalReferenceCodeHttpResponse(
+					testGroup.getGroupId(),
+					mbMessage.getExternalReferenceCode(),
+					messageBoardAttachment.getExternalReferenceCode()));
+
+		assertHttpResponseStatusCode(
+			200,
+			messageBoardAttachmentResource.
+				getMessageBoardAttachmentHttpResponse(
+					messageBoardAttachment.getId()));
+	}
+
+	private void _testGetMessageBoardAttachmentWithoutPermission()
+		throws Exception {
+
+		MessageBoardAttachment messageBoardAttachment =
+			_addRestrictedMessageBoardAttachment();
+
+		MessageBoardAttachmentResource
+			userWithoutPermissionsMessageBoardAttachmentResource =
+				_getUserWithoutPermissionsMessageBoardAttachmentResource();
+
+		assertHttpResponseStatusCode(
+			404,
+			userWithoutPermissionsMessageBoardAttachmentResource.
+				getMessageBoardAttachmentHttpResponse(
+					messageBoardAttachment.getId()));
+	}
+
+	private void _testPostMessageBoardMessageMessageBoardAttachmentWithoutUpdatePermission()
+		throws Exception {
+
+		MBMessage mbMessage = _addSiteMBMessage();
+
+		MessageBoardAttachmentResource
+			siteMemberMessageBoardAttachmentResource =
+				_getSiteMemberMessageBoardAttachmentResource();
+
+		Page<MessageBoardAttachment> page =
+			siteMemberMessageBoardAttachmentResource.
+				getMessageBoardMessageMessageBoardAttachmentsPage(
+					mbMessage.getMessageId());
+
+		Assert.assertTrue(MapUtil.isEmpty(page.getActions()));
+
+		assertHttpResponseStatusCode(
+			403,
+			siteMemberMessageBoardAttachmentResource.
+				postMessageBoardMessageMessageBoardAttachmentHttpResponse(
+					mbMessage.getMessageId(), randomMessageBoardAttachment(),
+					getMultipartFiles()));
+	}
+
+	private void _testPostMessageBoardThreadMessageBoardAttachmentWithoutUpdatePermission()
+		throws Exception {
+
+		MBMessage mbMessage = _addSiteMBMessage();
+
+		MBThread mbThread = mbMessage.getThread();
+
+		MessageBoardAttachmentResource
+			siteMemberMessageBoardAttachmentResource =
+				_getSiteMemberMessageBoardAttachmentResource();
+
+		Page<MessageBoardAttachment> page =
+			siteMemberMessageBoardAttachmentResource.
+				getMessageBoardThreadMessageBoardAttachmentsPage(
+					mbThread.getThreadId());
+
+		Assert.assertTrue(MapUtil.isEmpty(page.getActions()));
+
+		assertHttpResponseStatusCode(
+			403,
+			siteMemberMessageBoardAttachmentResource.
+				postMessageBoardThreadMessageBoardAttachmentHttpResponse(
+					mbThread.getThreadId(), randomMessageBoardAttachment(),
+					getMultipartFiles()));
+	}
+
 	private MBMessage _mbMessage;
 	private MBThread _mbThread;
 	private String _tempFileName;
+
+	@DeleteAfterTestRun
+	private final List<User> _users = new ArrayList<>();
 
 }

@@ -69,6 +69,15 @@ public class
 
 	@Override
 	public void
+		deleteGroupLayoutPageTemplateStructureRelElementVariationAudienceEntryRels(
+			long groupId, String audienceEntryERC) {
+
+		layoutPageTemplateStructureRelElementVariationAudienceEntryRelPersistence.
+			removeByG_AEERC(groupId, audienceEntryERC);
+	}
+
+	@Override
+	public void
 		deleteLayoutPageTemplateStructureRelElementVariationAudienceEntryRels(
 			long groupId,
 			String layoutPageTemplateStructureRelElementVariationERC) {
@@ -88,6 +97,15 @@ public class
 	}
 
 	@Override
+	public int
+		getGroupLayoutPageTemplateStructureRelElementVariationAudienceEntryRelsCount(
+			long groupId, String audienceEntryERC) {
+
+		return layoutPageTemplateStructureRelElementVariationAudienceEntryRelPersistence.
+			countByG_AEERC(groupId, audienceEntryERC);
+	}
+
+	@Override
 	public List<LayoutPageTemplateStructureRelElementVariationAudienceEntryRel>
 		getLayoutPageTemplateStructureRelElementVariationAudienceEntryRels(
 			long groupId,
@@ -96,6 +114,24 @@ public class
 		return layoutPageTemplateStructureRelElementVariationAudienceEntryRelPersistence.
 			findByG_LPTSREVERC(
 				groupId, layoutPageTemplateStructureRelElementVariationERC);
+	}
+
+	@Override
+	public List<LayoutPageTemplateStructureRelElementVariationAudienceEntryRel>
+		getLayoutPageTemplateStructureRelElementVariationAudienceEntryRelsByAudienceEntryERC(
+			long companyId, String audienceEntryERC) {
+
+		return layoutPageTemplateStructureRelElementVariationAudienceEntryRelPersistence.
+			findByC_AEERC(companyId, audienceEntryERC);
+	}
+
+	@Override
+	public int
+		getLayoutPageTemplateStructureRelElementVariationAudienceEntryRelsCountByAudienceEntryERC(
+			long companyId, String audienceEntryERC) {
+
+		return layoutPageTemplateStructureRelElementVariationAudienceEntryRelPersistence.
+			countByC_AEERC(companyId, audienceEntryERC);
 	}
 
 	@Reference

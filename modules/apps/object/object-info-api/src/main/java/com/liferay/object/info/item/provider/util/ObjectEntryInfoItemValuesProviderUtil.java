@@ -5,8 +5,8 @@
 
 package com.liferay.object.info.item.provider.util;
 
+import com.liferay.document.library.helper.DLURLHelper;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
-import com.liferay.document.library.util.DLURLHelper;
 import com.liferay.friendly.url.model.FriendlyURLEntry;
 import com.liferay.friendly.url.service.FriendlyURLEntryLocalService;
 import com.liferay.info.field.InfoField;
@@ -35,6 +35,7 @@ import com.liferay.object.model.ObjectAction;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectField;
 import com.liferay.object.model.ObjectRelationship;
+import com.liferay.object.model.bag.ObjectFieldBag;
 import com.liferay.object.related.models.ObjectRelatedModelsProvider;
 import com.liferay.object.related.models.ObjectRelatedModelsProviderRegistry;
 import com.liferay.object.rest.dto.v1_0.ListEntry;
@@ -45,8 +46,9 @@ import com.liferay.object.service.ObjectActionLocalService;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.object.service.ObjectEntryService;
-import com.liferay.object.service.ObjectFieldLocalService;
 import com.liferay.object.service.ObjectRelationshipLocalService;
+import com.liferay.petra.function.UnsafeSupplier;
+import com.liferay.petra.function.UnsafeSupplierValue;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -75,9 +77,11 @@ import java.time.format.DateTimeFormatter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * @author Carolina Barbosa
@@ -123,7 +127,6 @@ public class ObjectEntryInfoItemValuesProviderUtil {
 			ObjectEntryManagerRegistry objectEntryManagerRegistry,
 			ObjectEntryService objectEntryService,
 			ObjectFieldInfoFieldConverter objectFieldInfoFieldConverter,
-			ObjectFieldLocalService objectFieldLocalService,
 			List<ObjectField> objectFields,
 			ObjectRelationshipLocalService objectRelationshipLocalService,
 			ObjectScopeProviderRegistry objectScopeProviderRegistry,
@@ -165,14 +168,36 @@ public class ObjectEntryInfoItemValuesProviderUtil {
 					fetchObjectRelationshipByObjectFieldId2(
 						objectField.getObjectFieldId());
 
-			ObjectDefinition parentObjectDefinition =
-				objectDefinitionLocalService.getObjectDefinition(
-					objectRelationship.getObjectDefinitionId1());
-
+			ObjectDefinition relatedSystemObjectDefinition = null;
 			com.liferay.object.model.ObjectEntry
+				serviceBuilderRelatedObjectEntry = null;
+
+			if (serviceBuilderObjectEntry != null) {
+				relatedSystemObjectDefinition =
+					serviceBuilderObjectEntry.getRelatedSystemObjectDefinition(
+						objectField.getName());
 				serviceBuilderRelatedObjectEntry =
-					objectEntryLocalService.fetchObjectEntry(
-						GetterUtil.getLong(values.get(objectField.getName())));
+					serviceBuilderObjectEntry.getRelatedObjectEntry(
+						objectField.getName());
+			}
+
+			if ((relatedSystemObjectDefinition == null) &&
+				(serviceBuilderRelatedObjectEntry == null)) {
+
+				long objectEntryId = GetterUtil.getLong(
+					values.get(objectField.getName()));
+
+				if (objectEntryId != 0) {
+					serviceBuilderRelatedObjectEntry =
+						objectEntryLocalService.fetchObjectEntry(objectEntryId);
+				}
+			}
+
+			ObjectDefinition parentObjectDefinition =
+				_getParentObjectDefinition(
+					objectDefinition, objectDefinitionLocalService,
+					objectRelationship, relatedSystemObjectDefinition,
+					serviceBuilderRelatedObjectEntry);
 
 			ObjectEntry objectEntry = ObjectEntryInfoItemUtil.getObjectEntry(
 				parentObjectDefinition, objectEntryManagerRegistry,
@@ -188,9 +213,11 @@ public class ObjectEntryInfoItemValuesProviderUtil {
 					objectEntry.getDefaultLanguageId();
 			}
 
+			ObjectFieldBag objectFieldBag =
+				parentObjectDefinition.getObjectFieldBag();
+
 			for (ObjectField relatedObjectField :
-					objectFieldLocalService.getObjectFields(
-						parentObjectDefinition.getObjectDefinitionId())) {
+					objectFieldBag.getObjectFields()) {
 
 				if (relatedObjectField.isMetadata()) {
 					continue;
@@ -379,6 +406,33 @@ public class ObjectEntryInfoItemValuesProviderUtil {
 				}
 			).build();
 		}
+		else if (objectField.compareBusinessType(
+					ObjectFieldConstants.BUSINESS_TYPE_MULTISELECT_PICKLIST) ||
+				 objectField.compareBusinessType(
+					 ObjectFieldConstants.BUSINESS_TYPE_PICKLIST) ||
+				 objectField.compareBusinessType(
+					 ObjectFieldConstants.BUSINESS_TYPE_RELATIONSHIP)) {
+
+			Locale finalLocale = locale;
+
+			UnsafeSupplierValue<Object, RuntimeException> unsafeSupplierValue =
+				new UnsafeSupplierValue<>(
+					() -> GetterUtil.getObject(
+						_parseValue(
+							listTypeEntryLocalService, finalLocale,
+							objectEntryLocalService, objectField,
+							objectRelationshipLocalService, themeDisplay,
+							value),
+						StringPool.BLANK));
+
+			infoFieldValues.add(
+				new InfoFieldValue<>(
+					objectFieldInfoFieldConverter.getInfoField(
+						false, objectFieldNamespace, objectField),
+					unsafeSupplierValue::getValue));
+
+			return;
+		}
 		else {
 			infoFieldValue = _parseValue(
 				listTypeEntryLocalService, locale, objectEntryLocalService,
@@ -400,63 +454,79 @@ public class ObjectEntryInfoItemValuesProviderUtil {
 				ObjectFieldConstants.BUSINESS_TYPE_ATTACHMENT)) {
 
 			try {
-				Object downloadURLInfoFieldValue = null;
-				Object fileNameInfoFieldValue = null;
-				Object fileURLInfoFieldValue = null;
-				Object mimeTypeInfoFieldValue = null;
-				Object previewURLInfoFieldValue = null;
-				Object sizeInfoFieldValue = null;
+				Supplier<Object> downloadURLSupplier = null;
+				Supplier<Object> fileNameInfoFieldValue = null;
+				Supplier<Object> fileURLSupplier = null;
+				Supplier<Object> mimeTypeInfoFieldValue = null;
+				Supplier<Object> previewURLSupplier = null;
+				Supplier<Object> sizeInfoFieldValue = null;
 
-				if (infoFieldValue instanceof Long) {
-					Long fileEntryId = (Long)infoFieldValue;
+				if (infoFieldValue instanceof Long fileEntryId) {
+					UnsafeSupplierValue<FileEntry, Exception>
+						fileEntryUnsafeSupplierValue =
+							new UnsafeSupplierValue<>(
+								() -> dlAppLocalService.getFileEntry(
+									fileEntryId));
 
-					FileEntry fileEntry = dlAppLocalService.getFileEntry(
-						GetterUtil.getLong(fileEntryId));
+					Supplier<Object> webImageSupplier = _toSupplier(
+						() -> _getWebImage(
+							dlURLHelper,
+							fileEntryUnsafeSupplierValue.getValue(),
+							themeDisplay));
 
-					downloadURLInfoFieldValue = _getAttachmentDownloadURL(
-						dlURLHelper, fileEntry, objectDefinition,
-						objectEntryService, objectField,
-						serviceBuilderObjectEntry, themeDisplay);
-					fileNameInfoFieldValue = fileEntry.getFileName();
+					downloadURLSupplier = _toSupplier(
+						() -> _getAttachmentDownloadURL(
+							dlURLHelper,
+							fileEntryUnsafeSupplierValue.getValue(),
+							objectDefinition, objectEntryService, objectField,
+							serviceBuilderObjectEntry, themeDisplay));
+					fileNameInfoFieldValue = _toSupplier(
+						() -> {
+							FileEntry fileEntry =
+								fileEntryUnsafeSupplierValue.getValue();
 
-					String mimeType = fileEntry.getMimeType();
+							return fileEntry.getFileName();
+						});
+					fileURLSupplier = _toSupplier(
+						() -> {
+							FileEntry fileEntry =
+								fileEntryUnsafeSupplierValue.getValue();
 
-					mimeTypeInfoFieldValue = mimeType;
+							String mimeType = fileEntry.getMimeType();
 
-					WebImage fileURLWebImage = new WebImage(
-						dlURLHelper.getPreviewURL(
-							fileEntry, fileEntry.getFileVersion(), themeDisplay,
-							StringPool.BLANK),
-						new InfoItemReference(
-							FileEntry.class.getName(),
-							new ClassPKInfoItemIdentifier(
-								fileEntry.getFileEntryId())));
+							if (!mimeType.startsWith("image")) {
+								return null;
+							}
 
-					fileURLWebImage.setAlt(fileEntry.getDescription());
+							return webImageSupplier.get();
+						});
+					mimeTypeInfoFieldValue = _toSupplier(
+						() -> {
+							FileEntry fileEntry =
+								fileEntryUnsafeSupplierValue.getValue();
 
-					if (mimeType.startsWith("image")) {
-						fileURLInfoFieldValue = fileURLWebImage;
-					}
+							return fileEntry.getMimeType();
+						});
 
-					previewURLInfoFieldValue = fileURLWebImage;
-					sizeInfoFieldValue = fileEntry.getSize();
+					previewURLSupplier = webImageSupplier;
+
+					sizeInfoFieldValue = _toSupplier(
+						() -> {
+							FileEntry fileEntry =
+								fileEntryUnsafeSupplierValue.getValue();
+
+							return fileEntry.getSize();
+						});
 				}
 				else if (infoFieldValue instanceof InfoLocalizedValue) {
-					InfoLocalizedValue.Builder<Object>
-						downloadURLInfoFieldValueBuilder =
-							InfoLocalizedValue.builder();
+					Map<Locale, FileEntry> fileEntries = new LinkedHashMap<>();
 					InfoLocalizedValue.Builder<Object>
 						fileNameInfoFieldValueBuilder =
 							InfoLocalizedValue.builder();
-					InfoLocalizedValue.Builder<Object>
-						fileURLInfoFieldValueBuilder =
-							InfoLocalizedValue.builder();
-					boolean hasImage = false;
+					Map<Locale, FileEntry> imageFileEntries =
+						new LinkedHashMap<>();
 					InfoLocalizedValue.Builder<Object>
 						mimeTypeInfoFieldValueBuilder =
-							InfoLocalizedValue.builder();
-					InfoLocalizedValue.Builder<Object>
-						previewURLInfoFieldValueBuilder =
 							InfoLocalizedValue.builder();
 					InfoLocalizedValue.Builder<Object>
 						sizeInfoFieldValueBuilder =
@@ -475,62 +545,46 @@ public class ObjectEntryInfoItemValuesProviderUtil {
 							continue;
 						}
 
-						downloadURLInfoFieldValueBuilder.value(
-							entry.getKey(),
-							_getAttachmentDownloadURL(
-								dlURLHelper, fileEntry, objectDefinition,
-								objectEntryService, objectField,
-								serviceBuilderObjectEntry, themeDisplay));
+						fileEntries.put(entry.getKey(), fileEntry);
 						fileNameInfoFieldValueBuilder.value(
 							entry.getKey(), fileEntry.getFileName());
-						mimeTypeInfoFieldValueBuilder.value(
-							entry.getKey(), fileEntry.getMimeType());
 
 						String mimeType = fileEntry.getMimeType();
 
-						WebImage fileURLWebImage = new WebImage(
-							dlURLHelper.getPreviewURL(
-								fileEntry, fileEntry.getFileVersion(),
-								themeDisplay, StringPool.BLANK),
-							new InfoItemReference(
-								FileEntry.class.getName(),
-								new ClassPKInfoItemIdentifier(
-									fileEntry.getFileEntryId())));
-
-						fileURLWebImage.setAlt(fileEntry.getDescription());
-
 						if (mimeType.startsWith("image")) {
-							fileURLInfoFieldValueBuilder.value(
-								entry.getKey(), fileURLWebImage);
-
-							hasImage = true;
+							imageFileEntries.put(entry.getKey(), fileEntry);
 						}
 
-						previewURLInfoFieldValueBuilder.value(
-							entry.getKey(), fileURLWebImage);
+						mimeTypeInfoFieldValueBuilder.value(
+							entry.getKey(), mimeType);
 						sizeInfoFieldValueBuilder.value(
 							entry.getKey(), fileEntry.getSize());
 					}
 
-					downloadURLInfoFieldValue =
-						downloadURLInfoFieldValueBuilder.build();
+					downloadURLSupplier = _toSupplier(
+						() -> _getAttachmentDownloadURLInfoLocalizedValue(
+							dlURLHelper, fileEntries, objectDefinition,
+							objectEntryService, objectField,
+							serviceBuilderObjectEntry, themeDisplay));
+					fileNameInfoFieldValue = _toSupplier(
+						fileNameInfoFieldValueBuilder::build);
 
-					fileNameInfoFieldValue =
-						fileNameInfoFieldValueBuilder.build();
-
-					if (hasImage) {
-						fileURLInfoFieldValue =
-							fileURLInfoFieldValueBuilder.build();
+					if (!imageFileEntries.isEmpty()) {
+						fileURLSupplier = _toSupplier(
+							() -> _getWebImageInfoLocalizedValue(
+								dlURLHelper, imageFileEntries, themeDisplay));
 					}
 
-					mimeTypeInfoFieldValue =
-						mimeTypeInfoFieldValueBuilder.build();
-					previewURLInfoFieldValue =
-						previewURLInfoFieldValueBuilder.build();
-					sizeInfoFieldValue = sizeInfoFieldValueBuilder.build();
+					mimeTypeInfoFieldValue = _toSupplier(
+						mimeTypeInfoFieldValueBuilder::build);
+					previewURLSupplier = _toSupplier(
+						() -> _getWebImageInfoLocalizedValue(
+							dlURLHelper, fileEntries, themeDisplay));
+					sizeInfoFieldValue = _toSupplier(
+						sizeInfoFieldValueBuilder::build);
 				}
 
-				if (fileURLInfoFieldValue != null) {
+				if (fileURLSupplier != null) {
 					infoFieldValues.add(
 						new InfoFieldValue<>(
 							InfoField.builder(
@@ -544,7 +598,7 @@ public class ObjectEntryInfoItemValuesProviderUtil {
 								InfoLocalizedValue.localize(
 									ObjectEntryInfoItemFields.class, "file-url")
 							).build(),
-							fileURLInfoFieldValue));
+							fileURLSupplier));
 				}
 
 				infoFieldValues.add(
@@ -560,7 +614,7 @@ public class ObjectEntryInfoItemValuesProviderUtil {
 							InfoLocalizedValue.localize(
 								ObjectEntryInfoItemFields.class, "download-url")
 						).build(),
-						downloadURLInfoFieldValue));
+						downloadURLSupplier));
 				infoFieldValues.add(
 					new InfoFieldValue<>(
 						InfoField.builder(
@@ -602,7 +656,7 @@ public class ObjectEntryInfoItemValuesProviderUtil {
 							InfoLocalizedValue.localize(
 								ObjectEntryInfoItemFields.class, "preview-url")
 						).build(),
-						previewURLInfoFieldValue));
+						previewURLSupplier));
 				infoFieldValues.add(
 					new InfoFieldValue<>(
 						InfoField.builder(
@@ -653,6 +707,30 @@ public class ObjectEntryInfoItemValuesProviderUtil {
 			PermissionThreadLocal.getPermissionChecker(), themeDisplay);
 	}
 
+	private static InfoLocalizedValue<Object>
+			_getAttachmentDownloadURLInfoLocalizedValue(
+				DLURLHelper dlURLHelper, Map<Locale, FileEntry> fileEntries,
+				ObjectDefinition objectDefinition,
+				ObjectEntryService objectEntryService, ObjectField objectField,
+				com.liferay.object.model.ObjectEntry serviceBuilderObjectEntry,
+				ThemeDisplay themeDisplay)
+		throws PortalException {
+
+		InfoLocalizedValue.Builder<Object> builder =
+			InfoLocalizedValue.builder();
+
+		for (Map.Entry<Locale, FileEntry> entry : fileEntries.entrySet()) {
+			builder.value(
+				entry.getKey(),
+				_getAttachmentDownloadURL(
+					dlURLHelper, entry.getValue(), objectDefinition,
+					objectEntryService, objectField, serviceBuilderObjectEntry,
+					themeDisplay));
+		}
+
+		return builder.build();
+	}
+
 	private static KeyLocalizedLabelPair _getKeyLocalizedLabelPair(
 		ListTypeEntryLocalService listTypeEntryLocalService, Object object,
 		ObjectField objectField) {
@@ -687,6 +765,68 @@ public class ObjectEntryInfoItemValuesProviderUtil {
 			).values(
 				listTypeEntry.getNameMap()
 			).build());
+	}
+
+	private static ObjectDefinition _getParentObjectDefinition(
+			ObjectDefinition objectDefinition,
+			ObjectDefinitionLocalService objectDefinitionLocalService,
+			ObjectRelationship objectRelationship,
+			ObjectDefinition relatedSystemObjectDefinition,
+			com.liferay.object.model.ObjectEntry
+				serviceBuilderRelatedObjectEntry)
+		throws Exception {
+
+		if (serviceBuilderRelatedObjectEntry == null) {
+			if (relatedSystemObjectDefinition != null) {
+				return relatedSystemObjectDefinition;
+			}
+
+			if (objectRelationship.getObjectDefinitionId1() ==
+					objectDefinition.getObjectDefinitionId()) {
+
+				return objectDefinition;
+			}
+
+			return objectDefinitionLocalService.getObjectDefinition(
+				objectRelationship.getObjectDefinitionId1());
+		}
+
+		return serviceBuilderRelatedObjectEntry.getObjectDefinition();
+	}
+
+	private static WebImage _getWebImage(
+			DLURLHelper dlURLHelper, FileEntry fileEntry,
+			ThemeDisplay themeDisplay)
+		throws PortalException {
+
+		WebImage webImage = new WebImage(
+			dlURLHelper.getPreviewURL(
+				fileEntry, fileEntry.getFileVersion(), themeDisplay,
+				StringPool.BLANK),
+			new InfoItemReference(
+				FileEntry.class.getName(),
+				new ClassPKInfoItemIdentifier(fileEntry.getFileEntryId())));
+
+		webImage.setAlt(fileEntry.getDescription());
+
+		return webImage;
+	}
+
+	private static InfoLocalizedValue<Object> _getWebImageInfoLocalizedValue(
+			DLURLHelper dlURLHelper, Map<Locale, FileEntry> fileEntries,
+			ThemeDisplay themeDisplay)
+		throws PortalException {
+
+		InfoLocalizedValue.Builder<Object> builder =
+			InfoLocalizedValue.builder();
+
+		for (Map.Entry<Locale, FileEntry> entry : fileEntries.entrySet()) {
+			builder.value(
+				entry.getKey(),
+				_getWebImage(dlURLHelper, entry.getValue(), themeDisplay));
+		}
+
+		return builder.build();
 	}
 
 	private static Object _parseValue(
@@ -835,6 +975,26 @@ public class ObjectEntryInfoItemValuesProviderUtil {
 		}
 
 		return value;
+	}
+
+	private static Supplier<Object> _toSupplier(
+		UnsafeSupplier<Object, Exception> unsafeSupplier) {
+
+		UnsafeSupplierValue<Object, Exception> unsafeSupplierValue =
+			new UnsafeSupplierValue<>(unsafeSupplier);
+
+		return () -> {
+			try {
+				return unsafeSupplierValue.getValue();
+			}
+			catch (Exception exception) {
+				if (_log.isDebugEnabled()) {
+					_log.debug(exception);
+				}
+			}
+
+			return null;
+		};
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

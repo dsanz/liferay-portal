@@ -85,57 +85,6 @@ public class DateTimeObjectFieldBusinessType
 	}
 
 	@Override
-	public String getDescription(Locale locale) {
-		return _language.get(locale, "add-date-and-time-values");
-	}
-
-	@Override
-	public Object getDisplayContextValue(
-			ObjectField objectField, long userId, Map<String, Object> values)
-		throws PortalException {
-
-		DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(
-			"yyyy-MM-dd HH:mm");
-
-		User user = _userLocalService.getUser(userId);
-
-		if (objectField.isLocalized()) {
-			Map<String, Object> localizedValues = super.getLocalizedValues(
-				objectField, userId, values);
-
-			if (localizedValues == null) {
-				return null;
-			}
-
-			for (Map.Entry<String, Object> entry : localizedValues.entrySet()) {
-				localizedValues.put(
-					entry.getKey(),
-					dateTimeFormatter.format(
-						_getLocalDateTime(
-							StringPool.UTC,
-							ObjectFieldSettingUtil.getTimeZoneId(
-								objectField.getObjectFieldSettings(), user),
-							GetterUtil.getString(entry.getValue()))));
-			}
-
-			return localizedValues;
-		}
-
-		String value = MapUtil.getString(values, objectField.getName());
-
-		if (Validator.isNull(value)) {
-			return StringPool.BLANK;
-		}
-
-		return dateTimeFormatter.format(
-			_getLocalDateTime(
-				StringPool.UTC,
-				ObjectFieldSettingUtil.getTimeZoneId(
-					objectField.getObjectFieldSettings(), user),
-				value));
-	}
-
-	@Override
 	public Serializable getDTOValue(
 			DTOConverterContext dtoConverterContext,
 			ObjectDefinition objectDefinition, ObjectEntry objectEntry,
@@ -170,17 +119,69 @@ public class DateTimeObjectFieldBusinessType
 	}
 
 	@Override
+	public String getDescription(Locale locale) {
+		return _language.get(locale, "add-date-and-time-values");
+	}
+
+	@Override
+	public Object getDisplayContextValue(
+			ObjectField objectField, long userId, Map<String, Object> values)
+		throws PortalException {
+
+		DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(
+			"yyyy-MM-dd HH:mm");
+
+		User user = _userLocalService.getUser(userId);
+
+		if (objectField.isLocalized()) {
+			Map<String, Object> localizedValues = super.getLocalizedValues(
+				null, objectField, userId, values);
+
+			if (localizedValues == null) {
+				return null;
+			}
+
+			for (Map.Entry<String, Object> entry : localizedValues.entrySet()) {
+				localizedValues.put(
+					entry.getKey(),
+					dateTimeFormatter.format(
+						_getLocalDateTime(
+							StringPool.UTC,
+							ObjectFieldSettingUtil.getTimeZoneId(
+								objectField.getObjectFieldSettings(), user),
+							GetterUtil.getString(entry.getValue()))));
+			}
+
+			return localizedValues;
+		}
+
+		String value = MapUtil.getString(values, objectField.getName());
+
+		if (Validator.isNull(value)) {
+			return StringPool.BLANK;
+		}
+
+		return dateTimeFormatter.format(
+			_getLocalDateTime(
+				StringPool.UTC,
+				ObjectFieldSettingUtil.getTimeZoneId(
+					objectField.getObjectFieldSettings(), user),
+				value));
+	}
+
+	@Override
 	public String getLabel(Locale locale) {
 		return _language.get(locale, "date-and-time");
 	}
 
 	@Override
 	public Map<String, Object> getLocalizedValues(
-			ObjectField objectField, Long userId, Map<String, Object> values)
+			Long groupId, ObjectField objectField, Long userId,
+			Map<String, Object> values)
 		throws PortalException {
 
 		Map<String, Object> localizedValues = super.getLocalizedValues(
-			objectField, userId, values);
+			groupId, objectField, userId, values);
 
 		if (localizedValues == null) {
 			return null;

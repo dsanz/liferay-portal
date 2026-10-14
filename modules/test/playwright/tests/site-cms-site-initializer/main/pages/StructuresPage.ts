@@ -106,7 +106,12 @@ export class StructuresPage {
 		}
 	}
 
-	async openMenuItem(action: 'Export' | 'Import' | 'Import from JSON') {
+	async openMenuItem(
+		action:
+			| 'Export Content Structures'
+			| 'Import Content Structures'
+			| 'Import from JSON'
+	) {
 		await this.goto();
 
 		await clickAndExpectToBeVisible({

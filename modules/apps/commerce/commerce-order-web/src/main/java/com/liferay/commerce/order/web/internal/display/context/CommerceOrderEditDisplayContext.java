@@ -50,7 +50,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
@@ -156,6 +155,14 @@ public class CommerceOrderEditDisplayContext {
 
 		_commerceOrderRequestHelper = new CommerceOrderRequestHelper(
 			renderRequest);
+	}
+
+	public List<CPMeasurementUnit> getCPMeasurementUnits()
+		throws PortalException {
+
+		return _cpMeasurementUnitService.getCPMeasurementUnits(
+			_commerceOrderRequestHelper.getCompanyId(), QueryUtil.ALL_POS,
+			QueryUtil.ALL_POS, null);
 	}
 
 	public String getCommerceAccountThumbnailURL() throws PortalException {
@@ -471,14 +478,6 @@ public class CommerceOrderEditDisplayContext {
 			CommerceOrderScreenNavigationConstants.
 				CATEGORY_KEY_COMMERCE_ORDER_SHIPMENTS
 		).buildPortletURL();
-	}
-
-	public List<CPMeasurementUnit> getCPMeasurementUnits()
-		throws PortalException {
-
-		return _cpMeasurementUnitService.getCPMeasurementUnits(
-			_commerceOrderRequestHelper.getCompanyId(), QueryUtil.ALL_POS,
-			QueryUtil.ALL_POS, null);
 	}
 
 	public List<CommerceTermEntry> getDeliveryTermsEntries() {
@@ -807,10 +806,7 @@ public class CommerceOrderEditDisplayContext {
 
 		AccountEntry accountEntry = _commerceOrder.getAccountEntry();
 
-		if ((accountEntry == null) ||
-			!FeatureFlagManagerUtil.isEnabled(
-				accountEntry.getCompanyId(), "LPD-89850")) {
-
+		if (accountEntry == null) {
 			return false;
 		}
 

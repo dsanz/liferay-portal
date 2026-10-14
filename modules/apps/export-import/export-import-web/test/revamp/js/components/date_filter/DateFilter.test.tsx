@@ -4,7 +4,7 @@
  */
 
 import '@testing-library/jest-dom';
-import {render, screen} from '@testing-library/react';
+import {fireEvent, render, screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React, {useState} from 'react';
 
@@ -15,14 +15,28 @@ import {
 	Range,
 } from '../../../../../src/main/resources/META-INF/resources/revamp/js/components/date_filter/types';
 
+const DAY = 24 * 60 * 60 * 1000;
+
+const FUTURE_DATE = new Date(Date.now() + DAY);
+
+const PAST_DATE_STRING = new Date(Date.now() - DAY).toISOString().slice(0, 10);
+
+function toDisplayDateString(dateString: string) {
+	const [year, month, day] = dateString.split('-');
+
+	return `${month}/${day}/${year}`;
+}
+
 function ControlledDateFilter({
 	appliedValue: initialAppliedValue,
 	lastPublishDate,
 	onApplyFilter,
+	timeZoneId = 'UTC',
 }: {
 	appliedValue?: DateFilterValues;
 	lastPublishDate?: string;
 	onApplyFilter: (dateFilterValues: DateFilterValues) => void;
+	timeZoneId?: string;
 }) {
 	const [appliedValue, setAppliedValue] = useState<DateFilterValues>(
 		initialAppliedValue ?? {range: Range.All}
@@ -36,19 +50,26 @@ function ControlledDateFilter({
 				setAppliedValue(dateFilterValues);
 				onApplyFilter(dateFilterValues);
 			}}
+			timeZoneId={timeZoneId}
 		/>
 	);
 }
 
 describe('DateFilter', () => {
+	afterEach(() => {
+		jest.useRealTimers();
+	});
+
 	const renderDateFilter = ({
 		appliedValue,
 		lastPublishDate,
 		onApplyFilter = jest.fn(),
+		timeZoneId,
 	}: {
 		appliedValue?: DateFilterValues;
 		lastPublishDate?: string;
 		onApplyFilter?: jest.Mock;
+		timeZoneId?: string;
 	} = {}) => {
 		const user = userEvent.setup({delay: null});
 
@@ -57,10 +78,42 @@ describe('DateFilter', () => {
 				appliedValue={appliedValue}
 				lastPublishDate={lastPublishDate}
 				onApplyFilter={onApplyFilter}
+				timeZoneId={timeZoneId}
 			/>
 		);
 
 		return {onApplyFilter, user};
+	};
+
+	const pickCalendarDay = async (
+		user: ReturnType<typeof userEvent.setup>,
+		label: string,
+		date: Date
+	) => {
+		const chooseDateButton = within(
+			screen.getByLabelText(label).closest('.date-picker') as HTMLElement
+		).getByRole('button', {name: 'Choose date'});
+
+		await user.click(chooseDateButton);
+
+		const calendar = document.getElementById(
+			chooseDateButton.getAttribute('aria-controls') as string
+		) as HTMLElement;
+
+		if (!within(calendar).queryByLabelText(date.toDateString())) {
+			await user.click(
+				within(calendar).getByRole('button', {
+					name:
+						date.getTime() < Date.now()
+							? 'Select the previous month'
+							: 'Select the next month',
+				})
+			);
+		}
+
+		await user.click(within(calendar).getByLabelText(date.toDateString()));
+
+		await user.click(document.body);
 	};
 
 	it('renders in initial state without Show Results button', () => {
@@ -96,6 +149,205 @@ describe('DateFilter', () => {
 		expect(screen.getByLabelText('to[date-time]')).toBeInTheDocument();
 	});
 
+	it('shows the portal locale clock in the date range placeholders', async () => {
+		const {user} = renderDateFilter();
+
+		await user.selectOptions(
+			screen.getByLabelText('filter-content-by'),
+			Range.DateRange
+		);
+
+		expect(screen.getByLabelText('from')).toHaveAttribute(
+			'placeholder',
+			'MM/DD/YYYY HH:MM AM'
+		);
+		expect(screen.getByLabelText('to[date-time]')).toHaveAttribute(
+			'placeholder',
+			'MM/DD/YYYY HH:MM AM'
+		);
+	});
+
+	it('fills the start and end of the day when the date range bounds are picked without a time', async () => {
+		const {onApplyFilter, user} = renderDateFilter();
+
+		await user.selectOptions(
+			screen.getByLabelText('filter-content-by'),
+			Range.DateRange
+		);
+
+		fireEvent.change(screen.getByLabelText('from'), {
+			target: {
+				value: `${toDisplayDateString(PAST_DATE_STRING)} --:-- --`,
+			},
+		});
+
+		expect(screen.getByLabelText('from')).toHaveValue(
+			`${toDisplayDateString(PAST_DATE_STRING)} 12:00 AM`
+		);
+
+		fireEvent.change(screen.getByLabelText('to[date-time]'), {
+			target: {
+				value: `${toDisplayDateString(PAST_DATE_STRING)} --:-- --`,
+			},
+		});
+
+		expect(screen.getByLabelText('to[date-time]')).toHaveValue(
+			`${toDisplayDateString(PAST_DATE_STRING)} 11:59 PM`
+		);
+
+		await user.click(screen.getByText('show-results'));
+
+		expect(onApplyFilter).toHaveBeenCalledWith({
+			endDate: `${PAST_DATE_STRING} 23:59`,
+			range: Range.DateRange,
+			startDate: `${PAST_DATE_STRING} 00:00`,
+		});
+	});
+
+	it('flags both bounds as soon as the range is complete and inverted', async () => {
+		const {user} = renderDateFilter();
+
+		await user.selectOptions(
+			screen.getByLabelText('filter-content-by'),
+			Range.DateRange
+		);
+
+		await user.click(screen.getByLabelText('from'));
+
+		await user.paste('01/02/2026 08:00 AM');
+		await user.click(screen.getByLabelText('to[date-time]'));
+
+		await user.paste('01/01/2026 08:00 AM');
+
+		expect(screen.getAllByText('date-range-is-invalid')).toHaveLength(2);
+		expect(screen.getByText('show-results')).toBeDisabled();
+	});
+
+	it('flags both bounds as soon as the range is complete and equal', async () => {
+		const {user} = renderDateFilter();
+
+		await user.selectOptions(
+			screen.getByLabelText('filter-content-by'),
+			Range.DateRange
+		);
+
+		await user.click(screen.getByLabelText('from'));
+
+		await user.paste('01/01/2026 08:00 AM');
+		await user.click(screen.getByLabelText('to[date-time]'));
+
+		await user.paste('01/01/2026 08:00 AM');
+
+		expect(screen.getAllByText('date-range-is-invalid')).toHaveLength(2);
+		expect(screen.getByText('show-results')).toBeDisabled();
+	});
+
+	it('flags a future day picked from the calendar', async () => {
+		const {user} = renderDateFilter();
+
+		await user.selectOptions(
+			screen.getByLabelText('filter-content-by'),
+			Range.DateRange
+		);
+
+		await pickCalendarDay(user, 'from', FUTURE_DATE);
+
+		expect(
+			screen.getByText('dates-must-not-be-in-the-future')
+		).toBeInTheDocument();
+		expect(screen.getByText('show-results')).toBeDisabled();
+	});
+
+	it('fills the current time when today is picked as the To bound', async () => {
+		jest.useFakeTimers().setSystemTime(Date.UTC(2026, 0, 15, 10, 30));
+
+		const {user} = renderDateFilter();
+
+		await user.selectOptions(
+			screen.getByLabelText('filter-content-by'),
+			Range.DateRange
+		);
+
+		fireEvent.change(screen.getByLabelText('to[date-time]'), {
+			target: {value: '01/15/2026 --:-- --'},
+		});
+
+		expect(screen.getByLabelText('to[date-time]')).toHaveValue(
+			'01/15/2026 10:30 AM'
+		);
+		expect(
+			screen.queryByText('dates-must-not-be-in-the-future')
+		).not.toBeInTheDocument();
+		expect(screen.getByText('show-results')).toBeEnabled();
+	});
+
+	it('fills the current time of the given time zone when its today is picked as the To bound', async () => {
+		jest.useFakeTimers().setSystemTime(Date.UTC(2026, 0, 15, 10, 30));
+
+		const {user} = renderDateFilter({timeZoneId: 'Pacific/Kiritimati'});
+
+		await user.selectOptions(
+			screen.getByLabelText('filter-content-by'),
+			Range.DateRange
+		);
+
+		fireEvent.change(screen.getByLabelText('to[date-time]'), {
+			target: {value: '01/16/2026 --:-- --'},
+		});
+
+		expect(screen.getByLabelText('to[date-time]')).toHaveValue(
+			'01/16/2026 12:30 AM'
+		);
+		expect(
+			screen.queryByText('dates-must-not-be-in-the-future')
+		).not.toBeInTheDocument();
+		expect(screen.getByText('show-results')).toBeEnabled();
+	});
+
+	it('explains why an incomplete bound blocks the results once it is left', async () => {
+		const {user} = renderDateFilter();
+
+		await user.selectOptions(
+			screen.getByLabelText('filter-content-by'),
+			Range.DateRange
+		);
+
+		await user.click(screen.getByLabelText('from'));
+
+		await user.paste('01/01/2026 1');
+
+		expect(
+			screen.queryByText('please-enter-a-valid-date')
+		).not.toBeInTheDocument();
+		expect(screen.getByText('show-results')).toBeDisabled();
+
+		await user.tab();
+
+		expect(
+			screen.getByText('please-enter-a-valid-date')
+		).toBeInTheDocument();
+	});
+
+	it('reports an unfinished year once the bound is left', async () => {
+		const {user} = renderDateFilter();
+
+		await user.selectOptions(
+			screen.getByLabelText('filter-content-by'),
+			Range.DateRange
+		);
+
+		await user.click(screen.getByLabelText('from'));
+
+		await user.paste('01/01/202');
+
+		await user.tab();
+
+		expect(
+			screen.getByText('please-enter-a-valid-date')
+		).toBeInTheDocument();
+		expect(screen.getByText('show-results')).toBeDisabled();
+	});
+
 	it('calls onApplyFilter with correct values when applying a Modified Last filter', async () => {
 		const {onApplyFilter, user} = renderDateFilter();
 
@@ -128,10 +380,10 @@ describe('DateFilter', () => {
 
 		await user.click(screen.getByLabelText('from'));
 
-		await user.paste('2026-01-01 08:00');
+		await user.paste('01/01/2026 08:00 AM');
 		await user.click(screen.getByLabelText('to[date-time]'));
 
-		await user.paste('2026-01-02 08:00');
+		await user.paste('01/02/2026 08:00 AM');
 
 		await user.click(screen.getByText('show-results'));
 
@@ -141,10 +393,12 @@ describe('DateFilter', () => {
 			startDate: '2026-01-01 08:00',
 		});
 
-		expect(screen.getByLabelText('from')).toHaveValue('2026-01-01 08:00');
+		expect(screen.getByLabelText('from')).toHaveValue(
+			'01/01/2026 08:00 AM'
+		);
 		expect(screen.getByLabelText('from')).toBeEnabled();
 		expect(screen.getByLabelText('to[date-time]')).toHaveValue(
-			'2026-01-02 08:00'
+			'01/02/2026 08:00 AM'
 		);
 		expect(screen.getByLabelText('to[date-time]')).toBeEnabled();
 

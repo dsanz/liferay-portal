@@ -14,10 +14,14 @@ import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.model.ResourceAction;
 import com.liferay.portal.kernel.model.ResourcePermission;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.PermissionService;
 import com.liferay.portal.kernel.service.ResourceActionLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.service.permission.RolePermissionUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -42,7 +46,7 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(
 	property = {
-		"application.name=Liferay.Headless.Admin.User",
+		"application.name=Liferay.Headless.Admin.User", "default=true",
 		"dto.class.name=com.liferay.portal.kernel.model.Role", "version=v1.0"
 	},
 	service = DTOConverter.class
@@ -100,6 +104,17 @@ public class RoleDTOConverter
 						}));
 				setRolePermissions(
 					() -> {
+						PermissionChecker permissionChecker =
+							PermissionThreadLocal.getPermissionChecker();
+
+						if ((permissionChecker == null) ||
+							!RolePermissionUtil.contains(
+								permissionChecker, role.getRoleId(),
+								ActionKeys.DEFINE_PERMISSIONS)) {
+
+							return null;
+						}
+
 						UriInfo uriInfo = dtoConverterContext.getUriInfo();
 
 						if (uriInfo != null) {

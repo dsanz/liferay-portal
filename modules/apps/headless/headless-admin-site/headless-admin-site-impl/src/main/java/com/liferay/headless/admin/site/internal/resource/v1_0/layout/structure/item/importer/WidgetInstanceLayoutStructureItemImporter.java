@@ -72,7 +72,7 @@ public class WidgetInstanceLayoutStructureItemImporter
 			widgetInstancePageElementDefinition.getWidgetInstance();
 
 		if (widgetInstance == null) {
-			throw new UnsupportedOperationException();
+			throw new IllegalArgumentException("A widget instance is required");
 		}
 
 		Layout layout = layoutStructureItemImporterContext.getLayout();
@@ -195,8 +195,8 @@ public class WidgetInstanceLayoutStructureItemImporter
 			_fragmentEntryProcessorRegistryServiceTracker.getService();
 
 		if (fragmentEntryLink != null) {
-			editableValuesJSONObject =
-				fragmentEntryLink.getEditableValuesJSONObject();
+			editableValuesJSONObject = JSONFactoryUtil.safeCreateJSONObject(
+				fragmentEntryLink.getEditableValues());
 		}
 		else if (fragmentEntryProcessorRegistry != null) {
 			editableValuesJSONObject =

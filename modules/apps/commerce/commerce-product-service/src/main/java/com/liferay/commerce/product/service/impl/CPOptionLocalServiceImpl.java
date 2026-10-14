@@ -17,7 +17,6 @@ import com.liferay.commerce.product.service.CPOptionValueLocalService;
 import com.liferay.commerce.product.service.base.CPOptionLocalServiceBaseImpl;
 import com.liferay.expando.kernel.service.ExpandoRowLocalService;
 import com.liferay.exportimport.kernel.empty.model.EmptyModelManager;
-import com.liferay.petra.string.StringPool;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -49,6 +48,7 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -83,10 +83,7 @@ public class CPOptionLocalServiceImpl extends CPOptionLocalServiceBaseImpl {
 			boolean skuContributor, String key, ServiceContext serviceContext)
 		throws PortalException {
 
-		if (!_emptyModelManager.isEmptyModel()) {
-			_validateCommerceOptionTypeKey(
-				commerceOptionTypeKey, skuContributor);
-		}
+		_validateCommerceOptionTypeKey(commerceOptionTypeKey, skuContributor);
 
 		User user = _userLocalService.getUser(userId);
 
@@ -239,7 +236,9 @@ public class CPOptionLocalServiceImpl extends CPOptionLocalServiceBaseImpl {
 
 	@Override
 	public CPOption getOrAddEmptyCPOption(
-			String externalReferenceCode, long companyId, long userId)
+			String externalReferenceCode, long companyId, long userId,
+			Map<Locale, String> nameMap, String commerceOptionTypeKey,
+			boolean skuContributor, String key)
 		throws PortalException {
 
 		ServiceContext serviceContext = new ServiceContext();
@@ -251,10 +250,9 @@ public class CPOptionLocalServiceImpl extends CPOptionLocalServiceBaseImpl {
 			CPOption.class, companyId,
 			() -> cpOptionLocalService.addCPOption(
 				externalReferenceCode, userId,
-				Collections.singletonMap(
-					LocaleUtil.getSiteDefault(), externalReferenceCode),
-				null, StringPool.BLANK, false, false, false,
-				externalReferenceCode, serviceContext),
+				_getNameMap(externalReferenceCode, nameMap), null,
+				commerceOptionTypeKey, false, false, skuContributor,
+				GetterUtil.get(key, externalReferenceCode), serviceContext),
 			externalReferenceCode, this::fetchCPOptionByExternalReferenceCode,
 			this::getCPOptionByExternalReferenceCode, CPOption.class.getName());
 	}
@@ -399,6 +397,17 @@ public class CPOptionLocalServiceImpl extends CPOptionLocalServiceBaseImpl {
 		return cpOptions;
 	}
 
+	private Map<Locale, String> _getNameMap(
+		String externalReferenceCode, Map<Locale, String> nameMap) {
+
+		if (MapUtil.isEmpty(nameMap)) {
+			return Collections.singletonMap(
+				LocaleUtil.getSiteDefault(), externalReferenceCode);
+		}
+
+		return nameMap;
+	}
+
 	private BaseModelSearchResult<CPOption> _searchCPOptions(
 			SearchContext searchContext)
 		throws PortalException {
@@ -418,6 +427,17 @@ public class CPOptionLocalServiceImpl extends CPOptionLocalServiceBaseImpl {
 
 		throw new SearchException(
 			"Unable to fix the search index after 10 attempts");
+	}
+
+	private void _validateCPOptionKey(
+			long cpOptionId, long companyId, String key)
+		throws PortalException {
+
+		CPOption cpOption = cpOptionPersistence.fetchByC_K(companyId, key);
+
+		if ((cpOption != null) && (cpOption.getCPOptionId() != cpOptionId)) {
+			throw new CPOptionKeyException();
+		}
 	}
 
 	private void _validateCommerceOptionTypeKey(
@@ -446,17 +466,6 @@ public class CPOptionLocalServiceImpl extends CPOptionLocalServiceBaseImpl {
 		}
 
 		throw new CPOptionSKUContributorException();
-	}
-
-	private void _validateCPOptionKey(
-			long cpOptionId, long companyId, String key)
-		throws PortalException {
-
-		CPOption cpOption = cpOptionPersistence.fetchByC_K(companyId, key);
-
-		if ((cpOption != null) && (cpOption.getCPOptionId() != cpOptionId)) {
-			throw new CPOptionKeyException();
-		}
 	}
 
 	private static final String[] _SELECTED_FIELD_NAMES = {

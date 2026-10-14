@@ -4,6 +4,7 @@
 		"parameters": {
 			"containsHeaders": "true",
 			"createStrategy": "UPSERT",
+			"importStrategy": "ON_ERROR_CONTINUE",
 			"onErrorFail": "ON_ERROR_FAIL",
 			"taskItemDelegateName": "DEFAULT",
 			"updateStrategy": "UPDATE"
@@ -19,7 +20,6 @@
 			"label": {
 				"en_US": "U3A2 Distributor Application"
 			},
-			"modifiable": true,
 			"name": "U3A2DistributorApplication",
 			"objectActions": [
 			],
@@ -27,6 +27,7 @@
 				{
 					"DBType": "String",
 					"businessType": "Picklist",
+					"externalReferenceCode": "ANNUAL_PURCHASE_VOLUME",
 					"indexed": true,
 					"indexedLanguageId": "en_US",
 					"label": {
@@ -41,6 +42,7 @@
 				{
 					"DBType": "String",
 					"businessType": "Text",
+					"externalReferenceCode": "APPLICANT_EMAIL_ADDRESS",
 					"indexed": true,
 					"indexedLanguageId": "en_US",
 					"label": {
@@ -62,6 +64,7 @@
 				{
 					"DBType": "String",
 					"businessType": "Text",
+					"externalReferenceCode": "APPLICANT_NAME",
 					"indexed": true,
 					"indexedLanguageId": "en_US",
 					"label": {
@@ -77,6 +80,7 @@
 					"DBType": "String",
 					"businessType": "Picklist",
 					"defaultValue": "open",
+					"externalReferenceCode": "APPLICATION_STATE",
 					"indexed": true,
 					"indexedLanguageId": "en_US",
 					"label": {
@@ -172,6 +176,7 @@
 				{
 					"DBType": "Long",
 					"businessType": "Attachment",
+					"externalReferenceCode": "BUSINESS_LICENSE",
 					"indexed": true,
 					"indexedLanguageId": "en_US",
 					"label": {
@@ -207,6 +212,7 @@
 				{
 					"DBType": "String",
 					"businessType": "Text",
+					"externalReferenceCode": "BUSINESS_NAME",
 					"indexed": true,
 					"indexedLanguageId": "en_US",
 					"label": {
@@ -221,6 +227,7 @@
 				{
 					"DBType": "String",
 					"businessType": "Text",
+					"externalReferenceCode": "BUSINESS_PHONE_NUMBER",
 					"indexed": true,
 					"indexedLanguageId": "en_US",
 					"label": {
@@ -234,6 +241,7 @@
 				{
 					"DBType": "String",
 					"businessType": "Text",
+					"externalReferenceCode": "BUSINESS_TAX_ID_NUMBER",
 					"indexed": true,
 					"indexedLanguageId": "en_US",
 					"label": {
@@ -249,6 +257,7 @@
 				{
 					"DBType": "String",
 					"businessType": "Text",
+					"externalReferenceCode": "BUSINESS_WEBSITE_URL",
 					"indexed": true,
 					"indexedLanguageId": "en_US",
 					"label": {
@@ -262,6 +271,7 @@
 				{
 					"DBType": "Clob",
 					"businessType": "LongText",
+					"externalReferenceCode": "COMMENTS",
 					"indexed": true,
 					"indexedLanguageId": "en_US",
 					"label": {
@@ -281,6 +291,7 @@
 				{
 					"DBType": "String",
 					"businessType": "MultiselectPicklist",
+					"externalReferenceCode": "DISTRIBUTION_CHANNELS",
 					"indexed": true,
 					"indexedLanguageId": "en_US",
 					"label": {
@@ -295,6 +306,7 @@
 				{
 					"DBType": "String",
 					"businessType": "MultiselectPicklist",
+					"externalReferenceCode": "DISTRIBUTION_REGIONS",
 					"indexed": true,
 					"indexedLanguageId": "en_US",
 					"label": {
@@ -309,6 +321,7 @@
 				{
 					"DBType": "String",
 					"businessType": "MultiselectPicklist",
+					"externalReferenceCode": "PRODUCTS_OF_INTEREST",
 					"indexed": true,
 					"indexedLanguageId": "en_US",
 					"label": {
@@ -528,7 +541,6 @@
 			"pluralLabel": {
 				"en_US": "U3A2 Distributor Applications"
 			},
-			"restContextPath": "/o/c/u3a2distributorapplications",
 			"scope": "company",
 			"status": {
 				"code": 0,
@@ -545,12 +557,12 @@
 			"label": {
 				"en_US": "U3A2 Distributor Application Evaluation"
 			},
-			"modifiable": true,
 			"name": "U3A2DistributorApplicationEvaluation",
 			"objectFields": [
 				{
 					"DBType": "String",
 					"businessType": "Picklist",
+					"externalReferenceCode": "ASSESSMENT_SCORE",
 					"indexed": true,
 					"indexedAsKeyword": false,
 					"indexedLanguageId": "en_US",
@@ -568,6 +580,7 @@
 				{
 					"DBType": "Long",
 					"businessType": "Attachment",
+					"externalReferenceCode": "ATTACHMENT",
 					"indexed": true,
 					"indexedAsKeyword": false,
 					"indexedLanguageId": "en_US",
@@ -602,6 +615,7 @@
 				{
 					"DBType": "String",
 					"businessType": "Picklist",
+					"externalReferenceCode": "DECISION",
 					"indexed": true,
 					"indexedAsKeyword": false,
 					"indexedLanguageId": "en_US",
@@ -619,6 +633,7 @@
 				{
 					"DBType": "Clob",
 					"businessType": "RichText",
+					"externalReferenceCode": "INTERVIEW_NOTES",
 					"indexed": true,
 					"indexedAsKeyword": false,
 					"indexedLanguageId": "en_US",
@@ -635,6 +650,7 @@
 				{
 					"DBType": "Clob",
 					"businessType": "RichText",
+					"externalReferenceCode": "RECOMMENDATION_COMMENTS",
 					"indexed": true,
 					"indexedAsKeyword": false,
 					"indexedLanguageId": "en_US",
@@ -651,6 +667,7 @@
 				{
 					"DBType": "String",
 					"businessType": "MultiselectPicklist",
+					"externalReferenceCode": "RECOMMENDATIONS",
 					"indexed": true,
 					"indexedAsKeyword": false,
 					"indexedLanguageId": "en_US",
@@ -671,7 +688,6 @@
 			"pluralLabel": {
 				"en_US": "U3A2 Distributor Application Evaluations"
 			},
-			"restContextPath": "/o/c/u3a2adistributorpplicationevaluations",
 			"scope": "company",
 			"status": {
 				"code": 0,

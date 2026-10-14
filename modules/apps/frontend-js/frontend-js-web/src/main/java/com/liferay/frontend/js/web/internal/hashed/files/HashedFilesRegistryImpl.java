@@ -7,6 +7,9 @@ package com.liferay.frontend.js.web.internal.hashed.files;
 
 import com.liferay.frontend.js.web.internal.configuration.FrontendCachingConfiguration;
 import com.liferay.frontend.js.web.internal.util.FrontendJSWebUtil;
+import com.liferay.osgi.service.tracker.collections.map.ServiceReferenceMapperFactory;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.frontend.hashed.files.CachingStrategy;
@@ -30,7 +33,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 
 import org.osgi.framework.BundleContext;
@@ -39,7 +41,6 @@ import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
-import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 /**
@@ -49,13 +50,11 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
 public class HashedFilesRegistryImpl implements HashedFilesRegistry {
 
 	public void forEachHashedFileURI(BiConsumer<String, String> biConsumer) {
-		_lazyActivate();
-
-		for (DataBag dataBag : _dataBags.values()) {
+		for (DataBag dataBag : _serviceTrackerMap.values()) {
 			Map<String, String> hashedFileURIs = dataBag._hashedFileURIs;
 
-			for (Map.Entry<String, String> entry2 : hashedFileURIs.entrySet()) {
-				biConsumer.accept(entry2.getKey(), entry2.getValue());
+			for (Map.Entry<String, String> entry : hashedFileURIs.entrySet()) {
+				biConsumer.accept(entry.getKey(), entry.getValue());
 			}
 		}
 	}
@@ -63,14 +62,12 @@ public class HashedFilesRegistryImpl implements HashedFilesRegistry {
 	public void forEachServletContextHash(
 		BiConsumer<String, String> biConsumer) {
 
-		_lazyActivate();
-
-		for (Map.Entry<String, DataBag> entry : _dataBags.entrySet()) {
-			DataBag dataBag = entry.getValue();
+		for (String key : _serviceTrackerMap.keySet()) {
+			DataBag dataBag = _serviceTrackerMap.getService(key);
 
 			biConsumer.accept(
 				FrontendJSWebUtil.getServletContextNameFromServletContextPath(
-					_portal, entry.getKey()),
+					_portal, key),
 				dataBag._servletContextHash);
 		}
 	}
@@ -89,9 +86,7 @@ public class HashedFilesRegistryImpl implements HashedFilesRegistry {
 	}
 
 	public String getHashedFileURI(String unhashedFileURI) {
-		_lazyActivate();
-
-		DataBag dataBag = _dataBags.get(
+		DataBag dataBag = _serviceTrackerMap.getService(
 			FrontendJSWebUtil.getServletContextPathFromFileURI(
 				unhashedFileURI, _portal));
 
@@ -106,8 +101,6 @@ public class HashedFilesRegistryImpl implements HashedFilesRegistry {
 
 	@Override
 	public URL getResource(String fileURI) {
-		_lazyActivate();
-
 		if (!HashedFilesUtil.containsHash(fileURI)) {
 			String hashedFileURI = getHashedFileURI(fileURI);
 
@@ -116,7 +109,7 @@ public class HashedFilesRegistryImpl implements HashedFilesRegistry {
 			}
 		}
 
-		DataBag dataBag = _dataBags.get(
+		DataBag dataBag = _serviceTrackerMap.getService(
 			FrontendJSWebUtil.getServletContextPathFromFileURI(
 				fileURI, _portal));
 
@@ -138,9 +131,7 @@ public class HashedFilesRegistryImpl implements HashedFilesRegistry {
 
 	@Override
 	public String getServletContextHash(String servletContextName) {
-		_lazyActivate();
-
-		DataBag dataBag = _dataBags.get(
+		DataBag dataBag = _serviceTrackerMap.getService(
 			FrontendJSWebUtil.getServletContextPathFromServletContextName(
 				_portal, servletContextName));
 
@@ -154,17 +145,54 @@ public class HashedFilesRegistryImpl implements HashedFilesRegistry {
 	@Activate
 	protected void activate(BundleContext bundleContext) {
 		_bundleContext = bundleContext;
+
+		_serviceTrackerMap = ServiceTrackerMapFactory.openSingleValueMap(
+			_bundleContext, ServletContext.class, null,
+			ServiceReferenceMapperFactory.createFromFunction(
+				_bundleContext, ServletContext::getContextPath),
+			new ServiceTrackerCustomizer<ServletContext, DataBag>() {
+
+				@Override
+				public DataBag addingService(
+					ServiceReference<ServletContext> serviceReference) {
+
+					ServletContext servletContext = _bundleContext.getService(
+						serviceReference);
+
+					Map<String, String> hashedFileURIs = _getHashedFileURIs(
+						servletContext);
+
+					if (hashedFileURIs.isEmpty()) {
+						_bundleContext.ungetService(serviceReference);
+
+						return null;
+					}
+
+					return new DataBag(
+						hashedFileURIs, servletContext,
+						_getServletContextHash(hashedFileURIs));
+				}
+
+				@Override
+				public void modifiedService(
+					ServiceReference<ServletContext> serviceReference,
+					DataBag dataBag) {
+				}
+
+				@Override
+				public void removedService(
+					ServiceReference<ServletContext> serviceReference,
+					DataBag dataBag) {
+
+					_bundleContext.ungetService(serviceReference);
+				}
+
+			});
 	}
 
 	@Deactivate
 	protected void deactivate() {
-		_dataBags.clear();
-
-		if (_serviceTracker != null) {
-			_serviceTracker.close();
-
-			_serviceTracker = null;
-		}
+		_serviceTrackerMap.close();
 	}
 
 	protected static class DataBag {
@@ -182,66 +210,6 @@ public class HashedFilesRegistryImpl implements HashedFilesRegistry {
 		private final ServletContext _servletContext;
 		private final String _servletContextHash;
 
-	}
-
-	private ServiceTrackerCustomizer<ServletContext, Void>
-		_createServiceTrackerCustomizer() {
-
-		return new ServiceTrackerCustomizer<>() {
-
-			@Override
-			public Void addingService(
-				ServiceReference<ServletContext> serviceReference) {
-
-				modifiedService(serviceReference, null);
-
-				return null;
-			}
-
-			@Override
-			public void modifiedService(
-				ServiceReference<ServletContext> serviceReference, Void v) {
-
-				ServletContext servletContext = _bundleContext.getService(
-					serviceReference);
-
-				try {
-					Map<String, String> hashedFileURIs = _getHashedFileURIs(
-						servletContext);
-
-					if (hashedFileURIs.isEmpty()) {
-						_dataBags.remove(servletContext.getContextPath());
-
-						return;
-					}
-
-					_dataBags.put(
-						servletContext.getContextPath(),
-						new DataBag(
-							hashedFileURIs, servletContext,
-							_getServletContextHash(hashedFileURIs)));
-				}
-				finally {
-					_bundleContext.ungetService(serviceReference);
-				}
-			}
-
-			@Override
-			public void removedService(
-				ServiceReference<ServletContext> serviceReference, Void v) {
-
-				ServletContext servletContext = _bundleContext.getService(
-					serviceReference);
-
-				try {
-					_dataBags.remove(servletContext.getContextPath());
-				}
-				finally {
-					_bundleContext.ungetService(serviceReference);
-				}
-			}
-
-		};
 	}
 
 	private Map<String, String> _getHashedFileURIs(
@@ -336,24 +304,6 @@ public class HashedFilesRegistryImpl implements HashedFilesRegistry {
 		return HashedFilesUtil.computeHash(hashesString);
 	}
 
-	private void _lazyActivate() {
-		if (_serviceTracker != null) {
-			return;
-		}
-
-		synchronized (this) {
-			if (_serviceTracker != null) {
-				return;
-			}
-
-			_serviceTracker = new ServiceTracker<>(
-				_bundleContext, ServletContext.class,
-				_createServiceTrackerCustomizer());
-
-			_serviceTracker.open();
-		}
-	}
-
 	private static final Log _log = LogFactoryUtil.getLog(
 		HashedFilesRegistryImpl.class);
 
@@ -362,11 +312,9 @@ public class HashedFilesRegistryImpl implements HashedFilesRegistry {
 	@Reference
 	private ConfigurationProvider _configurationProvider;
 
-	private final Map<String, DataBag> _dataBags = new ConcurrentHashMap<>();
-
 	@Reference
 	private Portal _portal;
 
-	private volatile ServiceTracker<ServletContext, Void> _serviceTracker;
+	private ServiceTrackerMap<String, DataBag> _serviceTrackerMap;
 
 }

@@ -46,9 +46,33 @@ import org.osgi.annotation.versioning.ProviderType;
 @ProviderType
 public interface PageTemplateSetResource {
 
+	public void deleteDesignLibraryPageTemplateSet(
+			String designLibraryExternalReferenceCode,
+			String pageTemplateSetExternalReferenceCode)
+		throws Exception;
+
 	public void deleteSitePageTemplateSet(
 			String siteExternalReferenceCode,
 			String pageTemplateSetExternalReferenceCode)
+		throws Exception;
+
+	public PageTemplateSet getDesignLibraryPageTemplateSet(
+			String designLibraryExternalReferenceCode,
+			String pageTemplateSetExternalReferenceCode)
+		throws Exception;
+
+	public Page<com.liferay.portal.vulcan.permission.Permission>
+			getDesignLibraryPageTemplateSetPermissionsPage(
+				String designLibraryExternalReferenceCode,
+				String pageTemplateSetExternalReferenceCode, String roleNames)
+		throws Exception;
+
+	public Page<PageTemplateSet> getDesignLibraryPageTemplateSetsPage(
+			String designLibraryExternalReferenceCode, String search,
+			com.liferay.portal.vulcan.aggregation.Aggregation aggregation,
+			com.liferay.portal.kernel.search.filter.Filter filter,
+			Pagination pagination,
+			com.liferay.portal.kernel.search.Sort[] sorts)
 		throws Exception;
 
 	public PageTemplateSet getSitePageTemplateSet(
@@ -89,6 +113,13 @@ public interface PageTemplateSetResource {
 			com.liferay.portal.kernel.search.filter.Filter filter,
 			com.liferay.portal.kernel.search.Sort[] sorts, String callbackURL,
 			String contentType, String fieldNames)
+		throws Exception;
+
+	public Page<com.liferay.portal.vulcan.permission.Permission>
+			putDesignLibraryPageTemplateSetPermissionsPage(
+				String designLibraryExternalReferenceCode,
+				String pageTemplateSetExternalReferenceCode,
+				com.liferay.portal.vulcan.permission.Permission[] permissions)
 		throws Exception;
 
 	public PageTemplateSet putSitePageTemplateSet(
@@ -200,4 +231,4 @@ public interface PageTemplateSetResource {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:-3490798
+// LIFERAY-REST-BUILDER-HASH:-1040529596

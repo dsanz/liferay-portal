@@ -96,6 +96,16 @@ public class CPOptionServiceUtil {
 		return getService().getCPOption(cpOptionId);
 	}
 
+	public static CPOption getOrAddEmptyCPOption(
+			String externalReferenceCode, Map<java.util.Locale, String> nameMap,
+			String commerceOptionTypeKey, boolean skuContributor, String key)
+		throws PortalException {
+
+		return getService().getOrAddEmptyCPOption(
+			externalReferenceCode, nameMap, commerceOptionTypeKey,
+			skuContributor, key);
+	}
+
 	/**
 	 * Returns the OSGi service identifier.
 	 *
@@ -144,4 +154,4 @@ public class CPOptionServiceUtil {
 		new Snapshot<>(CPOptionServiceUtil.class, CPOptionService.class);
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-1175819178
+// LIFERAY-SERVICE-BUILDER-HASH:781387468

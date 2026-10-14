@@ -1066,26 +1066,6 @@ public class CompanyLocalServiceTest {
 	}
 
 	@Test
-	public void testGetCompanyByVirtualHost() throws Exception {
-		Company company = _addCompany("::1");
-
-		try (SafeCloseable safeCloseable =
-				CompanyThreadLocal.setCompanyIdWithSafeCloseable(
-					company.getCompanyId())) {
-
-			Assert.assertEquals(
-				company, _companyLocalService.getCompanyByVirtualHost("::1"));
-			Assert.assertEquals(
-				company,
-				_companyLocalService.getCompanyByVirtualHost(
-					"0:0:0:0:0:0:0:1"));
-		}
-		finally {
-			_companyLocalService.deleteCompany(company);
-		}
-	}
-
-	@Test
 	public void testUpdateCompany() throws Exception {
 		_testUpdateCompanyMaxUsers(-1);
 		_testUpdateCompanyMaxUsers(-100);
@@ -1835,11 +1815,11 @@ public class CompanyLocalServiceTest {
 	private Portal _portal;
 
 	@Inject
-	private PortalPreferencesLocalService _portalPreferencesLocalService;
-
-	@Inject
 	private PortalPreferenceValueLocalService
 		_portalPreferenceValueLocalService;
+
+	@Inject
+	private PortalPreferencesLocalService _portalPreferencesLocalService;
 
 	@Inject
 	private PortletLocalService _portletLocalService;

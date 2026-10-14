@@ -17,6 +17,7 @@ import com.liferay.commerce.price.list.model.CommercePriceList;
 import com.liferay.commerce.price.list.service.CommercePriceEntryLocalService;
 import com.liferay.commerce.price.list.service.CommercePriceListAccountRelLocalService;
 import com.liferay.commerce.price.list.service.CommercePriceListLocalServiceUtil;
+import com.liferay.commerce.product.model.CPConfigurationEntry;
 import com.liferay.commerce.product.model.CPDefinition;
 import com.liferay.commerce.product.model.CPDefinitionOptionRel;
 import com.liferay.commerce.product.model.CPDefinitionOptionValueRel;
@@ -24,6 +25,7 @@ import com.liferay.commerce.product.model.CPInstance;
 import com.liferay.commerce.product.model.CProduct;
 import com.liferay.commerce.product.model.CommerceCatalog;
 import com.liferay.commerce.product.model.CommerceChannel;
+import com.liferay.commerce.product.service.CPConfigurationEntryLocalService;
 import com.liferay.commerce.product.service.CPInstanceLocalService;
 import com.liferay.commerce.product.service.CPInstanceUnitOfMeasureLocalService;
 import com.liferay.commerce.product.test.util.CPTestUtil;
@@ -31,8 +33,10 @@ import com.liferay.commerce.test.util.CommerceTestUtil;
 import com.liferay.commerce.test.util.price.list.CommercePriceEntryTestUtil;
 import com.liferay.commerce.test.util.price.list.CommercePriceListTestUtil;
 import com.liferay.commerce.test.util.price.list.CommerceTierPriceEntryTestUtil;
+import com.liferay.headless.commerce.delivery.catalog.client.dto.v1_0.Availability;
 import com.liferay.headless.commerce.delivery.catalog.client.dto.v1_0.Price;
 import com.liferay.headless.commerce.delivery.catalog.client.dto.v1_0.Sku;
+import com.liferay.headless.commerce.delivery.catalog.client.dto.v1_0.SkuOption;
 import com.liferay.headless.commerce.delivery.catalog.client.dto.v1_0.SkuUnitOfMeasure;
 import com.liferay.headless.commerce.delivery.catalog.client.dto.v1_0.TierPrice;
 import com.liferay.headless.commerce.delivery.catalog.client.pagination.Page;
@@ -144,6 +148,14 @@ public class SkuResourceTest extends BaseSkuResourceTestCase {
 	@Override
 	@Test
 	public void testPostChannelProductSku() {
+	}
+
+	@Override
+	@Test
+	public void testPostChannelProductSkuBySkuOption() throws Exception {
+		super.testPostChannelProductSkuBySkuOption();
+
+		_testPostChannelProductSkuBySkuOptionWithBackOrder();
 	}
 
 	@Override
@@ -488,6 +500,134 @@ public class SkuResourceTest extends BaseSkuResourceTestCase {
 				price.getPromoPrice(), commercePriceEntryPrice.doubleValue()));
 	}
 
+	private void _testGetChannelProductSkuWithCurrencyCode() throws Exception {
+		CommerceCurrency commerceCurrency =
+			CommerceCurrencyTestUtil.addCommerceCurrency(
+				testCompany.getCompanyId(), RandomTestUtil.randomString());
+
+		commerceCurrency =
+			_commerceCurrencyLocalService.updateCommerceCurrencyRate(
+				commerceCurrency.getCommerceCurrencyId(),
+				BigDecimal.valueOf(0.5));
+
+		Long channelId = testGetChannelProductSkusPage_getChannelId();
+		Long productId = testGetChannelProductSkusPage_getProductId();
+
+		Sku sku = testGetChannelProductSkusPage_addSku(
+			channelId, productId, randomSku());
+
+		CommerceCatalog commerceCatalog = _cpDefinition.getCommerceCatalog();
+
+		CommercePriceList commercePriceList =
+			CommercePriceListTestUtil.addCommercePriceList(
+				commerceCatalog.getGroupId(), false, "price-list",
+				RandomTestUtil.nextDouble());
+
+		CPInstance cpInstance = _cpInstanceLocalService.getCPInstance(
+			sku.getId());
+
+		CommercePriceEntry commercePriceEntry =
+			CommercePriceEntryTestUtil.addCommercePriceEntry(
+				null, productId, cpInstance.getCPInstanceUuid(),
+				commercePriceList.getCommercePriceListId(), BigDecimal.TEN);
+
+		CommerceTierPriceEntryTestUtil.addCommerceTierPriceEntry(
+			commercePriceEntry.getCommercePriceEntryId(), 1, 10, 1, null);
+
+		Sku channelProductSku = skuResource.getChannelProductSku(
+			_commerceChannel.getCommerceChannelId(), productId,
+			cpInstance.getCPInstanceId(), -1L, null);
+
+		Price price = channelProductSku.getPrice();
+
+		Assert.assertEquals(10, price.getPrice(), 0);
+
+		TierPrice[] tierPrices = channelProductSku.getTierPrices();
+
+		Assert.assertEquals(10, tierPrices[0].getPrice(), 0);
+
+		channelProductSku = skuResource.getChannelProductSku(
+			_commerceChannel.getCommerceChannelId(), productId,
+			cpInstance.getCPInstanceId(), -1L, commerceCurrency.getCode());
+
+		price = channelProductSku.getPrice();
+
+		BigDecimal convertedPrice = BigDecimal.valueOf(10);
+
+		convertedPrice = convertedPrice.multiply(commerceCurrency.getRate());
+
+		Assert.assertEquals(convertedPrice.doubleValue(), price.getPrice(), 0);
+
+		tierPrices = channelProductSku.getTierPrices();
+
+		Assert.assertEquals(
+			convertedPrice.doubleValue(), tierPrices[0].getPrice(), 0);
+	}
+
+	private void _testGetChannelProductSkuWithUnitOfMeasurePrice()
+		throws Exception {
+
+		CommerceCurrency commerceCurrency =
+			CommerceCurrencyTestUtil.addCommerceCurrency(
+				testCompany.getCompanyId());
+
+		CommerceCatalog commerceCatalog = CommerceTestUtil.addCommerceCatalog(
+			testGroup.getCompanyId(), testGroup.getGroupId(), _user.getUserId(),
+			commerceCurrency.getCode());
+
+		CPInstance cpInstance = CPTestUtil.addCPInstanceFromCatalog(
+			commerceCatalog.getGroupId(), BigDecimal.TEN);
+
+		String unitOfMeasureKey = RandomTestUtil.randomString();
+
+		CPTestUtil.addCPInstanceUnitOfMeasure(
+			testGroup.getGroupId(), cpInstance.getCPInstanceId(),
+			unitOfMeasureKey, BigDecimal.ONE, cpInstance.getSku());
+
+		CPDefinition cpDefinition = cpInstance.getCPDefinition();
+
+		Sku channelProductSku = skuResource.getChannelProductSku(
+			_commerceChannel.getCommerceChannelId(),
+			cpDefinition.getCProductId(), cpInstance.getCPInstanceId(), -1L,
+			null);
+
+		Price price = channelProductSku.getPrice();
+
+		Assert.assertNotNull(price.getPricingQuantityPriceFormatted());
+
+		CommercePriceList catalogBaseCommercePriceList =
+			CommercePriceListLocalServiceUtil.
+				getCatalogBaseCommercePriceListByType(
+					commerceCatalog.getGroupId(),
+					CommercePriceListConstants.TYPE_PRICE_LIST);
+
+		CommercePriceEntry commercePriceEntry =
+			_commercePriceEntryLocalService.fetchCommercePriceEntry(
+				catalogBaseCommercePriceList.getCommercePriceListId(),
+				cpInstance.getCPInstanceUuid(), unitOfMeasureKey);
+
+		commercePriceEntry.setPricingQuantity(null);
+
+		commercePriceEntry =
+			_commercePriceEntryLocalService.updateCommercePriceEntry(
+				commercePriceEntry);
+
+		channelProductSku = skuResource.getChannelProductSku(
+			_commerceChannel.getCommerceChannelId(),
+			cpDefinition.getCProductId(), cpInstance.getCPInstanceId(), -1L,
+			null);
+
+		Price updatedPrice = channelProductSku.getPrice();
+
+		Assert.assertTrue(
+			BigDecimalUtil.eq(
+				commercePriceEntry.getPrice(),
+				BigDecimal.valueOf(updatedPrice.getPrice())));
+		Assert.assertEquals(
+			price.getPricingQuantityPriceFormatted(),
+			updatedPrice.getPricingQuantityPriceFormatted());
+	}
+
 	private void _testGetChannelProductSkusPageWithPriceListAccountRel()
 		throws Exception {
 
@@ -685,132 +825,58 @@ public class SkuResourceTest extends BaseSkuResourceTestCase {
 		}
 	}
 
-	private void _testGetChannelProductSkuWithCurrencyCode() throws Exception {
-		CommerceCurrency commerceCurrency =
-			CommerceCurrencyTestUtil.addCommerceCurrency(
-				testCompany.getCompanyId(), RandomTestUtil.randomString());
-
-		commerceCurrency =
-			_commerceCurrencyLocalService.updateCommerceCurrencyRate(
-				commerceCurrency.getCommerceCurrencyId(),
-				BigDecimal.valueOf(0.5));
-
-		Long channelId = testGetChannelProductSkusPage_getChannelId();
-		Long productId = testGetChannelProductSkusPage_getProductId();
-
-		Sku sku = testGetChannelProductSkusPage_addSku(
-			channelId, productId, randomSku());
-
-		CommerceCatalog commerceCatalog = _cpDefinition.getCommerceCatalog();
-
-		CommercePriceList commercePriceList =
-			CommercePriceListTestUtil.addCommercePriceList(
-				commerceCatalog.getGroupId(), false, "price-list",
-				RandomTestUtil.nextDouble());
-
-		CPInstance cpInstance = _cpInstanceLocalService.getCPInstance(
-			sku.getId());
-
-		CommercePriceEntry commercePriceEntry =
-			CommercePriceEntryTestUtil.addCommercePriceEntry(
-				null, productId, cpInstance.getCPInstanceUuid(),
-				commercePriceList.getCommercePriceListId(), BigDecimal.TEN);
-
-		CommerceTierPriceEntryTestUtil.addCommerceTierPriceEntry(
-			commercePriceEntry.getCommercePriceEntryId(), 1, 10, 1, null);
-
-		Sku channelProductSku = skuResource.getChannelProductSku(
-			_commerceChannel.getCommerceChannelId(), productId,
-			cpInstance.getCPInstanceId(), -1L, null);
-
-		Price price = channelProductSku.getPrice();
-
-		Assert.assertEquals(10, price.getPrice(), 0);
-
-		TierPrice[] tierPrices = channelProductSku.getTierPrices();
-
-		Assert.assertEquals(10, tierPrices[0].getPrice(), 0);
-
-		channelProductSku = skuResource.getChannelProductSku(
-			_commerceChannel.getCommerceChannelId(), productId,
-			cpInstance.getCPInstanceId(), -1L, commerceCurrency.getCode());
-
-		price = channelProductSku.getPrice();
-
-		BigDecimal convertedPrice = BigDecimal.valueOf(10);
-
-		convertedPrice = convertedPrice.multiply(commerceCurrency.getRate());
-
-		Assert.assertEquals(convertedPrice.doubleValue(), price.getPrice(), 0);
-
-		tierPrices = channelProductSku.getTierPrices();
-
-		Assert.assertEquals(
-			convertedPrice.doubleValue(), tierPrices[0].getPrice(), 0);
-	}
-
-	private void _testGetChannelProductSkuWithUnitOfMeasurePrice()
+	private void _testPostChannelProductSkuBySkuOptionWithBackOrder()
 		throws Exception {
 
-		CommerceCurrency commerceCurrency =
-			CommerceCurrencyTestUtil.addCommerceCurrency(
-				testCompany.getCompanyId());
+		List<CPDefinitionOptionValueRel> cpDefinitionOptionValueRels =
+			_cpDefinitionOptionRel.getCPDefinitionOptionValueRels();
 
-		CommerceCatalog commerceCatalog = CommerceTestUtil.addCommerceCatalog(
-			testGroup.getCompanyId(), testGroup.getGroupId(), _user.getUserId(),
-			commerceCurrency.getCode());
+		CPDefinitionOptionValueRel cpDefinitionOptionValueRel =
+			cpDefinitionOptionValueRels.get(_cpInstances.size());
 
-		CPInstance cpInstance = CPTestUtil.addCPInstanceFromCatalog(
-			commerceCatalog.getGroupId(), BigDecimal.TEN);
+		Sku sku = _addCPInstance(randomSku());
 
-		String unitOfMeasureKey = RandomTestUtil.randomString();
+		CPConfigurationEntry cpConfigurationEntry =
+			_cpDefinition.fetchMasterCPConfigurationEntry();
 
-		CPTestUtil.addCPInstanceUnitOfMeasure(
-			testGroup.getGroupId(), cpInstance.getCPInstanceId(),
-			unitOfMeasureKey, BigDecimal.ONE, cpInstance.getSku());
+		cpConfigurationEntry.setBackOrders(false);
+		cpConfigurationEntry.setDisplayStockQuantity(true);
 
-		CPDefinition cpDefinition = cpInstance.getCPDefinition();
+		cpConfigurationEntry =
+			_cpConfigurationEntryLocalService.updateCPConfigurationEntry(
+				cpConfigurationEntry);
 
-		Sku channelProductSku = skuResource.getChannelProductSku(
+		SkuOption[] skuOptions = {
+			new SkuOption() {
+				{
+					skuOptionKey = _cpDefinitionOptionRel.getKey();
+					skuOptionValueKey = cpDefinitionOptionValueRel.getKey();
+				}
+			}
+		};
+
+		Sku postSku = skuResource.postChannelProductSkuBySkuOption(
 			_commerceChannel.getCommerceChannelId(),
-			cpDefinition.getCProductId(), cpInstance.getCPInstanceId(), -1L,
-			null);
+			_cpDefinition.getCProductId(), null, null, null, null, skuOptions);
 
-		Price price = channelProductSku.getPrice();
+		Assert.assertEquals(sku.getId(), postSku.getId());
+		Assert.assertFalse(postSku.getBackOrderAllowed());
 
-		Assert.assertNotNull(price.getPricingQuantityPriceFormatted());
-
-		CommercePriceList catalogBaseCommercePriceList =
-			CommercePriceListLocalServiceUtil.
-				getCatalogBaseCommercePriceListByType(
-					commerceCatalog.getGroupId(),
-					CommercePriceListConstants.TYPE_PRICE_LIST);
-
-		CommercePriceEntry commercePriceEntry =
-			_commercePriceEntryLocalService.fetchCommercePriceEntry(
-				catalogBaseCommercePriceList.getCommercePriceListId(),
-				cpInstance.getCPInstanceUuid(), unitOfMeasureKey);
-
-		commercePriceEntry.setPricingQuantity(null);
-
-		commercePriceEntry =
-			_commercePriceEntryLocalService.updateCommercePriceEntry(
-				commercePriceEntry);
-
-		channelProductSku = skuResource.getChannelProductSku(
-			_commerceChannel.getCommerceChannelId(),
-			cpDefinition.getCProductId(), cpInstance.getCPInstanceId(), -1L,
-			null);
-
-		Price updatedPrice = channelProductSku.getPrice();
+		Availability availability = postSku.getAvailability();
 
 		Assert.assertTrue(
-			BigDecimalUtil.eq(
-				commercePriceEntry.getPrice(),
-				BigDecimal.valueOf(updatedPrice.getPrice())));
-		Assert.assertEquals(
-			price.getPricingQuantityPriceFormatted(),
-			updatedPrice.getPricingQuantityPriceFormatted());
+			BigDecimalUtil.isZero(availability.getStockQuantity()));
+
+		cpConfigurationEntry.setBackOrders(true);
+
+		_cpConfigurationEntryLocalService.updateCPConfigurationEntry(
+			cpConfigurationEntry);
+
+		postSku = skuResource.postChannelProductSkuBySkuOption(
+			_commerceChannel.getCommerceChannelId(),
+			_cpDefinition.getCProductId(), null, null, null, null, skuOptions);
+
+		Assert.assertTrue(postSku.getBackOrderAllowed());
 	}
 
 	@Inject
@@ -829,6 +895,9 @@ public class SkuResourceTest extends BaseSkuResourceTestCase {
 	private CommercePriceListAccountRelLocalService
 		_commercePriceListAccountRelLocalService;
 
+	@Inject
+	private CPConfigurationEntryLocalService _cpConfigurationEntryLocalService;
+
 	@DeleteAfterTestRun
 	private CPDefinition _cpDefinition;
 
@@ -838,12 +907,12 @@ public class SkuResourceTest extends BaseSkuResourceTestCase {
 	@Inject
 	private CPInstanceLocalService _cpInstanceLocalService;
 
-	@DeleteAfterTestRun
-	private final List<CPInstance> _cpInstances = new ArrayList<>();
-
 	@Inject
 	private CPInstanceUnitOfMeasureLocalService
 		_cpInstanceUnitOfMeasureLocalService;
+
+	@DeleteAfterTestRun
+	private final List<CPInstance> _cpInstances = new ArrayList<>();
 
 	private ServiceContext _serviceContext;
 

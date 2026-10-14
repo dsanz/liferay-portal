@@ -69,7 +69,11 @@ public abstract class BaseExportImportTestCase {
 			boolean privateLayout)
 		throws Exception {
 
-		try (LogCapture logCapture = getLogCapture(expectError)) {
+		try (LogCapture logCapture1 = LoggerTestUtil.configureLog4JLogger(
+				"com.liferay.headless.admin.site.internal.util.LogUtil",
+				LoggerTestUtil.ERROR);
+			LogCapture logCapture2 = getLogCapture(expectError)) {
+
 			User user = TestPropsValues.getUser();
 
 			Map<String, Serializable> importLayoutSettingsMap =

@@ -9,18 +9,6 @@ variable "deployment_name" {
 		error_message="The variable \"deployment_name\" must be 3-24 characters, start with a lowercase letter, and contain only lowercase letters, numbers, and hyphens."
 	}
 }
-variable "deployment_namespace" {
-	default="liferay-system"
-	type=string
-	validation {
-		condition=can(regex("^[a-z0-9-]*$", var.deployment_namespace))
-		error_message="The deployment_namespace must contain only lowercase letters, numbers, and hyphens."
-	}
-}
-variable "ecr_repositories" {
-	type=map(object({ arn=string, url=string }))
-	default={}
-}
 variable "eks_allow_public_access" {
 	default=true
 	type=bool
@@ -33,25 +21,9 @@ variable "eks_api_additional_allowed_cidr_blocks" {
 		error_message="The variable \"eks_api_additional_allowed_cidr_blocks\" must contain valid CIDR blocks."
 	}
 }
-variable "envoy_gateway_helm_chart_version" {
-	type=string
-}
-variable "gateway_namespace" {
-	default="envoy-gateway-system"
-	type=string
-}
 variable "max_availability_zones" {
 	default=2
 	type=number
-}
-variable "observability_config" {
-	default={}
-	type=object(
-		{
-			enabled=optional(bool, false)
-			namespace=optional(string, "observability")
-		}
-	)
 }
 variable "private_subnets" {
 	default=null

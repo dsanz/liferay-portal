@@ -51,11 +51,12 @@ public class AssetTagGroupRelLocalServiceWrapper
 	}
 
 	@Override
-	public AssetTagGroupRel addAssetTagGroupRel(long groupId, long tagId)
+	public AssetTagGroupRel addAssetTagGroupRel(
+			long groupId, long tagId, int depotEntryType)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _assetTagGroupRelLocalService.addAssetTagGroupRel(
-			groupId, tagId);
+			groupId, tagId, depotEntryType);
 	}
 
 	/**
@@ -323,11 +324,21 @@ public class AssetTagGroupRelLocalServiceWrapper
 	}
 
 	@Override
-	public java.util.List<AssetTagGroupRel> getAssetTagGroupRelsByGroupyId(
+	public java.util.List<AssetTagGroupRel> getAssetTagGroupRelsByGroupId(
 		long groupId) {
 
-		return _assetTagGroupRelLocalService.getAssetTagGroupRelsByGroupyId(
+		return _assetTagGroupRelLocalService.getAssetTagGroupRelsByGroupId(
 			groupId);
+	}
+
+	@Override
+	public java.util.List<AssetTagGroupRel>
+		getAssetTagGroupRelsByGroupIdAndDepotEntryType(
+			long groupId, int depotEntryType) {
+
+		return _assetTagGroupRelLocalService.
+			getAssetTagGroupRelsByGroupIdAndDepotEntryType(
+				groupId, depotEntryType);
 	}
 
 	@Override
@@ -335,6 +346,15 @@ public class AssetTagGroupRelLocalServiceWrapper
 		long tagId) {
 
 		return _assetTagGroupRelLocalService.getAssetTagGroupRelsByTagId(tagId);
+	}
+
+	@Override
+	public java.util.List<AssetTagGroupRel>
+		getAssetTagGroupRelsByTagIdAndDepotEntryType(
+			long tagId, int depotEntryType) {
+
+		return _assetTagGroupRelLocalService.
+			getAssetTagGroupRelsByTagIdAndDepotEntryType(tagId, depotEntryType);
 	}
 
 	/**
@@ -414,10 +434,12 @@ public class AssetTagGroupRelLocalServiceWrapper
 	}
 
 	@Override
-	public void setAssetTagGroupRels(long tagId, long[] groupIds)
+	public void setAssetTagGroupRels(
+			long tagId, long[] groupIds, int depotEntryType)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
-		_assetTagGroupRelLocalService.setAssetTagGroupRels(tagId, groupIds);
+		_assetTagGroupRelLocalService.setAssetTagGroupRels(
+			tagId, groupIds, depotEntryType);
 	}
 
 	/**
@@ -478,4 +500,4 @@ public class AssetTagGroupRelLocalServiceWrapper
 	private AssetTagGroupRelLocalService _assetTagGroupRelLocalService;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-341795083
+// LIFERAY-SERVICE-BUILDER-HASH:32159417

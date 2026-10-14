@@ -25,9 +25,45 @@ export class HeadlessPortalInstanceApiHelper {
 		);
 	}
 
+	async addVirtualInstancesBatch(
+		portalInstances: {
+			domain: string;
+			portalInstanceId: string;
+			virtualHost: string;
+		}[]
+	): Promise<any> {
+		return this.apiHelpers.post(
+			`${this.apiHelpers.baseUrl}${this.basePath}/portal-instances/batch`,
+			{data: portalInstances}
+		);
+	}
+
 	async deleteVirtualInstance(instanceId: number) {
 		return this.apiHelpers.delete(
 			`${this.apiHelpers.baseUrl}${this.basePath}/portal-instances/${instanceId}`
 		);
+	}
+
+	async getVirtualInstances(): Promise<any[]> {
+		const page = await this.apiHelpers.get(
+			`${this.apiHelpers.baseUrl}${this.basePath}/portal-instances`
+		);
+
+		return page.items ?? [];
+	}
+
+	async deleteVirtualInstancesBatch(
+		portalInstanceIds: string[]
+	): Promise<any> {
+		const response = await this.apiHelpers.delete(
+			`${this.apiHelpers.baseUrl}${this.basePath}/portal-instances/batch`,
+			{
+				data: portalInstanceIds.map((portalInstanceId) => ({
+					portalInstanceId,
+				})),
+			}
+		);
+
+		return response.json();
 	}
 }

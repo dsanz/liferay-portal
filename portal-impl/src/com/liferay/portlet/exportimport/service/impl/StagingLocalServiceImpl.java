@@ -17,6 +17,7 @@ import com.liferay.exportimport.kernel.exception.RemoteExportException;
 import com.liferay.exportimport.kernel.lar.ExportImportDateUtil;
 import com.liferay.exportimport.kernel.lar.ExportImportThreadLocal;
 import com.liferay.exportimport.kernel.lar.MissingReferences;
+import com.liferay.exportimport.kernel.lar.PortletDataHandlerKeys;
 import com.liferay.exportimport.kernel.model.ExportImportConfiguration;
 import com.liferay.exportimport.kernel.service.ExportImportConfigurationLocalService;
 import com.liferay.exportimport.kernel.service.ExportImportLocalService;
@@ -33,6 +34,7 @@ import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.NoSuchGroupException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
@@ -311,6 +313,11 @@ public class StagingLocalServiceImpl extends StagingLocalServiceBaseImpl {
 			boolean branchingPrivate, ServiceContext serviceContext)
 		throws PortalException {
 
+		if (branchingPrivate || branchingPublic) {
+			FeatureFlagManagerUtil.checkEnabled(
+				liveGroup.getCompanyId(), "LPD-105778");
+		}
+
 		if (liveGroup.isLayout()) {
 			enableLocalStaging(
 				userId, liveGroup.getParentGroup(), branchingPublic,
@@ -373,6 +380,10 @@ public class StagingLocalServiceImpl extends StagingLocalServiceBaseImpl {
 			ExportImportConfigurationParameterMapFactoryUtil.
 				buildFullPublishParameterMap();
 
+		parameterMap.put(
+			PortletDataHandlerKeys.DELETE_MISSING_LAYOUTS,
+			new String[] {Boolean.FALSE.toString()});
+
 		if (liveGroup.hasPrivateLayouts()) {
 			StagingUtil.publishLayouts(
 				userId, liveGroup.getGroupId(), stagingGroup.getGroupId(), true,
@@ -381,6 +392,10 @@ public class StagingLocalServiceImpl extends StagingLocalServiceBaseImpl {
 			parameterMap =
 				ExportImportConfigurationParameterMapFactoryUtil.
 					buildParameterMap();
+
+			parameterMap.put(
+				PortletDataHandlerKeys.DELETE_MISSING_LAYOUTS,
+				new String[] {Boolean.FALSE.toString()});
 		}
 
 		if (liveGroup.hasPublicLayouts() || !liveGroup.hasPrivateLayouts()) {
@@ -397,6 +412,11 @@ public class StagingLocalServiceImpl extends StagingLocalServiceBaseImpl {
 			String remotePathContext, boolean secureConnection,
 			long remoteGroupId, ServiceContext serviceContext)
 		throws PortalException {
+
+		if (branchingPrivate || branchingPublic) {
+			FeatureFlagManagerUtil.checkEnabled(
+				stagingGroup.getCompanyId(), "LPD-105778");
+		}
 
 		_groupLocalService.validateRemote(
 			stagingGroup.getGroupId(), remoteAddress, remotePort,
@@ -1294,14 +1314,14 @@ public class StagingLocalServiceImpl extends StagingLocalServiceBaseImpl {
 	@BeanReference(type = LayoutSetBranchPersistence.class)
 	private LayoutSetBranchPersistence _layoutSetBranchPersistence;
 
+	@BeanReference(type = PortletPreferenceValueLocalService.class)
+	private PortletPreferenceValueLocalService
+		_portletPreferenceValueLocalService;
+
 	@BeanReference(type = PortletPreferencesLocalService.class)
 	private PortletPreferencesLocalService _portletPreferencesLocalService;
 
 	@BeanReference(type = PortletPreferencesPersistence.class)
 	private PortletPreferencesPersistence _portletPreferencesPersistence;
-
-	@BeanReference(type = PortletPreferenceValueLocalService.class)
-	private PortletPreferenceValueLocalService
-		_portletPreferenceValueLocalService;
 
 }

@@ -13,12 +13,15 @@ import com.liferay.object.constants.ObjectActionTriggerConstants;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.test.rule.Inject;
 
 import java.util.Collections;
+import java.util.Map;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -63,6 +66,44 @@ public class ObjectActionResourceTest extends BaseObjectActionResourceTestCase {
 	}
 
 	@Override
+	@Test
+	public void testPostObjectDefinitionObjectAction() throws Exception {
+		super.testPostObjectDefinitionObjectAction();
+
+		ObjectAction objectAction = randomObjectAction();
+
+		objectAction.setParameters(
+			HashMapBuilder.<String, Object>put(
+				"url", "https://standalone.com"
+			).put(
+				"urlLocalNetworkAccessEnabled", false
+			).build());
+
+		ObjectAction postObjectAction =
+			objectActionResource.postObjectDefinitionObjectAction(
+				_objectDefinition.getObjectDefinitionId(), objectAction);
+
+		Map<String, ?> parameters = postObjectAction.getParameters();
+
+		Assert.assertEquals(
+			Boolean.FALSE, parameters.get("urlLocalNetworkAccessEnabled"));
+	}
+
+	@Override
+	@Test
+	public void testPutObjectAction() throws Exception {
+		super.testPutObjectAction();
+
+		_testPutObjectActionDescription(Collections.emptyMap());
+		_testPutObjectActionDescription(null);
+	}
+
+	@Override
+	protected String[] getAdditionalAssertFieldNames() {
+		return new String[] {"description"};
+	}
+
+	@Override
 	protected String[] getIgnoredEntityFieldNames() {
 		return new String[] {"label"};
 	}
@@ -74,7 +115,8 @@ public class ObjectActionResourceTest extends BaseObjectActionResourceTestCase {
 				active = RandomTestUtil.randomBoolean();
 				dateCreated = RandomTestUtil.nextDate();
 				dateModified = RandomTestUtil.nextDate();
-				description = RandomTestUtil.randomString();
+				description = Collections.singletonMap(
+					"en_US", RandomTestUtil.randomString());
 				errorMessage = Collections.singletonMap(
 					"en_US", RandomTestUtil.randomString());
 				externalReferenceCode = RandomTestUtil.randomString();
@@ -198,6 +240,24 @@ public class ObjectActionResourceTest extends BaseObjectActionResourceTestCase {
 	private ObjectAction _addObjectAction() throws Exception {
 		return objectActionResource.postObjectDefinitionObjectAction(
 			_objectDefinition.getObjectDefinitionId(), randomObjectAction());
+	}
+
+	private void _testPutObjectActionDescription(
+			Map<String, String> descriptionMap)
+		throws Exception {
+
+		ObjectAction objectAction = _addObjectAction();
+
+		Map<String, String> expectedDescriptionMap =
+			objectAction.getDescription();
+
+		objectAction.setDescription(descriptionMap);
+
+		objectAction = objectActionResource.putObjectAction(
+			objectAction.getId(), objectAction);
+
+		Assert.assertEquals(
+			expectedDescriptionMap, objectAction.getDescription());
 	}
 
 	private ObjectDefinition _objectDefinition;

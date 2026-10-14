@@ -10,26 +10,31 @@ import com.liferay.headless.admin.workflow.dto.v1_0.WorkflowTask;
 import com.liferay.headless.admin.workflow.internal.dto.v1_0.util.CreatorUtil;
 import com.liferay.headless.admin.workflow.internal.dto.v1_0.util.ObjectReviewedUtil;
 import com.liferay.headless.admin.workflow.internal.dto.v1_0.util.RoleUtil;
-import com.liferay.headless.admin.workflow.internal.resource.v1_0.WorkflowTaskResourceImpl;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.Language;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.RoleLocalService;
+import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Portal;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.kernel.workflow.WorkflowDefinition;
 import com.liferay.portal.kernel.workflow.WorkflowTaskAssignee;
 import com.liferay.portal.kernel.workflow.WorkflowTaskManager;
 import com.liferay.portal.vulcan.dto.converter.DTOConverter;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterContext;
 import com.liferay.portal.workflow.kaleo.model.KaleoTaskInstanceToken;
+import com.liferay.portal.workflow.manager.WorkflowDefinitionManager;
 
 import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
@@ -41,7 +46,7 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(
 	property = {
-		"application.name=Liferay.Headless.Admin.Workflow",
+		"application.name=Liferay.Headless.Admin.Workflow", "default=true",
 		"dto.class.name=com.liferay.portal.workflow.kaleo.model.KaleoTaskInstanceToken",
 		"version=v1.0"
 	},
@@ -52,7 +57,7 @@ public class WorkflowTaskDTOConverter
 
 	@Override
 	public String getContentType() {
-		return KaleoTaskInstanceToken.class.getSimpleName();
+		return WorkflowTask.class.getSimpleName();
 	}
 
 	@Override
@@ -75,6 +80,35 @@ public class WorkflowTaskDTOConverter
 			dtoConverterContext,
 			_workflowTaskManager.getWorkflowTask(
 				kaleoTaskInstanceToken.getKaleoTaskInstanceTokenId()));
+	}
+
+	private String _getWorkflowDefinitionTitle(
+		Locale locale, Map<String, Serializable> optionalAttributes,
+		com.liferay.portal.kernel.workflow.WorkflowTask workflowTask) {
+
+		ServiceContext serviceContext = (ServiceContext)optionalAttributes.get(
+			WorkflowConstants.CONTEXT_SERVICE_CONTEXT);
+
+		if (serviceContext == null) {
+			return null;
+		}
+
+		try {
+			WorkflowDefinition workflowDefinition =
+				_workflowDefinitionManager.liberalGetWorkflowDefinition(
+					serviceContext.getCompanyId(),
+					workflowTask.getWorkflowDefinitionName(),
+					workflowTask.getWorkflowDefinitionVersion());
+
+			return workflowDefinition.getTitle(_language.getLanguageId(locale));
+		}
+		catch (PortalException portalException) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(portalException);
+			}
+
+			return null;
+		}
 	}
 
 	private WorkflowTask _toWorkflowTask(
@@ -147,11 +181,8 @@ public class WorkflowTaskDTOConverter
 				setDescription(workflowTask::getDescription);
 				setId(workflowTask::getWorkflowTaskId);
 				setLabel(
-					() -> _language.get(
-						ResourceBundleUtil.getModuleAndPortalResourceBundle(
-							dtoConverterContext.getLocale(),
-							WorkflowTaskResourceImpl.class),
-						workflowTask.getName()));
+					() -> workflowTask.getLabel(
+						dtoConverterContext.getLocale()));
 				setName(workflowTask::getName);
 				setObjectReviewed(
 					() -> ObjectReviewedUtil.toObjectReviewed(
@@ -160,6 +191,10 @@ public class WorkflowTaskDTOConverter
 				setWorkflowDefinitionId(workflowTask::getWorkflowDefinitionId);
 				setWorkflowDefinitionName(
 					workflowTask::getWorkflowDefinitionName);
+				setWorkflowDefinitionTitle(
+					() -> _getWorkflowDefinitionTitle(
+						dtoConverterContext.getLocale(), optionalAttributes,
+						workflowTask));
 				setWorkflowDefinitionVersion(
 					() -> String.valueOf(
 						workflowTask.getWorkflowDefinitionVersion()));
@@ -167,6 +202,9 @@ public class WorkflowTaskDTOConverter
 			}
 		};
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		WorkflowTaskDTOConverter.class);
 
 	@Reference
 	private Language _language;
@@ -179,6 +217,9 @@ public class WorkflowTaskDTOConverter
 
 	@Reference
 	private UserLocalService _userLocalService;
+
+	@Reference
+	private WorkflowDefinitionManager _workflowDefinitionManager;
 
 	@Reference
 	private WorkflowTaskManager _workflowTaskManager;

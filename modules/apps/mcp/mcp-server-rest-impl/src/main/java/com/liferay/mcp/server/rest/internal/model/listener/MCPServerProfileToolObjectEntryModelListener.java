@@ -5,18 +5,38 @@
 
 package com.liferay.mcp.server.rest.internal.model.listener;
 
+import com.liferay.mcp.server.rest.internal.cache.MCPServerCacheManager;
 import com.liferay.mcp.server.rest.internal.constants.MCPServerConstants;
-import com.liferay.mcp.server.rest.internal.servlet.MCPServerServlet;
+import com.liferay.mcp.server.rest.internal.util.MCPServerProfileUtil;
+import com.liferay.object.constants.ObjectDefinitionConstants;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.model.listener.RelevantObjectEntryModelListener;
+import com.liferay.object.rest.filter.factory.FilterFactory;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectEntryLocalService;
+import com.liferay.object.service.ObjectRelationshipLocalService;
+import com.liferay.petra.sql.dsl.expression.Predicate;
+import com.liferay.petra.string.StringBundler;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.ModelListenerException;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.BaseModelListener;
+import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.MapUtil;
+import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Validator;
 
-import jakarta.servlet.Servlet;
+import jakarta.validation.ValidationException;
+
+import java.io.Serializable;
+
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -39,7 +59,7 @@ public class MCPServerProfileToolObjectEntryModelListener
 	public void onAfterCreate(ObjectEntry objectEntry)
 		throws ModelListenerException {
 
-		_invalidateServlet(objectEntry);
+		_clearServletCache(objectEntry);
 	}
 
 	@Override
@@ -47,17 +67,61 @@ public class MCPServerProfileToolObjectEntryModelListener
 			ObjectEntry originalObjectEntry, ObjectEntry objectEntry)
 		throws ModelListenerException {
 
-		_invalidateServlet(objectEntry);
+		_clearServletCache(objectEntry);
+	}
+
+	@Override
+	public void onBeforeCreate(ObjectEntry objectEntry)
+		throws ModelListenerException {
+
+		_validateRestrictFields(objectEntry);
+		_validateTool(objectEntry);
 	}
 
 	@Override
 	public void onBeforeRemove(ObjectEntry objectEntry)
 		throws ModelListenerException {
 
-		_invalidateServlet(objectEntry);
+		_clearServletCache(objectEntry);
+
+		ObjectEntry mcpServerProfileObjectEntry =
+			_objectEntryLocalService.fetchObjectEntry(
+				MapUtil.getLong(
+					objectEntry.getValues(),
+					"r_mcpServerProfileToTools_l_mcpServerProfileId"));
+
+		if ((mcpServerProfileObjectEntry == null) ||
+			!MCPServerProfileUtil.isActive(mcpServerProfileObjectEntry)) {
+
+			return;
+		}
+
+		try {
+			int toolsCount = MCPServerProfileUtil.getToolsCount(
+				mcpServerProfileObjectEntry, _objectEntryLocalService,
+				_objectRelationshipLocalService);
+
+			if (toolsCount > 1) {
+				return;
+			}
+
+			_deactivateMCPServerProfile(mcpServerProfileObjectEntry);
+		}
+		catch (PortalException portalException) {
+			throw new ModelListenerException(portalException);
+		}
 	}
 
-	private void _invalidateServlet(ObjectEntry objectEntry) {
+	@Override
+	public void onBeforeUpdate(
+			ObjectEntry originalObjectEntry, ObjectEntry objectEntry)
+		throws ModelListenerException {
+
+		_validateRestrictFields(objectEntry);
+		_validateTool(objectEntry);
+	}
+
+	private void _clearServletCache(ObjectEntry objectEntry) {
 		ObjectDefinition objectDefinition =
 			_objectDefinitionLocalService.
 				fetchObjectDefinitionByExternalReferenceCode(
@@ -80,12 +144,145 @@ public class MCPServerProfileToolObjectEntryModelListener
 			return;
 		}
 
-		MCPServerServlet mcpServerServlet = (MCPServerServlet)_servlet;
-
-		mcpServerServlet.invalidate(
+		_mcpServerCacheManager.clearServletCache(
 			objectEntry.getCompanyId(),
 			MapUtil.getString(mcpServerProfileObjectEntry.getValues(), "name"));
 	}
+
+	private void _deactivateMCPServerProfile(
+			ObjectEntry mcpServerProfileObjectEntry)
+		throws PortalException {
+
+		Map<String, Serializable> values = _objectEntryLocalService.getValues(
+			mcpServerProfileObjectEntry);
+
+		values.put("profileStatus", "inactive");
+
+		_objectEntryLocalService.updateObjectEntry(
+			mcpServerProfileObjectEntry.getUserId(),
+			mcpServerProfileObjectEntry.getObjectEntryId(),
+			mcpServerProfileObjectEntry.getObjectEntryFolderId(), values,
+			new ServiceContext());
+	}
+
+	private void _validateRestrictFields(ObjectEntry objectEntry)
+		throws ModelListenerException {
+
+		String restrictFields = MapUtil.getString(
+			objectEntry.getValues(), "restrictFields");
+
+		if (Validator.isNull(restrictFields)) {
+			return;
+		}
+
+		String[] restrictFieldNames = StringUtil.split(restrictFields);
+
+		Set<String> uniqueRestrictFieldNames = new HashSet<>();
+
+		for (String restrictFieldName : restrictFieldNames) {
+			if (restrictFieldName.isEmpty() ||
+				!Objects.equals(restrictFieldName, restrictFieldName.trim())) {
+
+				throw new ModelListenerException(
+					new ValidationException(
+						StringBundler.concat(
+							"Unable to restrict field \"", restrictFieldName,
+							"\" because the name is blank or has surrounding ",
+							"whitespace")));
+			}
+
+			Matcher matcher = _restrictFieldNamePattern.matcher(
+				restrictFieldName);
+
+			if (!matcher.matches()) {
+				throw new ModelListenerException(
+					new ValidationException(
+						StringBundler.concat(
+							"Unable to restrict field \"", restrictFieldName,
+							"\" because the name is not a dotted path of ",
+							"letters, digits, and underscores")));
+			}
+
+			if (!uniqueRestrictFieldNames.add(restrictFieldName)) {
+				throw new ModelListenerException(
+					new ValidationException(
+						StringBundler.concat(
+							"Unable to restrict field \"", restrictFieldName,
+							"\" more than once")));
+			}
+
+			for (String ancestorFieldName : restrictFieldNames) {
+				if (restrictFieldName.startsWith(
+						ancestorFieldName + StringPool.PERIOD)) {
+
+					throw new ModelListenerException(
+						new ValidationException(
+							StringBundler.concat(
+								"Unable to restrict field \"",
+								restrictFieldName,
+								"\" because restricted field \"",
+								ancestorFieldName, "\" already hides it")));
+				}
+			}
+		}
+	}
+
+	private void _validateTool(ObjectEntry objectEntry)
+		throws ModelListenerException {
+
+		Map<String, Serializable> values = objectEntry.getValues();
+
+		String toolName = MapUtil.getString(values, "toolName");
+		String toolSetName = MapUtil.getString(values, "toolSetName");
+
+		try {
+			int count = _objectEntryLocalService.getValuesListCount(
+				new Long[] {0L}, objectEntry.getCompanyId(),
+				objectEntry.getUserId(), objectEntry.getObjectDefinitionId(),
+				_filterFactory.create(
+					StringBundler.concat(
+						"(id ne '", objectEntry.getObjectEntryId(), "') and (",
+						"r_mcpServerProfileToTools_l_mcpServerProfileId eq '",
+						MapUtil.getLong(
+							values,
+							"r_mcpServerProfileToTools_l_mcpServerProfileId"),
+						"') and (toolName eq '", toolName,
+						"') and (toolSetName eq '", toolSetName, "')"),
+					_objectDefinitionLocalService.getObjectDefinition(
+						objectEntry.getObjectDefinitionId())),
+				false, null);
+
+			if (count == 0) {
+				return;
+			}
+
+			String mcpServerProfileExternalReferenceCode = MapUtil.getString(
+				values, "r_mcpServerProfileToTools_l_mcpServerProfileERC");
+
+			throw new ModelListenerException(
+				new ValidationException(
+					StringBundler.concat(
+						"Unable to add tool \"", toolName,
+						"\" from tool set \"", toolSetName,
+						"\" to MCP server profile \"",
+						mcpServerProfileExternalReferenceCode,
+						"\" more than once")));
+		}
+		catch (PortalException portalException) {
+			throw new ModelListenerException(portalException);
+		}
+	}
+
+	private static final Pattern _restrictFieldNamePattern = Pattern.compile(
+		"[A-Za-z0-9_]+(\\.[A-Za-z0-9_]+)*");
+
+	@Reference(
+		target = "(filter.factory.key=" + ObjectDefinitionConstants.STORAGE_TYPE_DEFAULT + ")"
+	)
+	private FilterFactory<Predicate> _filterFactory;
+
+	@Reference
+	private MCPServerCacheManager _mcpServerCacheManager;
 
 	@Reference
 	private ObjectDefinitionLocalService _objectDefinitionLocalService;
@@ -93,9 +290,7 @@ public class MCPServerProfileToolObjectEntryModelListener
 	@Reference
 	private ObjectEntryLocalService _objectEntryLocalService;
 
-	@Reference(
-		target = "(osgi.http.whiteboard.servlet.name=com.liferay.mcp.server.rest.internal.servlet.MCPServerServlet)"
-	)
-	private Servlet _servlet;
+	@Reference
+	private ObjectRelationshipLocalService _objectRelationshipLocalService;
 
 }

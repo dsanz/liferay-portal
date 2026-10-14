@@ -84,7 +84,7 @@ public abstract class BaseTestEntityResourceImpl
 		value = {
 			@io.swagger.v3.oas.annotations.Parameter(
 				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
-				name = "testEntityId"
+				name = "testEntityId", required = true
 			),
 			@io.swagger.v3.oas.annotations.Parameter(
 				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
@@ -203,7 +203,7 @@ public abstract class BaseTestEntityResourceImpl
 		value = {
 			@io.swagger.v3.oas.annotations.Parameter(
 				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
-				name = "testEntityId"
+				name = "testEntityId", required = true
 			)
 		}
 	)
@@ -232,6 +232,14 @@ public abstract class BaseTestEntityResourceImpl
 	@io.swagger.v3.oas.annotations.Operation(
 		description = "Retrieves the count."
 	)
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "requiredQueryParameter", required = true
+			)
+		}
+	)
 	@io.swagger.v3.oas.annotations.tags.Tags(
 		value = {@io.swagger.v3.oas.annotations.tags.Tag(name = "TestEntity")}
 	)
@@ -239,7 +247,13 @@ public abstract class BaseTestEntityResourceImpl
 	@jakarta.ws.rs.Path("/test-entities/count")
 	@jakarta.ws.rs.Produces("text/plain")
 	@Override
-	public Integer getTestEntityCount() throws Exception {
+	public Integer getTestEntityCount(
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@jakarta.validation.constraints.NotNull
+			@jakarta.ws.rs.QueryParam("requiredQueryParameter")
+			String requiredQueryParameter)
+		throws Exception {
+
 		return 0;
 	}
 
@@ -252,7 +266,7 @@ public abstract class BaseTestEntityResourceImpl
 		value = {
 			@io.swagger.v3.oas.annotations.Parameter(
 				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
-				name = "testEntityId"
+				name = "testEntityId", required = true
 			),
 			@io.swagger.v3.oas.annotations.Parameter(
 				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
@@ -520,7 +534,7 @@ public abstract class BaseTestEntityResourceImpl
 		value = {
 			@io.swagger.v3.oas.annotations.Parameter(
 				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
-				name = "testEntityId"
+				name = "testEntityId", required = true
 			),
 			@io.swagger.v3.oas.annotations.Parameter(
 				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
@@ -610,7 +624,7 @@ public abstract class BaseTestEntityResourceImpl
 		value = {
 			@io.swagger.v3.oas.annotations.Parameter(
 				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
-				name = "testEntityId"
+				name = "testEntityId", required = true
 			)
 		}
 	)
@@ -1417,4 +1431,4 @@ public abstract class BaseTestEntityResourceImpl
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:607706328
+// LIFERAY-REST-BUILDER-HASH:858919215

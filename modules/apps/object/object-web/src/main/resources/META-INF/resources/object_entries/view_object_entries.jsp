@@ -60,6 +60,8 @@ ObjectDefinition objectDefinition = viewObjectEntriesDisplayContext.getObjectDef
 				props='<%=
 					HashMapBuilder.<String, Object>put(
 						"byExternalReferenceCodePath", viewObjectEntriesDisplayContext.getByExternalReferenceCodePath()
+					).put(
+						"portletNamespace", liferayPortletResponse.getNamespace()
 					).build()
 				%>'
 			/>
@@ -70,9 +72,9 @@ ObjectDefinition objectDefinition = viewObjectEntriesDisplayContext.getObjectDef
 				module="{ModalBulkDeleteObjectEntries} from object-web"
 				props='<%=
 					HashMapBuilder.<String, Object>put(
-						"namespace", liferayPortletResponse.getNamespace()
-					).put(
 						"objectDefinition", objectDefinition
+					).put(
+						"portletNamespace", liferayPortletResponse.getNamespace()
 					).build()
 				%>'
 			/>

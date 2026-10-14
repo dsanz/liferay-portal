@@ -55,6 +55,7 @@ import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.PropsValues;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
@@ -96,6 +97,17 @@ public class AccountGroupResourceTest extends BaseAccountGroupResourceTestCase {
 		_serviceContext = ServiceContextTestUtil.getServiceContext();
 
 		_accountEntry = _addAccountEntry();
+	}
+
+	@Override
+	@Test
+	public void testGetAccountAccountGroupsPage() throws Exception {
+		super.testGetAccountAccountGroupsPage();
+
+		assertHttpResponseStatusCode(
+			404,
+			accountGroupResource.getAccountAccountGroupsPageHttpResponse(
+				RandomTestUtil.randomLong(), null));
 	}
 
 	@Override
@@ -360,6 +372,81 @@ public class AccountGroupResourceTest extends BaseAccountGroupResourceTestCase {
 		return accountGroupResource.postAccountGroup(accountGroup);
 	}
 
+	private void _testGetAccountGroupWithNestedFields() throws Exception {
+		AccountGroup postAccountGroup = testGetAccountGroup_addAccountGroup();
+
+		AccountEntry accountEntry1 = _addAccountEntry();
+		AccountEntry accountEntry2 = _addAccountEntry();
+		AccountEntry accountEntry3 = _addAccountEntry();
+
+		_accountGroupRelLocalService.addAccountGroupRels(
+			postAccountGroup.getId(), AccountEntry.class.getName(),
+			new long[] {
+				accountEntry1.getAccountEntryId(),
+				accountEntry2.getAccountEntryId()
+			});
+
+		Role role = RoleTestUtil.addRole(RoleConstants.TYPE_REGULAR);
+
+		_resourcePermissionLocalService.setResourcePermissions(
+			TestPropsValues.getCompanyId(),
+			com.liferay.account.model.AccountGroup.class.getName(),
+			ResourceConstants.SCOPE_INDIVIDUAL,
+			String.valueOf(postAccountGroup.getId()), role.getRoleId(),
+			new String[] {ActionKeys.DELETE});
+
+		AccountGroupResource accountGroupResource =
+			AccountGroupResource.builder(
+			).authentication(
+				"test@liferay.com", PropsValues.DEFAULT_ADMIN_PASSWORD
+			).endpoint(
+				testCompany.getVirtualHostname(),
+				PortalUtil.getPortalServerPort(false), "http"
+			).locale(
+				LocaleUtil.getDefault()
+			).parameters(
+				"nestedFields", "accountBriefs,creator,permissions"
+			).build();
+
+		AccountGroup getAccountGroup = accountGroupResource.getAccountGroup(
+			postAccountGroup.getId());
+
+		Assert.assertTrue(
+			ArrayUtil.exists(
+				getAccountGroup.getAccountBriefs(),
+				accountBrief ->
+					accountBrief.getId() == accountEntry1.getAccountEntryId()));
+		Assert.assertTrue(
+			ArrayUtil.exists(
+				getAccountGroup.getAccountBriefs(),
+				accountBrief ->
+					accountBrief.getId() == accountEntry2.getAccountEntryId()));
+		Assert.assertFalse(
+			ArrayUtil.exists(
+				getAccountGroup.getAccountBriefs(),
+				accountBrief ->
+					accountBrief.getId() == accountEntry3.getAccountEntryId()));
+
+		Creator creator = getAccountGroup.getCreator();
+
+		Assert.assertTrue(creator.getId() == TestPropsValues.getUserId());
+
+		User user = TestPropsValues.getUser();
+
+		Assert.assertTrue(
+			Objects.equals(
+				creator.getExternalReferenceCode(),
+				user.getExternalReferenceCode()));
+
+		Assert.assertTrue(
+			ArrayUtil.exists(
+				getAccountGroup.getPermissions(),
+				permission ->
+					Objects.equals(permission.getRoleName(), role.getName()) &&
+					(permission.getActionIds().length == 1) &&
+					Objects.equals(permission.getActionIds()[0], "DELETE")));
+	}
+
 	private void _testGetAccountGroupsPageWithCustomFields() throws Exception {
 		ExpandoTable expandoTable = _expandoTableLocalService.addTable(
 			testGroup.getCompanyId(),
@@ -493,78 +580,6 @@ public class AccountGroupResourceTest extends BaseAccountGroupResourceTestCase {
 		Assert.assertEquals(totalCount + 1, page.getTotalCount());
 
 		assertContains(accountGroup2, (List<AccountGroup>)page.getItems());
-	}
-
-	private void _testGetAccountGroupWithNestedFields() throws Exception {
-		AccountGroup postAccountGroup = testGetAccountGroup_addAccountGroup();
-
-		AccountEntry accountEntry1 = _addAccountEntry();
-		AccountEntry accountEntry2 = _addAccountEntry();
-		AccountEntry accountEntry3 = _addAccountEntry();
-
-		_accountGroupRelLocalService.addAccountGroupRels(
-			postAccountGroup.getId(), AccountEntry.class.getName(),
-			new long[] {
-				accountEntry1.getAccountEntryId(),
-				accountEntry2.getAccountEntryId()
-			});
-
-		Role role = RoleTestUtil.addRole(RoleConstants.TYPE_REGULAR);
-
-		_resourcePermissionLocalService.setResourcePermissions(
-			TestPropsValues.getCompanyId(),
-			com.liferay.account.model.AccountGroup.class.getName(),
-			ResourceConstants.SCOPE_INDIVIDUAL,
-			String.valueOf(postAccountGroup.getId()), role.getRoleId(),
-			new String[] {ActionKeys.DELETE});
-
-		AccountGroupResource accountGroupResource =
-			AccountGroupResource.builder(
-			).authentication(
-				"test@liferay.com", PropsValues.DEFAULT_ADMIN_PASSWORD
-			).locale(
-				LocaleUtil.getDefault()
-			).parameters(
-				"nestedFields", "accountBriefs,creator,permissions"
-			).build();
-
-		AccountGroup getAccountGroup = accountGroupResource.getAccountGroup(
-			postAccountGroup.getId());
-
-		Assert.assertTrue(
-			ArrayUtil.exists(
-				getAccountGroup.getAccountBriefs(),
-				accountBrief ->
-					accountBrief.getId() == accountEntry1.getAccountEntryId()));
-		Assert.assertTrue(
-			ArrayUtil.exists(
-				getAccountGroup.getAccountBriefs(),
-				accountBrief ->
-					accountBrief.getId() == accountEntry2.getAccountEntryId()));
-		Assert.assertFalse(
-			ArrayUtil.exists(
-				getAccountGroup.getAccountBriefs(),
-				accountBrief ->
-					accountBrief.getId() == accountEntry3.getAccountEntryId()));
-
-		Creator creator = getAccountGroup.getCreator();
-
-		Assert.assertTrue(creator.getId() == TestPropsValues.getUserId());
-
-		User user = TestPropsValues.getUser();
-
-		Assert.assertTrue(
-			Objects.equals(
-				creator.getExternalReferenceCode(),
-				user.getExternalReferenceCode()));
-
-		Assert.assertTrue(
-			ArrayUtil.exists(
-				getAccountGroup.getPermissions(),
-				permission ->
-					Objects.equals(permission.getRoleName(), role.getName()) &&
-					(permission.getActionIds().length == 1) &&
-					Objects.equals(permission.getActionIds()[0], "DELETE")));
 	}
 
 	private void _testPatchAccountGroupByExternalReferenceCodeWithoutName()
@@ -811,7 +826,7 @@ public class AccountGroupResourceTest extends BaseAccountGroupResourceTestCase {
 			Problem problem = problemException.getProblem();
 
 			Assert.assertEquals(
-				"The account group name is invalid", problem.getTitle());
+				"The account group name is invalid.", problem.getTitle());
 		}
 	}
 
@@ -832,7 +847,7 @@ public class AccountGroupResourceTest extends BaseAccountGroupResourceTestCase {
 			Problem problem = problemException.getProblem();
 
 			Assert.assertEquals(
-				"The account group name is invalid", problem.getTitle());
+				"The account group name is invalid.", problem.getTitle());
 		}
 	}
 

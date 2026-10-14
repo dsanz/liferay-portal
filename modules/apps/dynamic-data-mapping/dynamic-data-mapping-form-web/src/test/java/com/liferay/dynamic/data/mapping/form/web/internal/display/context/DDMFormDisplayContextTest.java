@@ -54,6 +54,7 @@ import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalService;
 import com.liferay.portal.kernel.service.permission.PortletPermissionUtil;
+import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.test.portlet.MockRenderRequest;
 import com.liferay.portal.kernel.test.portlet.MockRenderResponse;
@@ -78,6 +79,7 @@ import jakarta.portlet.RenderRequest;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
@@ -245,6 +247,48 @@ public class DDMFormDisplayContextTest {
 	}
 
 	@Test
+	public void testCreateDDMFormRenderingContextWithRedirectURL()
+		throws Exception {
+
+		MockRenderRequest mockRenderRequest =
+			(MockRenderRequest)_mockRenderRequest();
+
+		mockRenderRequest.setParameter("redirect", _REDIRECT_URL);
+
+		DDMFormDisplayContext ddmFormDisplayContext = Mockito.spy(
+			_createDDMFormDisplayContext(mockRenderRequest));
+
+		Mockito.doReturn(
+			true
+		).when(
+			ddmFormDisplayContext
+		).hasAddFormInstanceRecordPermission();
+
+		DDMFormInstance ddmFormInstance = new DDMFormInstanceImpl();
+
+		Mockito.doReturn(
+			true
+		).when(
+			ddmFormDisplayContext
+		).hasValidStorageType(
+			ddmFormInstance
+		);
+
+		DDMFormRenderingContext ddmFormRenderingContext =
+			ddmFormDisplayContext.createDDMFormRenderingContext(
+				new DDMForm(), ddmFormInstance, null);
+
+		Mockito.verify(
+			_portal
+		).escapeRedirect(
+			_REDIRECT_URL
+		);
+
+		Assert.assertEquals(
+			_ESCAPED_REDIRECT_URL, ddmFormRenderingContext.getRedirectURL());
+	}
+
+	@Test
 	public void testDDMFormRenderingContextLocaleIsThemeDisplayLocale()
 		throws Exception {
 
@@ -397,6 +441,27 @@ public class DDMFormDisplayContextTest {
 
 		Assert.assertEquals(
 			expectedDDMFormFieldOptions, actualDDMFormFieldOptions);
+	}
+
+	@Test
+	public void testGetErrorMessages() throws Exception {
+		RenderRequest renderRequest = _mockRenderRequest();
+
+		SessionErrors.add(
+			renderRequest, IllegalStateException.class,
+			new IllegalStateException("<b>Illegal State Exception</b>"));
+		SessionErrors.add(
+			renderRequest, PortalException.class,
+			new PortalException("Portal Exception"));
+
+		DDMFormDisplayContext ddmFormDisplayContext =
+			_createDDMFormDisplayContext(renderRequest);
+
+		Assert.assertEquals(
+			Collections.singletonMap(
+				IllegalStateException.class.getName(),
+				"&lt;b&gt;Illegal State Exception&lt;/b&gt;"),
+			ddmFormDisplayContext.getErrorMessages());
 	}
 
 	@Test
@@ -714,18 +779,6 @@ public class DDMFormDisplayContextTest {
 	}
 
 	@Test
-	public void testIsSharedFormWithoutPortletSession() throws Exception {
-		RenderRequest renderRequest = _mockRenderRequest();
-
-		Assert.assertNull(renderRequest.getPortletSession(false));
-
-		DDMFormDisplayContext createDDMFormDisplayContext =
-			_createDDMFormDisplayContext(renderRequest);
-
-		Assert.assertTrue(createDDMFormDisplayContext.isFormShared());
-	}
-
-	@Test
 	public void testIsSharedFormWithPortletSession() throws Exception {
 		RenderRequest renderRequest = _mockRenderRequest();
 
@@ -734,6 +787,18 @@ public class DDMFormDisplayContextTest {
 		Assert.assertNotNull(portletSession);
 
 		portletSession.setAttribute("shared", Boolean.TRUE);
+
+		DDMFormDisplayContext createDDMFormDisplayContext =
+			_createDDMFormDisplayContext(renderRequest);
+
+		Assert.assertTrue(createDDMFormDisplayContext.isFormShared());
+	}
+
+	@Test
+	public void testIsSharedFormWithoutPortletSession() throws Exception {
+		RenderRequest renderRequest = _mockRenderRequest();
+
+		Assert.assertNull(renderRequest.getPortletSession(false));
 
 		DDMFormDisplayContext createDDMFormDisplayContext =
 			_createDDMFormDisplayContext(renderRequest);
@@ -1274,31 +1339,35 @@ public class DDMFormDisplayContextTest {
 	private void _setUpPortalUtil() {
 		PortalUtil portalUtil = new PortalUtil();
 
-		Portal portal = Mockito.mock(Portal.class);
-
-		portalUtil.setPortal(portal);
+		portalUtil.setPortal(_portal);
 
 		Mockito.when(
-			portal.addPreservedParameters(
+			_portal.addPreservedParameters(
 				Mockito.any(ThemeDisplay.class), Mockito.anyString())
 		).thenAnswer(
 			invocation -> invocation.getArgument(1) + "?doAsUserId=1234"
 		);
 
 		Mockito.when(
-			portal.getHttpServletRequest(Mockito.any(RenderRequest.class))
+			_portal.escapeRedirect(_REDIRECT_URL)
+		).thenReturn(
+			_ESCAPED_REDIRECT_URL
+		);
+
+		Mockito.when(
+			_portal.getHttpServletRequest(Mockito.any(RenderRequest.class))
 		).thenReturn(
 			_mockHttpServletRequest2
 		);
 
 		Mockito.when(
-			portal.getLiferayPortletRequest(Mockito.any(RenderRequest.class))
+			_portal.getLiferayPortletRequest(Mockito.any(RenderRequest.class))
 		).thenReturn(
 			Mockito.mock(LiferayPortletRequest.class)
 		);
 
 		Mockito.when(
-			portal.getOriginalServletRequest(
+			_portal.getOriginalServletRequest(
 				Mockito.any(HttpServletRequest.class))
 		).thenReturn(
 			_mockHttpServletRequest1
@@ -1345,6 +1414,11 @@ public class DDMFormDisplayContextTest {
 	}
 
 	private static final String _DEFAULT_LANGUAGE_ID = "es_ES";
+
+	private static final String _ESCAPED_REDIRECT_URL =
+		RandomTestUtil.randomString();
+
+	private static final String _REDIRECT_URL = RandomTestUtil.randomString();
 
 	private final DDMFormFieldOptionsFactory _ddmFormFieldOptionsFactory =
 		Mockito.mock(DDMFormFieldOptionsFactory.class);

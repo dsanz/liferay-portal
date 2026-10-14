@@ -64,6 +64,8 @@ describe('DeliveryGroupModal', () => {
 	const handleSubmit = jest.fn();
 
 	beforeEach(async () => {
+		fetchMock.mockGlobal();
+
 		fetchMock.get(
 			/headless-admin-address\/.*\/countries/i,
 			(): ICountryAPIResponse => {
@@ -124,7 +126,7 @@ describe('DeliveryGroupModal', () => {
 	});
 
 	afterEach(() => {
-		fetchMock.restore();
+		fetchMock.hardReset();
 		jest.clearAllMocks();
 
 		cleanup();

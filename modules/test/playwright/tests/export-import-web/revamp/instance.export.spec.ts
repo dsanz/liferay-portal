@@ -38,7 +38,7 @@ test(
 
 		await exportImportPage.export(name);
 
-		await expect(exportImportPage.taskStatusLabel(name)).toBeVisible();
+		await exportImportPage.taskStatusLabel(name).waitFor();
 
 		expect(await exportImportPage.download(name)).toBe(
 			`${getTempDir()}${name}.lar`

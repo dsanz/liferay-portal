@@ -31,6 +31,7 @@ import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.LayoutSetPrototype;
+import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
@@ -164,14 +165,14 @@ public class SiteResourceImpl
 				// an export import is not narrowed by a query parameter its
 				// caller happened to pass.
 
-				String[] siteExternalReferenceCodes =
-					_getSiteExternalReferenceCodes(portletDataContext);
+				String[] groupExternalReferenceCodes =
+					_getGroupExternalReferenceCodes(portletDataContext);
 
 				return HashMapBuilder.<String, Serializable>put(
 					_SELECTED_EXTERNAL_REFERENCE_CODES,
-					siteExternalReferenceCodes
+					groupExternalReferenceCodes
 				).put(
-					"externalReferenceCodes", siteExternalReferenceCodes
+					"externalReferenceCodes", groupExternalReferenceCodes
 				).build();
 			}
 
@@ -194,7 +195,7 @@ public class SiteResourceImpl
 				}
 
 				return ArrayUtil.isNotEmpty(
-					_getSiteExternalReferenceCodes(portletDataContext));
+					_getGroupExternalReferenceCodes(portletDataContext));
 			}
 
 			@Override
@@ -292,6 +293,13 @@ public class SiteResourceImpl
 			String externalReferenceCode, MultipartBody multipartBody)
 		throws Exception {
 
+		PermissionChecker permissionChecker =
+			PermissionThreadLocal.getPermissionChecker();
+
+		if (!permissionChecker.isCompanyAdmin()) {
+			throw new PrincipalException.MustBeCompanyAdmin(permissionChecker);
+		}
+
 		Group group = _groupLocalService.fetchGroupByExternalReferenceCode(
 			externalReferenceCode, contextCompany.getCompanyId());
 
@@ -315,8 +323,6 @@ public class SiteResourceImpl
 				group, multipartBody.getValueAsInstance("site", Site.class));
 		}
 
-		PermissionChecker permissionChecker =
-			PermissionThreadLocal.getPermissionChecker();
 		String name = PrincipalThreadLocal.getName();
 
 		File tempFile = FileUtil.createTempFile(
@@ -695,6 +701,20 @@ public class SiteResourceImpl
 		};
 	}
 
+	private String[] _getGroupExternalReferenceCodes(
+		PortletDataContext portletDataContext) {
+
+		Map<String, String[]> parameterMap =
+			portletDataContext.getParameterMap();
+
+		if (parameterMap == null) {
+			return new String[0];
+		}
+
+		return parameterMap.get(
+			PortletDataHandlerKeys.GROUP_EXTERNAL_REFERENCE_CODES);
+	}
+
 	private int _getMembershipRestriction(Integer membershipRestriction) {
 		if (membershipRestriction == null) {
 			return GroupConstants.DEFAULT_MEMBERSHIP_RESTRICTION;
@@ -830,7 +850,16 @@ public class SiteResourceImpl
 	private ServiceContext _getServiceContext() throws PortalException {
 		ServiceContext serviceContext = null;
 
-		if (contextHttpServletRequest != null) {
+		ServiceContext currentServiceContext =
+			ServiceContextThreadLocal.getServiceContext();
+
+		if ((currentServiceContext != null) &&
+			(currentServiceContext.getRequest() != null)) {
+
+			serviceContext = ServiceContextFactory.getInstance(
+				currentServiceContext.getRequest());
+		}
+		else if (contextHttpServletRequest != null) {
 			serviceContext = ServiceContextFactory.getInstance(
 				contextHttpServletRequest);
 		}
@@ -858,20 +887,6 @@ public class SiteResourceImpl
 		_initThemeDisplay();
 
 		return serviceContext;
-	}
-
-	private String[] _getSiteExternalReferenceCodes(
-		PortletDataContext portletDataContext) {
-
-		Map<String, String[]> parameterMap =
-			portletDataContext.getParameterMap();
-
-		if (parameterMap == null) {
-			return new String[0];
-		}
-
-		return parameterMap.get(
-			PortletDataHandlerKeys.SITE_EXTERNAL_REFERENCE_CODES);
 	}
 
 	private int _getType(Site.MembershipType membershipType) {

@@ -91,7 +91,8 @@ public class DDMFormViewFormInstanceRecordsDisplayContext {
 
 		portletDisplay.setShowBackIcon(true);
 
-		String redirect = ParamUtil.getString(renderRequest, "redirect");
+		String redirect = PortalUtil.escapeRedirect(
+			ParamUtil.getString(renderRequest, "redirect"));
 
 		if (Validator.isNull(redirect)) {
 			DDMFormAdminDisplayContext ddmFormAdminDisplayContext =
@@ -211,10 +212,6 @@ public class DDMFormViewFormInstanceRecordsDisplayContext {
 		return ddmFormValues.getDDMForm();
 	}
 
-	public List<DDMFormField> getDDMFormFields() {
-		return _ddmFormFields;
-	}
-
 	public Map<String, List<DDMFormFieldValue>> getDDMFormFieldValues(
 			DDMFormInstanceRecord ddmFormInstanceRecord)
 		throws PortalException {
@@ -222,6 +219,10 @@ public class DDMFormViewFormInstanceRecordsDisplayContext {
 		DDMFormValues ddmFormValues = _getDDMFormValues(ddmFormInstanceRecord);
 
 		return ddmFormValues.getDDMFormFieldValuesMap(true);
+	}
+
+	public List<DDMFormField> getDDMFormFields() {
+		return _ddmFormFields;
 	}
 
 	public DDMFormInstance getDDMFormInstance() {
@@ -606,9 +607,9 @@ public class DDMFormViewFormInstanceRecordsDisplayContext {
 
 	private static final int _MAX_COLUMNS = 5;
 
-	private final List<DDMFormField> _ddmFormFields = new ArrayList<>();
 	private final DDMFormFieldTypeServicesRegistry
 		_ddmFormFieldTypeServicesRegistry;
+	private final List<DDMFormField> _ddmFormFields = new ArrayList<>();
 	private final DDMFormInstance _ddmFormInstance;
 	private final DDMFormInstanceRecordLocalService
 		_ddmFormInstanceRecordLocalService;

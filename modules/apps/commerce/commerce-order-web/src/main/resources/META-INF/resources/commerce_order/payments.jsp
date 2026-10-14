@@ -139,7 +139,6 @@ CommerceOrder commerceOrder = commerceOrderEditDisplayContext.getCommerceOrder()
 				%>'
 				dataProviderKey="<%= CommerceOrderFDSNames.REFUNDS %>"
 				id="<%= CommerceOrderFDSNames.REFUNDS %>"
-				showSearch="<%= false %>"
 			/>
 		</commerce-ui:panel>
 	</div>

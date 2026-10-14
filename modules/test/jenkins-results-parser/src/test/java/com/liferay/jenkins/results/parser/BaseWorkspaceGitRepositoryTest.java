@@ -664,7 +664,7 @@ public class BaseWorkspaceGitRepositoryTest
 			try {
 				defaultWorkspaceGitRepository.getGitWorkingDirectory();
 
-				Assert.fail("Expected RuntimeException");
+				Assert.fail();
 			}
 			catch (RuntimeException runtimeException) {
 				testEquals(
@@ -817,7 +817,7 @@ public class BaseWorkspaceGitRepositoryTest
 				defaultWorkspaceGitRepository.partitionLocalGitCommits(
 					localGitCommits, count);
 
-				Assert.fail("Expected IllegalArgumentException");
+				Assert.fail();
 			}
 			catch (IllegalArgumentException illegalArgumentException) {
 				testEquals(
@@ -998,7 +998,7 @@ public class BaseWorkspaceGitRepositoryTest
 		try {
 			defaultWorkspaceGitRepository.setUp();
 
-			Assert.fail("Expected RuntimeException");
+			Assert.fail();
 		}
 		catch (RuntimeException runtimeException) {
 			testSame(ioException, runtimeException.getCause());

@@ -20,6 +20,7 @@ type TDocument = {
 	contentUrl?: string;
 	description?: string;
 	documentFolderId?: number;
+	documentType?: {name: string};
 	externalReferenceCode?: string;
 	fileName?: string;
 	id?: number;
@@ -218,6 +219,7 @@ export class HeadlessDeliveryApiHelper {
 			articleBody?: string;
 			headline?: string;
 			keywords?: string[];
+			taxonomyCategoryIds?: number[];
 		}
 	): Promise<any> {
 		blog = {
@@ -261,11 +263,13 @@ export class HeadlessDeliveryApiHelper {
 	async postSiteKnowledgeBaseArticle({
 		articleBody,
 		siteId,
+		taxonomyCategoryIds,
 		title,
 		viewableBy,
 	}: {
 		articleBody: string;
 		siteId: string;
+		taxonomyCategoryIds?: number[];
 		title: string;
 		viewableBy?: string;
 	}): Promise<KnowledgeBaseArticle> {
@@ -274,6 +278,7 @@ export class HeadlessDeliveryApiHelper {
 			{
 				data: {
 					articleBody,
+					taxonomyCategoryIds,
 					title,
 					viewableBy,
 				},
@@ -418,7 +423,12 @@ export class HeadlessDeliveryApiHelper {
 		viewableBy = '',
 	}: {
 		categoryIds?: number[];
-		contentFields?: {contentFieldValue: {data: string}; name: string}[];
+		contentFields?: {
+			contentFieldValue:
+				| {data: string}
+				| {geo: {latitude: number; longitude: number}};
+			name: string;
+		}[];
 		contentStructureId: number;
 		datePublished: string;
 		description?: string;
@@ -590,6 +600,30 @@ export class HeadlessDeliveryApiHelper {
 			`document-folders/${documentFolderId}`,
 			file,
 			document
+		);
+	}
+
+	async postDocumentFolderDocumentFolder(
+		parentDocumentFolderId: number | string,
+		documentFolder?: TDocumentFolder
+	) {
+		documentFolder = {
+			description: getRandomString(),
+			externalReferenceCode: getRandomString(),
+			name: getRandomString(),
+			viewableBy: 'Anyone',
+			...(documentFolder || {}),
+		};
+
+		return this.apiHelpers.post(
+			`${this.apiHelpers.baseUrl}${this.basePath}/document-folders/${parentDocumentFolderId}/document-folders`,
+			{
+				data: documentFolder,
+				failOnStatusCode: true,
+				headers: {
+					...(await this.apiHelpers.getCSRFTokenHeader()),
+				},
+			}
 		);
 	}
 

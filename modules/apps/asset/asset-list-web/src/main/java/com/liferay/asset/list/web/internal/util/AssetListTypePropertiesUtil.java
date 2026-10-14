@@ -12,9 +12,7 @@ import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectField;
 import com.liferay.object.model.bag.ObjectFieldBag;
 import com.liferay.object.service.ObjectDefinitionLocalServiceUtil;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.json.JSONArray;
-import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
@@ -23,6 +21,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.Validator;
 
 import java.util.List;
 import java.util.Locale;
@@ -33,31 +32,18 @@ import java.util.Locale;
 public class AssetListTypePropertiesUtil {
 
 	public static JSONArray getTypePropertiesJSONArray(
-		long[] classNameIds, long[] classTypeIds, long companyId,
-		Locale locale) {
+		long[] classNameIds, long companyId, Locale locale) {
 
-		JSONArray jsonArray = JSONFactoryUtil.createJSONArray();
-
-		if (!FeatureFlagManagerUtil.isEnabled(companyId, "LPD-74731")) {
-			return jsonArray;
-		}
-
-		jsonArray.put(
+		JSONArray jsonArray = JSONUtil.put(
 			JSONUtil.put(
 				"items", _getCommonFieldsItemsJSONArray(locale)
 			).put(
 				"label", LanguageUtil.get(locale, "common-fields")
 			));
 
-		for (int i = 0; i < classNameIds.length; i++) {
-			long classTypeId = 0;
-
-			if (i < classTypeIds.length) {
-				classTypeId = classTypeIds[i];
-			}
-
+		for (long classNameId : classNameIds) {
 			ObjectDefinition objectDefinition = _fetchObjectDefinition(
-				classNameIds[i], companyId);
+				classNameId, companyId);
 
 			if (objectDefinition == null) {
 				continue;
@@ -70,7 +56,7 @@ public class AssetListTypePropertiesUtil {
 				JSONUtil.put(
 					"items",
 					_getItemsJSONArray(
-						classNameIds[i], classTypeId, locale,
+						locale, objectDefinition.getExternalReferenceCode(),
 						objectFieldBag.getNestedIndexedObjectFields())
 				).put(
 					"label", objectDefinition.getLabel(locale, true)
@@ -87,9 +73,14 @@ public class AssetListTypePropertiesUtil {
 			return null;
 		}
 
+		String className = PortalUtil.fetchClassName(classNameId);
+
+		if (Validator.isNull(className)) {
+			return null;
+		}
+
 		return ObjectDefinitionLocalServiceUtil.
-			fetchObjectDefinitionByClassName(
-				companyId, PortalUtil.getClassName(classNameId));
+			fetchObjectDefinitionByClassName(companyId, className);
 	}
 
 	private static JSONObject _getCommonFieldJSONObject(
@@ -120,7 +111,7 @@ public class AssetListTypePropertiesUtil {
 				"expiration-date", locale, Field.EXPIRATION_DATE, "date"),
 			_getCommonFieldJSONObject(
 				"external-reference-code", locale, "externalReferenceCode",
-				"text"),
+				"keyword"),
 			_getCommonFieldJSONObject(
 				"modified-date", locale, Field.MODIFIED_DATE, "date"),
 			_getCommonFieldJSONObject(
@@ -129,44 +120,42 @@ public class AssetListTypePropertiesUtil {
 				"publish-date", locale, Field.PUBLISH_DATE, "date"),
 			_getCommonFieldJSONObject(
 				"review-date", locale, Field.REVIEW_DATE, "date"),
-			_getCommonFieldJSONObject(
-				"status", locale, Field.STATUS, "integer"),
 			_getCommonFieldJSONObject("title", locale, Field.TITLE, "text"),
 			_getCommonFieldJSONObject(
 				"view-count", locale, "viewCount", "integer"));
 	}
 
 	private static JSONArray _getItemsJSONArray(
-		long classNameId, long classTypeId, Locale locale,
+		Locale locale, String objectDefinitionExternalReferenceCode,
 		List<ObjectField> objectFields) {
 
 		return JSONUtil.toJSONArray(
 			objectFields,
 			objectField -> {
-				String type = _toType(objectField.getBusinessType());
+				String type = _toType(objectField);
 
 				if (type == null) {
 					return null;
 				}
 
 				return _getPropertyJSONObject(
-					classNameId, classTypeId, locale, objectField, type);
+					locale, objectDefinitionExternalReferenceCode, objectField,
+					type);
 			},
 			_log);
 	}
 
 	private static JSONObject _getPropertyJSONObject(
-		long classNameId, long classTypeId, Locale locale,
+		Locale locale, String objectDefinitionExternalReferenceCode,
 		ObjectField objectField, String type) {
 
 		return JSONUtil.put(
-			"classNameId", classNameId
-		).put(
-			"classTypeId", classTypeId
-		).put(
 			"label", objectField.getLabel(locale, true)
 		).put(
 			"name", objectField.getName()
+		).put(
+			"objectDefinitionExternalReferenceCode",
+			objectDefinitionExternalReferenceCode
 		).put(
 			"options",
 			() -> {
@@ -205,7 +194,9 @@ public class AssetListTypePropertiesUtil {
 		return true;
 	}
 
-	private static String _toType(String businessType) {
+	private static String _toType(ObjectField objectField) {
+		String businessType = objectField.getBusinessType();
+
 		if (businessType == null) {
 			return null;
 		}
@@ -241,6 +232,10 @@ public class AssetListTypePropertiesUtil {
 				ObjectFieldConstants.BUSINESS_TYPE_PHONE_NUMBER) ||
 			businessType.equals(ObjectFieldConstants.BUSINESS_TYPE_RICH_TEXT) ||
 			businessType.equals(ObjectFieldConstants.BUSINESS_TYPE_TEXT)) {
+
+			if (objectField.isIndexedAsKeyword()) {
+				return "keyword";
+			}
 
 			return "text";
 		}

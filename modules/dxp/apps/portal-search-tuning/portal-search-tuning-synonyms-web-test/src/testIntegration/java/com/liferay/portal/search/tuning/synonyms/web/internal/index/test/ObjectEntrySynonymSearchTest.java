@@ -118,8 +118,8 @@ public class ObjectEntrySynonymSearchTest {
 	private ObjectDefinition _addObjectDefinition(User user) throws Exception {
 		ObjectDefinition objectDefinition =
 			_objectDefinitionLocalService.addCustomObjectDefinition(
-				null, user.getUserId(), 0, null, true, false, true, false, true,
-				false, false, false, false, null,
+				null, user.getUserId(), 0, null, null, true, false, true, false,
+				true, false, false, false, false, null,
 				LocalizedMapUtil.getLocalizedMap(
 					ObjectDefinitionTestUtil.getRandomName()),
 				ObjectDefinitionTestUtil.getRandomName(), null, null,
@@ -250,9 +250,9 @@ public class ObjectEntrySynonymSearchTest {
 	private ObjectEntryLocalService _objectEntryLocalService;
 
 	@Inject
-	private Searcher _searcher;
+	private SearchRequestBuilderFactory _searchRequestBuilderFactory;
 
 	@Inject
-	private SearchRequestBuilderFactory _searchRequestBuilderFactory;
+	private Searcher _searcher;
 
 }

@@ -9,8 +9,8 @@ import com.liferay.asset.kernel.AssetRendererFactoryRegistryUtil;
 import com.liferay.asset.kernel.model.AssetRendererFactory;
 import com.liferay.asset.kernel.model.ClassType;
 import com.liferay.asset.kernel.model.ClassTypeReader;
+import com.liferay.document.library.helper.DLURLHelper;
 import com.liferay.document.library.kernel.service.DLAppService;
-import com.liferay.document.library.util.DLURLHelper;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.SelectOption;
 import com.liferay.info.exception.NoSuchFormVariationException;
 import com.liferay.info.form.InfoForm;
@@ -442,34 +442,6 @@ public class LayoutsSEODisplayContext {
 		).buildPortletURL();
 	}
 
-	public Group getSelGroup() {
-		return _groupDisplayContextHelper.getSelGroup();
-	}
-
-	public Layout getSelLayout() {
-		if (_selLayout != null) {
-			return _selLayout;
-		}
-
-		if (_getSelPlid() != LayoutConstants.DEFAULT_PLID) {
-			_selLayout = LayoutLocalServiceUtil.fetchLayout(_getSelPlid());
-		}
-
-		return _selLayout;
-	}
-
-	public LayoutSEOEntry getSelLayoutSEOEntry() {
-		Layout layout = getSelLayout();
-
-		if (layout == null) {
-			return null;
-		}
-
-		return LayoutSEOEntryLocalServiceUtil.fetchLayoutSEOEntry(
-			layout.getGroupId(), layout.isPrivateLayout(),
-			layout.getLayoutId());
-	}
-
 	public Map<String, Object> getSEOMappingData() throws PortalException {
 		return HashMapBuilder.<String, Object>putAll(
 			_getBaseSEOMappingData()
@@ -525,6 +497,34 @@ public class LayoutsSEODisplayContext {
 		).put(
 			"titleSuffix", getPageTitleSuffix()
 		).build();
+	}
+
+	public Group getSelGroup() {
+		return _groupDisplayContextHelper.getSelGroup();
+	}
+
+	public Layout getSelLayout() {
+		if (_selLayout != null) {
+			return _selLayout;
+		}
+
+		if (_getSelPlid() != LayoutConstants.DEFAULT_PLID) {
+			_selLayout = LayoutLocalServiceUtil.fetchLayout(_getSelPlid());
+		}
+
+		return _selLayout;
+	}
+
+	public LayoutSEOEntry getSelLayoutSEOEntry() {
+		Layout layout = getSelLayout();
+
+		if (layout == null) {
+			return null;
+		}
+
+		return LayoutSEOEntryLocalServiceUtil.fetchLayoutSEOEntry(
+			layout.getGroupId(), layout.isPrivateLayout(),
+			layout.getLayoutId());
 	}
 
 	public List<SelectOption> getSitemapChangeFrequencySelectOptions() {

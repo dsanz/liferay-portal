@@ -8,8 +8,12 @@ package com.liferay.jenkins.results.parser.monitor;
 import com.liferay.jenkins.results.parser.JenkinsResultsParserUtil;
 import com.liferay.jenkins.results.parser.RandomTestUtil;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -41,7 +45,7 @@ public class MonitorEngineTest extends com.liferay.jenkins.results.parser.Test {
 					new TestMonitor(_newMonitorConfig("a")),
 					new TestMonitor(_newMonitorConfig("a"))));
 
-			Assert.fail("Expected IllegalArgumentException");
+			Assert.fail();
 		}
 		catch (IllegalArgumentException illegalArgumentException) {
 		}
@@ -196,14 +200,31 @@ public class MonitorEngineTest extends com.liferay.jenkins.results.parser.Test {
 			new MonitorResultStore(),
 			Arrays.<Monitor>asList(failingTestMonitor, testMonitor));
 
-		Map<Monitor, MonitorResult> monitorResultsMap =
-			monitorEngine.runCycle();
+		PrintStream printStream = System.out;
+
+		ByteArrayOutputStream byteArrayOutputStream =
+			new ByteArrayOutputStream();
+
+		System.setOut(new PrintStream(byteArrayOutputStream, true));
+
+		try {
+			Map<Monitor, MonitorResult> monitorResultsMap =
+				monitorEngine.runCycle();
+
+			testEquals(2, monitorResultsMap.size());
+		}
+		finally {
+			System.setOut(printStream);
+		}
 
 		Mockito.verify(
 			testMonitor
 		).prepareCycle();
 
-		testEquals(2, monitorResultsMap.size());
+		testEquals(
+			"WARNING: Unable to prepare monitor a: " +
+				"java.lang.RuntimeException\n",
+			byteArrayOutputStream.toString());
 	}
 
 	@Test(timeout = 10000)
@@ -221,6 +242,48 @@ public class MonitorEngineTest extends com.liferay.jenkins.results.parser.Test {
 			monitorEngine.runCycle();
 
 		testEquals(1, monitorResultsMap.size());
+	}
+
+	@Test(timeout = 10000)
+	public void testRunCycleKeepsDurationMillis() {
+		MonitorResultStore monitorResultStore = new MonitorResultStore();
+
+		TestMonitor testMonitor = new TestMonitor(
+			_newMonitorConfig(RandomTestUtil.randomString(), 10, 0)) {
+
+			@Override
+			public MonitorResult execute() {
+				try {
+					Thread.sleep(200);
+				}
+				catch (InterruptedException interruptedException) {
+					throw new RuntimeException(interruptedException);
+				}
+
+				return super.execute();
+			}
+
+		};
+
+		MonitorEngine monitorEngine = new MonitorEngine(
+			monitorResultStore,
+			Collections.<Monitor>singletonList(testMonitor));
+
+		Map<Monitor, MonitorResult> monitorResultsMap =
+			monitorEngine.runCycle();
+
+		MonitorResult monitorResult = monitorResultsMap.get(testMonitor);
+
+		Assert.assertTrue(
+			String.valueOf(monitorResult.getDurationMillis()),
+			monitorResult.getDurationMillis() >= 200);
+
+		monitorResult = monitorResultStore.getLatestMonitorResult(
+			testMonitor.getId());
+
+		Assert.assertTrue(
+			String.valueOf(monitorResult.getDurationMillis()),
+			monitorResult.getDurationMillis() >= 200);
 	}
 
 	@Test

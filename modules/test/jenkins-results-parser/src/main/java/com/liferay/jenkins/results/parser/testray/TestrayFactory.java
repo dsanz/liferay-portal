@@ -6,10 +6,13 @@
 package com.liferay.jenkins.results.parser.testray;
 
 import com.liferay.jenkins.results.parser.Build;
+import com.liferay.jenkins.results.parser.BuildDatabase;
 import com.liferay.jenkins.results.parser.JenkinsResultsParserUtil;
 import com.liferay.jenkins.results.parser.Retryable;
+import com.liferay.jenkins.results.parser.TopLevelBuild;
 import com.liferay.jenkins.results.parser.TopLevelBuildReport;
 import com.liferay.jenkins.results.parser.test.clazz.BaseAntTargetTestClass;
+import com.liferay.jenkins.results.parser.test.clazz.SemVerModulesTestClass;
 import com.liferay.jenkins.results.parser.test.clazz.TestClass;
 import com.liferay.jenkins.results.parser.test.clazz.TestClassMethod;
 import com.liferay.jenkins.results.parser.test.clazz.group.AxisTestClassGroup;
@@ -18,6 +21,7 @@ import com.liferay.jenkins.results.parser.test.clazz.group.JSUnitAxisTestClassGr
 import com.liferay.jenkins.results.parser.test.clazz.group.JUnitAxisTestClassGroup;
 import com.liferay.jenkins.results.parser.test.clazz.group.ModulesAxisTestClassGroup;
 import com.liferay.jenkins.results.parser.test.clazz.group.PlaywrightAxisTestClassGroup;
+import com.liferay.jenkins.results.parser.test.clazz.group.WorkspacesCompileAxisTestClassGroup;
 
 import java.io.IOException;
 
@@ -64,8 +68,8 @@ public class TestrayFactory {
 			}
 			else if (axisTestClassGroup instanceof JSUnitAxisTestClassGroup) {
 				return new JSUnitBatchBuildTestrayCaseResult(
-					axisTestClassGroup, testClass, testrayBuild,
-					topLevelBuildReport);
+					axisTestClassGroup, testClass, testClassMethod,
+					testrayBuild, topLevelBuildReport);
 			}
 			else if (axisTestClassGroup instanceof JUnitAxisTestClassGroup) {
 				return new JUnitBatchBuildTestrayCaseResult(
@@ -75,6 +79,12 @@ public class TestrayFactory {
 			else if (axisTestClassGroup instanceof ModulesAxisTestClassGroup) {
 				if (testClass instanceof BaseAntTargetTestClass) {
 					return new AntTargetBatchBuildTestrayCaseResult(
+						axisTestClassGroup, testClass, testrayBuild,
+						topLevelBuildReport);
+				}
+
+				if (testClass instanceof SemVerModulesTestClass) {
+					return new SemVerModulesBatchBuildTestrayCaseResult(
 						axisTestClassGroup, testClass, testrayBuild,
 						topLevelBuildReport);
 				}
@@ -89,6 +99,13 @@ public class TestrayFactory {
 				return new PlaywrightBatchBuildTestrayCaseResult(
 					axisTestClassGroup, testClass, testClassMethod,
 					testrayBuild, topLevelBuildReport);
+			}
+			else if (axisTestClassGroup instanceof
+						WorkspacesCompileAxisTestClassGroup) {
+
+				return new WorkspacesCompileBatchBuildTestrayCaseResult(
+					axisTestClassGroup, testClass, testrayBuild,
+					topLevelBuildReport);
 			}
 		}
 
@@ -456,6 +473,19 @@ public class TestrayFactory {
 		return new TestrayComponent(testrayProject, jsonObject);
 	}
 
+	public static TestrayContext newTestrayContext(
+		BuildDatabase buildDatabase, TopLevelBuild topLevelBuild) {
+
+		return new BuildTestrayContext(buildDatabase, topLevelBuild);
+	}
+
+	public static TestrayContext newTestrayContext(
+		BuildDatabase buildDatabase, TopLevelBuildReport topLevelBuildReport) {
+
+		return new BuildReportTestrayContext(
+			buildDatabase, topLevelBuildReport);
+	}
+
 	public static TestrayFactor.Category newTestrayFactorCategory(
 		JSONObject jsonObject, TestrayServer testrayServer) {
 
@@ -786,6 +816,23 @@ public class TestrayFactory {
 				testrayBuild, topLevelBuildReport));
 
 		return _topLevelBuildTestrayCaseResults.get(testrayBuildId);
+	}
+
+	public static TopLevelStandaloneBuildTestrayCaseResult
+		newTopLevelStandaloneBuildTestrayCaseResult(
+			TestrayCaseResult.Status status, TestrayBuild testrayBuild,
+			TopLevelBuildReport topLevelBuildReport) {
+
+		if (testrayBuild == null) {
+			throw new RuntimeException("Please set a Testray build");
+		}
+
+		if (topLevelBuildReport == null) {
+			throw new RuntimeException("Please set a top level build report");
+		}
+
+		return new TopLevelStandaloneBuildTestrayCaseResult(
+			status, testrayBuild, topLevelBuildReport);
 	}
 
 	private static final Map<String, RunTestrayFactor> _runTestrayFactors =

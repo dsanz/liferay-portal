@@ -30,6 +30,11 @@ public interface ExportImportPortletPreferencesProcessorHelper {
 			Function<String, String> exportPortletPreferencesNewValueFunction)
 		throws Exception;
 
+	public void updateExportPortletPreferencesClassPKs(
+			PortletPreferences portletPreferences, String key, String className,
+			Function<String, String> exportPortletPreferencesNewValueFunction)
+		throws Exception;
+
 	public void updateGroupExportPortletPreferencesExternalReferenceCode(
 			long companyId, String externalReferenceCodePreferenceKey,
 			PortletPreferences portletPreferences)
@@ -39,6 +44,11 @@ public interface ExportImportPortletPreferencesProcessorHelper {
 			PortletDataContext portletDataContext,
 			PortletPreferences portletPreferences, String key,
 			long companyGroupId,
+			Function<String, Long> importPortletPreferencesNewValueFunction)
+		throws Exception;
+
+	public void updateImportPortletPreferencesClassPKs(
+			PortletPreferences portletPreferences, String key,
 			Function<String, Long> importPortletPreferencesNewValueFunction)
 		throws Exception;
 

@@ -63,7 +63,8 @@
 							document.<portlet:namespace />exportPagesFm,
 							{
 								data: {
-									<%= Constants.CMD %>: '<%= scheduleCMD %>',
+									<%= Constants.CMD %>:
+										'<%= HtmlUtil.escapeJS(scheduleCMD) %>',
 
 									<portlet:renderURL var="scheduledPublicationRedirectURL">
 									<portlet:param name="mvcPath" value="/view.jsp" />
@@ -82,7 +83,7 @@
 		else {
 			Liferay.Util.postForm(document.<portlet:namespace />exportPagesFm, {
 				data: {
-					<%= Constants.CMD %>: '<%= scheduleCMD %>',
+					<%= Constants.CMD %>: '<%= HtmlUtil.escapeJS(scheduleCMD) %>',
 
 					<portlet:renderURL var="scheduledPublicationRedirectURL">
 					<portlet:param name="mvcPath" value="/view.jsp" />

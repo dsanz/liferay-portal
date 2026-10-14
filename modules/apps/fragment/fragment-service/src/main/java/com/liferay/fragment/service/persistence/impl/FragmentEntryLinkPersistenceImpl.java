@@ -2708,6 +2708,9 @@ public class FragmentEntryLinkPersistenceImpl
 		}
 		else {
 			if (!Objects.equals(
+					fragmentEntryLink.getUuid(),
+					fragmentEntryLink.getExternalReferenceCode()) &&
+				!Objects.equals(
 					fragmentEntryLinkModelImpl.getColumnOriginalValue(
 						"externalReferenceCode"),
 					fragmentEntryLink.getExternalReferenceCode())) {
@@ -3994,4 +3997,4 @@ public class FragmentEntryLinkPersistenceImpl
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-911053134
+// LIFERAY-SERVICE-BUILDER-HASH:1565595387

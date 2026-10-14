@@ -1,7 +1,7 @@
 import ActivityChartEmptyState from 'shared/components/ActivityChartEmptyState';
 import ActivityStreamCard from 'shared/components/ActivityStreamCard';
 import ActivityStreamNoResults from 'shared/components/ActivityStreamNoResults';
-import ClayIcon from '@clayui/icon';
+import ClayIcon from 'shared/components/Icon';
 import ClayLink from '@clayui/link';
 import EventMetricQuery, {
 	EventMetricsData,
@@ -22,6 +22,9 @@ import {fetchPolicyDefinition} from 'shared/util/graphql';
 import {
 	formatSessions,
 	mapEventMetricToActivityHistory,
+	buildCampaignUrls,
+	buildTouchIndividualUrls,
+	mergeCampaignDays,
 } from 'shared/util/activities';
 import {getSafeRangeSelectors} from 'shared/util/util';
 import {getSessionsDateRange} from 'shared/util/activityDateRange';
@@ -29,8 +32,8 @@ import {Individual} from 'shared/util/records';
 import {Interval, RangeSelectors} from 'shared/types';
 import {mapListResultsToProps} from 'shared/util/mappers';
 import {SessionEntityTypes} from 'shared/util/constants';
-import {sub} from 'shared/util/lang';
 import {useParams} from 'react-router-dom';
+import {useCampaignTouchesByDay} from 'shared/hooks/useCampaignTouchesByDay';
 import {useQuery} from '@apollo/client';
 import {useSelectedPoint} from 'shared/hooks/useSelectedPoint';
 import {getDateRangeLabel, getDateRangeLabelFromDate} from 'shared/util/date';
@@ -113,6 +116,19 @@ const ProfileCardWithDataCDP: React.FC<IProfileCardWithDataCDPProps> = ({
 		}
 	);
 
+	const campaignTouches = useCampaignTouchesByDay({
+		channelId,
+		entityId,
+		entityType: SessionEntityTypes.Individual,
+		keywords: query,
+		...getSessionsDateRange({
+			activityHistory,
+			interval,
+			rangeSelectors,
+			selectedPoint,
+		}),
+	});
+
 	const sessionsResponse = useQuery<UserSessionData, UserSessionVariables>(
 		UserSessionQuery,
 		{
@@ -139,12 +155,24 @@ const ProfileCardWithDataCDP: React.FC<IProfileCardWithDataCDPProps> = ({
 			mapListResultsToProps(
 				sessionsResponse,
 				({eventsByUserSessions}) => ({
-					items: formatSessions(
-						eventsByUserSessions?.userSessions ?? [],
+					items: mergeCampaignDays(
+						formatSessions(
+							eventsByUserSessions?.userSessions ?? [],
+							{
+								channelId,
+								groupId,
+								rangeSelectors,
+								timeZoneId,
+							}
+						),
+						campaignTouches.days,
 						{
-							channelId,
-							groupId,
-							rangeSelectors,
+							isFirstPage: page === 1,
+							isLastPage:
+								page * delta >=
+								(eventsByUserSessions?.totalPageGroupsMetric
+									?.value ?? 0),
+							timeZoneId,
 						}
 					),
 					total:
@@ -155,10 +183,33 @@ const ProfileCardWithDataCDP: React.FC<IProfileCardWithDataCDPProps> = ({
 			sessionsResponse.data,
 			sessionsResponse.error,
 			sessionsResponse.loading,
+			campaignTouches.days,
 			channelId,
+			delta,
+			page,
 			groupId,
 			rangeSelectors,
+			timeZoneId,
 		]
+	);
+
+	const {
+		onCampaignDeltaChange: handleCampaignDeltaChange,
+		onCampaignPageChange: handleCampaignPageChange,
+	} = campaignTouches;
+
+	const individualUrls = useMemo(
+		() =>
+			buildTouchIndividualUrls(campaignTouches.days, {
+				channelId,
+				groupId,
+			}),
+		[campaignTouches.days, channelId, groupId]
+	);
+
+	const campaignUrls = useMemo(
+		() => buildCampaignUrls(campaignTouches.days, {channelId, groupId}),
+		[campaignTouches.days, channelId, groupId]
 	);
 
 	const handleChangeSelection = (index: number | null) => {
@@ -191,6 +242,8 @@ const ProfileCardWithDataCDP: React.FC<IProfileCardWithDataCDPProps> = ({
 	return (
 		<ActivityStreamCard
 			activityHistory={activityHistory}
+			campaignDays={campaignTouches.days}
+			campaignUrls={campaignUrls}
 			chartError={error}
 			chartLoading={loading}
 			delta={delta}
@@ -205,16 +258,8 @@ const ProfileCardWithDataCDP: React.FC<IProfileCardWithDataCDPProps> = ({
 					)}
 				/>
 			}
-			footerLabel={
-				activityHistory?.length
-					? sub(
-							Liferay.Language.get(
-								'the-individual-performed-the-events-during-x'
-							),
-							[date]
-						)
-					: Liferay.Language.get('individuals-events')
-			}
+			footerLabel={activityHistory?.length ? date : ''}
+			individualUrls={individualUrls}
 			interval={interval}
 			noResultsRenderer={
 				<ActivityStreamNoResults
@@ -226,7 +271,7 @@ const ProfileCardWithDataCDP: React.FC<IProfileCardWithDataCDPProps> = ({
 								<>
 									<span>
 										{Liferay.Language.get(
-											'check-back-later-to-see-if-data-has-been-received-from-your-data-sources,-or-try-a-different-date-range'
+											'check-back-later-to-verify-if-data-has-been-received-from-your-data-sources,-or-you-can-try-a-different-date-range'
 										)}
 									</span>
 
@@ -253,12 +298,16 @@ const ProfileCardWithDataCDP: React.FC<IProfileCardWithDataCDPProps> = ({
 								</>
 							}
 							spacer
-							title={Liferay.Language.get('no-data-was-found')}
+							title={Liferay.Language.get(
+								'there-is-no-activity-on-the-selected-period'
+							)}
 						/>
 					}
 					onClearSearch={handleClearSearch}
 				/>
 			}
+			onCampaignDeltaChange={handleCampaignDeltaChange}
+			onCampaignPageChange={handleCampaignPageChange}
 			onChartReload={refetch}
 			onClearDateSelection={() => handleChangeSelection(null)}
 			onDeltaChange={onDeltaChange}

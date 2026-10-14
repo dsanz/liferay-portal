@@ -1,0 +1,317 @@
+{{- $backupRestoreRoleArn := dig "backup-restore-role" "resource" "status" "atProvider" "arn" "" $observedResources -}}
+{{- $liferayRoleArn := dig "liferay-role" "resource" "status" "atProvider" "arn" "" $observedResources -}}
+{{- $observedSearch := dig "search" (dict) $observedResources -}}
+{{- $observedStorage := dig (printf "storage-%s" $activeDataPlane) (dict) $observedResources -}}
+
+{{- $doclibBucketName := dig "resource" "metadata" "annotations" "crossplane.io/external-name" "" $observedStorage | toString -}}
+{{- $searchEndpoint := dig "resource" "status" "atProvider" "endpoint" "" $observedSearch | toString -}}
+{{- $searchPassword := dig "connectionDetails" "attribute.advanced_security_options.0.master_user_options.0.master_user_password" "" $observedSearch | toString | b64dec -}}
+
+{{- $isDatabaseBootstrapped := false -}}
+{{- range $condition := dig (printf "database-bootstrap-job-%s" $activeDataPlane) "resource" "status" "conditions" (list) $observedResources -}}
+    {{- if and (eq $condition.type "Ready") (eq $condition.status "True") -}}
+        {{- $isDatabaseBootstrapped = true -}}
+    {{- end -}}
+{{- end -}}
+
+{{- $isDatabaseReady := and (ne $activeDatabaseAddress "") $isDatabaseBootstrapped -}}
+{{- $isDoclibReady := ne $doclibBucketName "" -}}
+{{- $isSearchReady := or (not $opensearchEnabled) (and (ne $searchEndpoint "") (ne $searchPassword "")) }}
+{{- if $liferayRoleArn }}
+apiVersion: kubernetes.m.crossplane.io/v1alpha1
+kind: Object
+metadata:
+    annotations:
+        gotemplating.fn.crossplane.io/composition-resource-name: liferay-service-account
+    labels:
+        app: liferay
+        component: liferay-role
+        environmentId: {{ $environmentId }}
+        projectId: {{ $projectId }}
+    name: {{ $baseName }}-liferay-service-account
+    namespace: {{ $namespace }}
+spec:
+    forProvider:
+        manifest:
+            apiVersion: v1
+            kind: ServiceAccount
+            metadata:
+                annotations:
+                    eks.amazonaws.com/role-arn: {{ $liferayRoleArn }}
+                labels:
+                    app: liferay
+                    component: liferay-role
+                    environmentId: {{ $environmentId }}
+                    projectId: {{ $projectId }}
+                name: liferay-default
+                namespace: {{ $namespace }}
+    managementPolicies: {{ $managementPolicies }}
+{{- end }}
+{{- if $backup.enabled }}
+---
+apiVersion: kubernetes.m.crossplane.io/v1alpha1
+kind: Object
+metadata:
+    annotations:
+        gotemplating.fn.crossplane.io/composition-resource-name: backup-restore-role-binding
+    labels:
+        app: liferay
+        component: backup-restore-role
+        environmentId: {{ $environmentId }}
+        projectId: {{ $projectId }}
+    name: {{ $baseName }}-backup-restore-role-binding
+    namespace: {{ $namespace }}
+spec:
+    forProvider:
+        manifest:
+            apiVersion: rbac.authorization.k8s.io/v1
+            kind: RoleBinding
+            metadata:
+                labels:
+                    app: liferay
+                    component: backup-restore-role
+                    environmentId: {{ $environmentId }}
+                    projectId: {{ $projectId }}
+                name: backup-restore-role-binding
+                namespace: {{ $namespace }}
+            roleRef:
+                apiGroup: rbac.authorization.k8s.io
+                kind: ClusterRole
+                name: backup-restore-cluster-role
+            subjects:
+                -   kind: ServiceAccount
+                    name: backup-restore-service-account
+                    namespace: {{ $namespace }}
+    managementPolicies: {{ $managementPolicies }}
+{{- if $backupRestoreRoleArn }}
+---
+apiVersion: kubernetes.m.crossplane.io/v1alpha1
+kind: Object
+metadata:
+    annotations:
+        gotemplating.fn.crossplane.io/composition-resource-name: backup-restore-service-account
+    labels:
+        app: liferay
+        component: backup-restore-role
+        environmentId: {{ $environmentId }}
+        projectId: {{ $projectId }}
+    name: {{ $baseName }}-backup-restore-service-account
+    namespace: {{ $namespace }}
+spec:
+    forProvider:
+        manifest:
+            apiVersion: v1
+            kind: ServiceAccount
+            metadata:
+                annotations:
+                    eks.amazonaws.com/role-arn: {{ $backupRestoreRoleArn }}
+                labels:
+                    app: liferay
+                    component: backup-restore-role
+                    environmentId: {{ $environmentId }}
+                    projectId: {{ $projectId }}
+                name: backup-restore-service-account
+                namespace: {{ $namespace }}
+    managementPolicies: {{ $managementPolicies }}
+{{- end }}
+{{- end }}
+{{- if $opensearchEnabled }}
+---
+apiVersion: kubernetes.m.crossplane.io/v1alpha1
+kind: Object
+metadata:
+    annotations:
+        crossplane.io/external-name: {{ $baseName }}-search-password-secret
+        gotemplating.fn.crossplane.io/composition-resource-name: search-password-secret
+    labels:
+        app: liferay
+        component: search-password-secret
+        environmentId: {{ $environmentId }}
+        projectId: {{ $projectId }}
+    name: {{ $searchName }}-password-secret
+    namespace: {{ $namespace }}
+spec:
+    forProvider:
+        manifest:
+            apiVersion: v1
+            kind: Secret
+            metadata:
+                labels:
+                    app: liferay
+                    component: search-password-secret
+                    environmentId: {{ $environmentId }}
+                    projectId: {{ $projectId }}
+                name: liferay-search-password
+                namespace: {{ $namespace }}
+            stringData:
+                password: {{ print (randAlphaNum 16) "!#%+7QZ_b" | shuffle | quote }}
+            type: Opaque
+    managementPolicies: {{ $xr.spec.orphanOnDelete | ternary (list "Create" "Observe") (list "Create" "Delete" "Observe") | toJson }}
+{{- end }}
+{{- if $isDatabaseReady }}
+---
+apiVersion: kubernetes.m.crossplane.io/v1alpha1
+kind: Object
+metadata:
+    annotations:
+        crossplane.io/external-name: {{ $baseName }}-database-server-details-configmap
+        gotemplating.fn.crossplane.io/composition-resource-name: database-server-details-configmap
+    labels:
+        app: liferay
+        component: database-server-details-configmap
+        environmentId: {{ $environmentId }}
+        projectId: {{ $projectId }}
+    name: {{ $baseName }}-database-server-details-configmap
+    namespace: {{ $namespace }}
+spec:
+    forProvider:
+        manifest:
+            apiVersion: v1
+            data:
+                DATABASE_ENDPOINT: {{ $activeDatabaseAddress | quote }}
+            kind: ConfigMap
+            metadata:
+                labels:
+                    app: liferay
+                    component: database-server-details-configmap
+                    environmentId: {{ $environmentId }}
+                    projectId: {{ $projectId }}
+                name: database-server-details
+                namespace: {{ $namespace }}
+                ownerReferences:
+                    -   apiVersion: liferay.com/v1alpha1
+                        blockOwnerDeletion: true
+                        controller: true
+                        kind: LiferayInfrastructure
+                        name: {{ $xr.metadata.name }}
+                        uid: {{ $xr.metadata.uid }}
+    managementPolicies: {{ $managementPolicies }}
+{{- end }}
+{{- if and $searchEndpoint $searchPassword }}
+---
+apiVersion: kubernetes.m.crossplane.io/v1alpha1
+kind: Object
+metadata:
+    annotations:
+        crossplane.io/external-name: {{ $baseName }}-search-connection-details-secret
+        gotemplating.fn.crossplane.io/composition-resource-name: search-connection-details-secret
+    labels:
+        app: liferay
+        component: search-connection-details-secret
+        environmentId: {{ $environmentId }}
+        projectId: {{ $projectId }}
+    name: {{ $baseName }}-search-connection-details-secret
+    namespace: {{ $namespace }}
+spec:
+    forProvider:
+        manifest:
+            apiVersion: v1
+            data:
+                SEARCH_PASSWORD: {{ $searchPassword | b64enc | quote }}
+                SEARCH_URL: {{ printf "https://%s:443" $searchEndpoint | b64enc | quote }}
+                SEARCH_USERNAME: {{ $searchUsername | b64enc | quote }}
+            kind: Secret
+            metadata:
+                labels:
+                    app: liferay
+                    component: search-connection-details-secret
+                    environmentId: {{ $environmentId }}
+                    projectId: {{ $projectId }}
+                name: search-connection-details
+                namespace: {{ $namespace }}
+                ownerReferences:
+                    -   apiVersion: liferay.com/v1alpha1
+                        blockOwnerDeletion: true
+                        controller: true
+                        kind: LiferayInfrastructure
+                        name: {{ $xr.metadata.name }}
+                        uid: {{ $xr.metadata.uid }}
+            type: Opaque
+    managementPolicies: {{ $managementPolicies }}
+{{- end }}
+{{- if $doclibBucketName }}
+---
+apiVersion: kubernetes.m.crossplane.io/v1alpha1
+kind: Object
+metadata:
+    annotations:
+        crossplane.io/external-name: {{ $baseName }}-document-library-connection-details-secret
+        gotemplating.fn.crossplane.io/composition-resource-name: document-library-connection-details-secret
+    labels:
+        app: liferay
+        component: document-library-connection-details-secret
+        environmentId: {{ $environmentId }}
+        projectId: {{ $projectId }}
+    name: {{ $baseName }}-document-library-connection-details-secret
+    namespace: {{ $namespace }}
+spec:
+    forProvider:
+        manifest:
+            apiVersion: v1
+            data:
+                S3_BUCKET_ID: {{ $doclibBucketName | b64enc | quote }}
+                S3_BUCKET_REGION: {{ dig "resource" "spec" "forProvider" "region" "" $observedStorage | b64enc | quote }}
+            kind: Secret
+            metadata:
+                labels:
+                    app: liferay
+                    component: document-library-connection-details-secret
+                    environmentId: {{ $environmentId }}
+                    projectId: {{ $projectId }}
+                name: document-library-connection-details
+                namespace: {{ $namespace }}
+                ownerReferences:
+                    -   apiVersion: liferay.com/v1alpha1
+                        blockOwnerDeletion: true
+                        controller: true
+                        kind: LiferayInfrastructure
+                        name: {{ $xr.metadata.name }}
+                        uid: {{ $xr.metadata.uid }}
+            type: Opaque
+    managementPolicies: {{ $managementPolicies }}
+{{- end }}
+{{- if $overlayAccess.enabled }}
+---
+apiVersion: kubernetes.m.crossplane.io/v1alpha1
+kind: Object
+metadata:
+    annotations:
+        crossplane.io/external-name: {{ $baseName }}-overlay-bucket-details-secret
+        gotemplating.fn.crossplane.io/composition-resource-name: overlay-bucket-details-secret
+    labels:
+        app: liferay
+        component: overlay-bucket-details-secret
+        environmentId: {{ $environmentId }}
+        projectId: {{ $projectId }}
+    name: {{ $baseName }}-overlay-bucket-details-secret
+    namespace: {{ $namespace }}
+spec:
+    forProvider:
+        manifest:
+            apiVersion: v1
+            data:
+                LIFERAY_OVERLAY_BUCKET_NAME: {{ $overlayBucketName | b64enc | quote }}
+            kind: Secret
+            metadata:
+                labels:
+                    app: liferay
+                    component: overlay-bucket-details-secret
+                    environmentId: {{ $environmentId }}
+                    projectId: {{ $projectId }}
+                name: overlay-bucket-details
+                namespace: {{ $namespace }}
+                ownerReferences:
+                    -   apiVersion: liferay.com/v1alpha1
+                        blockOwnerDeletion: true
+                        controller: true
+                        kind: LiferayInfrastructure
+                        name: {{ $xr.metadata.name }}
+                        uid: {{ $xr.metadata.uid }}
+            type: Opaque
+    managementPolicies: {{ $managementPolicies }}
+{{- end }}
+---
+apiVersion: liferay.com/v1alpha1
+kind: LiferayInfrastructure
+status:
+    managedServiceDetailsReady: {{ and $isDatabaseReady $isDoclibReady $isSearchReady }}

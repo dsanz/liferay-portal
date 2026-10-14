@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -30,7 +31,20 @@ public class MonitorRunnerTest extends com.liferay.jenkins.results.parser.Test {
 		try {
 			new MonitorRunner(0);
 
-			Assert.fail("Expected IllegalArgumentException");
+			Assert.fail();
+		}
+		catch (IllegalArgumentException illegalArgumentException) {
+		}
+	}
+
+	@Test
+	public void testMonitorRunnerThreadCount() {
+		new MonitorRunner(1, 1);
+
+		try {
+			new MonitorRunner(1, 0);
+
+			Assert.fail();
 		}
 		catch (IllegalArgumentException illegalArgumentException) {
 		}
@@ -93,6 +107,72 @@ public class MonitorRunnerTest extends com.liferay.jenkins.results.parser.Test {
 				new TestMonitor(_newMonitorConfig("a"))));
 
 		testEquals(2, monitorResultsMap.size());
+	}
+
+	@Test(timeout = 5000)
+	public void testRunDurationMillis() {
+		MonitorRunner monitorRunner = new MonitorRunner(5000);
+
+		TestMonitor testMonitor = _newSleepingTestMonitor(
+			200, _newMonitorConfig(RandomTestUtil.randomString()));
+
+		Map<Monitor, MonitorResult> monitorResultsMap = monitorRunner.run(
+			Collections.<Monitor>singletonList(testMonitor));
+
+		MonitorResult monitorResult = monitorResultsMap.get(testMonitor);
+
+		Assert.assertTrue(
+			String.valueOf(monitorResult.getDurationMillis()),
+			monitorResult.getDurationMillis() >= 200);
+		Assert.assertTrue(
+			String.valueOf(monitorResult.getDurationMillis()),
+			monitorResult.getDurationMillis() < 5000);
+	}
+
+	@Test(timeout = 5000)
+	public void testRunDurationMillisBehindSlowMonitor() {
+		MonitorRunner monitorRunner = new MonitorRunner(5000);
+
+		TestMonitor slowTestMonitor = _newSleepingTestMonitor(
+			600, _newMonitorConfig(RandomTestUtil.randomString()));
+		TestMonitor fastTestMonitor = new TestMonitor(
+			_newMonitorConfig(RandomTestUtil.randomString()));
+
+		Map<Monitor, MonitorResult> monitorResultsMap = monitorRunner.run(
+			Arrays.<Monitor>asList(slowTestMonitor, fastTestMonitor));
+
+		MonitorResult monitorResult = monitorResultsMap.get(fastTestMonitor);
+
+		Assert.assertTrue(
+			String.valueOf(monitorResult.getDurationMillis()),
+			monitorResult.getDurationMillis() < 300);
+
+		monitorResult = monitorResultsMap.get(slowTestMonitor);
+
+		Assert.assertTrue(
+			String.valueOf(monitorResult.getDurationMillis()),
+			monitorResult.getDurationMillis() >= 600);
+	}
+
+	@Test(timeout = 5000)
+	public void testRunDurationMillisOnTimeout() {
+		MonitorRunner monitorRunner = new MonitorRunner(300);
+
+		TestMonitor shortTimeoutTestMonitor = new HangingTestMonitor(
+			null, _newMonitorConfig(RandomTestUtil.randomString()));
+		TestMonitor longTimeoutTestMonitor = new HangingTestMonitor(
+			null, _newMonitorConfig(RandomTestUtil.randomString(), 1));
+
+		Map<Monitor, MonitorResult> monitorResultsMap = monitorRunner.run(
+			Arrays.<Monitor>asList(
+				longTimeoutTestMonitor, shortTimeoutTestMonitor));
+
+		MonitorResult monitorResult = monitorResultsMap.get(
+			shortTimeoutTestMonitor);
+
+		Assert.assertTrue(
+			String.valueOf(monitorResult.getDurationMillis()),
+			monitorResult.getDurationMillis() >= 600);
 	}
 
 	@Test(timeout = 5000)
@@ -191,6 +271,39 @@ public class MonitorRunnerTest extends com.liferay.jenkins.results.parser.Test {
 	}
 
 	@Test(timeout = 5000)
+	public void testRunInterruptedWhileQueued() {
+		MonitorRunner monitorRunner = new MonitorRunner(1000, 2);
+
+		TestMonitor testMonitor1 = new TestMonitor(_newMonitorConfig("a"));
+		TestMonitor testMonitor2 = new TestMonitor(_newMonitorConfig("b"));
+		TestMonitor testMonitor3 = new TestMonitor(_newMonitorConfig("c"));
+
+		Thread thread = Thread.currentThread();
+
+		thread.interrupt();
+
+		Map<Monitor, MonitorResult> monitorResultsMap = monitorRunner.run(
+			Arrays.<Monitor>asList(testMonitor1, testMonitor2, testMonitor3));
+
+		Assert.assertTrue(Thread.interrupted());
+
+		MonitorResult monitorResult = monitorResultsMap.get(testMonitor1);
+
+		testEquals("Monitor a was interrupted", monitorResult.getMessage());
+		testEquals(MonitorResult.Status.UNKNOWN, monitorResult.getStatus());
+
+		monitorResult = monitorResultsMap.get(testMonitor2);
+
+		testEquals("Monitor b was interrupted", monitorResult.getMessage());
+		testEquals(MonitorResult.Status.UNKNOWN, monitorResult.getStatus());
+
+		monitorResult = monitorResultsMap.get(testMonitor3);
+
+		testEquals("Monitor c was interrupted", monitorResult.getMessage());
+		testEquals(MonitorResult.Status.UNKNOWN, monitorResult.getStatus());
+	}
+
+	@Test(timeout = 5000)
 	public void testRunMonitorConfigTimeout() {
 		MonitorRunner monitorRunner = new MonitorRunner();
 
@@ -241,6 +354,131 @@ public class MonitorRunnerTest extends com.liferay.jenkins.results.parser.Test {
 	}
 
 	@Test(timeout = 5000)
+	public void testRunMonitorWithoutAvailableThread() {
+		MonitorRunner monitorRunner = new MonitorRunner(300);
+
+		CountDownLatch releaseCountDownLatch = new CountDownLatch(1);
+		CountDownLatch startCountDownLatch = new CountDownLatch(
+			MonitorRunner.THREADS_MAXIMUM);
+
+		List<Monitor> monitors = new ArrayList<>();
+
+		BlockingTestMonitor blockingTestMonitor = new BlockingTestMonitor(
+			releaseCountDownLatch, startCountDownLatch, _newMonitorConfig("b"));
+
+		monitors.add(blockingTestMonitor);
+
+		for (int i = 1; i < MonitorRunner.THREADS_MAXIMUM; i++) {
+			monitors.add(
+				new BlockingTestMonitor(
+					releaseCountDownLatch, startCountDownLatch,
+					_newMonitorConfig(RandomTestUtil.randomString())));
+		}
+
+		TestMonitor testMonitor = new TestMonitor(_newMonitorConfig("a"));
+
+		monitors.add(testMonitor);
+
+		try {
+			Map<Monitor, MonitorResult> monitorResultsMap = monitorRunner.run(
+				monitors);
+
+			testEquals(0L, startCountDownLatch.getCount());
+
+			MonitorResult monitorResult = monitorResultsMap.get(
+				blockingTestMonitor);
+
+			testEquals(
+				"Monitor b timed out after 300 ms", monitorResult.getMessage());
+
+			monitorResult = monitorResultsMap.get(testMonitor);
+
+			testEquals(
+				"Monitor a did not start within 600 ms",
+				monitorResult.getMessage());
+			testEquals(
+				MonitorResult.DURATION_MILLIS_UNMEASURED,
+				monitorResult.getDurationMillis());
+			testEquals(MonitorResult.Status.UNKNOWN, monitorResult.getStatus());
+		}
+		finally {
+			releaseCountDownLatch.countDown();
+		}
+	}
+
+	@Test(timeout = 5000)
+	public void testRunMonitorWithoutAvailableThreadMultipleBatches() {
+		MonitorRunner monitorRunner = new MonitorRunner(300, 1);
+
+		CountDownLatch releaseCountDownLatch = new CountDownLatch(1);
+		CountDownLatch startCountDownLatch = new CountDownLatch(1);
+
+		List<Monitor> monitors = new ArrayList<>();
+
+		monitors.add(
+			new BlockingTestMonitor(
+				releaseCountDownLatch, startCountDownLatch,
+				_newMonitorConfig(RandomTestUtil.randomString())));
+
+		TestMonitor testMonitor1 = new TestMonitor(_newMonitorConfig("a"));
+		TestMonitor testMonitor2 = new TestMonitor(_newMonitorConfig("b"));
+
+		monitors.add(testMonitor1);
+		monitors.add(testMonitor2);
+
+		try {
+			Map<Monitor, MonitorResult> monitorResultsMap = monitorRunner.run(
+				monitors);
+
+			testEquals(0L, startCountDownLatch.getCount());
+
+			MonitorResult monitorResult = monitorResultsMap.get(testMonitor1);
+
+			testEquals(
+				"Monitor a did not start within 900 ms",
+				monitorResult.getMessage());
+
+			monitorResult = monitorResultsMap.get(testMonitor2);
+
+			testEquals(
+				"Monitor b did not start within 900 ms",
+				monitorResult.getMessage());
+		}
+		finally {
+			releaseCountDownLatch.countDown();
+		}
+	}
+
+	@Test(timeout = 5000)
+	public void testRunMoreMonitorsThanThreads() {
+		MonitorRunner monitorRunner = new MonitorRunner(1000, 2);
+
+		TestMonitor testMonitor1 = new HangingTestMonitor(
+			null, _newMonitorConfig("a"));
+		TestMonitor testMonitor2 = new HangingTestMonitor(
+			null, _newMonitorConfig("b"));
+		TestMonitor testMonitor3 = _newSleepingTestMonitor(
+			300, _newMonitorConfig(RandomTestUtil.randomString()));
+
+		Map<Monitor, MonitorResult> monitorResultsMap = monitorRunner.run(
+			Arrays.<Monitor>asList(testMonitor1, testMonitor2, testMonitor3));
+
+		MonitorResult monitorResult = monitorResultsMap.get(testMonitor1);
+
+		testEquals(
+			"Monitor a timed out after 1000 ms", monitorResult.getMessage());
+
+		monitorResult = monitorResultsMap.get(testMonitor2);
+
+		testEquals(
+			"Monitor b timed out after 1000 ms", monitorResult.getMessage());
+
+		monitorResult = monitorResultsMap.get(testMonitor3);
+
+		testEquals(MonitorResult.Status.OK, monitorResult.getStatus());
+	}
+
+	@Test(timeout = 5000)
 	public void testRunMultipleHangingMonitors() {
 		MonitorRunner monitorRunner = new MonitorRunner(200);
 
@@ -282,6 +520,36 @@ public class MonitorRunnerTest extends com.liferay.jenkins.results.parser.Test {
 
 		testEquals("Monitor a returned no result", monitorResult.getMessage());
 		testEquals(MonitorResult.Status.UNKNOWN, monitorResult.getStatus());
+	}
+
+	@Test(timeout = 5000)
+	public void testRunThreadCountMaximum() {
+		MonitorRunner monitorRunner = new MonitorRunner(60 * 1000);
+
+		List<Monitor> monitors = new ArrayList<>();
+
+		AtomicInteger activeCount = new AtomicInteger();
+		AtomicInteger maximumActiveCount = new AtomicInteger();
+
+		for (int i = 0; i < (MonitorRunner.THREADS_MAXIMUM + 5); i++) {
+			monitors.add(
+				_newGaugeTestMonitor(
+					activeCount, maximumActiveCount,
+					_newMonitorConfig(RandomTestUtil.randomString())));
+		}
+
+		Map<Monitor, MonitorResult> monitorResultsMap = monitorRunner.run(
+			monitors);
+
+		testEquals(monitors.size(), monitorResultsMap.size());
+
+		for (MonitorResult monitorResult : monitorResultsMap.values()) {
+			testEquals(MonitorResult.Status.OK, monitorResult.getStatus());
+		}
+
+		Assert.assertTrue(
+			maximumActiveCount.get() <= MonitorRunner.THREADS_MAXIMUM);
+		Assert.assertTrue(maximumActiveCount.get() > 1);
 	}
 
 	@Test(timeout = 5000)
@@ -363,6 +631,43 @@ public class MonitorRunnerTest extends com.liferay.jenkins.results.parser.Test {
 		};
 	}
 
+	private TestMonitor _newGaugeTestMonitor(
+		AtomicInteger activeCount, AtomicInteger maximumActiveCount,
+		MonitorConfig monitorConfig) {
+
+		return new TestMonitor(monitorConfig) {
+
+			@Override
+			public MonitorResult execute() {
+				int currentActiveCount = activeCount.incrementAndGet();
+
+				while (true) {
+					int previousActiveCount = maximumActiveCount.get();
+
+					if ((currentActiveCount <= previousActiveCount) ||
+						maximumActiveCount.compareAndSet(
+							previousActiveCount, currentActiveCount)) {
+
+						break;
+					}
+				}
+
+				try {
+					Thread.sleep(50);
+				}
+				catch (InterruptedException interruptedException) {
+					throw new RuntimeException(interruptedException);
+				}
+				finally {
+					activeCount.decrementAndGet();
+				}
+
+				return super.execute();
+			}
+
+		};
+	}
+
 	private MonitorConfig _newMonitorConfig(String id) {
 		return _newMonitorConfig(id, 0);
 	}
@@ -372,6 +677,60 @@ public class MonitorRunnerTest extends com.liferay.jenkins.results.parser.Test {
 			id, RandomTestUtil.randomLong(), null,
 			MonitorConfig.Severity.MEDIUM, null, timeoutSeconds,
 			RandomTestUtil.randomString());
+	}
+
+	private TestMonitor _newSleepingTestMonitor(
+		long sleepMillis, MonitorConfig monitorConfig) {
+
+		return new TestMonitor(monitorConfig) {
+
+			@Override
+			public MonitorResult execute() {
+				try {
+					Thread.sleep(sleepMillis);
+				}
+				catch (InterruptedException interruptedException) {
+					throw new RuntimeException(interruptedException);
+				}
+
+				return super.execute();
+			}
+
+		};
+	}
+
+	private static class BlockingTestMonitor extends TestMonitor {
+
+		public BlockingTestMonitor(
+			CountDownLatch releaseCountDownLatch,
+			CountDownLatch startCountDownLatch, MonitorConfig monitorConfig) {
+
+			super(monitorConfig);
+
+			_releaseCountDownLatch = releaseCountDownLatch;
+			_startCountDownLatch = startCountDownLatch;
+		}
+
+		@Override
+		public MonitorResult execute() {
+			_startCountDownLatch.countDown();
+
+			while (true) {
+				try {
+					_releaseCountDownLatch.await();
+
+					break;
+				}
+				catch (InterruptedException interruptedException) {
+				}
+			}
+
+			return null;
+		}
+
+		private final CountDownLatch _releaseCountDownLatch;
+		private final CountDownLatch _startCountDownLatch;
+
 	}
 
 	private static class HangingTestMonitor extends TestMonitor {

@@ -688,6 +688,9 @@ public class CommerceTaxCategoryMappingPersistenceImpl
 		}
 		else {
 			if (!Objects.equals(
+					commerceTaxCategoryMapping.getUuid(),
+					commerceTaxCategoryMapping.getExternalReferenceCode()) &&
+				!Objects.equals(
 					commerceTaxCategoryMappingModelImpl.getColumnOriginalValue(
 						"externalReferenceCode"),
 					commerceTaxCategoryMapping.getExternalReferenceCode())) {
@@ -1076,4 +1079,4 @@ public class CommerceTaxCategoryMappingPersistenceImpl
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-676389480
+// LIFERAY-SERVICE-BUILDER-HASH:-95162435

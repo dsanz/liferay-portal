@@ -24,6 +24,7 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.TextFormatter;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -46,6 +47,18 @@ public class ObjectDefinitionImpl extends ObjectDefinitionBaseImpl {
 		}
 
 		return shortName;
+	}
+
+	@Override
+	public String getDefaultLanguageId() {
+		String xml = getLabel();
+
+		if (xml == null) {
+			return "";
+		}
+
+		return LocalizationUtil.getDefaultLanguageId(
+			xml, LocaleUtil.getDefault());
 	}
 
 	@Override
@@ -86,6 +99,16 @@ public class ObjectDefinitionImpl extends ObjectDefinitionBaseImpl {
 	@Override
 	public String getLocalizationDBTableName() {
 		return getDBTableName() + "_l";
+	}
+
+	@Override
+	public String getOSGiJaxRsName() {
+		return getOSGiJaxRsName(StringPool.BLANK);
+	}
+
+	@Override
+	public String getOSGiJaxRsName(String className) {
+		return StringUtil.toLowerCase(getName()) + className;
 	}
 
 	@Override
@@ -134,27 +157,8 @@ public class ObjectDefinitionImpl extends ObjectDefinitionBaseImpl {
 	}
 
 	@Override
-	public String getOSGiJaxRsName() {
-		return getOSGiJaxRsName(StringPool.BLANK);
-	}
-
-	@Override
-	public String getOSGiJaxRsName(String className) {
-		return StringUtil.toLowerCase(getName()) + className;
-	}
-
-	@Override
 	public String getPortletId() {
 		return ObjectDefinitionUtil.getPortletId(getClassName());
-	}
-
-	@Override
-	public String getResourceName() {
-		if (isUnmodifiableSystemObject()) {
-			throw new UnsupportedOperationException();
-		}
-
-		return "com.liferay.object#" + getObjectDefinitionId();
 	}
 
 	@Override
@@ -170,6 +174,15 @@ public class ObjectDefinitionImpl extends ObjectDefinitionBaseImpl {
 
 		return "/c/" +
 			TextFormatter.formatPlural(StringUtil.toLowerCase(getShortName()));
+	}
+
+	@Override
+	public String getResourceName() {
+		if (isUnmodifiableSystemObject()) {
+			throw new UnsupportedOperationException();
+		}
+
+		return "com.liferay.object#" + getObjectDefinitionId();
 	}
 
 	@Override

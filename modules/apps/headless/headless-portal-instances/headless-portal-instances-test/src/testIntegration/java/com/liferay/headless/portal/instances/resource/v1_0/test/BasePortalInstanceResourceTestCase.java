@@ -13,8 +13,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 
+import com.liferay.headless.batch.engine.client.dto.v1_0.ImportTask;
+import com.liferay.headless.batch.engine.client.http.HttpInvoker.HttpResponse;
+import com.liferay.headless.batch.engine.client.resource.v1_0.ImportTaskResource;
 import com.liferay.headless.portal.instances.client.dto.v1_0.PortalInstance;
-import com.liferay.headless.portal.instances.client.dto.v1_0.PortalInstanceExport;
 import com.liferay.headless.portal.instances.client.http.HttpInvoker;
 import com.liferay.headless.portal.instances.client.pagination.Page;
 import com.liferay.headless.portal.instances.client.resource.v1_0.PortalInstanceResource;
@@ -104,6 +106,17 @@ public abstract class BasePortalInstanceResourceTestCase {
 			testCompany.getCompanyId());
 
 		portalInstanceResource = PortalInstanceResource.builder(
+		).authentication(
+			_testCompanyAdminUser.getEmailAddress(),
+			PropsValues.DEFAULT_ADMIN_PASSWORD
+		).endpoint(
+			testCompany.getVirtualHostname(),
+			PortalUtil.getPortalServerPort(false), "http"
+		).locale(
+			LocaleUtil.getDefault()
+		).build();
+
+		importTaskResource = ImportTaskResource.builder(
 		).authentication(
 			_testCompanyAdminUser.getEmailAddress(),
 			PropsValues.DEFAULT_ADMIN_PASSWORD
@@ -212,6 +225,47 @@ public abstract class BasePortalInstanceResourceTestCase {
 
 		throw new UnsupportedOperationException(
 			"This method needs to be implemented");
+	}
+
+	@Test
+	public void testDeletePortalInstanceBatch() throws Exception {
+		PortalInstance portalInstance1 =
+			testDeletePortalInstanceBatch_addPortalInstance();
+
+		testDeletePortalInstanceBatch_deletePortalInstance(
+			202, null, portalInstance1.getPortalInstanceId());
+
+		assertHttpResponseStatusCode(
+			404,
+			portalInstanceResource.getPortalInstanceHttpResponse(
+				portalInstance1.getPortalInstanceId()));
+	}
+
+	protected PortalInstance testDeletePortalInstanceBatch_addPortalInstance()
+		throws Exception {
+
+		return testDeletePortalInstance_addPortalInstance();
+	}
+
+	protected void testDeletePortalInstanceBatch_deletePortalInstance(
+			int expectedStatusCode, String externalReferenceCode, String id)
+		throws Exception {
+
+		HttpInvoker.HttpResponse httpResponse =
+			portalInstanceResource.deletePortalInstanceBatchHttpResponse(
+				null,
+				JSONUtil.putAll(
+					JSONUtil.put(
+						"externalReferenceCode", () -> externalReferenceCode
+					).put(
+						"portalInstanceId", () -> id
+					)));
+
+		Assert.assertEquals(expectedStatusCode, httpResponse.getStatusCode());
+
+		waitForFinish(
+			"COMPLETED",
+			JSONFactoryUtil.createJSONObject(httpResponse.getContent()));
 	}
 
 	@Test
@@ -334,45 +388,6 @@ public abstract class BasePortalInstanceResourceTestCase {
 	}
 
 	@Test
-	public void testPostPortalInstanceCopy() throws Exception {
-		PortalInstance randomPortalInstance = randomPortalInstance();
-
-		PortalInstance postPortalInstance =
-			testPostPortalInstanceCopy_addPortalInstance(randomPortalInstance);
-
-		assertEquals(randomPortalInstance, postPortalInstance);
-		assertValid(postPortalInstance);
-	}
-
-	protected PortalInstance testPostPortalInstanceCopy_addPortalInstance(
-			PortalInstance portalInstance)
-		throws Exception {
-
-		throw new UnsupportedOperationException(
-			"This method needs to be implemented");
-	}
-
-	@Test
-	public void testPostPortalInstanceImport() throws Exception {
-		PortalInstance randomPortalInstance = randomPortalInstance();
-
-		PortalInstance postPortalInstance =
-			testPostPortalInstanceImport_addPortalInstance(
-				randomPortalInstance);
-
-		assertEquals(randomPortalInstance, postPortalInstance);
-		assertValid(postPortalInstance);
-	}
-
-	protected PortalInstance testPostPortalInstanceImport_addPortalInstance(
-			PortalInstance portalInstance)
-		throws Exception {
-
-		throw new UnsupportedOperationException(
-			"This method needs to be implemented");
-	}
-
-	@Test
 	public void testPutPortalInstanceActivate() throws Exception {
 		@SuppressWarnings("PMD.UnusedLocalVariable")
 		PortalInstance portalInstance =
@@ -420,8 +435,59 @@ public abstract class BasePortalInstanceResourceTestCase {
 	}
 
 	@Test
-	public void testPostPortalInstanceExport() throws Exception {
-		Assert.assertTrue(true);
+	public void testBatchEngineDeleteImportTask() throws Exception {
+		PortalInstance portalInstance1 =
+			testBatchEngineDeleteImportTask_addPortalInstance();
+
+		testBatchEngineDeleteImportTask_deletePortalInstance(
+			200, null, portalInstance1.getPortalInstanceId());
+
+		assertHttpResponseStatusCode(
+			404,
+			portalInstanceResource.getPortalInstanceHttpResponse(
+				portalInstance1.getPortalInstanceId()));
+	}
+
+	protected PortalInstance testBatchEngineDeleteImportTask_addPortalInstance()
+		throws Exception {
+
+		return testDeletePortalInstance_addPortalInstance();
+	}
+
+	protected void testBatchEngineDeleteImportTask_deletePortalInstance(
+			int expectedStatusCode, String externalReferenceCode, String id,
+			String... parameters)
+		throws Exception {
+
+		ImportTaskResource importTaskResource = ImportTaskResource.builder(
+		).authentication(
+			_testCompanyAdminUser.getEmailAddress(),
+			PropsValues.DEFAULT_ADMIN_PASSWORD
+		).endpoint(
+			testCompany.getVirtualHostname(),
+			PortalUtil.getPortalServerPort(false), "http"
+		).parameters(
+			parameters
+		).build();
+
+		HttpResponse httpResponse =
+			importTaskResource.deleteImportTaskHttpResponse(
+				"com.liferay.headless.portal.instances.dto.v1_0.PortalInstance",
+				null, null, null, null,
+				JSONUtil.putAll(
+					JSONUtil.put(
+						"externalReferenceCode", () -> externalReferenceCode
+					).put(
+						"portalInstanceId", () -> id
+					)));
+
+		Assert.assertEquals(expectedStatusCode, httpResponse.getStatusCode());
+
+		if (expectedStatusCode == 200) {
+			waitForFinish(
+				"COMPLETED",
+				JSONFactoryUtil.createJSONObject(httpResponse.getContent()));
+		}
 	}
 
 	protected void assertContains(
@@ -469,15 +535,6 @@ public abstract class BasePortalInstanceResourceTestCase {
 
 			assertEquals(portalInstance1, portalInstance2);
 		}
-	}
-
-	protected void assertEquals(
-		PortalInstanceExport portalInstanceExport1,
-		PortalInstanceExport portalInstanceExport2) {
-
-		Assert.assertTrue(
-			portalInstanceExport1 + " does not equal " + portalInstanceExport2,
-			equals(portalInstanceExport1, portalInstanceExport2));
 	}
 
 	protected void assertEqualsIgnoringOrder(
@@ -539,6 +596,14 @@ public abstract class BasePortalInstanceResourceTestCase {
 
 			if (Objects.equals("domain", additionalAssertFieldName)) {
 				if (portalInstance.getDomain() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("maxUsers", additionalAssertFieldName)) {
+				if (portalInstance.getMaxUsers() == null) {
 					valid = false;
 				}
 
@@ -622,43 +687,7 @@ public abstract class BasePortalInstanceResourceTestCase {
 		}
 	}
 
-	protected void assertValid(PortalInstanceExport portalInstanceExport) {
-		boolean valid = true;
-
-		for (String additionalAssertFieldName :
-				getAdditionalPortalInstanceExportAssertFieldNames()) {
-
-			if (Objects.equals(
-					"exportedPartitionName", additionalAssertFieldName)) {
-
-				if (portalInstanceExport.getExportedPartitionName() == null) {
-					valid = false;
-				}
-
-				continue;
-			}
-
-			if (Objects.equals("sourceCompanyId", additionalAssertFieldName)) {
-				if (portalInstanceExport.getSourceCompanyId() == null) {
-					valid = false;
-				}
-
-				continue;
-			}
-
-			throw new IllegalArgumentException(
-				"Invalid additional assert field name " +
-					additionalAssertFieldName);
-		}
-
-		Assert.assertTrue(valid);
-	}
-
 	protected String[] getAdditionalAssertFieldNames() {
-		return new String[0];
-	}
-
-	protected String[] getAdditionalPortalInstanceExportAssertFieldNames() {
 		return new String[0];
 	}
 
@@ -772,6 +801,17 @@ public abstract class BasePortalInstanceResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("maxUsers", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						portalInstance1.getMaxUsers(),
+						portalInstance2.getMaxUsers())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("portalInstanceId", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(
 						portalInstance1.getPortalInstanceId(),
@@ -839,49 +879,6 @@ public abstract class BasePortalInstanceResourceTestCase {
 		}
 
 		return false;
-	}
-
-	protected boolean equals(
-		PortalInstanceExport portalInstanceExport1,
-		PortalInstanceExport portalInstanceExport2) {
-
-		if (portalInstanceExport1 == portalInstanceExport2) {
-			return true;
-		}
-
-		for (String additionalAssertFieldName :
-				getAdditionalPortalInstanceExportAssertFieldNames()) {
-
-			if (Objects.equals(
-					"exportedPartitionName", additionalAssertFieldName)) {
-
-				if (!Objects.deepEquals(
-						portalInstanceExport1.getExportedPartitionName(),
-						portalInstanceExport2.getExportedPartitionName())) {
-
-					return false;
-				}
-
-				continue;
-			}
-
-			if (Objects.equals("sourceCompanyId", additionalAssertFieldName)) {
-				if (!Objects.deepEquals(
-						portalInstanceExport1.getSourceCompanyId(),
-						portalInstanceExport2.getSourceCompanyId())) {
-
-					return false;
-				}
-
-				continue;
-			}
-
-			throw new IllegalArgumentException(
-				"Invalid additional assert field name " +
-					additionalAssertFieldName);
-		}
-
-		return true;
 	}
 
 	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
@@ -1015,6 +1012,12 @@ public abstract class BasePortalInstanceResourceTestCase {
 				sb.append(value);
 				sb.append("'");
 			}
+
+			return sb.toString();
+		}
+
+		if (entityFieldName.equals("maxUsers")) {
+			sb.append(String.valueOf(portalInstance.getMaxUsers()));
 
 			return sb.toString();
 		}
@@ -1207,6 +1210,7 @@ public abstract class BasePortalInstanceResourceTestCase {
 				active = RandomTestUtil.randomBoolean();
 				companyId = RandomTestUtil.randomLong();
 				domain = StringUtil.toLowerCase(RandomTestUtil.randomString());
+				maxUsers = RandomTestUtil.randomInt();
 				portalInstanceId = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
 				siteInitializerKey = StringUtil.toLowerCase(
@@ -1227,18 +1231,30 @@ public abstract class BasePortalInstanceResourceTestCase {
 		return randomPortalInstance();
 	}
 
-	protected PortalInstanceExport randomPortalInstanceExport()
+	protected final JSONObject waitForFinish(
+			String expectedExecuteStatus, JSONObject jsonObject)
 		throws Exception {
 
-		return new PortalInstanceExport() {
-			{
-				exportedPartitionName = RandomTestUtil.randomString();
-				sourceCompanyId = RandomTestUtil.randomLong();
+		while (true) {
+			ImportTask importTask = importTaskResource.getImportTask(
+				jsonObject.getLong("id"));
+
+			ImportTask.ExecuteStatus executeStatus =
+				importTask.getExecuteStatus();
+
+			if (StringUtil.equals(executeStatus.getValue(), "COMPLETED") ||
+				StringUtil.equals(executeStatus.getValue(), "FAILED")) {
+
+				Assert.assertEquals(
+					expectedExecuteStatus, executeStatus.getValue());
+
+				return jsonObject;
 			}
-		};
+		}
 	}
 
 	protected PortalInstanceResource portalInstanceResource;
+	protected ImportTaskResource importTaskResource;
 	protected com.liferay.portal.kernel.model.Group irrelevantGroup;
 	protected com.liferay.portal.kernel.model.Company testCompany;
 	protected com.liferay.portal.kernel.model.Group testGroup;
@@ -1449,4 +1465,4 @@ public abstract class BasePortalInstanceResourceTestCase {
 			PortalInstanceResource _portalInstanceResource;
 
 }
-// LIFERAY-REST-BUILDER-HASH:890027372
+// LIFERAY-REST-BUILDER-HASH:1453752637

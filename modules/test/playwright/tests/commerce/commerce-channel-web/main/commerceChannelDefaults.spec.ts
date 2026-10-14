@@ -827,7 +827,7 @@ test(
 );
 
 test(
-	'The Channel Defaults datasets do not show a search bar',
+	'The Channel Defaults datasets show a search bar',
 	{tag: ['@COMMERCE-11224', '@LPD-85835']},
 	async ({accountsPage, apiHelpers, commerceChannelDefaultsPage}) => {
 		const account = await apiHelpers.headlessAdminUser.postAccount({
@@ -857,7 +857,7 @@ test(
 		for (const dataset of datasets) {
 			await expect(
 				dataset.getByPlaceholder('Search', {exact: false})
-			).toHaveCount(0);
+			).toBeVisible();
 		}
 	}
 );

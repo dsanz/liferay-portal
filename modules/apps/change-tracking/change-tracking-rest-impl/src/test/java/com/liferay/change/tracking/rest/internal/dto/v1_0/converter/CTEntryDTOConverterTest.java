@@ -6,18 +6,24 @@
 package com.liferay.change.tracking.rest.internal.dto.v1_0.converter;
 
 import com.liferay.change.tracking.rest.dto.v1_0.CTEntry;
+import com.liferay.petra.string.StringBundler;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.DocumentImpl;
+import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistry;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 import com.liferay.portal.vulcan.dto.converter.DefaultDTOConverterContext;
 
 import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -55,9 +61,24 @@ public class CTEntryDTOConverterTest {
 	public void testToDTOFallsBackToIndexerDocument() throws Exception {
 		Document document = new DocumentImpl();
 
+		String title = RandomTestUtil.randomString();
+
+		document.addLocalizedText(
+			Field.TITLE, _getLocalizedValues(title), true);
+
 		String ctCollectionName = RandomTestUtil.randomString();
 
-		document.addKeyword(_CT_COLLECTION_NAME, ctCollectionName);
+		document.addKeyword("ctCollectionName", ctCollectionName);
+
+		String groupName = RandomTestUtil.randomString();
+
+		document.addLocalizedKeyword(
+			"groupName", _getLocalizedValues(groupName), false, true);
+
+		String typeName = RandomTestUtil.randomString();
+
+		document.addLocalizedText(
+			"typeName", _getLocalizedValues(typeName), true);
 
 		Mockito.when(
 			_indexer.getDocument(_serviceBuilderCTEntry)
@@ -73,30 +94,34 @@ public class CTEntryDTOConverterTest {
 		);
 
 		CTEntry ctEntry = _ctEntryDTOConverter.toDTO(
-			new DefaultDTOConverterContext(
-				RandomTestUtil.randomBoolean(), new HashMap<>(),
-				new HashMap<>(), null, null,
-				_serviceBuilderCTEntry.getCtEntryId(), LocaleUtil.US, null,
-				null),
-			_serviceBuilderCTEntry);
+			_getDTOConverterContext(LocaleUtil.US), _serviceBuilderCTEntry);
 
 		Assert.assertEquals(ctCollectionName, ctEntry.getCtCollectionName());
+		Assert.assertEquals(groupName, ctEntry.getSiteName());
+		Assert.assertEquals(title, ctEntry.getTitle());
+		Assert.assertEquals(typeName, ctEntry.getTypeName());
 	}
 
 	@Test
 	public void testToDTOUsesContextDocument() throws Exception {
 		DefaultDTOConverterContext dtoConverterContext =
-			new DefaultDTOConverterContext(
-				RandomTestUtil.randomBoolean(), new HashMap<>(),
-				new HashMap<>(), null, null,
-				_serviceBuilderCTEntry.getCtEntryId(), LocaleUtil.US, null,
-				null);
+			_getDTOConverterContext(LocaleUtil.SPAIN);
 
 		Document document = new DocumentImpl();
 
+		String title = RandomTestUtil.randomString();
+
+		document.addKeyword(
+			_getLocalizedName(LocaleUtil.SPAIN, Field.TITLE), title);
+
 		String ctCollectionName = RandomTestUtil.randomString();
 
-		document.addKeyword(_CT_COLLECTION_NAME, ctCollectionName);
+		document.addKeyword("ctCollectionName", ctCollectionName);
+
+		String groupName = RandomTestUtil.randomString();
+
+		document.addKeyword(
+			_getLocalizedName(LocaleUtil.US, "groupName"), groupName);
 
 		dtoConverterContext.setAttribute("document", document);
 
@@ -104,6 +129,9 @@ public class CTEntryDTOConverterTest {
 			dtoConverterContext, _serviceBuilderCTEntry);
 
 		Assert.assertEquals(ctCollectionName, ctEntry.getCtCollectionName());
+		Assert.assertEquals(groupName, ctEntry.getSiteName());
+		Assert.assertEquals(title, ctEntry.getTitle());
+		Assert.assertEquals(StringPool.BLANK, ctEntry.getTypeName());
 
 		Mockito.verify(
 			_indexerRegistry, Mockito.never()
@@ -112,7 +140,23 @@ public class CTEntryDTOConverterTest {
 		);
 	}
 
-	private static final String _CT_COLLECTION_NAME = "ctCollectionName";
+	private DefaultDTOConverterContext _getDTOConverterContext(Locale locale) {
+		return new DefaultDTOConverterContext(
+			RandomTestUtil.randomBoolean(), new HashMap<>(), new HashMap<>(),
+			null, null, _serviceBuilderCTEntry.getCtEntryId(), locale, null,
+			null);
+	}
+
+	private String _getLocalizedName(Locale locale, String name) {
+		return StringBundler.concat(
+			name, StringPool.UNDERLINE, LocaleUtil.toLanguageId(locale));
+	}
+
+	private Map<Locale, String> _getLocalizedValues(String value) {
+		return HashMapBuilder.put(
+			LocaleUtil.US, value
+		).build();
+	}
 
 	private final CTEntryDTOConverter _ctEntryDTOConverter =
 		new CTEntryDTOConverter();

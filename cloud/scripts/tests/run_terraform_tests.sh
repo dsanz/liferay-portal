@@ -9,8 +9,7 @@ function main {
 
 	local terraform_modules=(
 		aws/eks
-		aws/gitops/platform
-		aws/gitops/resources
+		aws/platform
 		azure/aks
 		azure/platform
 		gcp/gitops/platform

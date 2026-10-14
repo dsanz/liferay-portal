@@ -141,8 +141,9 @@ public class BatchEngineImportTaskExecutorImpl
 			return;
 		}
 
-		try (SafeCloseable safeCloseable2 = SearchContext.openBatchMode()) {
-			BatchEngineThreadLocal.setBatchImportInProcess(true);
+		try (SafeCloseable safeCloseable2 =
+				BatchEngineThreadLocal.setBatchImportInProcessWithSafeCloseable(
+					true)) {
 
 			batchEngineImportTask.setExecuteStatus(
 				BatchEngineTaskExecuteStatus.STARTED.toString());
@@ -168,12 +169,14 @@ public class BatchEngineImportTaskExecutorImpl
 			BatchEngineImportTask finalBatchEngineImportTask =
 				batchEngineImportTask;
 
-			batchEngineImportTask = BatchEngineTaskExecutorUtil.execute(
-				checkPermissions,
-				() -> _importFile(
-					finalBatchEngineImportTask, batchEngineTaskItemDelegate,
-					file, user),
-				user);
+			try (SafeCloseable safeCloseable3 = SearchContext.openBatchMode()) {
+				batchEngineImportTask = BatchEngineTaskExecutorUtil.execute(
+					checkPermissions,
+					() -> _importFile(
+						finalBatchEngineImportTask, batchEngineTaskItemDelegate,
+						file, user),
+					user);
+			}
 
 			_updateBatchEngineImportTask(
 				BatchEngineTaskExecuteStatus.COMPLETED, batchEngineImportTask,
@@ -190,8 +193,6 @@ public class BatchEngineImportTaskExecutorImpl
 				throwable);
 		}
 		finally {
-			BatchEngineThreadLocal.setBatchImportInProcess(false);
-
 			file.delete();
 
 			// LPS-167011 Because of call to _updateBatchEngineImportTask when

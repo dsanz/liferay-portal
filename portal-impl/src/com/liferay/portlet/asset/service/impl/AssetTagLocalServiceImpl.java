@@ -279,6 +279,11 @@ public class AssetTagLocalServiceImpl extends AssetTagLocalServiceBaseImpl {
 		return null;
 	}
 
+	@Override
+	public int getCompanyTagsCount(long companyId) {
+		return assetTagPersistence.countByCompanyId(companyId);
+	}
+
 	/**
 	 * Returns the asset tags of the asset entry.
 	 *
@@ -288,23 +293,6 @@ public class AssetTagLocalServiceImpl extends AssetTagLocalServiceBaseImpl {
 	@Override
 	public List<AssetTag> getEntryTags(long entryId) {
 		return assetEntryPersistence.getAssetTags(entryId);
-	}
-
-	/**
-	 * Returns the asset tags in the groups.
-	 *
-	 * @param  groupIds the primary keys of the groups
-	 * @return the asset tags in the groups
-	 */
-	@Override
-	public List<AssetTag> getGroupsTags(long[] groupIds) {
-		List<AssetTag> groupsTags = new ArrayList<>();
-
-		for (long groupId : groupIds) {
-			groupsTags.addAll(getGroupTags(groupId));
-		}
-
-		return groupsTags;
 	}
 
 	/**
@@ -359,6 +347,23 @@ public class AssetTagLocalServiceImpl extends AssetTagLocalServiceBaseImpl {
 	@Override
 	public int getGroupTagsCount(long groupId) {
 		return assetTagPersistence.countByGroupId(groupId);
+	}
+
+	/**
+	 * Returns the asset tags in the groups.
+	 *
+	 * @param  groupIds the primary keys of the groups
+	 * @return the asset tags in the groups
+	 */
+	@Override
+	public List<AssetTag> getGroupsTags(long[] groupIds) {
+		List<AssetTag> groupsTags = new ArrayList<>();
+
+		for (long groupId : groupIds) {
+			groupsTags.addAll(getGroupTags(groupId));
+		}
+
+		return groupsTags;
 	}
 
 	/**
@@ -534,7 +539,9 @@ public class AssetTagLocalServiceImpl extends AssetTagLocalServiceBaseImpl {
 		AssetEntry entry = assetEntryPersistence.fetchByC_C(
 			classNameId, classPK);
 
-		if (entry == null) {
+		if ((entry == null) ||
+			(assetTagPersistence.countByCompanyId(entry.getCompanyId()) == 0)) {
+
 			return Collections.emptyList();
 		}
 

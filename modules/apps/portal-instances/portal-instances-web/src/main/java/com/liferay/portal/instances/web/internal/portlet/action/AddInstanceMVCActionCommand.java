@@ -5,12 +5,15 @@
 
 package com.liferay.portal.instances.web.internal.portlet.action;
 
-import com.liferay.portal.instances.web.internal.constants.PortalInstancesPortletKeys;
+import com.liferay.batch.engine.jaxrs.uri.BatchEngineUriInfo;
+import com.liferay.headless.portal.instances.resource.v1_0.PortalInstanceResource;
+import com.liferay.portal.instances.constants.PortalInstancesPortletKeys;
+import com.liferay.portal.instances.web.internal.util.PortalInstancesResourceContextUtil;
 import com.liferay.portal.kernel.exception.CompanyMaxUsersException;
 import com.liferay.portal.kernel.exception.CompanyMxException;
 import com.liferay.portal.kernel.exception.CompanyVirtualHostException;
 import com.liferay.portal.kernel.exception.CompanyWebIdException;
-import com.liferay.portal.kernel.exception.ContactNameException;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.UserEmailAddressException;
 import com.liferay.portal.kernel.exception.UserPasswordException;
 import com.liferay.portal.kernel.exception.UserScreenNameException;
@@ -22,17 +25,28 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.JSONPortletResponseUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
-import com.liferay.portal.kernel.service.CompanyService;
-import com.liferay.portal.kernel.servlet.SessionMessages;
+import com.liferay.portal.kernel.security.auth.EmailAddressValidator;
+import com.liferay.portal.kernel.security.auth.ScreenNameValidator;
+import com.liferay.portal.kernel.service.CompanyLocalService;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
-import com.liferay.portal.util.PortalInstances;
+import com.liferay.portal.kernel.util.PropsValues;
+import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.security.auth.EmailAddressValidatorFactory;
+import com.liferay.portal.security.auth.ScreenNameValidatorFactory;
+import com.liferay.portal.vulcan.batch.engine.resource.VulcanBatchEngineImportTaskResourceFactory;
 
 import jakarta.portlet.ActionRequest;
 import jakarta.portlet.ActionResponse;
 
+import java.util.Collections;
+import java.util.Map;
+
+import org.osgi.service.component.ComponentServiceObjects;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceScope;
 
 /**
  * @author Víctor Galán Grande
@@ -51,115 +65,220 @@ public class AddInstanceMVCActionCommand extends BaseMVCActionCommand {
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
+		hideDefaultSuccessMessage(actionRequest);
+
 		JSONObject jsonObject = _jsonFactory.createJSONObject();
 
 		try {
-			_addInstance(actionRequest);
+			_validateAdmin(actionRequest);
+			_validateCompany(actionRequest);
 
-			if (SessionMessages.contains(
-					actionRequest,
-					_portal.getPortletId(actionRequest) +
-						SessionMessages.
-							KEY_SUFFIX_HIDE_DEFAULT_SUCCESS_MESSAGE)) {
-
-				SessionMessages.clear(actionRequest);
-			}
+			_addPortalInstance(actionRequest);
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
 				_log.debug(exception);
 			}
 
-			String errorMessage = "an-unexpected-error-occurred";
-
-			if (exception instanceof CompanyMaxUsersException) {
-				errorMessage = "please-enter-a-valid-max-users";
-			}
-			else if (exception instanceof CompanyMxException) {
-				errorMessage = "please-enter-a-valid-mail-domain";
-			}
-			else if (exception instanceof CompanyVirtualHostException) {
-				errorMessage = "please-enter-a-valid-virtual-host";
-			}
-			else if (exception instanceof CompanyWebIdException) {
-				errorMessage = "please-enter-a-valid-web-id";
-			}
-			else if (exception instanceof
-						ContactNameException.MustHaveFirstName) {
-
-				errorMessage = "please-enter-a-valid-first-name";
-			}
-			else if (exception instanceof
-						ContactNameException.MustHaveLastName) {
-
-				errorMessage = "please-enter-a-valid-last-name";
-			}
-			else if (exception instanceof
-						ContactNameException.MustHaveMiddleName) {
-
-				errorMessage = "please-enter-a-valid-middle-name";
-			}
-			else if (exception instanceof
-						ContactNameException.MustHaveValidFullName) {
-
-				errorMessage =
-					"please-enter-a-valid-first-middle-and-last-name";
-			}
-			else if (exception instanceof UserEmailAddressException) {
-				errorMessage = "please-enter-a-valid-email-address";
-			}
-			else if (exception instanceof UserPasswordException) {
-				errorMessage = "please-enter-a-valid-password";
-			}
-			else if (exception instanceof UserScreenNameException) {
-				errorMessage = "please-enter-a-valid-screen-name";
-			}
-
 			jsonObject.put(
 				"error",
-				_language.get(actionRequest.getLocale(), errorMessage));
-
-			hideDefaultSuccessMessage(actionRequest);
+				_language.get(
+					actionRequest.getLocale(), _getErrorMessageKey(exception)));
 		}
 
 		JSONPortletResponseUtil.writeJSON(
 			actionRequest, actionResponse, jsonObject);
 	}
 
-	private void _addInstance(ActionRequest actionRequest) throws Exception {
-		String webId = ParamUtil.getString(actionRequest, "webId");
-		String virtualHostname = ParamUtil.getString(
-			actionRequest, "virtualHostname");
-		String mx = ParamUtil.getString(actionRequest, "mx");
-		int maxUsers = ParamUtil.getInteger(actionRequest, "maxUsers");
-		boolean active = ParamUtil.getBoolean(actionRequest, "active");
-		String defaultAdminPassword = ParamUtil.getString(
-			actionRequest, "defaultAdminPassword", null);
-		String defaultAdminScreenName = ParamUtil.getString(
-			actionRequest, "defaultAdminScreenName", null);
-		String defaultAdminEmailAddress = ParamUtil.getString(
-			actionRequest, "defaultAdminEmailAddress", null);
-		String defaultAdminFirstName = ParamUtil.getString(
-			actionRequest, "defaultAdminFirstName", null);
-		String defaultAdminMiddleName = ParamUtil.getString(
-			actionRequest, "defaultAdminMiddleName", null);
-		String defaultAdminLastName = ParamUtil.getString(
-			actionRequest, "defaultAdminLastName", null);
+	private void _addPortalInstance(ActionRequest actionRequest)
+		throws Exception {
 
-		PortalInstances.addCompany(
-			ParamUtil.getString(actionRequest, "siteInitializerKey"),
-			() -> _companyService.addCompany(
-				null, webId, virtualHostname, mx, maxUsers, active,
-				defaultAdminPassword, defaultAdminScreenName,
-				defaultAdminEmailAddress, defaultAdminFirstName,
-				defaultAdminMiddleName, defaultAdminLastName));
+		PortalInstanceResource portalInstanceResource =
+			_componentServiceObjects.getService();
+
+		try {
+			portalInstanceResource.setContextAcceptLanguage(
+				PortalInstancesResourceContextUtil.getAcceptLanguage(
+					_portal.getLocale(actionRequest)));
+			portalInstanceResource.setContextCompany(
+				_portal.getCompany(actionRequest));
+			portalInstanceResource.setContextHttpServletRequest(
+				PortalInstancesResourceContextUtil.getHttpServletRequest(
+					_portal.getHttpServletRequest(actionRequest)));
+			portalInstanceResource.setContextUriInfo(
+				new BatchEngineUriInfo.Builder(
+				).build());
+			portalInstanceResource.setContextUser(
+				_portal.getUser(actionRequest));
+			portalInstanceResource.setVulcanBatchEngineImportTaskResource(
+				_vulcanBatchEngineImportTaskResourceFactory.create());
+
+			portalInstanceResource.postPortalInstanceBatch(
+				null,
+				Collections.singletonList(
+					_getPortalInstanceMap(actionRequest)));
+		}
+		finally {
+			_componentServiceObjects.ungetService(portalInstanceResource);
+		}
+	}
+
+	private Map<String, String> _getAdminMap(ActionRequest actionRequest) {
+		String defaultAdminEmailAddress = ParamUtil.getString(
+			actionRequest, "defaultAdminEmailAddress");
+
+		if (Validator.isNull(defaultAdminEmailAddress)) {
+			return null;
+		}
+
+		return HashMapBuilder.put(
+			"emailAddress", defaultAdminEmailAddress
+		).put(
+			"familyName",
+			ParamUtil.getString(actionRequest, "defaultAdminLastName")
+		).put(
+			"givenName",
+			ParamUtil.getString(actionRequest, "defaultAdminFirstName")
+		).put(
+			"middleName",
+			ParamUtil.getString(actionRequest, "defaultAdminMiddleName")
+		).put(
+			"password",
+			ParamUtil.getString(actionRequest, "defaultAdminPassword")
+		).put(
+			"screenName",
+			ParamUtil.getString(actionRequest, "defaultAdminScreenName")
+		).build();
+	}
+
+	private String _getErrorMessageKey(Exception exception) {
+		if (exception instanceof CompanyMaxUsersException) {
+			return "please-enter-a-valid-max-users";
+		}
+
+		if (exception instanceof CompanyMxException) {
+			return "please-enter-a-valid-mail-domain";
+		}
+
+		if (exception instanceof CompanyVirtualHostException) {
+			return "please-enter-a-valid-virtual-host";
+		}
+
+		if (exception instanceof CompanyWebIdException) {
+			return "please-enter-a-valid-web-id";
+		}
+
+		if (exception instanceof UserEmailAddressException) {
+			return "please-enter-a-valid-email-address";
+		}
+
+		if (exception instanceof UserPasswordException) {
+			return "please-enter-a-valid-password";
+		}
+
+		if (exception instanceof UserScreenNameException) {
+			return "please-enter-a-valid-screen-name";
+		}
+
+		_log.error(exception);
+
+		return "an-unexpected-error-occurred";
+	}
+
+	private Map<String, Object> _getPortalInstanceMap(
+		ActionRequest actionRequest) {
+
+		return HashMapBuilder.<String, Object>put(
+			"active", ParamUtil.getBoolean(actionRequest, "active")
+		).put(
+			"admin", () -> _getAdminMap(actionRequest)
+		).put(
+			"domain", ParamUtil.getString(actionRequest, "mx")
+		).put(
+			"maxUsers", ParamUtil.getInteger(actionRequest, "maxUsers")
+		).put(
+			"portalInstanceId", ParamUtil.getString(actionRequest, "webId")
+		).put(
+			"siteInitializerKey", () -> _getSiteInitializerKey(actionRequest)
+		).put(
+			"virtualHost", ParamUtil.getString(actionRequest, "virtualHostname")
+		).build();
+	}
+
+	private String _getSiteInitializerKey(ActionRequest actionRequest) {
+		String siteInitializerKey = ParamUtil.getString(
+			actionRequest, "siteInitializerKey");
+
+		if (Validator.isNull(siteInitializerKey)) {
+			return null;
+		}
+
+		return siteInitializerKey;
+	}
+
+	private void _validateAdmin(ActionRequest actionRequest)
+		throws PortalException {
+
+		if (Validator.isNotNull(PropsValues.DEFAULT_ADMIN_PASSWORD)) {
+			return;
+		}
+
+		String emailAddress = ParamUtil.getString(
+			actionRequest, "defaultAdminEmailAddress");
+
+		if (Validator.isNull(emailAddress)) {
+			throw new UserEmailAddressException.MustNotBeNull();
+		}
+
+		EmailAddressValidator emailAddressValidator =
+			EmailAddressValidatorFactory.getInstance();
+
+		if (!emailAddressValidator.validate(0, emailAddress)) {
+			throw new UserEmailAddressException.MustValidate(
+				emailAddress, emailAddressValidator);
+		}
+
+		if (Validator.isNull(
+				ParamUtil.getString(actionRequest, "defaultAdminPassword"))) {
+
+			throw new UserPasswordException.MustNotBeNull(0);
+		}
+
+		String screenName = ParamUtil.getString(
+			actionRequest, "defaultAdminScreenName");
+
+		if (Validator.isNull(screenName)) {
+			throw new UserScreenNameException.MustNotBeNull();
+		}
+
+		ScreenNameValidator screenNameValidator =
+			ScreenNameValidatorFactory.getInstance();
+
+		if (!screenNameValidator.validate(0, screenName)) {
+			throw new UserScreenNameException.MustValidate(
+				0, screenName, screenNameValidator);
+		}
+	}
+
+	private void _validateCompany(ActionRequest actionRequest)
+		throws PortalException {
+
+		_companyLocalService.validateCompany(
+			ParamUtil.getString(actionRequest, "webId"),
+			ParamUtil.getString(actionRequest, "virtualHostname"),
+			ParamUtil.getString(actionRequest, "mx"),
+			ParamUtil.getInteger(actionRequest, "maxUsers"));
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		AddInstanceMVCActionCommand.class);
 
 	@Reference
-	private CompanyService _companyService;
+	private CompanyLocalService _companyLocalService;
+
+	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
+	private ComponentServiceObjects<PortalInstanceResource>
+		_componentServiceObjects;
 
 	@Reference
 	private JSONFactory _jsonFactory;
@@ -169,5 +288,9 @@ public class AddInstanceMVCActionCommand extends BaseMVCActionCommand {
 
 	@Reference
 	private Portal _portal;
+
+	@Reference
+	private VulcanBatchEngineImportTaskResourceFactory
+		_vulcanBatchEngineImportTaskResourceFactory;
 
 }

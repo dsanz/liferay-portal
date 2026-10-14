@@ -3117,6 +3117,9 @@ public class StyleBookEntryPersistenceImpl
 		}
 		else {
 			if (!Objects.equals(
+					styleBookEntry.getUuid(),
+					styleBookEntry.getExternalReferenceCode()) &&
+				!Objects.equals(
 					styleBookEntryModelImpl.getColumnOriginalValue(
 						"externalReferenceCode"),
 					styleBookEntry.getExternalReferenceCode())) {
@@ -4263,4 +4266,4 @@ public class StyleBookEntryPersistenceImpl
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-1858693601
+// LIFERAY-SERVICE-BUILDER-HASH:-1828449514

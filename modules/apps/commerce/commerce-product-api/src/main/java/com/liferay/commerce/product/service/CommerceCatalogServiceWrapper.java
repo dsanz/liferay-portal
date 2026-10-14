@@ -86,6 +86,16 @@ public class CommerceCatalogServiceWrapper
 			companyId, start, end);
 	}
 
+	@Override
+	public CommerceCatalog getOrAddEmptyCommerceCatalog(
+			String externalReferenceCode, String name,
+			String commerceCurrencyCode)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _commerceCatalogService.getOrAddEmptyCommerceCatalog(
+			externalReferenceCode, name, commerceCurrencyCode);
+	}
+
 	/**
 	 * Returns the OSGi service identifier.
 	 *
@@ -150,4 +160,4 @@ public class CommerceCatalogServiceWrapper
 	private CommerceCatalogService _commerceCatalogService;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:1649857042
+// LIFERAY-SERVICE-BUILDER-HASH:1134723616

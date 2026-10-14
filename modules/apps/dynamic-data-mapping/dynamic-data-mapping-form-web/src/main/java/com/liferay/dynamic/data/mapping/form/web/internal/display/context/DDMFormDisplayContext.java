@@ -100,6 +100,7 @@ import jakarta.portlet.RenderResponse;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -210,10 +211,6 @@ public class DDMFormDisplayContext {
 
 	public String getContainerId() {
 		return _containerId;
-	}
-
-	public String getDataEngineModule() {
-		return _npmResolver.resolveModuleName("data-engine-js-components-web");
 	}
 
 	public Map<String, Object> getDDMFormContext() throws Exception {
@@ -330,6 +327,10 @@ public class DDMFormDisplayContext {
 		return ddmForm.getDDMFormSuccessPageSettings();
 	}
 
+	public String getDataEngineModule() {
+		return _npmResolver.resolveModuleName("data-engine-js-components-web");
+	}
+
 	public String getDefaultLanguageId() throws PortalException {
 		String languageId = ParamUtil.getString(_renderRequest, "languageId");
 
@@ -344,6 +345,22 @@ public class DDMFormDisplayContext {
 		}
 
 		return LanguageUtil.getLanguageId(locale);
+	}
+
+	public Map<String, String> getErrorMessages() {
+		Map<String, String> errorMessages = new LinkedHashMap<>();
+
+		for (String key : SessionErrors.keySet(_renderRequest)) {
+			Object value = SessionErrors.get(_renderRequest, key);
+
+			if (!(value instanceof PortalException) &&
+				(value instanceof Throwable throwable)) {
+
+				errorMessages.put(key, HtmlUtil.escape(throwable.getMessage()));
+			}
+		}
+
+		return errorMessages;
 	}
 
 	public DDMFormInstance getFormInstance() {
@@ -929,7 +946,8 @@ public class DDMFormDisplayContext {
 			"showPartialResultsToRespondents",
 			isShowPartialResultsToRespondents());
 
-		String redirectURL = ParamUtil.getString(_renderRequest, "redirect");
+		String redirectURL = PortalUtil.escapeRedirect(
+			ParamUtil.getString(_renderRequest, "redirect"));
 
 		if (Validator.isNotNull(redirectURL)) {
 			ddmFormRenderingContext.setCancelLabel(

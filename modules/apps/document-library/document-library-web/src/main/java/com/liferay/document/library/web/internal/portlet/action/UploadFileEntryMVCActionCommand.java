@@ -6,10 +6,10 @@
 package com.liferay.document.library.web.internal.portlet.action;
 
 import com.liferay.document.library.constants.DLPortletKeys;
+import com.liferay.document.library.helper.DLURLHelper;
 import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.service.DLAppService;
 import com.liferay.document.library.kernel.util.DLValidator;
-import com.liferay.document.library.util.DLURLHelper;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.item.selector.ItemSelectorUploadResponseHandler;
 import com.liferay.petra.string.StringPool;
@@ -81,13 +81,13 @@ public class UploadFileEntryMVCActionCommand extends BaseMVCActionCommand {
 	@Reference
 	private DLAppService _dlAppService;
 
+	@Reference
+	private DLURLHelper _dlURLHelper;
+
 	private final DLUploadFileEntryHandler _dlUploadFileEntryHandler =
 		new DLUploadFileEntryHandler();
 	private final DLUploadResponseHandler _dlUploadResponseHandler =
 		new DLUploadResponseHandler();
-
-	@Reference
-	private DLURLHelper _dlURLHelper;
 
 	@Reference
 	private DLValidator _dlValidator;

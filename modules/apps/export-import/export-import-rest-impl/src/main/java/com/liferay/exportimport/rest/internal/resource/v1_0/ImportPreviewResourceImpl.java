@@ -16,11 +16,13 @@ import com.liferay.exportimport.kernel.service.ExportImportLocalService;
 import com.liferay.exportimport.kernel.staging.Staging;
 import com.liferay.exportimport.rest.dto.v1_0.ImportPreview;
 import com.liferay.exportimport.rest.dto.v1_0.PreviewPortletDataHandler;
+import com.liferay.exportimport.rest.dto.v1_0.PreviewSite;
 import com.liferay.exportimport.rest.internal.util.GroupUtil;
 import com.liferay.exportimport.rest.internal.util.PermissionUtil;
 import com.liferay.exportimport.rest.internal.util.PreviewPortletDataHandlerUtil;
 import com.liferay.exportimport.rest.resource.v1_0.ImportPreviewResource;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Portlet;
@@ -29,7 +31,7 @@ import com.liferay.portal.kernel.service.LayoutService;
 import com.liferay.portal.kernel.service.PortletLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.vulcan.multipart.BinaryFile;
 import com.liferay.portal.vulcan.multipart.MultipartBody;
@@ -150,7 +152,8 @@ public class ImportPreviewResourceImpl extends BaseImportPreviewResourceImpl {
 		long groupId = group.getGroupId();
 
 		PermissionUtil.checkImportPermission(
-			contextCompany.getCompanyId(), groupId);
+			contextCompany.getCompanyId(), groupId,
+			PermissionUtil.getGroupActionId(portletId));
 
 		FileEntry fileEntry = _addTempFileEntry(groupId, multipartBody);
 
@@ -167,16 +170,25 @@ public class ImportPreviewResourceImpl extends BaseImportPreviewResourceImpl {
 
 		boolean portletScoped = !Validator.isBlank(portletId);
 
-		for (Portlet portlet : manifestSummary.getDataPortlets()) {
-			if (portletScoped &&
-				!StringUtil.equals(portlet.getPortletId(), portletId)) {
+		List<Portlet> portlets = manifestSummary.getDataPortlets();
 
+		if (portletScoped) {
+			portlets = ListUtil.fromArray(
+				_portletLocalService.getPortletById(
+					contextCompany.getCompanyId(), portletId));
+		}
+
+		for (Portlet portlet : portlets) {
+			PortletDataHandler portletDataHandler =
+				portlet.getPortletDataHandlerInstance();
+
+			if ((portletDataHandler == null) || portletDataHandler.isHidden()) {
 				continue;
 			}
 
 			PreviewPortletDataHandlerUtil.addPreviewPortletDataHandler(
 				contextCompany.getCompanyId(), locale, manifestSummary, portlet,
-				portlet.getPortletDataHandlerInstance(),
+				portletDataHandler,
 				PortletDataHandler::getImportPortletDataHandlerControls,
 				portletScoped, previewPortletDataHandlersMap);
 		}
@@ -216,8 +228,43 @@ public class ImportPreviewResourceImpl extends BaseImportPreviewResourceImpl {
 						PreviewPortletDataHandlerUtil.
 							toPreviewPortletDataHandlerSections(
 								locale, previewPortletDataHandlersMap));
+				setPreviewSites(() -> _getPreviewSites(fileEntry));
 			}
 		};
+	}
+
+	private PreviewSite[] _getPreviewSites(FileEntry fileEntry)
+		throws Exception {
+
+		if (!FeatureFlagManagerUtil.isEnabled(
+				contextCompany.getCompanyId(), "LPD-85946")) {
+
+			return new PreviewSite[0];
+		}
+
+		return transformToArray(
+			_exportImportHelper.getExportImportGroups(fileEntry),
+			exportImportGroup -> new PreviewSite() {
+				{
+					setChildSitesCount(exportImportGroup::getChildGroupsCount);
+					setDescriptiveName(exportImportGroup::getDescriptiveName);
+					setExistsInInstance(
+						() -> {
+							Group group =
+								groupLocalService.
+									fetchGroupByExternalReferenceCode(
+										exportImportGroup.
+											getExternalReferenceCode(),
+										contextCompany.getCompanyId());
+
+							return group != null;
+						});
+					setExternalReferenceCode(
+						exportImportGroup::getExternalReferenceCode);
+					setPath(exportImportGroup::getPath);
+				}
+			},
+			PreviewSite.class);
 	}
 
 	private void _validateImportFile(

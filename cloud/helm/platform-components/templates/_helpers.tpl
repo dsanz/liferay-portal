@@ -29,6 +29,12 @@ instrumentation.opentelemetry.io/inject-python: "false"
 sidecar.opentelemetry.io/inject: "false"
 {{- end -}}
 
+{{- define "liferay-platform.environmentNamespaceLabels" -}}
+licensing.liferay.com/environment: "true"
+liferay.com/observable: "true"
+pod-security.kubernetes.io/enforce: restricted
+{{- end -}}
+
 {{- define "liferay-platform.infrastructureRepositoryRevision" -}}
 {{- .Values.gitops.infrastructureRepository.revision | default .Values.gitops.repository.revision -}}
 {{- end -}}
@@ -39,6 +45,12 @@ sidecar.opentelemetry.io/inject: "false"
 
 {{- define "liferay-platform.labels" -}}
 liferay.com/project: liferay-cloud-native
+{{- end -}}
+
+{{- define "liferay-platform.requireAPIServerSources" -}}
+{{- if not .apiServerSources -}}
+{{- fail (printf "The value \"networkPolicy.apiServerSources\" must not be empty when \"operatorApplications.%s.enabled\" is true" .operatorApplication) -}}
+{{- end -}}
 {{- end -}}
 
 {{- define "liferay-platform.sourceRepoBase" -}}

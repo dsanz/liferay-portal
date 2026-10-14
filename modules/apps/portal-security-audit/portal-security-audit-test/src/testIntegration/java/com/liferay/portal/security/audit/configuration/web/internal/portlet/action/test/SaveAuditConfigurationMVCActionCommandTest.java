@@ -12,6 +12,9 @@ import com.liferay.layout.test.util.LayoutTestUtil;
 import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClassDefinition;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
 import com.liferay.portal.configuration.persistence.ConfigurationOverridePropertiesUtil;
+import com.liferay.portal.kernel.audit.AuditMessage;
+import com.liferay.portal.kernel.json.JSONArray;
+import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
@@ -39,11 +42,12 @@ import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.security.audit.AuditMessageProcessor;
 import com.liferay.portal.security.audit.configuration.AuditConfiguration;
 import com.liferay.portal.security.audit.router.configuration.FileSystemAuditMessageProcessorConfiguration;
-import com.liferay.portal.security.audit.router.configuration.PersistentAuditMessageProcessorConfiguration;
 import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
@@ -51,7 +55,9 @@ import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 
 import jakarta.portlet.PortletException;
 
+import java.util.ArrayList;
 import java.util.Dictionary;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -63,6 +69,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 
@@ -95,15 +105,19 @@ public class SaveAuditConfigurationMVCActionCommandTest {
 		_configurationProvider.deleteCompanyConfiguration(
 			FileSystemAuditMessageProcessorConfiguration.class,
 			TestPropsValues.getCompanyId());
-		_configurationProvider.deleteCompanyConfiguration(
-			PersistentAuditMessageProcessorConfiguration.class,
-			TestPropsValues.getCompanyId());
 		_configurationProvider.deleteSystemConfiguration(
 			AuditConfiguration.class);
 		_configurationProvider.deleteSystemConfiguration(
 			FileSystemAuditMessageProcessorConfiguration.class);
-		_configurationProvider.deleteSystemConfiguration(
-			PersistentAuditMessageProcessorConfiguration.class);
+	}
+
+	@FeatureFlag("LPD-6417")
+	@Test
+	public void testProcessActionRoutesAuditMessage() throws Exception {
+		_testProcessActionRoutesAuditMessage(
+			ExtendedObjectClassDefinition.Scope.COMPANY);
+		_testProcessActionRoutesAuditMessage(
+			ExtendedObjectClassDefinition.Scope.SYSTEM);
 	}
 
 	@FeatureFlag("LPD-6417")
@@ -115,16 +129,12 @@ public class SaveAuditConfigurationMVCActionCommandTest {
 			_configurationProvider.getCompanyConfiguration(
 				AuditConfiguration.class, TestPropsValues.getCompanyId());
 
-		Assert.assertFalse(auditConfiguration.enabled());
+		Assert.assertTrue(auditConfiguration.enabled());
+		Assert.assertFalse(auditConfiguration.pseudonymizationEnabled());
 
 		_assertFileSystemAuditMessageProcessorConfiguration(
 			_configurationProvider.getCompanyConfiguration(
 				FileSystemAuditMessageProcessorConfiguration.class,
-				TestPropsValues.getCompanyId()));
-
-		_assertPersistentAuditMessageProcessorConfiguration(
-			_configurationProvider.getCompanyConfiguration(
-				PersistentAuditMessageProcessorConfiguration.class,
 				TestPropsValues.getCompanyId()));
 	}
 
@@ -151,49 +161,6 @@ public class SaveAuditConfigurationMVCActionCommandTest {
 		Assert.assertEquals(
 			"NDJSON",
 			fileSystemAuditMessageProcessorConfiguration.outputFormat());
-	}
-
-	@FeatureFlag("LPD-6417")
-	@Test
-	public void testProcessActionWithCompanyScopeWhenDatabaseProcessorIsOverridden()
-		throws Exception {
-
-		_testProcessActionWhenDatabaseProcessorIsOverridden(
-			ExtendedObjectClassDefinition.Scope.COMPANY);
-	}
-
-	@FeatureFlag("LPD-6417")
-	@Test
-	public void testProcessActionWithCompanyScopeWhenDatabaseProcessorParametersAreAbsent()
-		throws Exception {
-
-		_configurationProvider.saveCompanyConfiguration(
-			PersistentAuditMessageProcessorConfiguration.class,
-			TestPropsValues.getCompanyId(),
-			HashMapDictionaryBuilder.<String, Object>put(
-				"bufferSize", _BUFFER_SIZE
-			).put(
-				"enabled", false
-			).put(
-				"flushInterval", _FLUSH_INTERVAL
-			).build());
-
-		_processAction(
-			null, true, false, ExtendedObjectClassDefinition.Scope.COMPANY);
-
-		_assertPersistentAuditMessageProcessorConfiguration(
-			_configurationProvider.getCompanyConfiguration(
-				PersistentAuditMessageProcessorConfiguration.class,
-				TestPropsValues.getCompanyId()));
-	}
-
-	@FeatureFlag("LPD-6417")
-	@Test
-	public void testProcessActionWithCompanyScopeWhenEnabledIsOverridden()
-		throws Exception {
-
-		_testProcessActionWhenEnabledIsOverridden(
-			true, ExtendedObjectClassDefinition.Scope.COMPANY);
 	}
 
 	@FeatureFlag(enable = false, value = "LPD-6417")
@@ -234,7 +201,7 @@ public class SaveAuditConfigurationMVCActionCommandTest {
 			).build());
 
 		_processAction(
-			null, false, true, ExtendedObjectClassDefinition.Scope.COMPANY);
+			null, false, ExtendedObjectClassDefinition.Scope.COMPANY);
 
 		_assertFileSystemAuditMessageProcessorConfiguration(
 			_configurationProvider.getCompanyConfiguration(
@@ -261,13 +228,11 @@ public class SaveAuditConfigurationMVCActionCommandTest {
 				AuditConfiguration.class);
 
 		Assert.assertFalse(auditConfiguration.enabled());
+		Assert.assertFalse(auditConfiguration.pseudonymizationEnabled());
 
 		_assertFileSystemAuditMessageProcessorConfiguration(
 			_configurationProvider.getSystemConfiguration(
 				FileSystemAuditMessageProcessorConfiguration.class));
-		_assertPersistentAuditMessageProcessorConfiguration(
-			_configurationProvider.getSystemConfiguration(
-				PersistentAuditMessageProcessorConfiguration.class));
 	}
 
 	@Test
@@ -313,19 +278,24 @@ public class SaveAuditConfigurationMVCActionCommandTest {
 	}
 
 	@Test
-	public void testProcessActionWithSystemScopeWhenDatabaseProcessorIsOverridden()
-		throws Exception {
-
-		_testProcessActionWhenDatabaseProcessorIsOverridden(
-			ExtendedObjectClassDefinition.Scope.SYSTEM);
-	}
-
-	@Test
 	public void testProcessActionWithSystemScopeWhenEnabledIsOverridden()
 		throws Exception {
 
-		_testProcessActionWhenEnabledIsOverridden(
-			false, ExtendedObjectClassDefinition.Scope.SYSTEM);
+		_configurationProvider.saveSystemConfiguration(
+			AuditConfiguration.class,
+			MapUtil.singletonDictionary("enabled", false));
+
+		_processActionWithOverriddenConfiguration(
+			AuditConfiguration.class,
+			HashMapBuilder.<String, Object>put(
+				"enabled", true
+			).build(),
+			ExtendedObjectClassDefinition.Scope.SYSTEM);
+
+		Dictionary<String, Object> properties = _getProperties(
+			ExtendedObjectClassDefinition.Scope.SYSTEM);
+
+		Assert.assertEquals(Boolean.FALSE, properties.get("enabled"));
 	}
 
 	@Test
@@ -359,20 +329,6 @@ public class SaveAuditConfigurationMVCActionCommandTest {
 		Assert.assertEquals(
 			_OUTPUT_FORMAT,
 			fileSystemAuditMessageProcessorConfiguration.outputFormat());
-	}
-
-	private void _assertPersistentAuditMessageProcessorConfiguration(
-		PersistentAuditMessageProcessorConfiguration
-			persistentAuditMessageProcessorConfiguration) {
-
-		Assert.assertEquals(
-			_BUFFER_SIZE,
-			persistentAuditMessageProcessorConfiguration.bufferSize());
-		Assert.assertFalse(
-			persistentAuditMessageProcessorConfiguration.enabled());
-		Assert.assertEquals(
-			_FLUSH_INTERVAL,
-			persistentAuditMessageProcessorConfiguration.flushInterval());
 	}
 
 	private void _assertProcessActionFails(
@@ -409,6 +365,36 @@ public class SaveAuditConfigurationMVCActionCommandTest {
 		finally {
 			PermissionThreadLocal.setPermissionChecker(permissionChecker);
 		}
+	}
+
+	private MockLiferayPortletActionRequest
+			_createMockLiferayPortletActionRequest(
+				ExtendedObjectClassDefinition.Scope scope)
+		throws Exception {
+
+		MockLiferayPortletActionRequest mockLiferayPortletActionRequest =
+			new MockLiferayPortletActionRequest();
+
+		mockLiferayPortletActionRequest.setAttribute(
+			JavaConstants.JAKARTA_PORTLET_CONFIG,
+			ProxyUtil.newProxyInstance(
+				LiferayPortletConfig.class.getClassLoader(),
+				new Class<?>[] {LiferayPortletConfig.class},
+				(proxy, method, args) -> {
+					if (Objects.equals(method.getName(), "getPortletId")) {
+						return _getPortletId(scope);
+					}
+
+					return null;
+				}));
+		mockLiferayPortletActionRequest.setAttribute(
+			WebKeys.PORTLET_ID, _getPortletId(scope));
+		mockLiferayPortletActionRequest.setAttribute(
+			WebKeys.THEME_DISPLAY, _getThemeDisplay());
+		mockLiferayPortletActionRequest.setPortletSession(
+			new MockPortletSession());
+
+		return mockLiferayPortletActionRequest;
 	}
 
 	private String _getFilterString(
@@ -468,6 +454,7 @@ public class SaveAuditConfigurationMVCActionCommandTest {
 		themeDisplay.setPlid(_layout.getPlid());
 		themeDisplay.setScopeGroupId(_group.getGroupId());
 		themeDisplay.setSiteGroupId(_group.getGroupId());
+		themeDisplay.setUser(TestPropsValues.getUser());
 
 		return themeDisplay;
 	}
@@ -475,36 +462,21 @@ public class SaveAuditConfigurationMVCActionCommandTest {
 	private void _processAction(ExtendedObjectClassDefinition.Scope scope)
 		throws Exception {
 
-		_processAction(null, true, true, scope);
+		_processAction(null, true, scope);
 	}
 
 	private void _processAction(
 			Integer auditMessageMaxQueueSize,
 			boolean setFileSystemAuditMessageProcessorParameters,
-			boolean setPersistentAuditMessageProcessorParameters,
 			ExtendedObjectClassDefinition.Scope scope)
 		throws Exception {
 
 		MockLiferayPortletActionRequest mockLiferayPortletActionRequest =
-			new MockLiferayPortletActionRequest();
+			_createMockLiferayPortletActionRequest(scope);
 
-		mockLiferayPortletActionRequest.setAttribute(
-			JavaConstants.JAKARTA_PORTLET_CONFIG,
-			ProxyUtil.newProxyInstance(
-				LiferayPortletConfig.class.getClassLoader(),
-				new Class<?>[] {LiferayPortletConfig.class},
-				(proxy, method, args) -> {
-					if (Objects.equals(method.getName(), "getPortletId")) {
-						return _getPortletId(scope);
-					}
-
-					return null;
-				}));
-		mockLiferayPortletActionRequest.setAttribute(
-			WebKeys.PORTLET_ID, _getPortletId(scope));
-		mockLiferayPortletActionRequest.setAttribute(
-			WebKeys.THEME_DISPLAY, _getThemeDisplay());
 		mockLiferayPortletActionRequest.setParameter("enabled", "false");
+		mockLiferayPortletActionRequest.setParameter(
+			"pseudonymizationEnabled", "false");
 
 		if (auditMessageMaxQueueSize != null) {
 			mockLiferayPortletActionRequest.setParameter(
@@ -524,20 +496,6 @@ public class SaveAuditConfigurationMVCActionCommandTest {
 				"fileSystemAuditMessageProcessorOutputFormat", _OUTPUT_FORMAT);
 		}
 
-		if (setPersistentAuditMessageProcessorParameters) {
-			mockLiferayPortletActionRequest.setParameter(
-				"persistentAuditMessageProcessorBufferSize",
-				String.valueOf(_BUFFER_SIZE));
-			mockLiferayPortletActionRequest.setParameter(
-				"persistentAuditMessageProcessorEnabled", "false");
-			mockLiferayPortletActionRequest.setParameter(
-				"persistentAuditMessageProcessorFlushInterval",
-				String.valueOf(_FLUSH_INTERVAL));
-		}
-
-		mockLiferayPortletActionRequest.setPortletSession(
-			new MockPortletSession());
-
 		_mvcActionCommand.processAction(
 			mockLiferayPortletActionRequest,
 			new MockLiferayPortletActionResponse());
@@ -548,7 +506,7 @@ public class SaveAuditConfigurationMVCActionCommandTest {
 			ExtendedObjectClassDefinition.Scope scope)
 		throws Exception {
 
-		_processAction(auditMessageMaxQueueSize, true, true, scope);
+		_processAction(auditMessageMaxQueueSize, true, scope);
 	}
 
 	private void _processActionWithOverriddenConfiguration(
@@ -571,86 +529,69 @@ public class SaveAuditConfigurationMVCActionCommandTest {
 		}
 	}
 
-	private void _saveConfiguration(
-			boolean enabled, ExtendedObjectClassDefinition.Scope scope)
-		throws Exception {
-
-		Dictionary<String, Object> properties =
-			HashMapDictionaryBuilder.<String, Object>put(
-				"enabled", enabled
-			).build();
-
-		if (ExtendedObjectClassDefinition.Scope.SYSTEM.equals(scope)) {
-			_configurationProvider.saveSystemConfiguration(
-				AuditConfiguration.class, properties);
-
-			return;
-		}
-
-		_configurationProvider.saveCompanyConfiguration(
-			AuditConfiguration.class, TestPropsValues.getCompanyId(),
-			properties);
-	}
-
-	private void _testProcessActionWhenDatabaseProcessorIsOverridden(
+	private void _testProcessActionRoutesAuditMessage(
 			ExtendedObjectClassDefinition.Scope scope)
 		throws Exception {
 
-		Dictionary<String, Object> properties =
-			HashMapDictionaryBuilder.<String, Object>put(
-				"bufferSize", _BUFFER_SIZE
-			).put(
-				"enabled", true
-			).put(
-				"flushInterval", _FLUSH_INTERVAL
-			).build();
+		Bundle bundle = FrameworkUtil.getBundle(getClass());
 
-		if (ExtendedObjectClassDefinition.Scope.SYSTEM.equals(scope)) {
-			_configurationProvider.saveSystemConfiguration(
-				PersistentAuditMessageProcessorConfiguration.class, properties);
+		BundleContext bundleContext = bundle.getBundleContext();
+
+		List<AuditMessage> auditMessages = new ArrayList<>();
+
+		ServiceRegistration<AuditMessageProcessor> serviceRegistration =
+			bundleContext.registerService(
+				AuditMessageProcessor.class, auditMessages::add,
+				HashMapDictionaryBuilder.<String, Object>put(
+					"eventTypes", "*"
+				).build());
+
+		try {
+			MockLiferayPortletActionRequest mockLiferayPortletActionRequest =
+				_createMockLiferayPortletActionRequest(scope);
+
+			mockLiferayPortletActionRequest.setParameter(
+				"pseudonymizationEnabled", "false");
+
+			_mvcActionCommand.processAction(
+				mockLiferayPortletActionRequest,
+				new MockLiferayPortletActionResponse());
+
+			AuditMessage auditMessage = null;
+
+			for (AuditMessage curAuditMessage : auditMessages) {
+				if (Objects.equals(
+						curAuditMessage.getEventType(),
+						"AUDIT_CONFIG_CHANGE")) {
+
+					auditMessage = curAuditMessage;
+
+					break;
+				}
+			}
+
+			Assert.assertEquals(
+				AuditConfiguration.class.getName(),
+				auditMessage.getClassName());
+
+			JSONObject additionalInfoJSONObject =
+				auditMessage.getAdditionalInfo();
+
+			JSONArray attributesJSONArray =
+				additionalInfoJSONObject.getJSONArray("attributes");
+
+			JSONObject attributeJSONObject = attributesJSONArray.getJSONObject(
+				0);
+
+			Assert.assertEquals(
+				"pseudonymizationEnabled",
+				attributeJSONObject.getString("name"));
+			Assert.assertFalse(attributeJSONObject.getBoolean("newValue"));
+			Assert.assertTrue(attributeJSONObject.getBoolean("oldValue"));
 		}
-		else {
-			_configurationProvider.saveCompanyConfiguration(
-				PersistentAuditMessageProcessorConfiguration.class,
-				TestPropsValues.getCompanyId(), properties);
+		finally {
+			serviceRegistration.unregister();
 		}
-
-		_processActionWithOverriddenConfiguration(
-			PersistentAuditMessageProcessorConfiguration.class,
-			HashMapBuilder.<String, Object>put(
-				"bufferSize", 0
-			).put(
-				"enabled", false
-			).put(
-				"flushInterval", 0L
-			).build(),
-			scope);
-
-		Dictionary<String, Object> currentProperties = _getProperties(
-			PersistentAuditMessageProcessorConfiguration.class, scope);
-
-		Assert.assertEquals(_BUFFER_SIZE, currentProperties.get("bufferSize"));
-		Assert.assertEquals(Boolean.TRUE, currentProperties.get("enabled"));
-		Assert.assertEquals(
-			_FLUSH_INTERVAL, currentProperties.get("flushInterval"));
-	}
-
-	private void _testProcessActionWhenEnabledIsOverridden(
-			boolean enabled, ExtendedObjectClassDefinition.Scope scope)
-		throws Exception {
-
-		_saveConfiguration(enabled, scope);
-
-		_processActionWithOverriddenConfiguration(
-			AuditConfiguration.class,
-			HashMapBuilder.<String, Object>put(
-				"enabled", true
-			).build(),
-			scope);
-
-		Dictionary<String, Object> properties = _getProperties(scope);
-
-		Assert.assertEquals(enabled, properties.get("enabled"));
 	}
 
 	private void _testProcessActionWhenFileSystemProcessorIsOverridden(
@@ -702,10 +643,6 @@ public class SaveAuditConfigurationMVCActionCommandTest {
 		Assert.assertEquals(
 			_OUTPUT_FORMAT, currentProperties.get("outputFormat"));
 	}
-
-	private static final int _BUFFER_SIZE = 1000;
-
-	private static final long _FLUSH_INTERVAL = 30000;
 
 	private static final String _OUTPUT_DIRECTORY = "data/audit-test";
 

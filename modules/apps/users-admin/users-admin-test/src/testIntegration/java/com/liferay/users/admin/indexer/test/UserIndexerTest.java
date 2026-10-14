@@ -437,8 +437,9 @@ public class UserIndexerTest {
 			user.getUserId());
 
 		String expectedFullNameHighlight = StringBundler.concat(
-			HighlightUtil.HIGHLIGHT_TAG_OPEN, firstName, StringPool.SPACE,
-			middleName, StringPool.SPACE, lastName,
+			HighlightUtil.HIGHLIGHT_TAG_OPEN, firstName,
+			HighlightUtil.HIGHLIGHT_TAG_CLOSE, StringPool.SPACE, middleName,
+			StringPool.SPACE, HighlightUtil.HIGHLIGHT_TAG_OPEN, lastName,
 			HighlightUtil.HIGHLIGHT_TAG_CLOSE);
 
 		assertSummary(
@@ -885,10 +886,10 @@ public class UserIndexerTest {
 	protected RoleLocalService roleLocalService;
 
 	@Inject
-	protected Searcher searcher;
+	protected SearchRequestBuilderFactory searchRequestBuilderFactory;
 
 	@Inject
-	protected SearchRequestBuilderFactory searchRequestBuilderFactory;
+	protected Searcher searcher;
 
 	@Inject
 	protected UserGroupLocalService userGroupLocalService;
@@ -901,28 +902,27 @@ public class UserIndexerTest {
 	}
 
 	private Group _group;
+	private GroupSearchFixture _groupSearchFixture;
 
 	@DeleteAfterTestRun
 	private List<Group> _groups;
 
-	private GroupSearchFixture _groupSearchFixture;
+	private OrganizationSearchFixture _organizationSearchFixture;
 
 	@DeleteAfterTestRun
 	private List<Organization> _organizations;
 
-	private OrganizationSearchFixture _organizationSearchFixture;
-
 	@Inject
 	private SearchEngineInformation _searchEngineInformation;
-
-	@DeleteAfterTestRun
-	private List<UserGroup> _userGroups;
 
 	private UserGroupSearchFixture _userGroupSearchFixture;
 
 	@DeleteAfterTestRun
-	private List<User> _users;
+	private List<UserGroup> _userGroups;
 
 	private UserSearchFixture _userSearchFixture;
+
+	@DeleteAfterTestRun
+	private List<User> _users;
 
 }

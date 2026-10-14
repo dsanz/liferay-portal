@@ -13,8 +13,10 @@ import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectField;
 import com.liferay.object.model.ObjectRelationship;
 import com.liferay.object.rest.dto.v1_0.Assignee;
+import com.liferay.object.rest.dto.v1_0.Coordinates;
 import com.liferay.object.rest.dto.v1_0.FileEntry;
 import com.liferay.object.rest.dto.v1_0.ListEntry;
+import com.liferay.object.rest.dto.v1_0.Location;
 import com.liferay.object.rest.internal.resource.v1_0.CollaboratorResourceImpl;
 import com.liferay.object.rest.internal.resource.v1_0.CommentResourceImpl;
 import com.liferay.object.rest.internal.resource.v1_0.ObjectEntryRelatedObjectsResourceImpl;
@@ -38,11 +40,11 @@ import com.liferay.portal.vulcan.dto.converter.DTOConverterRegistry;
 import com.liferay.portal.vulcan.openapi.DTOProperty;
 import com.liferay.portal.vulcan.openapi.OpenAPISchemaFilter;
 import com.liferay.portal.vulcan.resource.OpenAPIResource;
+import com.liferay.portal.vulcan.util.OpenAPISchemaUtil;
 import com.liferay.portal.vulcan.util.OpenAPIUtil;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.Schema;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -144,7 +146,7 @@ public class ObjectEntryOpenAPIResourceImpl
 					MapUtil.getString(relationshipNames, propertyName, null),
 					propertySchema.getDescription(), propertyName,
 					GetterUtil.getBoolean(propertySchema.getReadOnly()),
-					_getRef(propertySchema),
+					OpenAPISchemaUtil.getReference(propertySchema),
 					requiredPropertySchemaNames.contains(propertyName),
 					propertySchema.getType(),
 					OpenAPIUtil.getBatchUnsupportedFormats(
@@ -286,6 +288,18 @@ public class ObjectEntryOpenAPIResourceImpl
 					 ObjectFieldConstants.BUSINESS_TYPE_RICH_TEXT)) {
 
 			return _getDTOProperties(objectField, String.class.getSimpleName());
+		}
+		else if (Objects.equals(
+					objectField.getBusinessType(),
+					ObjectFieldConstants.BUSINESS_TYPE_LOCATION)) {
+
+			return _getDTOProperties(
+				HashMapBuilder.put(
+					"address", String.class.getSimpleName()
+				).put(
+					"coordinates", Coordinates.class.getSimpleName()
+				).build(),
+				objectField, Location.class.getSimpleName());
 		}
 		else if (Objects.equals(
 					objectField.getBusinessType(),
@@ -483,18 +497,6 @@ public class ObjectEntryOpenAPIResourceImpl
 			).build());
 
 		return openAPISchemaFilter;
-	}
-
-	private String _getRef(Schema schema) {
-		if (schema instanceof ArraySchema) {
-			ArraySchema arraySchema = (ArraySchema)schema;
-
-			Schema itemsSchema = arraySchema.getItems();
-
-			return itemsSchema.get$ref();
-		}
-
-		return schema.get$ref();
 	}
 
 	private List<String> _getRequiredPropertySchemaNames(Schema schema) {

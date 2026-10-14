@@ -311,3 +311,385 @@ test('Search Bar is shown/hidden according to FDS configuration', async ({
 		}
 	});
 });
+
+test(
+	'Search suggestions',
+	{
+		tag: ['@LPD-89792'],
+	},
+	async ({fdsSamplePage, page}) => {
+		const searchInput = fdsSamplePage.managementToolbar.searchInput;
+
+		await test.step('The dropdown is not shown when nothing has been searched yet', async () => {
+			await searchInput.click();
+
+			await expect(fdsSamplePage.searchSuggestions.menu).toBeHidden();
+		});
+
+		await test.step('A query that returned results is listed when the empty input is focused', async () => {
+			await fdsSamplePage.search('Sample55');
+
+			await expect(page.getByText('1 Result Found for:')).toBeVisible();
+
+			await searchInput.clear();
+
+			await searchInput.click();
+
+			await expect(
+				fdsSamplePage.recentSearchEntry('Sample55')
+			).toBeVisible();
+		});
+
+		await test.step('A query that returned no results is not listed', async () => {
+			await fdsSamplePage.search(getRandomString());
+
+			await fdsSamplePage.emptyStateContainer.waitFor();
+
+			await searchInput.clear();
+
+			await searchInput.click();
+
+			await expect(
+				fdsSamplePage.searchSuggestions.recentSearchEntries
+			).toHaveText(['Sample55']);
+		});
+
+		await test.step('The most recent query is listed first', async () => {
+			await fdsSamplePage.search('Sample12');
+
+			await expect(page.getByText('1 Result Found for:')).toBeVisible();
+
+			await searchInput.clear();
+
+			await searchInput.click();
+
+			await expect(
+				fdsSamplePage.searchSuggestions.recentSearchEntries
+			).toHaveText(['Sample12', 'Sample55']);
+		});
+
+		await test.step('Typing keeps only the queries matching the input and emphasizes the match', async () => {
+			await searchInput.fill('sample5');
+
+			await expect(
+				fdsSamplePage.searchSuggestions.recentSearchEntries
+			).toHaveText(['Sample55']);
+
+			await expect(
+				fdsSamplePage.recentSearchEntry('Sample55').locator('strong')
+			).toHaveText('Sample5');
+		});
+
+		await test.step('The dropdown is not shown when no stored query matches the input', async () => {
+			await searchInput.fill(getRandomString());
+
+			await expect(fdsSamplePage.searchSuggestions.menu).toBeHidden();
+		});
+
+		await test.step('Clicking a query fills the input and searches for it', async () => {
+			await searchInput.clear();
+
+			await searchInput.click();
+
+			await fdsSamplePage.recentSearchEntry('Sample55').click();
+
+			await expect(searchInput).toHaveValue('Sample55');
+			await expect(page.getByText('1 Result Found for:')).toBeVisible();
+			await expect(fdsSamplePage.table.bodyRows).toHaveCount(1);
+			await expect(fdsSamplePage.searchSuggestions.menu).toBeHidden();
+		});
+
+		await test.step('Removing a query leaves the rest of the list open', async () => {
+			await searchInput.clear();
+
+			await searchInput.click();
+
+			await fdsSamplePage.recentSearchEntry('Sample55').hover();
+
+			await fdsSamplePage.recentSearchRemoveButton('Sample55').click();
+
+			await expect(
+				fdsSamplePage.searchSuggestions.recentSearchEntries
+			).toHaveText(['Sample12']);
+		});
+
+		await test.step('The dropdown closes when the user clicks outside the search bar', async () => {
+			await fdsSamplePage.table.container.click();
+
+			await expect(fdsSamplePage.searchSuggestions.menu).toBeHidden();
+		});
+
+		await test.step('The queries survive a page reload', async () => {
+			await fdsSamplePage.activeFiltersToolbar.clearSearchButton.click();
+
+			await page.reload();
+
+			await waitForFDS({page});
+
+			await searchInput.click();
+
+			await expect(
+				fdsSamplePage.searchSuggestions.recentSearchEntries
+			).toHaveText(['Sample12']);
+		});
+
+		await test.step('Clearing all removes every query', async () => {
+			await fdsSamplePage.searchSuggestions.clearAllButton.click();
+
+			await expect(fdsSamplePage.searchSuggestions.menu).toBeHidden();
+
+			await searchInput.click();
+
+			await expect(fdsSamplePage.searchSuggestions.menu).toBeHidden();
+		});
+	}
+);
+
+test(
+	'Search suggestions follow the search box',
+	{
+		tag: ['@LPD-89792'],
+	},
+	async ({fdsSamplePage, page}) => {
+		const magnifierButton = page
+			.locator('.navbar-breakpoint-d-none button')
+			.first();
+		const searchInput = fdsSamplePage.managementToolbar.searchInput;
+
+		await test.step('Remember a query for the dropdown to list', async () => {
+			await fdsSamplePage.search('Sample55');
+
+			await expect(page.getByText('1 Result Found for:')).toBeVisible();
+
+			await searchInput.clear();
+		});
+
+		await test.step('The dropdown opens as wide as the search box', async () => {
+			await searchInput.click();
+
+			await expect(fdsSamplePage.searchSuggestions.menu).toBeVisible();
+
+			const menuBoundingBox =
+				await fdsSamplePage.searchSuggestions.menu.boundingBox();
+			const searchBoxBoundingBox = await searchInput.boundingBox();
+
+			expect(menuBoundingBox!.width).toBeGreaterThanOrEqual(
+				searchBoxBoundingBox!.width
+			);
+		});
+
+		await test.step('The dropdown narrows with the search box', async () => {
+			const widthBefore =
+				(await fdsSamplePage.searchSuggestions.menu.boundingBox())!
+					.width;
+
+			await page.setViewportSize({height: 800, width: 960});
+
+			await expect(async () => {
+				const menuBoundingBox =
+					await fdsSamplePage.searchSuggestions.menu.boundingBox();
+				const searchBoxBoundingBox = await searchInput.boundingBox();
+
+				expect(menuBoundingBox!.width).toBeLessThan(widthBefore);
+				expect(menuBoundingBox!.width).toBeGreaterThanOrEqual(
+					searchBoxBoundingBox!.width
+				);
+			}).toPass();
+		});
+
+		await test.step('The dropdown closes when the management bar puts the search box behind a button', async () => {
+			await page.setViewportSize({height: 800, width: 700});
+
+			await expect(searchInput).toBeHidden();
+
+			await expect(fdsSamplePage.searchSuggestions.menu).toBeHidden();
+		});
+
+		await test.step('The dropdown opens on the search box that button reveals', async () => {
+			await magnifierButton.click();
+
+			await expect(searchInput).toBeVisible();
+
+			await searchInput.click();
+
+			await expect(fdsSamplePage.searchSuggestions.menu).toBeVisible();
+		});
+
+		await test.step('The dropdown closes when the revealed search box is put away', async () => {
+			await searchInput.fill('Sample');
+
+			await searchInput.clear();
+
+			await expect(searchInput).toBeHidden();
+
+			await expect(fdsSamplePage.searchSuggestions.menu).toBeHidden();
+		});
+	}
+);
+
+test(
+	'Recently visited',
+	{
+		tag: ['@LPD-94143'],
+	},
+	async ({fdsSamplePage, page}) => {
+		const searchInput = fdsSamplePage.managementToolbar.searchInput;
+
+		// The sample gives the ID cell an action of its own and leaves the
+		// title cell to the first action the row makes visible, which is a link
+		// only on the rows colored yellow
+
+		const idLink = fdsSamplePage.table.bodyRows
+			.first()
+			.locator('.cell-id a');
+
+		const titleLink = fdsSamplePage.table.bodyRows
+			.filter({has: page.locator('td.cell-color', {hasText: 'Yellow'})})
+			.first()
+			.locator('.cell-title a');
+
+		// Both entries are named after the row rather than after the cell, so
+		// the ID cell is remembered under the title of its own row
+
+		const firstRowTitle = (
+			await fdsSamplePage.table.bodyRows
+				.first()
+				.locator('.cell-title')
+				.innerText()
+		).trim();
+
+		const yellowRowTitle = (await titleLink.innerText()).trim();
+
+		await test.step('The dropdown is not shown when nothing has been visited yet', async () => {
+			await searchInput.click();
+
+			await expect(fdsSamplePage.searchSuggestions.menu).toBeHidden();
+		});
+
+		await test.step('An item is listed once the user has navigated to it', async () => {
+			await idLink.click();
+
+			await searchInput.click();
+
+			await expect(
+				fdsSamplePage.searchSuggestions.sectionHeadings
+			).toHaveText(['Recently Visited']);
+
+			await expect(
+				fdsSamplePage.recentlyVisitedEntry(firstRowTitle)
+			).toBeVisible();
+		});
+
+		await test.step('The most recently visited item is listed first', async () => {
+
+			// Clicking the table to dismiss the dropdown would select a row and
+			// swap the search box for the selection toolbar
+
+			await page.keyboard.press('Escape');
+
+			await titleLink.click();
+
+			await searchInput.click();
+
+			await expect(
+				fdsSamplePage.searchSuggestions.recentlyVisitedEntries
+			).toHaveText([yellowRowTitle, firstRowTitle]);
+		});
+
+		await test.step('The items survive a page reload', async () => {
+			await page.reload();
+
+			await waitForFDS({page});
+
+			await searchInput.click();
+
+			await expect(
+				fdsSamplePage.searchSuggestions.recentlyVisitedEntries
+			).toHaveText([yellowRowTitle, firstRowTitle]);
+		});
+
+		await test.step('Typing keeps only the items matching the input and emphasizes the match', async () => {
+			await searchInput.fill(yellowRowTitle.toLowerCase());
+
+			await expect(
+				fdsSamplePage.searchSuggestions.recentlyVisitedEntries
+			).toHaveText([yellowRowTitle]);
+
+			await expect(
+				fdsSamplePage
+					.recentlyVisitedEntry(yellowRowTitle)
+					.locator('strong')
+			).toHaveText(yellowRowTitle);
+		});
+
+		await test.step('The dropdown is not shown when no stored item matches the input', async () => {
+			await searchInput.fill(getRandomString());
+
+			await expect(fdsSamplePage.searchSuggestions.menu).toBeHidden();
+		});
+
+		await test.step('Clicking an item navigates to it', async () => {
+			await searchInput.clear();
+
+			await searchInput.click();
+
+			await fdsSamplePage.recentlyVisitedEntry(firstRowTitle).click();
+
+			await expect(fdsSamplePage.searchSuggestions.menu).toBeHidden();
+
+			await expect(page).toHaveURL(/#test-pencil/);
+		});
+
+		await test.step('Removing an item leaves the rest of the list open', async () => {
+			await searchInput.click();
+
+			await fdsSamplePage.recentlyVisitedEntry(yellowRowTitle).hover();
+
+			await fdsSamplePage
+				.recentlyVisitedRemoveButton(yellowRowTitle)
+				.click();
+
+			await expect(
+				fdsSamplePage.searchSuggestions.recentlyVisitedEntries
+			).toHaveText([firstRowTitle]);
+		});
+
+		await test.step('An item reached from the item actions menu is listed', async () => {
+			await page.keyboard.press('Escape');
+
+			await fdsSamplePage.table.itemActionButtons.first().click();
+
+			await page.getByRole('menuitem', {name: 'Sample Edit'}).click();
+
+			await searchInput.click();
+
+			await expect(
+				fdsSamplePage.searchSuggestions.recentlyVisitedEntries
+			).toContainText([firstRowTitle]);
+		});
+
+		await test.step('The visited items are listed below the recent searches', async () => {
+			await fdsSamplePage.search('Sample55');
+
+			await expect(page.getByText('1 Result Found for:')).toBeVisible();
+
+			await searchInput.clear();
+
+			await searchInput.click();
+
+			await expect(
+				fdsSamplePage.searchSuggestions.sectionHeadings
+			).toHaveText(['Recent Searches', 'Recently Visited']);
+		});
+
+		await test.step('Clearing all removes the items and the queries', async () => {
+			await fdsSamplePage.searchSuggestions.clearAllButton.click();
+
+			await expect(fdsSamplePage.searchSuggestions.menu).toBeHidden();
+
+			await searchInput.click();
+
+			await expect(fdsSamplePage.searchSuggestions.menu).toBeHidden();
+		});
+	}
+);

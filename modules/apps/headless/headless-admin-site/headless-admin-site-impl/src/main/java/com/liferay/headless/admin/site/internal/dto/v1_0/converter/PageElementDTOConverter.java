@@ -53,10 +53,7 @@ import org.osgi.service.component.annotations.Reference;
 /**
  * @author Eudaldo Alonso
  */
-@Component(
-	property = "dto.class.name=com.liferay.layout.util.structure.LayoutStructureItem",
-	service = DTOConverter.class
-)
+@Component(service = DTOConverter.class)
 public class PageElementDTOConverter
 	implements DTOConverter<LayoutStructureItem, PageElement> {
 
@@ -72,7 +69,8 @@ public class PageElementDTOConverter
 		throws Exception {
 
 		if (dtoConverterContext == null) {
-			throw new UnsupportedOperationException();
+			throw new UnsupportedOperationException(
+				"A DTO converter context is required");
 		}
 
 		LayoutStructure layoutStructure =
@@ -80,7 +78,9 @@ public class PageElementDTOConverter
 				LayoutStructure.class.getName());
 
 		if (layoutStructure == null) {
-			throw new UnsupportedOperationException();
+			throw new UnsupportedOperationException(
+				"No layout structure attribute is set on the DTO converter " +
+					"context");
 		}
 
 		PageElementDefinition pageElementDefinition = _getPageElementDefinition(
@@ -246,7 +246,8 @@ public class PageElementDTOConverter
 				layoutStructureItem.getItemType(),
 				LayoutDataItemTypeConstants.TYPE_ROOT)) {
 
-			throw new UnsupportedOperationException();
+			throw new UnsupportedOperationException(
+				"The page root is not a page element");
 		}
 
 		if (Objects.equals(
@@ -258,7 +259,10 @@ public class PageElementDTOConverter
 				(RowStyledLayoutStructureItem)layoutStructureItem);
 		}
 
-		throw new UnsupportedOperationException();
+		String itemType = layoutStructureItem.getItemType();
+
+		throw new IllegalArgumentException(
+			"The page element type \"" + itemType + "\" is not supported");
 	}
 
 	private PageElement[] _getPageElements(
@@ -285,7 +289,9 @@ public class PageElementDTOConverter
 								"scopeGroupId");
 
 						if (scopeGroupId == null) {
-							throw new UnsupportedOperationException();
+							throw new UnsupportedOperationException(
+								"No scope group ID attribute is set on the " +
+									"DTO converter context");
 						}
 
 						return InfoFormUtil.getCollectionInfoForm(

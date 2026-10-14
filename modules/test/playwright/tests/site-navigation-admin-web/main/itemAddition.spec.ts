@@ -378,6 +378,58 @@ test(
 );
 
 test(
+	'Add button is disabled after add is clicked',
+	{
+		tag: '@LPD-108753',
+	},
+	async ({navigationMenusPage, page, site}) => {
+		await navigationMenusPage.goto(site.friendlyUrlPath);
+
+		await navigationMenusPage.createNavigationMenu(getRandomString());
+
+		await navigationMenusPage.addMenuItemButton.click();
+
+		await (await navigationMenusPage.getMenuItem('Submenu')).click();
+
+		await page.waitForTimeout(1000);
+
+		const submenuName = getRandomString();
+
+		await navigationMenusPage.submenuModal
+			.getByPlaceholder('Name')
+			.fill(submenuName);
+
+		await page.waitForTimeout(300);
+
+		let releaseAddRequest: () => void;
+
+		const addRequestReleased = new Promise<void>((resolve) => {
+			releaseAddRequest = resolve;
+		});
+
+		await page.route(/add_site_navigation_menu_item/, async (route) => {
+			if (route.request().method() === 'POST') {
+				await addRequestReleased;
+			}
+
+			await route.continue();
+		});
+
+		const addButton = navigationMenusPage.submenuModal.getByRole('button', {
+			name: 'Add',
+		});
+
+		await addButton.click();
+
+		await expect(addButton).toBeDisabled();
+
+		releaseAddRequest();
+
+		await waitForAlert(page, 'Success:1 Submenu was added to this menu.');
+	}
+);
+
+test(
 	'Add Global or Asset Library Vocabulary Navigation Menu item',
 	{
 		tag: '@LPD-58226',
@@ -403,7 +455,7 @@ test(
 
 		await page.getByRole('link', {name: 'Sites'}).click();
 
-		await page.getByRole('button', {name: 'Add'}).click();
+		await page.getByRole('button', {exact: true, name: 'Add'}).click();
 
 		await page
 			.frameLocator('iframe[title="Select Site"]')
@@ -451,7 +503,14 @@ test(
 
 		// Assert that the Vocabulary Navigation Menu item was successfully created
 
-		await expect(page.getByText(vocabularyName)).toBeVisible();
+		await waitForAlert(
+			page,
+			'Success:1 Vocabulary was added to this menu.'
+		);
+
+		await expect(
+			await navigationMenusPage.getMenuItemCard(vocabularyName)
+		).toBeVisible();
 
 		await apiHelpers.jsonWebServicesDepot.deleteDepotEntry(
 			depot.depotEntryId

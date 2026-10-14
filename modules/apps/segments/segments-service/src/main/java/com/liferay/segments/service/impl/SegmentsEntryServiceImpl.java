@@ -17,6 +17,7 @@ import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.segments.constants.SegmentsActionKeys;
 import com.liferay.segments.constants.SegmentsConstants;
+import com.liferay.segments.constants.SegmentsEntryConstants;
 import com.liferay.segments.model.SegmentsEntry;
 import com.liferay.segments.service.base.SegmentsEntryServiceBaseImpl;
 
@@ -54,7 +55,8 @@ public class SegmentsEntryServiceImpl extends SegmentsEntryServiceBaseImpl {
 
 		return segmentsEntryLocalService.addSegmentsEntry(
 			externalReferenceCode, segmentsEntryKey, nameMap, descriptionMap,
-			active, criteria, source, serviceContext);
+			active, criteria, source, SegmentsEntryConstants.TYPE_DEFAULT,
+			serviceContext);
 	}
 
 	@Override
@@ -129,12 +131,12 @@ public class SegmentsEntryServiceImpl extends SegmentsEntryServiceBaseImpl {
 
 	@Override
 	public List<SegmentsEntry> getSegmentsEntries(
-		long groupId, String[] sources, int start, int end,
+		long groupId, String[] sources, int[] types, int start, int end,
 		OrderByComparator<SegmentsEntry> orderByComparator) {
 
-		return segmentsEntryPersistence.findByG_SRC(
-			_portal.getCurrentAndAncestorSiteGroupIds(groupId), sources, start,
-			end, orderByComparator);
+		return segmentsEntryPersistence.findByG_SRC_T(
+			_portal.getCurrentAndAncestorSiteGroupIds(groupId), sources, types,
+			start, end, orderByComparator);
 	}
 
 	@Override
@@ -144,9 +146,11 @@ public class SegmentsEntryServiceImpl extends SegmentsEntryServiceBaseImpl {
 	}
 
 	@Override
-	public int getSegmentsEntriesCount(long groupId, String[] sources) {
-		return segmentsEntryPersistence.filterCountByG_SRC(
-			_portal.getCurrentAndAncestorSiteGroupIds(groupId), sources);
+	public int getSegmentsEntriesCount(
+		long groupId, String[] sources, int[] types) {
+
+		return segmentsEntryPersistence.filterCountByG_SRC_T(
+			_portal.getCurrentAndAncestorSiteGroupIds(groupId), sources, types);
 	}
 
 	@Override
@@ -201,9 +205,13 @@ public class SegmentsEntryServiceImpl extends SegmentsEntryServiceBaseImpl {
 		_segmentsEntryResourcePermission.check(
 			getPermissionChecker(), segmentsEntryId, ActionKeys.UPDATE);
 
+		SegmentsEntry segmentsEntry = segmentsEntryPersistence.findByPrimaryKey(
+			segmentsEntryId);
+
 		return segmentsEntryLocalService.updateSegmentsEntry(
 			externalReferenceCode, segmentsEntryId, segmentsEntryKey, nameMap,
-			descriptionMap, active, criteria, serviceContext);
+			descriptionMap, active, criteria, segmentsEntry.getType(),
+			serviceContext);
 	}
 
 	@Reference

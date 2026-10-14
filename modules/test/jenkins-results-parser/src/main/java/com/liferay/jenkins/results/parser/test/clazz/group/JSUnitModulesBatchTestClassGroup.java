@@ -9,9 +9,12 @@ import com.liferay.jenkins.results.parser.JenkinsResultsParserUtil;
 import com.liferay.jenkins.results.parser.PortalGitWorkingDirectory;
 import com.liferay.jenkins.results.parser.PortalTestClassJob;
 import com.liferay.jenkins.results.parser.job.property.JobProperty;
+import com.liferay.jenkins.results.parser.test.clazz.JSUnitJUnitTestClass;
 import com.liferay.jenkins.results.parser.test.clazz.TestClass;
 import com.liferay.jenkins.results.parser.test.clazz.TestClassFactory;
 import com.liferay.jenkins.results.parser.test.clazz.TestClassMethod;
+import com.liferay.jenkins.results.parser.test.clazz.file.TestPackage;
+import com.liferay.jenkins.results.parser.test.clazz.file.TestPackageFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,6 +29,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -35,6 +39,37 @@ import org.json.JSONObject;
  */
 public class JSUnitModulesBatchTestClassGroup
 	extends ModulesBatchTestClassGroup {
+
+	@Override
+	public JSONObject getJSONObject() {
+		if (jsonObject != null) {
+			return jsonObject;
+		}
+
+		jsonObject = super.getJSONObject();
+
+		jsonObject.put(
+			"test_file_exclude_globs",
+			getGlobs(_getTestFileExcludesJobProperties()));
+		jsonObject.put(
+			"test_file_include_globs",
+			getGlobs(_getTestFileIncludesJobProperties()));
+
+		return jsonObject;
+	}
+
+	public boolean hasTestFileGlobs() {
+		List<String> testFileExcludeGlobs = getGlobs(
+			_getTestFileExcludesJobProperties());
+		List<String> testFileIncludeGlobs = getGlobs(
+			_getTestFileIncludesJobProperties());
+
+		if (testFileExcludeGlobs.isEmpty() && testFileIncludeGlobs.isEmpty()) {
+			return false;
+		}
+
+		return true;
+	}
 
 	protected JSUnitModulesBatchTestClassGroup(
 		JSONObject jsonObject, PortalTestClassJob portalTestClassJob) {
@@ -152,8 +187,13 @@ public class JSUnitModulesBatchTestClassGroup
 			}
 		}
 
+		int jsUnitFilesCount = 0;
 		PortalGitWorkingDirectory portalGitWorkingDirectory =
 			getPortalGitWorkingDirectory();
+		List<PathMatcher> testFileExcludesPathMatchers = getPathMatchers(
+			_getTestFileExcludesJobProperties());
+		List<PathMatcher> testFileIncludesPathMatchers = getPathMatchers(
+			_getTestFileIncludesJobProperties());
 
 		for (File baseModuleDir : getBaseModuleDirs()) {
 			List<File> moduleTestDirs = _getModulesProjectDirs(baseModuleDir);
@@ -161,8 +201,20 @@ public class JSUnitModulesBatchTestClassGroup
 			for (File moduleTestDir : moduleTestDirs) {
 				String moduleTestDirPath =
 					JenkinsResultsParserUtil.getCanonicalPath(moduleTestDir);
+
 				TestClass testClass = TestClassFactory.newTestClass(
 					this, moduleTestDir);
+
+				if (testClass instanceof JSUnitJUnitTestClass) {
+					JSUnitJUnitTestClass jsUnitJUnitTestClass =
+						(JSUnitJUnitTestClass)testClass;
+
+					jsUnitJUnitTestClass.setTestClassFileReported(
+						_isTestClassFileReported());
+				}
+
+				TestPackage testPackage = TestPackageFactory.newTestPackage(
+					moduleTestDir);
 
 				for (File jsUnitFile :
 						portalGitWorkingDirectory.getJSUnitFiles()) {
@@ -170,7 +222,20 @@ public class JSUnitModulesBatchTestClassGroup
 					String jsUnitFilePath =
 						JenkinsResultsParserUtil.getCanonicalPath(jsUnitFile);
 
-					if (!jsUnitFilePath.startsWith(moduleTestDirPath)) {
+					if (!jsUnitFilePath.startsWith(moduleTestDirPath) ||
+						((testPackage != null) &&
+						 testPackage.isTestClassFileIgnored(jsUnitFile))) {
+
+						continue;
+					}
+
+					jsUnitFilesCount++;
+
+					if (!JenkinsResultsParserUtil.isFileIncluded(
+							testFileExcludesPathMatchers,
+							testFileIncludesPathMatchers,
+							new File(jsUnitFilePath))) {
+
 						continue;
 					}
 
@@ -210,6 +275,17 @@ public class JSUnitModulesBatchTestClassGroup
 					addTestClass(testClass);
 				}
 			}
+		}
+
+		if (hasTestFileGlobs() && (jsUnitFilesCount > 0) && !hasTestClasses()) {
+			throw new RuntimeException(
+				JenkinsResultsParserUtil.combine(
+					"Unable to select any of the ",
+					String.valueOf(jsUnitFilesCount), " test files in the ",
+					batchName,
+					" batch. Please check the \"modules.excludes\", ",
+					"\"modules.includes\", \"test.batch.test.file.excludes\" ",
+					"and \"test.batch.test.file.includes\" properties."));
 		}
 	}
 
@@ -271,6 +347,50 @@ public class JSUnitModulesBatchTestClassGroup
 		return modulesProjectDirs;
 	}
 
+	private List<JobProperty> _getTestFileExcludesJobProperties() {
+		List<JobProperty> excludesJobProperties = new ArrayList<>();
+
+		excludesJobProperties.add(
+			getJobProperty(
+				"test.batch.test.file.excludes", testSuiteName, batchName,
+				JobProperty.Type.EXCLUDE_GLOB));
+
+		recordJobProperties(excludesJobProperties);
+
+		return excludesJobProperties;
+	}
+
+	private List<JobProperty> _getTestFileIncludesJobProperties() {
+		List<JobProperty> includesJobProperties = new ArrayList<>();
+
+		includesJobProperties.add(
+			getJobProperty(
+				"test.batch.test.file.includes", testSuiteName, batchName,
+				JobProperty.Type.INCLUDE_GLOB));
+
+		recordJobProperties(includesJobProperties);
+
+		return includesJobProperties;
+	}
+
+	private boolean _isTestClassFileReported() {
+		if (hasTestFileGlobs()) {
+			return true;
+		}
+
+		JobProperty jobProperty = getJobProperty("test.batch.report.type");
+
+		String jobPropertyValue = jobProperty.getValue();
+
+		if (JenkinsResultsParserUtil.isNullOrEmpty(jobPropertyValue)) {
+			return false;
+		}
+
+		recordJobProperty(jobProperty);
+
+		return Objects.equals(jobPropertyValue, _REPORT_TYPE_TEST_FILE);
+	}
+
 	private boolean _isTestGitrepoJSUnit() {
 		if (_testGitrepoJSUnit != null) {
 			return _testGitrepoJSUnit;
@@ -293,6 +413,8 @@ public class JSUnitModulesBatchTestClassGroup
 
 		return _testGitrepoJSUnit;
 	}
+
+	private static final String _REPORT_TYPE_TEST_FILE = "test-file";
 
 	private Boolean _testGitrepoJSUnit;
 

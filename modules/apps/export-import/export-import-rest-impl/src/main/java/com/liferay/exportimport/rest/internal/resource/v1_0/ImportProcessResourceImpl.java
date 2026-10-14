@@ -30,12 +30,11 @@ import com.liferay.portal.kernel.backgroundtask.constants.BackgroundTaskConstant
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.json.JSONFactory;
-import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.search.Sort;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -79,7 +78,8 @@ public class ImportProcessResourceImpl extends BaseImportProcessResourceImpl {
 			_backgroundTaskLocalService.getBackgroundTask(importProcessId);
 
 		PermissionUtil.checkImportPermission(
-			contextCompany.getCompanyId(), backgroundTask.getGroupId());
+			contextCompany.getCompanyId(), backgroundTask.getGroupId(),
+			PermissionUtil.getGroupActionId(backgroundTask));
 
 		BackgroundTaskUtil.checkTaskExecutorClassName(
 			backgroundTask, _CLASS_NAMES_TASK_EXECUTOR);
@@ -110,23 +110,13 @@ public class ImportProcessResourceImpl extends BaseImportProcessResourceImpl {
 			_backgroundTaskLocalService.getBackgroundTask(importProcessId);
 
 		PermissionUtil.checkImportPermission(
-			contextCompany.getCompanyId(), backgroundTask.getGroupId());
+			contextCompany.getCompanyId(), backgroundTask.getGroupId(),
+			PermissionUtil.getGroupActionId(backgroundTask));
 
 		BackgroundTaskUtil.checkTaskExecutorClassName(
 			backgroundTask, _CLASS_NAMES_TASK_EXECUTOR);
 
 		return _toImportProcess(backgroundTask);
-	}
-
-	@Override
-	public Page<ImportProcess> getImportProcessesPage(
-			Long creatorId, String portletId, String search, Integer status,
-			Pagination pagination, Sort[] sorts)
-		throws Exception {
-
-		return _getImportProcessesPage(
-			creatorId, GroupUtil.getCompanyGroup(contextCompany.getCompanyId()),
-			pagination, portletId, search, sorts, status);
 	}
 
 	@Override
@@ -137,7 +127,8 @@ public class ImportProcessResourceImpl extends BaseImportProcessResourceImpl {
 			_backgroundTaskLocalService.getBackgroundTask(importProcessId);
 
 		PermissionUtil.checkImportPermission(
-			contextCompany.getCompanyId(), backgroundTask.getGroupId());
+			contextCompany.getCompanyId(), backgroundTask.getGroupId(),
+			PermissionUtil.getGroupActionId(backgroundTask));
 
 		BackgroundTaskUtil.checkTaskExecutorClassName(
 			backgroundTask, _CLASS_NAMES_TASK_EXECUTOR);
@@ -149,6 +140,17 @@ public class ImportProcessResourceImpl extends BaseImportProcessResourceImpl {
 						backgroundTask.getBackgroundTaskId()));
 			}
 		};
+	}
+
+	@Override
+	public Page<ImportProcess> getImportProcessesPage(
+			Long creatorId, String portletId, String search, Integer status,
+			Pagination pagination, Sort[] sorts)
+		throws Exception {
+
+		return _getImportProcessesPage(
+			creatorId, GroupUtil.getCompanyGroup(contextCompany.getCompanyId()),
+			pagination, portletId, search, sorts, status);
 	}
 
 	@Override
@@ -206,7 +208,8 @@ public class ImportProcessResourceImpl extends BaseImportProcessResourceImpl {
 		throws Exception {
 
 		PermissionUtil.checkImportPermission(
-			contextCompany.getCompanyId(), groupId);
+			contextCompany.getCompanyId(), groupId,
+			PermissionUtil.getGroupActionId(portletId));
 
 		DynamicQuery dynamicQuery = _getDynamicQuery(
 			creatorId, groupId, portletId, search, status);
@@ -216,12 +219,6 @@ public class ImportProcessResourceImpl extends BaseImportProcessResourceImpl {
 		return _backgroundTaskLocalService.dynamicQuery(
 			dynamicQuery, pagination.getStartPosition(),
 			pagination.getEndPosition());
-	}
-
-	private String _getDefaultErrorMessage() {
-		return _language.get(
-			contextAcceptLanguage.getPreferredLocale(),
-			"an-unexpected-error-occurred");
 	}
 
 	private DynamicQuery _getDynamicQuery(
@@ -345,7 +342,8 @@ public class ImportProcessResourceImpl extends BaseImportProcessResourceImpl {
 		long groupId = group.getGroupId();
 
 		PermissionUtil.checkImportPermission(
-			contextCompany.getCompanyId(), groupId);
+			contextCompany.getCompanyId(), groupId,
+			ActionKeys.EXPORT_IMPORT_LAYOUTS);
 
 		FileEntry fileEntry = _getImportTempFileEntry(groupId);
 
@@ -395,7 +393,8 @@ public class ImportProcessResourceImpl extends BaseImportProcessResourceImpl {
 		long groupId = group.getGroupId();
 
 		PermissionUtil.checkImportPermission(
-			contextCompany.getCompanyId(), groupId);
+			contextCompany.getCompanyId(), groupId,
+			ActionKeys.EXPORT_IMPORT_PORTLET_INFO);
 
 		FileEntry fileEntry = _getImportTempFileEntry(groupId);
 
@@ -452,18 +451,9 @@ public class ImportProcessResourceImpl extends BaseImportProcessResourceImpl {
 				setDateCreated(backgroundTask::getCreateDate);
 				setDateModified(backgroundTask::getModifiedDate);
 				setErrorMessage(
-					() -> {
-						JSONObject jsonObject =
-							_jsonFactory.safeCreateJSONObject(
-								backgroundTask.getStatusMessage(), true);
-
-						if (jsonObject == null) {
-							return _getDefaultErrorMessage();
-						}
-
-						return jsonObject.getString(
-							"message", _getDefaultErrorMessage());
-					});
+					() -> BackgroundTaskUtil.getErrorMessage(
+						backgroundTask,
+						contextAcceptLanguage.getPreferredLocale()));
 				setId(backgroundTask::getBackgroundTaskId);
 				setName(() -> BackgroundTaskUtil.getName(backgroundTask));
 				setStatus(
@@ -502,9 +492,6 @@ public class ImportProcessResourceImpl extends BaseImportProcessResourceImpl {
 
 	@Reference
 	private ExportImportLocalService _exportImportLocalService;
-
-	@Reference
-	private JSONFactory _jsonFactory;
 
 	@Reference
 	private Language _language;

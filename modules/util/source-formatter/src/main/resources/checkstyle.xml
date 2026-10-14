@@ -256,9 +256,9 @@
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.check.AutoBatchPreparedStatementUtilCheck">
 			<property name="category" value="Bug Prevention" />
-			<property name="description" value="Finds cases where `AutoBatchPreparedStatementUtil.autoBatch` or `AutoBatchPreparedStatementUtil.concurrentAutoBatch` should be used." />
+			<property name="description" value="Finds cases where `AutoBatchPreparedStatementUtil.autoBatch`, `AutoBatchPreparedStatementUtil.autoBatchWithResults`, or `AutoBatchPreparedStatementUtil.concurrentAutoBatch` should be used." />
 			<property name="enabled" value="false" />
-			<message key="auto.batch.prepared.statement.util.use" value="Use &quot;AutoBatchPreparedStatementUtil.autoBatch&quot; or &quot;AutoBatchPreparedStatementUtil.concurrentAutoBatch&quot; to create a prepared statement when using &quot;preparedStatement.executeBatch()&quot;" />
+			<message key="auto.batch.prepared.statement.util.use" value="Use &quot;AutoBatchPreparedStatementUtil.autoBatch&quot;, &quot;AutoBatchPreparedStatementUtil.autoBatchWithResults&quot;, or &quot;AutoBatchPreparedStatementUtil.concurrentAutoBatch&quot; to create a prepared statement when using &quot;preparedStatement.executeBatch()&quot;" />
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.check.BatchableUpdateCheck">
 			<property name="category" value="Performance" />
@@ -386,6 +386,7 @@
 		<module name="com.liferay.source.formatter.checkstyle.check.CredentialBufferCheck">
 			<property name="category" value="Bug Prevention" />
 			<property name="description" value="Finds buffers that are derived from a `String` and passed straight into a credential API, leaving no reference to clear." />
+			<property name="enabled" value="false" />
 			<message key="variable.assign.required" value="Assign &quot;{0}&quot; to a local variable so that it can be cleared after use, see LPD-93280" />
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.check.DatabaseMetaDataCheck">
@@ -470,6 +471,13 @@
 			<property name="category" value="Bug Prevention" />
 			<property name="description" value="Finds missing and unnecessary whitespace in the value of the filter string in `ServiceTrackerFactory.open` or `WaiterUtil.waitForFilter`." />
 			<message key="whitespace.incorrect" value="The value of &quot;{0}&quot; should not have spaces around &quot;=&quot;, see LPS-70526" />
+		</module>
+		<module name="com.liferay.source.formatter.checkstyle.check.FIPSTLSVerificationCheck">
+			<property name="category" value="Security" />
+			<property name="description" value="Finds outbound TLS verification bypasses that are not guarded by `PropsValues.FIPS_ENABLED`, see LPD-93649." />
+			<property name="enabled" value="false" />
+			<message key="guard.class.required" value="Missing check &quot;PropsValues.FIPS_ENABLED&quot; in if-statement condition in the same class as a trust manager, see LPD-93649" />
+			<message key="guard.method.required" value="Missing check &quot;PropsValues.FIPS_ENABLED&quot; in if-statement condition in the same method as &quot;{0}&quot;, see LPD-93649" />
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.check.FrameworkBundleCheck">
 			<property name="category" value="Performance" />
@@ -744,6 +752,11 @@
 			<property name="description" value="Verifies that `GetterUtil.parse*` is used to parse primitive types, when possible." />
 			<message key="getter.util.method.use" value="Use &quot;GetterUtil.{0}&quot; or properly catch &quot;NumberFormatException&quot; when calling &quot;{1}.{2}&quot;" />
 		</module>
+		<module name="com.liferay.source.formatter.checkstyle.check.PatternMatchingForSwitchCheck">
+			<property name="category" value="Performance" />
+			<property name="description" value="Finds usage of pattern matching for `switch`." />
+			<message key="pattern.matching.for.switch.avoid" value="Do not use pattern matching for switch" />
+		</module>
 		<module name="com.liferay.source.formatter.checkstyle.check.PersistenceCallCheck">
 			<property name="category" value="Bug Prevention" />
 			<property name="description" value="Finds illegal persistence calls across component boundaries." />
@@ -782,6 +795,11 @@
 			<property name="category" value="Performance" />
 			<property name="description" value="Finds usage of `record`." />
 			<message key="record.class.avoid" value="Do not declare record class" />
+		</module>
+		<module name="com.liferay.source.formatter.checkstyle.check.RecordPatternCheck">
+			<property name="category" value="Performance" />
+			<property name="description" value="Finds usage of record patterns." />
+			<message key="record.pattern.avoid" value="Do not use record patterns" />
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.check.RedundantBranchingStatementCheck">
 			<property name="category" value="Performance" />
@@ -863,6 +881,12 @@
 			<property name="category" value="Performance" />
 			<property name="description" value="Finds usage of `sealed` and `non-sealed`." />
 			<message key="modifier.avoid" value="Do not use modifier &quot;sealed&quot; and &quot;non-sealed&quot;" />
+		</module>
+		<module name="com.liferay.source.formatter.checkstyle.check.SecretComparisonCheck">
+			<property name="category" value="Security" />
+			<property name="description" value="Finds secrets compared with a method that returns at the first differing byte." />
+			<property name="enabled" value="false" />
+			<message key="message.digest.is.equal.use" value="Use &quot;MessageDigest.isEqual&quot; to compare secrets, see LPD-93281" />
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.check.SelfReferenceCheck">
 			<property name="category" value="Bug Prevention" />
@@ -970,6 +994,14 @@
 			<property name="category" value="Bug Prevention" />
 			<property name="description" value="Finds missing LiferayUnitTestRule." />
 			<message key="test.rule.missing" value="Missing test rule &quot;LiferayUnitTestRule&quot;" />
+		</module>
+		<module name="com.liferay.source.formatter.checkstyle.check.TestClassStaticInitializerCheck">
+			<property name="category" value="Bug Prevention" />
+			<property name="description" value="Checks that static initializers of Arquillian tests do not call portal test utilities and service methods." />
+			<message key="class.incorrect" value="Do not use class &quot;{0}&quot; in a static initializer of an Arquillian test, since it needs the portal but static initializers also run in the client JVM. Initialize it in a @Before or @BeforeClass method or where it is used" />
+			<message key="method.call.incorrect" value="Do not use &quot;{0}&quot; in a static initializer of an Arquillian test, since it needs the portal but static initializers also run in the client JVM. Initialize it in a @Before or @BeforeClass method or where it is used" />
+			<message key="method.call.replace" value="Use &quot;{0}&quot; instead of &quot;{1}&quot; in a static initializer of an Arquillian test, since &quot;{1}&quot; needs the portal but static initializers also run in the client JVM" />
+			<message key="randomizer.bumper.incorrect" value="Do not use &quot;{0}&quot; with &quot;{1}&quot; in a static initializer of an Arquillian test, since it needs the portal but static initializers also run in the client JVM. Initialize it in a @Before or @BeforeClass method or where it is used" />
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.check.TestClassStaticVariableCheck">
 			<property name="category" value="Performance" />

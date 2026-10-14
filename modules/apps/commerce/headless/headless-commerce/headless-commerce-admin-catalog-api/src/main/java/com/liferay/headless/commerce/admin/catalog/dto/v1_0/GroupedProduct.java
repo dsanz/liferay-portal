@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
@@ -25,6 +26,8 @@ import jakarta.xml.bind.annotation.XmlRootElement;
 
 import java.io.Serializable;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -200,6 +203,52 @@ public class GroupedProduct implements Serializable {
 
 	@JsonIgnore
 	private Supplier<Map<String, String>> _entryProductNameSupplier;
+
+	@io.swagger.v3.oas.annotations.media.Schema(
+		description = "Product type of the child product named by `entryProductExternalReferenceCode`. The type cannot be defaulted because it cannot be changed after a product is created, so it must travel with the reference whenever the child product is imported after its parent.",
+		example = "simple"
+	)
+	public String getEntryProductType() {
+		if (_entryProductTypeSupplier != null) {
+			entryProductType = _entryProductTypeSupplier.get();
+
+			_entryProductTypeSupplier = null;
+		}
+
+		return entryProductType;
+	}
+
+	public void setEntryProductType(String entryProductType) {
+		this.entryProductType = entryProductType;
+
+		_entryProductTypeSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setEntryProductType(
+		UnsafeSupplier<String, Exception> entryProductTypeUnsafeSupplier) {
+
+		_entryProductTypeSupplier = () -> {
+			try {
+				return entryProductTypeUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField(
+		description = "Product type of the child product named by `entryProductExternalReferenceCode`. The type cannot be defaulted because it cannot be changed after a product is created, so it must travel with the reference whenever the child product is imported after its parent."
+	)
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected String entryProductType;
+
+	@JsonIgnore
+	private Supplier<String> _entryProductTypeSupplier;
 
 	@DecimalMin("0")
 	@io.swagger.v3.oas.annotations.media.Schema(
@@ -552,6 +601,22 @@ public class GroupedProduct implements Serializable {
 			sb.append(_toJSON(entryProductName));
 		}
 
+		String entryProductType = getEntryProductType();
+
+		if (entryProductType != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"entryProductType\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(entryProductType));
+
+			sb.append("\"");
+		}
+
 		Long id = getId();
 
 		if (id != null) {
@@ -721,6 +786,27 @@ public class GroupedProduct implements Serializable {
 		return sb.toString();
 	}
 
+	private static String _toJSON(Object value) {
+		if (value instanceof Collection) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONArray((Collection<?>)value));
+		}
+		else if (value instanceof Map) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONObject((Map<?, ?>)value));
+		}
+		else if (value instanceof Object[]) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONArray(
+					Arrays.asList((Object[])value)));
+		}
+		else if (value instanceof String) {
+			return StringBundler.concat("\"", _escape(value), "\"");
+		}
+
+		return String.valueOf(value);
+	}
+
 	private static final String[][] _JSON_ESCAPE_STRINGS = {
 		{"\\", "\"", "\b", "\f", "\n", "\r", "\t"},
 		{"\\\\", "\\\"", "\\b", "\\f", "\\n", "\\r", "\\t"}
@@ -729,4 +815,4 @@ public class GroupedProduct implements Serializable {
 	private Map<String, Serializable> _extendedProperties;
 
 }
-// LIFERAY-REST-BUILDER-HASH:974508565
+// LIFERAY-REST-BUILDER-HASH:-1434913734

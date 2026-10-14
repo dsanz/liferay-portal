@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
@@ -24,6 +25,8 @@ import jakarta.xml.bind.annotation.XmlRootElement;
 
 import java.io.Serializable;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -48,7 +51,9 @@ public class PortalInstance implements Serializable {
 		return ObjectMapperUtil.unsafeReadValue(PortalInstance.class, json);
 	}
 
-	@io.swagger.v3.oas.annotations.media.Schema
+	@io.swagger.v3.oas.annotations.media.Schema(
+		description = "whether the portal instance is active. PATCH ignores it; use the activate and deactivate endpoints to change it."
+	)
 	public Boolean getActive() {
 		if (_activeSupplier != null) {
 			active = _activeSupplier.get();
@@ -82,8 +87,10 @@ public class PortalInstance implements Serializable {
 		};
 	}
 
-	@GraphQLField
-	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	@GraphQLField(
+		description = "whether the portal instance is active. PATCH ignores it; use the activate and deactivate endpoints to change it."
+	)
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected Boolean active;
 
 	@JsonIgnore
@@ -218,6 +225,51 @@ public class PortalInstance implements Serializable {
 
 	@JsonIgnore
 	private Supplier<String> _domainSupplier;
+
+	@io.swagger.v3.oas.annotations.media.Schema(
+		description = "maximum number of users, or 0 for unlimited. PATCH ignores it."
+	)
+	public Integer getMaxUsers() {
+		if (_maxUsersSupplier != null) {
+			maxUsers = _maxUsersSupplier.get();
+
+			_maxUsersSupplier = null;
+		}
+
+		return maxUsers;
+	}
+
+	public void setMaxUsers(Integer maxUsers) {
+		this.maxUsers = maxUsers;
+
+		_maxUsersSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setMaxUsers(
+		UnsafeSupplier<Integer, Exception> maxUsersUnsafeSupplier) {
+
+		_maxUsersSupplier = () -> {
+			try {
+				return maxUsersUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField(
+		description = "maximum number of users, or 0 for unlimited. PATCH ignores it."
+	)
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected Integer maxUsers;
+
+	@JsonIgnore
+	private Supplier<Integer> _maxUsersSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema(
 		description = "public unique key (corresponds to company's webId field)"
@@ -425,6 +477,18 @@ public class PortalInstance implements Serializable {
 			sb.append("\"");
 		}
 
+		Integer maxUsers = getMaxUsers();
+
+		if (maxUsers != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"maxUsers\": ");
+
+			sb.append(maxUsers);
+		}
+
 		String portalInstanceId = getPortalInstanceId();
 
 		if (portalInstanceId != null) {
@@ -566,6 +630,27 @@ public class PortalInstance implements Serializable {
 		return sb.toString();
 	}
 
+	private static String _toJSON(Object value) {
+		if (value instanceof Collection) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONArray((Collection<?>)value));
+		}
+		else if (value instanceof Map) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONObject((Map<?, ?>)value));
+		}
+		else if (value instanceof Object[]) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONArray(
+					Arrays.asList((Object[])value)));
+		}
+		else if (value instanceof String) {
+			return StringBundler.concat("\"", _escape(value), "\"");
+		}
+
+		return String.valueOf(value);
+	}
+
 	private static final String[][] _JSON_ESCAPE_STRINGS = {
 		{"\\", "\"", "\b", "\f", "\n", "\r", "\t"},
 		{"\\\\", "\\\"", "\\b", "\\f", "\\n", "\\r", "\\t"}
@@ -574,4 +659,4 @@ public class PortalInstance implements Serializable {
 	private Map<String, Serializable> _extendedProperties;
 
 }
-// LIFERAY-REST-BUILDER-HASH:-1322813599
+// LIFERAY-REST-BUILDER-HASH:12675613

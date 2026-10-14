@@ -23,11 +23,13 @@ public class AssetTagGroupRelLocalServiceImpl
 	extends AssetTagGroupRelLocalServiceBaseImpl {
 
 	@Override
-	public AssetTagGroupRel addAssetTagGroupRel(long groupId, long tagId)
+	public AssetTagGroupRel addAssetTagGroupRel(
+			long groupId, long tagId, int depotEntryType)
 		throws PortalException {
 
 		AssetTagGroupRel assetTagGroupRel =
-			assetTagGroupRelPersistence.fetchByG_T(groupId, tagId);
+			assetTagGroupRelPersistence.fetchByG_T_D(
+				groupId, tagId, depotEntryType);
 
 		if (assetTagGroupRel != null) {
 			return assetTagGroupRel;
@@ -38,6 +40,7 @@ public class AssetTagGroupRelLocalServiceImpl
 
 		assetTagGroupRel.setGroupId(groupId);
 		assetTagGroupRel.setTagId(tagId);
+		assetTagGroupRel.setDepotEntryType(depotEntryType);
 
 		assetTagGroupRel = assetTagGroupRelPersistence.update(assetTagGroupRel);
 
@@ -57,8 +60,16 @@ public class AssetTagGroupRelLocalServiceImpl
 	}
 
 	@Override
-	public List<AssetTagGroupRel> getAssetTagGroupRelsByGroupyId(long groupId) {
+	public List<AssetTagGroupRel> getAssetTagGroupRelsByGroupId(long groupId) {
 		return assetTagGroupRelPersistence.findByGroupId(groupId);
+	}
+
+	@Override
+	public List<AssetTagGroupRel>
+		getAssetTagGroupRelsByGroupIdAndDepotEntryType(
+			long groupId, int depotEntryType) {
+
+		return assetTagGroupRelPersistence.findByG_D(groupId, depotEntryType);
 	}
 
 	@Override
@@ -67,17 +78,25 @@ public class AssetTagGroupRelLocalServiceImpl
 	}
 
 	@Override
-	public void setAssetTagGroupRels(long tagId, long[] groupIds)
+	public List<AssetTagGroupRel> getAssetTagGroupRelsByTagIdAndDepotEntryType(
+		long tagId, int depotEntryType) {
+
+		return assetTagGroupRelPersistence.findByT_D(tagId, depotEntryType);
+	}
+
+	@Override
+	public void setAssetTagGroupRels(
+			long tagId, long[] groupIds, int depotEntryType)
 		throws PortalException {
 
 		if (ArrayUtil.isEmpty(groupIds)) {
 			throw new AssetTagGroupRelGroupIdException();
 		}
 
-		assetTagGroupRelPersistence.removeByTagId(tagId);
+		assetTagGroupRelPersistence.removeByT_D(tagId, depotEntryType);
 
 		for (long groupId : groupIds) {
-			addAssetTagGroupRel(groupId, tagId);
+			addAssetTagGroupRel(groupId, tagId, depotEntryType);
 		}
 	}
 

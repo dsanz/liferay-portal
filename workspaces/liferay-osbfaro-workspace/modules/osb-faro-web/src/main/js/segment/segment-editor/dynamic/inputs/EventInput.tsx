@@ -1,7 +1,7 @@
 import Alert from '@clayui/alert';
 import AttributeFilterSection from './components/AttributeFilterSection';
 import ClayButton from '@clayui/button';
-import ClayIcon from '@clayui/icon';
+import ClayIcon from 'shared/components/Icon';
 import DateFilterConjunctionInput from './components/DateFilterConjunctionInput';
 import Form from 'shared/components/form';
 import OccurenceConjunctionInput from './components/OccurenceConjunctionInput';
@@ -9,7 +9,8 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import RealTimePeriodInput, {
 	DEFAULT_OPTIONS,
 } from './components/RealTimePeriodInput';
-import {Attribute, DataTypes} from 'event-analysis/utils/types';
+import {DataTypes} from 'shared/types/DataTypes';
+import {Attribute} from 'event-analysis/utils/types';
 import {
 	AttributeConjunctionChangeParams,
 	Criterion,

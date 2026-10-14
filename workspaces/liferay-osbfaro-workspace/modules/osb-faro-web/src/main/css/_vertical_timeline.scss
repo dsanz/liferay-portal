@@ -31,10 +31,14 @@
 		}
 
 		.row-main {
-			cursor: pointer;
 			padding: $baseline * 2;
 
-			.angle-icon {
+			&.clickable {
+				cursor: pointer;
+			}
+
+			.angle-icon,
+			.payload-button {
 				opacity: 0;
 				transition: opacity 0.1s ease-in-out;
 			}
@@ -43,9 +47,11 @@
 				background-color: $primaryLighten45;
 			}
 
-			&:focus,
+			&:focus-visible,
+			&:has(:focus-visible),
 			&:hover {
-				.angle-icon {
+				.angle-icon,
+				.payload-button {
 					opacity: 1;
 				}
 			}
@@ -60,9 +66,18 @@
 			font-size: $fontSizeMedium;
 		}
 
+		.campaign-sticker,
+		.event-sticker,
+		.page-sticker {
+			background-color: $white;
+			height: $baseline * 4;
+			margin-bottom: -$baseline;
+			margin-top: -$baseline;
+			width: $baseline * 4;
+		}
+
 		.row-content {
 			min-width: 0;
-			overflow-x: clip;
 		}
 
 		.row-details {
@@ -82,35 +97,95 @@
 		}
 
 		.subtitle {
+			.lexicon-icon {
+				margin-top: 2px;
+			}
+
 			.text-truncate {
 				min-width: 0;
 			}
 		}
 
+		// The payload is read as a panel of its own rather than as a
+		// continuation of the row above it, so it keeps the same gutter on both
+		// sides instead of aligning its left edge under the row's time column.
+
 		.attributes-payload {
 			border-top: 1px solid $mainLighten74;
-			font-family: monospace;
-			font-size: $fontSizeExtraSmall;
-			padding: ($baseline * 2) ($baseline * 2) ($baseline * 2)
-				$timeColumnWidth + $baseline * 2;
-			white-space: pre-wrap;
+			padding: ($baseline * 2) ($baseline * 8);
+
+			// The header names the payload and carries the view selector, so
+			// the two shapes of the same data are switched from one place
+			// rather than from inside either of them.
+
+			.payload-header {
+				margin-bottom: $baseline * 2;
+			}
+
+			// The raw payload, which the code view falls back to. Monospace and
+			// preserved whitespace are what make the nesting the tables flatten
+			// away readable again.
+
+			.payload-code {
+				font-family: monospace;
+				font-size: $fontSizeExtraSmall;
+				white-space: pre-wrap;
+			}
+
+			// The copy button floats over the top right of the code rather than
+			// sitting in the flow, so a payload of any length keeps it in reach
+			// without the code having to leave a gutter for it.
+
+			.payload-copy {
+				position: absolute;
+				right: 0;
+				top: 0;
+			}
+
+			// The payload reads as one table per group of attributes, each
+			// under its own header, so a long list of acquisition parameters
+			// never has to be told apart from the event's own attributes.
+
+			.payload-table + .payload-table {
+				margin-top: $baseline * 2;
+			}
+
+			.payload-table-title {
+				letter-spacing: 0.5px;
+				margin-bottom: $baseline;
+			}
+
+			// Both columns are fixed at half the width so the values line up
+			// down the table however long a property name runs, and a value
+			// with no spaces in it (an id, a URL) wraps instead of stretching
+			// the row.
+
+			.table {
+				margin-bottom: 0;
+				table-layout: fixed;
+
+				td,
+				th {
+					font-size: $fontSizeSmall;
+					width: 50%;
+					word-break: break-word;
+				}
+			}
 		}
-	}
-
-	// The count of events a row stands for, shown on the day, session and page
-	// rows.
-
-	.event-count-pill {
-		border: 1px solid $mainLighten74;
-		border-radius: 4px;
-		font-size: $fontSizeSmall;
-		padding: 2px 6px;
 	}
 
 	.became-known-label,
 	.campaign-label,
-	.data-source-label {
+	.data-source-label,
+	.experience-label {
 		font-size: $fontSizeSmall;
+	}
+
+	.campaign-label,
+	.experience-label {
+		.label-item-before {
+			margin-right: 4px;
+		}
 	}
 
 	.device-icon {
@@ -119,10 +194,45 @@
 		}
 	}
 
-	.day-row {
+	.campaign-row {
+		> .row-main {
+			align-items: center;
+		}
+
 		.title {
-			font-size: $fontSizeMedium;
-			margin-right: 12px;
+			margin-left: $baseline * 2;
+		}
+	}
+
+	.touch-row {
+		padding: ($baseline * 2) ($baseline * 2) ($baseline * 2) ($baseline * 8);
+
+		.row-content {
+			gap: $baseline * 2;
+		}
+
+		.touch-sticker {
+			flex-shrink: 0;
+		}
+
+		.touch-info {
+			align-items: flex-start;
+			display: flex;
+			flex-direction: column;
+			min-width: 0;
+		}
+
+		.touch-name {
+			color: $main;
+
+			&:focus,
+			&:hover {
+				color: $main;
+			}
+		}
+
+		.touch-status {
+			font-size: $fontSizeSmall;
 		}
 	}
 
@@ -148,8 +258,18 @@
 			min-width: 0;
 		}
 
-		.individual-id {
+		.individual-title {
+			color: $main;
 			word-break: break-all;
+
+			&:focus,
+			&:hover {
+				color: $main;
+			}
+		}
+
+		.individual-subtitle {
+			color: $secondary;
 		}
 	}
 
@@ -158,16 +278,8 @@
 		// belong on the same line, so they're vertically centered together
 		// instead of the default top alignment other rows use for their taller,
 		// multi-line content.
-
-		.row-main {
+		> .row-main {
 			align-items: center !important;
-		}
-
-		// The session row has no time column for the payload to align under, so
-		// it only needs the row's own base indent.
-
-		.attributes-payload {
-			padding-left: $baseline * 2;
 		}
 	}
 
@@ -188,7 +300,7 @@
 			column-gap: 12px;
 			max-width: 100%;
 
-			> .campaign-label-root:not(:first-child) {
+			> :first-child + * {
 				border-left: 1px solid $mainLighten74;
 				padding-left: 12px;
 			}
@@ -213,14 +325,15 @@
 		.page-info {
 			display: flex;
 			flex-direction: column;
-			margin-left: $timeColumnWidth + $baseline * 6;
+			margin-left: $timeColumnWidth + $baseline * 8;
 			row-gap: $baseline;
 		}
 	}
 
-	// The event row follows the same layout as the page row: time and title
-	// share one line, and the details stack below, indented to align with the
-	// title.
+	// The event row follows the same layout as the page row: time, sticker and
+	// title share one line, and the details stack below the title. The sticker
+	// stays in the page sticker's column while the title and details step one
+	// indent in, so the event reads as belonging to the page above it.
 
 	.event-row {
 		.event-header {
@@ -230,6 +343,7 @@
 
 			.title {
 				flex: 0 1 auto;
+				margin-left: $rowIndent;
 				min-width: 0;
 			}
 		}
@@ -237,12 +351,8 @@
 		.event-info {
 			display: flex;
 			flex-direction: column;
-			margin-left: $timeColumnWidth + $baseline * 2; // time gap
+			margin-left: $timeColumnWidth + $baseline * 8 + $rowIndent;
 			row-gap: 4px;
-		}
-
-		.attributes-payload {
-			padding-left: $baseline * 8;
 		}
 	}
 
@@ -258,13 +368,59 @@
 			padding-left: $baseline * 2 + $rowIndent * 2;
 		}
 
-		// The event row's left padding matches the page row's, regardless of
-		// whether the event is nested under a page group or sits loose directly
-		// under a session.
-
 		> .timeline-row.event-row > .row-main,
 		.timeline-rows.nested > .timeline-row.event-row > .row-main {
 			padding-left: $baseline * 2 + $rowIndent;
 		}
+	}
+}
+
+.event-count-pill {
+	font-size: $fontSizeSmall;
+
+	.label-item-before {
+		margin-right: 4px;
+	}
+
+	.label-item-expand {
+		flex-grow: 0;
+		min-width: 0;
+	}
+}
+
+.date-header {
+	padding: $baseline * 2 $baseline * 2 $baseline * 2 ($baseline * 3);
+
+	.date-header-counts {
+		column-gap: $baseline;
+	}
+
+	.day-icon {
+		color: $main;
+	}
+
+	.title {
+		color: $main;
+		font-size: $fontSizeMedium;
+		font-weight: $fontWeightSemiBold;
+		margin-right: 12px;
+	}
+}
+
+.activity-section {
+	border: 1px solid $mainLighten74;
+	border-radius: 4px;
+	margin: $baseline * 2;
+	overflow: hidden;
+	.activity-section-empty-state {
+		gap: $baseline;
+		padding: ($baseline * 6) ($baseline * 2);
+	}
+
+	.activity-section-header {
+		background-color: $lightBackground;
+		border-bottom: 1px solid $mainLighten74;
+		border-radius: 4px 4px 0 0;
+		padding: $baseline ($baseline * 2);
 	}
 }

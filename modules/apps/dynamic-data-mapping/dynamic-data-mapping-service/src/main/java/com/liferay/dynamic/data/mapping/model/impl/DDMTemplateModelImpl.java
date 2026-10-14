@@ -185,44 +185,38 @@ public class DDMTemplateModelImpl
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long LANGUAGE_COLUMN_BITMASK = 32L;
+	public static final long MODE_COLUMN_BITMASK = 32L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long MODE_COLUMN_BITMASK = 64L;
+	public static final long SMALLIMAGEID_COLUMN_BITMASK = 64L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long SMALLIMAGEID_COLUMN_BITMASK = 128L;
+	public static final long TEMPLATEKEY_COLUMN_BITMASK = 128L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long TEMPLATEKEY_COLUMN_BITMASK = 256L;
+	public static final long TYPE_COLUMN_BITMASK = 256L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long TYPE_COLUMN_BITMASK = 512L;
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getColumnBitmask(String)}
-	 */
-	@Deprecated
-	public static final long UUID_COLUMN_BITMASK = 1024L;
+	public static final long UUID_COLUMN_BITMASK = 512L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
 	 *		#getColumnBitmask(String)}
 	 */
 	@Deprecated
-	public static final long TEMPLATEID_COLUMN_BITMASK = 2048L;
+	public static final long TEMPLATEID_COLUMN_BITMASK = 1024L;
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
@@ -1209,15 +1203,6 @@ public class DDMTemplateModelImpl
 		_language = language;
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #getColumnOriginalValue(String)}
-	 */
-	@Deprecated
-	public String getOriginalLanguage() {
-		return getColumnOriginalValue("language");
-	}
-
 	@JSON
 	@Override
 	public String getScript() {
@@ -1611,9 +1596,19 @@ public class DDMTemplateModelImpl
 
 	@Override
 	public void copyCacheFields(DDMTemplate source) {
-		DDMTemplateModelImpl sourceModelImpl = (DDMTemplateModelImpl)source;
+		if (getMvccVersion() != source.getMvccVersion()) {
+			return;
+		}
 
-		setResourceClassName(sourceModelImpl.getResourceClassName());
+		try {
+			_resourceClassNameSetterMethodHandle.invokeExact(
+				(DDMTemplateImpl)this,
+				(String)_resourceClassNameGetterMethodHandle.invokeExact(
+					(DDMTemplateImpl)source));
+		}
+		catch (Throwable throwable) {
+			ReflectionUtil.throwException(throwable);
+		}
 	}
 
 	@Override
@@ -1842,7 +1837,7 @@ public class DDMTemplateModelImpl
 			setResourceClassName(null);
 
 			ddmTemplateCacheModel.resourceClassName =
-				(String)_resourceClassNameMethodHandle.invokeExact(
+				(String)_resourceClassNameGetterMethodHandle.invokeExact(
 					(DDMTemplateImpl)this);
 		}
 		catch (Throwable throwable) {
@@ -2107,13 +2102,16 @@ public class DDMTemplateModelImpl
 				}
 			};
 
-	private static final MethodHandle _resourceClassNameMethodHandle;
+	private static final MethodHandle _resourceClassNameGetterMethodHandle;
+	private static final MethodHandle _resourceClassNameSetterMethodHandle;
 
 	static {
 		MethodHandles.Lookup lookup = ReflectionUtil.getImplLookup();
 
 		try {
-			_resourceClassNameMethodHandle = lookup.findGetter(
+			_resourceClassNameGetterMethodHandle = lookup.findGetter(
+				DDMTemplateImpl.class, "_resourceClassName", String.class);
+			_resourceClassNameSetterMethodHandle = lookup.findSetter(
 				DDMTemplateImpl.class, "_resourceClassName", String.class);
 		}
 		catch (ReflectiveOperationException reflectiveOperationException) {
@@ -2124,4 +2122,4 @@ public class DDMTemplateModelImpl
 	private DDMTemplate _escapedModel;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:1610487170
+// LIFERAY-SERVICE-BUILDER-HASH:738782639

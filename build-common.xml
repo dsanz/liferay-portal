@@ -222,12 +222,10 @@
 		</or>
 	</condition>
 
-	<fail message="Please use Java 1.8, 17, or 21.">
+	<fail message="Please use Java 21.">
 		<condition>
 			<not>
 				<or>
-					<equals arg1="${java.specification.version}" arg2="1.8" />
-					<equals arg1="${java.specification.version}" arg2="17" />
 					<equals arg1="${java.specification.version}" arg2="21" />
 					<isset property="env.JENKINS_HOME" />
 				</or>
@@ -235,9 +233,7 @@
 		</condition>
 	</fail>
 
-	<condition else="1.10.14" property="java.ant.version" value="1.9.3">
-		<equals arg1="${java.specification.version}" arg2="1.8" />
-	</condition>
+	<property name="java.ant.version" value="1.10.14" />
 
 	<condition property="correct.ant.version">
 		<antversion atleast="${java.ant.version}" />
@@ -2484,86 +2480,6 @@ rerun your task.
 				</jacoco-report>
 			</else>
 		</if>
-	</target>
-
-	<target name="gradle-execute-modules">
-		<local name="test.task.name" />
-
-		<antelope:stringutil property="test.task.name" string="${test.task}">
-			<antelope:replace regex="\:" replacement="." />
-		</antelope:stringutil>
-
-		<trycatch property="exception.message">
-			<try>
-				<lstopwatch action="start" name="test.execution.duration${test.task.name}" />
-
-				<gradle-execute dir="${dir}" gradlejvmargs="${gradle.jvm.args}" task="${test.task}" test.name="${test.name}" />
-			</try>
-			<catch>
-				<fail>${exception.message}</fail>
-			</catch>
-			<finally>
-				<lstopwatch action="total" name="test.execution.duration${test.task.name}" />
-			</finally>
-		</trycatch>
-	</target>
-
-	<target name="gradle-execute-workspaces">
-		<local name="test.task.name" />
-		<local name="test.task.project.dir" />
-		<local name="workspace.dir" />
-
-		<antelope:stringutil property="test.task.name" string="${test.task}">
-			<antelope:replace regex="\:" replacement="." />
-		</antelope:stringutil>
-
-		<antelope:stringutil property="test.task.project.dir" string="${test.task}">
-			<antelope:replace regex="\:[^\:]+$" replacement="" />
-			<antelope:replace regex="^\:" replacement="" />
-			<antelope:replace regex="\:" replacement="/" />
-		</antelope:stringutil>
-
-		<property location="${dir}" name="workspace.dir" />
-
-		<chmod
-			file="${workspace.dir}/gradlew"
-			perm="a+x"
-		/>
-
-		<trycatch property="exception.message">
-			<try>
-				<lstopwatch action="start" name="test.execution.duration${test.task.name}" />
-
-				<exec dir="${workspace.dir}" executable="./gradlew" failonerror="true">
-					<arg if:set="env.JENKINS_HOME" value="--max-workers=4" />
-					<arg if:set="env.JENKINS_HOME" value="--no-daemon" />
-					<arg value="--stacktrace" />
-					<arg line="${gradle.jvm.args}" />
-					<arg value="${test.task}" />
-					<arg line="${test.name}" />
-					<env key="GIT_DISCOVERY_ACROSS_FILESYSTEM" value="1" />
-				</exec>
-			</try>
-			<catch>
-				<fail>${exception.message}</fail>
-			</catch>
-			<finally>
-				<copy
-					failonerror="false"
-					overwrite="true"
-					todir="${project.dir}/workspaces/test-results"
-				>
-					<fileset
-						dir="${workspace.dir}/${test.task.project.dir}/build/test-results/test"
-						erroronmissingdir="false"
-						includes="TEST-*.xml"
-					/>
-					<flattenmapper />
-				</copy>
-
-				<lstopwatch action="total" name="test.execution.duration${test.task.name}" />
-			</finally>
-		</trycatch>
 	</target>
 
 	<target name="print-properties">

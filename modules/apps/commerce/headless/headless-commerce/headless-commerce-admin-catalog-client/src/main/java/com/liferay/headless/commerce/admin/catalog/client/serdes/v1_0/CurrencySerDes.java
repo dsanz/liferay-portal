@@ -12,6 +12,10 @@ import jakarta.annotation.Generated;
 
 import java.math.BigDecimal;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -46,6 +50,9 @@ public class CurrencySerDes {
 
 		sb.append("{");
 
+		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
+			"yyyy-MM-dd'T'HH:mm:ssXX");
+
 		if (currency.getActive() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -66,6 +73,46 @@ public class CurrencySerDes {
 			sb.append("\"");
 
 			sb.append(_escape(currency.getCode()));
+
+			sb.append("\"");
+		}
+
+		if (currency.getCreator() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"creator\": ");
+
+			sb.append(String.valueOf(currency.getCreator()));
+		}
+
+		if (currency.getDateCreated() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"dateCreated\": ");
+
+			sb.append("\"");
+
+			sb.append(
+				liferayToJSONDateFormat.format(currency.getDateCreated()));
+
+			sb.append("\"");
+		}
+
+		if (currency.getDateModified() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"dateModified\": ");
+
+			sb.append("\"");
+
+			sb.append(
+				liferayToJSONDateFormat.format(currency.getDateModified()));
 
 			sb.append("\"");
 		}
@@ -208,6 +255,9 @@ public class CurrencySerDes {
 
 		Map<String, String> map = new TreeMap<>();
 
+		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
+			"yyyy-MM-dd'T'HH:mm:ssXX");
+
 		if (currency.getActive() == null) {
 			map.put("active", null);
 		}
@@ -220,6 +270,31 @@ public class CurrencySerDes {
 		}
 		else {
 			map.put("code", String.valueOf(currency.getCode()));
+		}
+
+		if (currency.getCreator() == null) {
+			map.put("creator", null);
+		}
+		else {
+			map.put("creator", String.valueOf(currency.getCreator()));
+		}
+
+		if (currency.getDateCreated() == null) {
+			map.put("dateCreated", null);
+		}
+		else {
+			map.put(
+				"dateCreated",
+				liferayToJSONDateFormat.format(currency.getDateCreated()));
+		}
+
+		if (currency.getDateModified() == null) {
+			map.put("dateModified", null);
+		}
+		else {
+			map.put(
+				"dateModified",
+				liferayToJSONDateFormat.format(currency.getDateModified()));
 		}
 
 		if (currency.getExternalReferenceCode() == null) {
@@ -329,6 +404,15 @@ public class CurrencySerDes {
 			else if (Objects.equals(jsonParserFieldName, "code")) {
 				return false;
 			}
+			else if (Objects.equals(jsonParserFieldName, "creator")) {
+				return false;
+			}
+			else if (Objects.equals(jsonParserFieldName, "dateCreated")) {
+				return false;
+			}
+			else if (Objects.equals(jsonParserFieldName, "dateModified")) {
+				return false;
+			}
 			else if (Objects.equals(
 						jsonParserFieldName, "externalReferenceCode")) {
 
@@ -381,6 +465,24 @@ public class CurrencySerDes {
 			else if (Objects.equals(jsonParserFieldName, "code")) {
 				if (jsonParserFieldValue != null) {
 					currency.setCode((String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "creator")) {
+				if (jsonParserFieldValue != null) {
+					currency.setCreator(
+						CreatorSerDes.toDTO((String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "dateCreated")) {
+				if (jsonParserFieldValue != null) {
+					currency.setDateCreated(
+						toDate((String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "dateModified")) {
+				if (jsonParserFieldValue != null) {
+					currency.setDateModified(
+						toDate((String)jsonParserFieldValue));
 				}
 			}
 			else if (Objects.equals(
@@ -497,6 +599,12 @@ public class CurrencySerDes {
 			return "null";
 		}
 
+		if (value instanceof Collection) {
+			Collection<?> collection = (Collection<?>)value;
+
+			return _toJSON(collection.toArray());
+		}
+
 		if (value instanceof Map) {
 			return _toJSON((Map)value);
 		}
@@ -529,4 +637,4 @@ public class CurrencySerDes {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:297118296
+// LIFERAY-REST-BUILDER-HASH:-823921653

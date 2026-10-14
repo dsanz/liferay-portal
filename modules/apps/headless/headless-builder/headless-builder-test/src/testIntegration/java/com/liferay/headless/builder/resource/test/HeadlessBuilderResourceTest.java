@@ -268,6 +268,13 @@ public class HeadlessBuilderResourceTest extends BaseTestCase {
 			"test@able.com", PropsValues.DEFAULT_ADMIN_PASSWORD
 		).apply(
 			() -> {
+				_assertEndpoint("headless-builder/applications");
+				_assertEndpoint("headless-builder/endpoints");
+				_assertEndpoint("headless-builder/filters");
+				_assertEndpoint("headless-builder/properties");
+				_assertEndpoint("headless-builder/schemas");
+				_assertEndpoint("headless-builder/sorts");
+
 				try (LogCapture logCapture =
 						LoggerTestUtil.configureLog4JLogger(
 							"portal_web.docroot.errors.code_jsp",
@@ -289,7 +296,7 @@ public class HeadlessBuilderResourceTest extends BaseTestCase {
 
 				assertSuccessfulJSONObject(
 					JSONUtil.put(
-						"applicationStatus", "published"
+						"applicationStatus", "unpublished"
 					).put(
 						"baseURL", _BASE_URL_1
 					).put(
@@ -298,6 +305,15 @@ public class HeadlessBuilderResourceTest extends BaseTestCase {
 						"title", "test-app"
 					).toString(),
 					"headless-builder/applications", Http.Method.POST);
+
+				Assert.assertFalse(
+					HTTPTestUtil.invokeToJSONObject(
+						null, "openapi", Http.Method.GET
+					).has(
+						"/c/" + _BASE_URL_1
+					));
+
+				_publishAPIApplication(_API_APPLICATION_ERC_1);
 
 				Assert.assertTrue(
 					HTTPTestUtil.invokeToJSONObject(
@@ -411,7 +427,8 @@ public class HeadlessBuilderResourceTest extends BaseTestCase {
 
 		assertSuccessfulJSONObject(
 			JSONUtil.put(
-				"oDataFilter", "textField eq 'value5' or textField eq 'value7'"
+				"oDataFilter",
+				"textField eq 'value5' or contains(textField, 'lue7')"
 			).put(
 				"r_apiEndpointToAPIFilters_l_apiEndpointERC",
 				_API_ENDPOINT_ERC_1
@@ -2197,6 +2214,51 @@ public class HeadlessBuilderResourceTest extends BaseTestCase {
 	}
 
 	@Test
+	public void testGetWithSiteScopedEndpointAndAPIFilter() throws Exception {
+		_addAPIApplication(
+			_API_APPLICATION_ERC_1, _API_ENDPOINT_ERC_1, _BASE_URL_1,
+			_siteScopedObjectDefinition1.getExternalReferenceCode(),
+			_siteScopedObjectRelationship1.getName(),
+			_siteScopedObjectRelationship2.getName(), _API_APPLICATION_PATH_1,
+			null, APIApplication.Endpoint.RetrieveType.COLLECTION.getValue(),
+			APIApplication.Endpoint.Scope.SITE);
+
+		assertSuccessfulJSONObject(
+			JSONUtil.put(
+				"oDataFilter", "textField ne 'value2'"
+			).put(
+				"r_apiEndpointToAPIFilters_l_apiEndpointERC",
+				_API_ENDPOINT_ERC_1
+			).toString(),
+			"headless-builder/filters", Http.Method.POST);
+
+		_publishAPIApplication(_API_APPLICATION_ERC_1);
+
+		for (int i = 1; i <= 4; i++) {
+			_addCustomObjectEntry(
+				_group.getGroupId(), i, null, _siteScopedObjectDefinition1,
+				"value" + i, RandomTestUtil.randomString());
+		}
+
+		JSONObject jsonObject = HTTPTestUtil.invokeToJSONObject(
+			null,
+			StringBundler.concat(
+				"c/", _BASE_URL_1, "/scopes/", _group.getGroupId(),
+				_API_APPLICATION_PATH_1, "?filter=",
+				URLCodec.encodeURL("textProperty ne 'value3'"), "&sort=",
+				URLCodec.encodeURL("textProperty:desc")),
+			Http.Method.GET);
+
+		JSONAssert.assertEquals(
+			JSONUtil.putAll(
+				JSONUtil.put("textProperty", "value4"),
+				JSONUtil.put("textProperty", "value1")
+			).toString(),
+			String.valueOf(jsonObject.getJSONArray("items")),
+			JSONCompareMode.STRICT_ORDER);
+	}
+
+	@Test
 	public void testGetWithSiteScopedEndpointIndividualObjectEntryByExternalReferenceCode()
 		throws Exception {
 
@@ -2618,39 +2680,6 @@ public class HeadlessBuilderResourceTest extends BaseTestCase {
 			JSONCompareMode.STRICT);
 	}
 
-	@Test
-	public void testPostWithoutResponseSchema() throws Exception {
-		_addAPIApplicationWithPostEndpoint(
-			false, _objectDefinition1.getExternalReferenceCode(),
-			APIApplication.Endpoint.Scope.COMPANY);
-
-		_publishAPIApplication(_API_APPLICATION_ERC_1);
-
-		String textPropertyValue = RandomTestUtil.randomString();
-
-		JSONAssert.assertEquals(
-			"{}",
-			HTTPTestUtil.invokeToJSONObject(
-				JSONUtil.put(
-					"textProperty", textPropertyValue
-				).toString(),
-				StringBundler.concat("c/", _BASE_URL_1, "/test"),
-				Http.Method.POST
-			).toString(),
-			JSONCompareMode.STRICT);
-
-		List<ObjectEntry> objectEntries =
-			_objectEntryLocalService.getObjectEntries(
-				0, _objectDefinition1.getObjectDefinitionId(),
-				QueryUtil.ALL_POS, QueryUtil.ALL_POS);
-
-		ObjectEntry objectEntry = objectEntries.get(objectEntries.size() - 1);
-
-		Map<String, Serializable> values = objectEntry.getValues();
-
-		Assert.assertEquals(textPropertyValue, values.get("textField"));
-	}
-
 	@FeatureFlag("LPD-10964")
 	@Test
 	public void testPostWithRecordProperty() throws Exception {
@@ -2993,31 +3022,37 @@ public class HeadlessBuilderResourceTest extends BaseTestCase {
 		Assert.assertEquals(objectEntries.toString(), 1, objectEntries.size());
 	}
 
-	private void _addAggregationObjectField(
-			ObjectDefinition objectDefinition, String relationshipName)
-		throws Exception {
+	@Test
+	public void testPostWithoutResponseSchema() throws Exception {
+		_addAPIApplicationWithPostEndpoint(
+			false, _objectDefinition1.getExternalReferenceCode(),
+			APIApplication.Endpoint.Scope.COMPANY);
 
-		ObjectField aggregationObjectField = new AggregationObjectFieldBuilder(
-		).externalReferenceCode(
-			_API_SCHEMA_AGGREGATION_FIELD_ERC
-		).labelMap(
-			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString())
-		).name(
-			"aggregationField"
-		).objectDefinitionId(
-			objectDefinition.getObjectDefinitionId()
-		).objectFieldSettings(
-			Arrays.asList(
-				_createObjectFieldSetting(
-					ObjectFieldSettingConstants.NAME_FUNCTION,
-					ObjectFieldSettingConstants.VALUE_COUNT),
-				_createObjectFieldSetting(
-					ObjectFieldSettingConstants.NAME_OBJECT_RELATIONSHIP_NAME,
-					relationshipName))
-		).build();
+		_publishAPIApplication(_API_APPLICATION_ERC_1);
 
-		ObjectFieldTestUtil.addCustomObjectField(
-			TestPropsValues.getUserId(), aggregationObjectField);
+		String textPropertyValue = RandomTestUtil.randomString();
+
+		JSONAssert.assertEquals(
+			"{}",
+			HTTPTestUtil.invokeToJSONObject(
+				JSONUtil.put(
+					"textProperty", textPropertyValue
+				).toString(),
+				StringBundler.concat("c/", _BASE_URL_1, "/test"),
+				Http.Method.POST
+			).toString(),
+			JSONCompareMode.STRICT);
+
+		List<ObjectEntry> objectEntries =
+			_objectEntryLocalService.getObjectEntries(
+				0, _objectDefinition1.getObjectDefinitionId(),
+				QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+
+		ObjectEntry objectEntry = objectEntries.get(objectEntries.size() - 1);
+
+		Map<String, Serializable> values = objectEntry.getValues();
+
+		Assert.assertEquals(textPropertyValue, values.get("textField"));
 	}
 
 	private void _addAPIApplication(
@@ -3423,6 +3458,33 @@ public class HeadlessBuilderResourceTest extends BaseTestCase {
 			"headless-builder/sorts", Http.Method.POST);
 	}
 
+	private void _addAggregationObjectField(
+			ObjectDefinition objectDefinition, String relationshipName)
+		throws Exception {
+
+		ObjectField aggregationObjectField = new AggregationObjectFieldBuilder(
+		).externalReferenceCode(
+			_API_SCHEMA_AGGREGATION_FIELD_ERC
+		).labelMap(
+			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString())
+		).name(
+			"aggregationField"
+		).objectDefinitionId(
+			objectDefinition.getObjectDefinitionId()
+		).objectFieldSettings(
+			Arrays.asList(
+				_createObjectFieldSetting(
+					ObjectFieldSettingConstants.NAME_FUNCTION,
+					ObjectFieldSettingConstants.VALUE_COUNT),
+				_createObjectFieldSetting(
+					ObjectFieldSettingConstants.NAME_OBJECT_RELATIONSHIP_NAME,
+					relationshipName))
+		).build();
+
+		ObjectFieldTestUtil.addCustomObjectField(
+			TestPropsValues.getUserId(), aggregationObjectField);
+	}
+
 	private ObjectEntry _addCustomObjectEntry(
 			int integerFieldValue,
 			List<ListTypeValue> multiselectPicklistFieldValue,
@@ -3666,6 +3728,16 @@ public class HeadlessBuilderResourceTest extends BaseTestCase {
 				"file",
 				() -> FileUtil.createTempFile(TestDataConstants.TEST_BYTE_ARRAY)
 			).build());
+	}
+
+	private void _assertEndpoint(String endpoint) throws Exception {
+		Assert.assertEquals(
+			200,
+			HTTPTestUtil.invokeToHttpCode(null, endpoint, Http.Method.GET));
+		Assert.assertEquals(
+			200,
+			HTTPTestUtil.invokeToHttpCode(
+				null, endpoint + "/openapi.json", Http.Method.GET));
 	}
 
 	private void _assertFilterString(

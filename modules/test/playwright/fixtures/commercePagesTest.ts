@@ -25,6 +25,7 @@ import {CommerceAdminInventoryItemPage} from '../pages/commerce/commerce-invento
 import {CommerceAdminInventoryPage} from '../pages/commerce/commerce-inventory-web/commerceAdminInventoryPage';
 import {CommerceLayoutsPage} from '../pages/commerce/commerce-order-content-web/commerceLayoutsPage';
 import {OrderDetailsPage} from '../pages/commerce/commerce-order-content-web/orderDetailsPage';
+import {OrderImportPage} from '../pages/commerce/commerce-order-content-web/orderImportPage';
 import {PendingOrdersPage} from '../pages/commerce/commerce-order-content-web/pendingOrdersPage';
 import {PlacedOrderPage} from '../pages/commerce/commerce-order-content-web/placedOrderPage';
 import {PlacedOrdersPage} from '../pages/commerce/commerce-order-content-web/placedOrdersPage';
@@ -48,6 +49,7 @@ import {CommerceAdminPriceListsPage} from '../pages/commerce/commerce-pricing-we
 import {CommerceAdminProductGroupDetailsPage} from '../pages/commerce/commerce-pricing-web/commerceAdminProductGroupDetailsPage';
 import {CommerceAdminProductGroupsPage} from '../pages/commerce/commerce-pricing-web/commerceAdminProductGroupsPage';
 import {CommerceAdminPromotionsPage} from '../pages/commerce/commerce-pricing-web/commerceAdminPromotionsPage';
+import {SearchResultsPage} from '../pages/commerce/commerce-product-content-search-web/searchResultsPage';
 import {SpecificationFacetsPage} from '../pages/commerce/commerce-product-content-search-web/specificationFacetsPage';
 import {ProductComparisonPage} from '../pages/commerce/commerce-product-content-web/productComparisonPage';
 import {ProductDetailsPage} from '../pages/commerce/commerce-product-content-web/productDetailsPage';
@@ -68,6 +70,7 @@ import {CommerceAdminProductDetailsSkusPage} from '../pages/commerce/commerce-pr
 import {CommerceAdminProductDetailsVisibilityPage} from '../pages/commerce/commerce-product-definitions-web/commerceAdminProductDetailsVisibilityPage';
 import {CommerceAdminProductPage} from '../pages/commerce/commerce-product-definitions-web/commerceAdminProductPage';
 import {CommerceSpecificationsPage} from '../pages/commerce/commerce-product-options-web/commerceSpecificationsPage';
+import {VirtualOrderItemContentPage} from '../pages/commerce/commerce-product-type-virtual-order-content-web/virtualOrderItemContentPage';
 import {CommerceAdminShipmentsPage} from '../pages/commerce/commerce-shipment-web/commerceAdminShipmentsPage';
 import {TermsAndConditionDetailsPage} from '../pages/commerce/commerce-term-web/termsAndConditionDetailsPage';
 import {TermsAndConditionsPage} from '../pages/commerce/commerce-term-web/termsAndConditionsPage';
@@ -148,6 +151,7 @@ const commercePagesTest = test.extend<{
 	commerceWishListPage: CommerceWishListPage;
 	offlinePaymentMethodsSystemSettingPage: OfflinePaymentMethodsSystemSettingPage;
 	orderDetailsPage: OrderDetailsPage;
+	orderImportPage: OrderImportPage;
 	organizationManagementPage: OrganizationManagementPage;
 	pendingOrdersPage: PendingOrdersPage;
 	placedOrderPage: PlacedOrderPage;
@@ -158,9 +162,11 @@ const commercePagesTest = test.extend<{
 	refundReasonsSystemSettingPage: RefundReasonsSystemSettingPage;
 	returnDetailsPage: ReturnDetailsPage;
 	returnsPage: ReturnsPage;
+	searchResultsPage: SearchResultsPage;
 	specificationFacetsPage: SpecificationFacetsPage;
 	termsAndConditionDetailsPage: TermsAndConditionDetailsPage;
 	termsAndConditionsPage: TermsAndConditionsPage;
+	virtualOrderItemContentPage: VirtualOrderItemContentPage;
 }>({
 	attachmentsPage: async ({page}, use) => {
 		await use(new AttachmentsPage(page));
@@ -359,6 +365,9 @@ const commercePagesTest = test.extend<{
 	orderDetailsPage: async ({page}, use) => {
 		await use(new OrderDetailsPage(page));
 	},
+	orderImportPage: async ({page}, use) => {
+		await use(new OrderImportPage(page));
+	},
 	organizationManagementPage: async ({page}, use) => {
 		await use(new OrganizationManagementPage(page));
 	},
@@ -391,6 +400,9 @@ const commercePagesTest = test.extend<{
 	returnsPage: async ({page}, use) => {
 		await use(new ReturnsPage(page));
 	},
+	searchResultsPage: async ({page}, use) => {
+		await use(new SearchResultsPage(page));
+	},
 	specificationFacetsPage: async ({page}, use) => {
 		await use(new SpecificationFacetsPage(page));
 	},
@@ -399,6 +411,9 @@ const commercePagesTest = test.extend<{
 	},
 	termsAndConditionsPage: async ({page}, use) => {
 		await use(new TermsAndConditionsPage(page));
+	},
+	virtualOrderItemContentPage: async ({page}, use) => {
+		await use(new VirtualOrderItemContentPage(page));
 	},
 });
 

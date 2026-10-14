@@ -19,21 +19,30 @@ import com.liferay.object.field.business.type.ObjectFieldBusinessType;
 import com.liferay.object.field.business.type.ObjectFieldBusinessTypeRegistry;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
+import com.liferay.object.model.ObjectEntryVersion;
 import com.liferay.object.model.ObjectField;
 import com.liferay.object.model.ObjectFieldTable;
 import com.liferay.object.model.ObjectRelationshipTable;
 import com.liferay.object.model.ObjectViewFilterColumn;
 import com.liferay.object.model.ObjectViewFilterColumnTable;
+import com.liferay.object.model.bag.ObjectFieldBag;
 import com.liferay.object.model.listener.RelevantObjectEntryModelListener;
 import com.liferay.object.rest.dto.v1_0.Assignee;
+import com.liferay.object.rest.dto.v1_0.Location;
+import com.liferay.object.search.StrictObjectReindexThreadLocal;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.object.service.ObjectFieldLocalService;
 import com.liferay.object.service.ObjectValidationRuleLocalService;
 import com.liferay.object.service.ObjectViewFilterColumnLocalService;
+import com.liferay.object.service.persistence.ObjectDefinitionPersistence;
+import com.liferay.object.service.persistence.ObjectEntryPersistence;
+import com.liferay.object.service.persistence.ObjectEntryVersionPersistence;
+import com.liferay.object.util.comparator.ObjectEntryVersionVersionComparator;
 import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerList;
 import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerListFactory;
 import com.liferay.petra.function.UnsafeConsumer;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.sql.dsl.DSLQueryFactoryUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
@@ -51,6 +60,8 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.BaseModelListener;
 import com.liferay.portal.kernel.model.ModelListener;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.search.Indexer;
+import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -315,10 +326,9 @@ public class ObjectEntryModelListener extends BaseModelListener<ObjectEntry> {
 
 		String defaultLanguageId = _getDefaultLanguageId(objectEntry);
 
-		for (ObjectField objectField :
-				_objectFieldLocalService.getObjectFields(
-					objectDefinition.getObjectDefinitionId())) {
+		ObjectFieldBag objectFieldBag = objectDefinition.getObjectFieldBag();
 
+		for (ObjectField objectField : objectFieldBag.getObjectFields()) {
 			Map<String, Serializable> values = objectEntry.getValues();
 
 			if (objectField.isLocalized()) {
@@ -398,6 +408,31 @@ public class ObjectEntryModelListener extends BaseModelListener<ObjectEntry> {
 					if (_log.isDebugEnabled()) {
 						_log.debug(portalException);
 					}
+				}
+			}
+		}
+		else if (Objects.equals(
+					objectField.getBusinessType(),
+					ObjectFieldConstants.BUSINESS_TYPE_LOCATION)) {
+
+			ObjectFieldBusinessType locationObjectFieldBusinessType =
+				_objectFieldBusinessTypeRegistry.getObjectFieldBusinessType(
+					ObjectFieldConstants.BUSINESS_TYPE_LOCATION);
+
+			try {
+				Location location =
+					(Location)locationObjectFieldBusinessType.getDTOValue(
+						null, null, null, null, (Serializable)value);
+
+				if (location == null) {
+					return null;
+				}
+
+				return _jsonFactory.createJSONObject(location.toString());
+			}
+			catch (Exception exception) {
+				if (_log.isDebugEnabled()) {
+					_log.debug(exception);
 				}
 			}
 		}
@@ -500,10 +535,9 @@ public class ObjectEntryModelListener extends BaseModelListener<ObjectEntry> {
 
 		List<Attribute> attributes = new ArrayList<>();
 
-		for (ObjectField objectField :
-				_objectFieldLocalService.getObjectFields(
-					objectDefinition.getObjectDefinitionId())) {
+		ObjectFieldBag objectFieldBag = objectDefinition.getObjectFieldBag();
 
+		for (ObjectField objectField : objectFieldBag.getObjectFields()) {
 			if (objectField.isLocalized() &&
 				_addModifiedLocalizedAttributes(
 					attributes, defaultLanguageId, objectField, originalValues,
@@ -532,9 +566,7 @@ public class ObjectEntryModelListener extends BaseModelListener<ObjectEntry> {
 			ObjectEntry objectEntry)
 		throws PortalException {
 
-		ObjectDefinition objectDefinition =
-			_objectDefinitionLocalService.getObjectDefinition(
-				objectEntry.getObjectDefinitionId());
+		ObjectDefinition objectDefinition = objectEntry.getObjectDefinition();
 
 		if (!objectDefinition.isEnableObjectEntryHistory()) {
 			return;
@@ -657,15 +689,54 @@ public class ObjectEntryModelListener extends BaseModelListener<ObjectEntry> {
 			return;
 		}
 
-		ObjectEntry rootObjectEntry = _objectEntryLocalService.fetchObjectEntry(
+		ObjectEntry rootObjectEntry = _objectEntryPersistence.fetchByPrimaryKey(
 			objectEntry.getRootObjectEntryId());
 
 		if (rootObjectEntry == null) {
 			return;
 		}
 
-		_objectEntryLocalService.updateModifiedDate(
-			objectEntry.getRootObjectEntryId(), modifiedDate);
+		rootObjectEntry = _objectEntryPersistence.reassociateIfAbsent(
+			rootObjectEntry);
+
+		rootObjectEntry.setModifiedDate(modifiedDate);
+
+		rootObjectEntry = _objectEntryPersistence.update(rootObjectEntry);
+
+		ObjectDefinition objectDefinition =
+			_objectDefinitionPersistence.findByPrimaryKey(
+				rootObjectEntry.getObjectDefinitionId());
+
+		if (objectDefinition.isEnableIndexSearch()) {
+			Indexer<ObjectEntry> indexer = IndexerRegistryUtil.getIndexer(
+				objectDefinition.getClassName());
+
+			try (SafeCloseable safeCloseable =
+					StrictObjectReindexThreadLocal.
+						setStrictObjectReindexWithSafeCloseable(true)) {
+
+				indexer.reindex(rootObjectEntry);
+			}
+		}
+
+		if (!objectDefinition.isEnableObjectEntryVersioning()) {
+			return;
+		}
+
+		int objectEntryVersionsCount =
+			_objectEntryVersionPersistence.countByObjectEntryId(
+				rootObjectEntry.getObjectEntryId());
+
+		if (objectEntryVersionsCount > 0) {
+			ObjectEntryVersion objectEntryVersion =
+				_objectEntryVersionPersistence.findByObjectEntryId_First(
+					rootObjectEntry.getObjectEntryId(),
+					ObjectEntryVersionVersionComparator.getInstance(false));
+
+			objectEntryVersion.setModifiedDate(modifiedDate);
+
+			_objectEntryVersionPersistence.update(objectEntryVersion);
+		}
 	}
 
 	private void _validateObjectEntry(
@@ -729,7 +800,16 @@ public class ObjectEntryModelListener extends BaseModelListener<ObjectEntry> {
 	private ObjectDefinitionLocalService _objectDefinitionLocalService;
 
 	@Reference
+	private ObjectDefinitionPersistence _objectDefinitionPersistence;
+
+	@Reference
 	private ObjectEntryLocalService _objectEntryLocalService;
+
+	@Reference
+	private ObjectEntryPersistence _objectEntryPersistence;
+
+	@Reference
+	private ObjectEntryVersionPersistence _objectEntryVersionPersistence;
 
 	@Reference
 	private ObjectFieldBusinessTypeRegistry _objectFieldBusinessTypeRegistry;

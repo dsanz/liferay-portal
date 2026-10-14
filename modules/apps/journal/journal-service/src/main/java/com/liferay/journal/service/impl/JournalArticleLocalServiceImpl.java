@@ -22,10 +22,11 @@ import com.liferay.asset.link.constants.AssetLinkConstants;
 import com.liferay.asset.link.model.AssetLink;
 import com.liferay.asset.link.service.AssetLinkLocalService;
 import com.liferay.diff.DiffHtml;
+import com.liferay.document.library.helper.DLFileEntryJSONHelper;
+import com.liferay.document.library.helper.DLURLHelper;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.document.library.kernel.util.DLUtil;
-import com.liferay.document.library.util.DLURLHelper;
 import com.liferay.dynamic.data.mapping.form.field.type.constants.DDMFormFieldTypeConstants;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
@@ -2537,6 +2538,56 @@ public class JournalArticleLocalServiceImpl
 				journalArticleLocalization.getLanguageId());
 	}
 
+	@Override
+	public String getArticleTitle(
+		long companyId, long articlePK, Locale locale) {
+
+		String languageId = LocaleUtil.toLanguageId(locale);
+
+		return getArticleTitle(companyId, articlePK, languageId);
+	}
+
+	@Override
+	public String getArticleTitle(
+		long companyId, long articlePK, String languageId) {
+
+		JournalArticleLocalization journalArticleLocalization =
+			_journalArticleLocalizationPersistence.fetchByC_A_L(
+				companyId, articlePK, languageId);
+
+		if (journalArticleLocalization == null) {
+			return null;
+		}
+
+		return journalArticleLocalization.getTitle();
+	}
+
+	@Override
+	public Map<Locale, String> getArticleTitleMap(
+		long companyId, long articlePK) {
+
+		Map<Locale, String> journalArticleLocalizationTitleMap =
+			new HashMap<>();
+
+		List<JournalArticleLocalization> journalArticleLocalizationList =
+			_journalArticleLocalizationPersistence.findByC_A(
+				companyId, articlePK);
+
+		for (JournalArticleLocalization journalArticleLocalization :
+				journalArticleLocalizationList) {
+
+			Locale locale = LocaleUtil.fromLanguageId(
+				journalArticleLocalization.getLanguageId(), true, false);
+
+			if (locale != null) {
+				journalArticleLocalizationTitleMap.put(
+					locale, journalArticleLocalization.getTitle());
+			}
+		}
+
+		return journalArticleLocalizationTitleMap;
+	}
+
 	/**
 	 * Returns all the web content articles present in the system.
 	 *
@@ -2977,56 +3028,6 @@ public class JournalArticleLocalServiceImpl
 	public int getArticlesCountByResourcePrimKey(long resourcePrimKey) {
 		return journalArticlePersistence.countByResourcePrimKey(
 			resourcePrimKey);
-	}
-
-	@Override
-	public String getArticleTitle(
-		long companyId, long articlePK, Locale locale) {
-
-		String languageId = LocaleUtil.toLanguageId(locale);
-
-		return getArticleTitle(companyId, articlePK, languageId);
-	}
-
-	@Override
-	public String getArticleTitle(
-		long companyId, long articlePK, String languageId) {
-
-		JournalArticleLocalization journalArticleLocalization =
-			_journalArticleLocalizationPersistence.fetchByC_A_L(
-				companyId, articlePK, languageId);
-
-		if (journalArticleLocalization == null) {
-			return null;
-		}
-
-		return journalArticleLocalization.getTitle();
-	}
-
-	@Override
-	public Map<Locale, String> getArticleTitleMap(
-		long companyId, long articlePK) {
-
-		Map<Locale, String> journalArticleLocalizationTitleMap =
-			new HashMap<>();
-
-		List<JournalArticleLocalization> journalArticleLocalizationList =
-			_journalArticleLocalizationPersistence.findByC_A(
-				companyId, articlePK);
-
-		for (JournalArticleLocalization journalArticleLocalization :
-				journalArticleLocalizationList) {
-
-			Locale locale = LocaleUtil.fromLanguageId(
-				journalArticleLocalization.getLanguageId(), true, false);
-
-			if (locale != null) {
-				journalArticleLocalizationTitleMap.put(
-					locale, journalArticleLocalization.getTitle());
-			}
-		}
-
-		return journalArticleLocalizationTitleMap;
 	}
 
 	/**
@@ -4740,8 +4741,7 @@ public class JournalArticleLocalServiceImpl
 						groupId,
 						_classNameLocalService.getClassNameId(
 							JournalArticle.class),
-						article.getResourcePrimKey(), title,
-						_language.getLanguageId(entry.getKey()));
+						article.getResourcePrimKey(), title);
 
 				friendlyURLMap.put(entry.getKey(), urlTitle);
 			}
@@ -8383,27 +8383,6 @@ public class JournalArticleLocalServiceImpl
 		return JournalArticleConstants.SMALL_IMAGE_SOURCE_USER_COMPUTER;
 	}
 
-	private String _getUniqueCopyUrlTitle(
-			long groupId, String articleId, String urlTitle)
-		throws PortalException {
-
-		return UniqueUtil.getUniqueValue(
-			"copy",
-			uniqueValue -> {
-				JournalArticle article = fetchArticleByUrlTitle(
-					groupId, uniqueValue);
-
-				if ((article == null) ||
-					Objects.equals(articleId, article.getArticleId())) {
-
-					return true;
-				}
-
-				return false;
-			},
-			urlTitle);
-	}
-
 	private Map<String, String> _getURLTitleMap(
 		long groupId, long resourcePrimKey, Map<Locale, String> friendlyURLMap,
 		Map<Locale, String> titleMap) {
@@ -8437,7 +8416,7 @@ public class JournalArticleLocalServiceImpl
 			String urlTitle = friendlyURLEntryLocalService.getUniqueUrlTitle(
 				groupId,
 				_classNameLocalService.getClassNameId(JournalArticle.class),
-				resourcePrimKey, friendlyURL, languageId);
+				resourcePrimKey, friendlyURL);
 
 			urlTitleMap.put(languageId, urlTitle);
 		}
@@ -8454,13 +8433,34 @@ public class JournalArticleLocalServiceImpl
 						groupId,
 						_classNameLocalService.getClassNameId(
 							JournalArticle.class),
-						resourcePrimKey, value, languageId);
+						resourcePrimKey, value);
 
 				urlTitleMap.put(languageId, urlTitle);
 			}
 		}
 
 		return urlTitleMap;
+	}
+
+	private String _getUniqueCopyUrlTitle(
+			long groupId, String articleId, String urlTitle)
+		throws PortalException {
+
+		return UniqueUtil.getUniqueValue(
+			"copy",
+			uniqueValue -> {
+				JournalArticle article = fetchArticleByUrlTitle(
+					groupId, uniqueValue);
+
+				if ((article == null) ||
+					Objects.equals(articleId, article.getArticleId())) {
+
+					return true;
+				}
+
+				return false;
+			},
+			urlTitle);
 	}
 
 	private boolean _isEmpty(
@@ -8623,56 +8623,8 @@ public class JournalArticleLocalServiceImpl
 			return content;
 		}
 
-		Group group = _groupLocalService.fetchGroup(fileEntry.getGroupId());
-		String previewURL = _dlURLHelper.getPreviewURL(
-			fileEntry, fileEntry.getFileVersion(), null, StringPool.BLANK,
-			false, true);
-
-		JSONObject jsonObject = JSONUtil.put(
-			"alt", valueJSONObject.getString("alt")
-		).put(
-			"classNameId",
-			_classNameLocalService.getClassNameId(FileEntry.class)
-		).put(
-			"classPK", fileEntry.getFileEntryId()
-		).put(
-			"description", valueJSONObject.getString("description")
-		).put(
-			"extension", fileEntry.getExtension()
-		).put(
-			"externalReferenceCode", fileEntry.getExternalReferenceCode()
-		).put(
-			"fileEntryId", fileEntry.getFileEntryId()
-		).put(
-			"groupExternalReferenceCode",
-			() -> {
-				if (group == null) {
-					return StringPool.BLANK;
-				}
-
-				return group.getExternalReferenceCode();
-			}
-		).put(
-			"groupId", fileEntry.getGroupId()
-		).put(
-			"name", fileEntry.getFileName()
-		).put(
-			"resourcePrimKey", fileEntry.getPrimaryKey()
-		).put(
-			"size", fileEntry.getSize()
-		).put(
-			"title", fileEntry.getTitle()
-		).put(
-			"type", "document"
-		).put(
-			"url", previewURL
-		).put(
-			"uuid", fileEntry.getUuid()
-		);
-
-		jsonObject = JSONUtil.merge(valueJSONObject, jsonObject);
-
-		return jsonObject.toString();
+		return _dlFileEntryJSONHelper.getFileEntryJSON(
+			fileEntry, valueJSONObject);
 	}
 
 	private String _toJSON(
@@ -8859,6 +8811,9 @@ public class JournalArticleLocalServiceImpl
 
 	@Reference
 	private DLAppLocalService _dlAppLocalService;
+
+	@Reference
+	private DLFileEntryJSONHelper _dlFileEntryJSONHelper;
 
 	@Reference
 	private DLURLHelper _dlURLHelper;

@@ -5,7 +5,7 @@
 
 import ClayLayout from '@clayui/layout';
 import ClayLoadingIndicator from '@clayui/loading-indicator';
-import React from 'react';
+import React, {ReactNode} from 'react';
 
 import {ExportImportProcess} from '../types/exportImportProcess';
 import {PreviewPortletDataHandlerSection} from '../types/portletDataHandler';
@@ -35,7 +35,9 @@ export default function DataSelection({
 	permissionsLabel,
 	previewPortletDataHandlerSections,
 	process = 'export',
+	sitesSelection,
 	subtitle,
+	timeZoneId,
 }: {
 	commentsAndRatingsEnabled?: boolean;
 	deletionCount?: number;
@@ -51,7 +53,9 @@ export default function DataSelection({
 	permissionsLabel: string;
 	previewPortletDataHandlerSections: PreviewPortletDataHandlerSection[];
 	process?: ExportImportProcess;
+	sitesSelection?: ReactNode;
 	subtitle: string;
+	timeZoneId: string;
 }) {
 	return (
 		<>
@@ -78,12 +82,19 @@ export default function DataSelection({
 				)}
 			</ClayLayout.Sheet>
 
+			{sitesSelection && (
+				<ClayLayout.Sheet className="mt-4 option-group">
+					{sitesSelection}
+				</ClayLayout.Sheet>
+			)}
+
 			<ClayLayout.Sheet className="mt-4">
 				<FormikFieldDateFilter
 					itemsCount={itemsCount}
 					lastPublishDate={lastPublishDate}
 					name="dateFilter"
 					onApplyFilter={onApplyFilter}
+					timeZoneId={timeZoneId}
 				/>
 			</ClayLayout.Sheet>
 

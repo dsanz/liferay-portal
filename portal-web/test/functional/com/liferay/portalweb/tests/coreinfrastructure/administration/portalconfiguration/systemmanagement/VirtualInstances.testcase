@@ -30,8 +30,7 @@ definition {
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "sequential";
 
-		ApplicationsMenu.gotoPortlet(
-			category = "System",
+		ApplicationsMenu.gotoRootPortlet(
 			panel = "Control Panel",
 			portlet = "Virtual Instances");
 
@@ -91,7 +90,9 @@ definition {
 	@priority = 4
 	test CanUpdateGeneralInfos {
 		property portal.acceptance = "true";
+		property test.assert.warning.exceptions = "false";
 
+		var databasePartitionEnabled = PropsUtil.get("database.partition.enabled");
 		var portalInstanceName = JSONCompany.getPortalInstanceName();
 
 		PortalSettings.gotoConfiguration(
@@ -103,9 +104,15 @@ definition {
 			fieldName = "name",
 			fieldValue = "EditedLiferay");
 
-		FormFields.editText(
-			fieldName = "mx",
-			fieldValue = "newliferay.com");
+		if (${databasePartitionEnabled} != "true") {
+
+			// The mail domain of a virtual instance is read-only when
+			// database partitioning is enabled
+
+			FormFields.editText(
+				fieldName = "mx",
+				fieldValue = "newliferay.com");
+		}
 
 		FormFields.editText(
 			fieldName = "virtualHostname",
@@ -113,15 +120,9 @@ definition {
 
 		PortletEntry.save();
 
-		ApplicationsMenu.openApplicationsMenu();
-
-		AssertElementPresent(
-			key_site = "EditedLiferay",
-			locator1 = "ApplicationsMenu#SITE_LINK");
-
-		ApplicationsMenu.gotoSite(site = "EditedLiferay");
-
-		Navigator.openSpecificURL(url = "http://www.able.com:8080");
+		task ("Follow the instance to its new virtual host") {
+			Navigator.openSpecificURL(url = "http://www.able.com:8080");
+		}
 
 		AssertElementPresent(
 			key_pageName = "Home",
@@ -129,11 +130,23 @@ definition {
 
 		Navigator.gotoLoginPage();
 
-		AssertTextEquals(
-			locator1 = "TextInput#EMAIL_ADDRESS",
-			value1 = "@newliferay.com");
+		if (${databasePartitionEnabled} != "true") {
+			AssertTextEquals(
+				locator1 = "TextInput#EMAIL_ADDRESS",
+				value1 = "@newliferay.com");
+		}
 
 		User.firstLoginUI(specificURL = "http://www.able.com:8080");
+
+		task ("Assert the instance was renamed once signed in to its new virtual host") {
+			ApplicationsMenu.openApplicationsMenu();
+
+			AssertElementPresent(
+				key_site = "EditedLiferay",
+				locator1 = "ApplicationsMenu#SITE_LINK");
+
+			ApplicationsMenu.gotoSite(site = "EditedLiferay");
+		}
 
 		PortalSettings.gotoConfiguration(
 			baseURL = "http://www.able.com:8080",
@@ -211,9 +224,8 @@ definition {
 			ApplicationsMenu.gotoPanel(panel = "Control Panel");
 
 			AssertElementNotPresent(
-				key_category = "Configuration",
 				key_portlet = "System Settings",
-				locator1 = "ApplicationsMenu#PORTLET");
+				locator1 = "ApplicationsMenu#ROOT_PORTLET");
 		}
 
 		task ("When the portal is shutdown") {
@@ -234,8 +246,7 @@ definition {
 				specificURL = "http://www.able.com:8080",
 				userEmailAddress = "test@www.able.com");
 
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
+			ApplicationsMenu.gotoRootPortlet(
 				panel = "Control Panel",
 				portlet = "System Settings");
 		}
@@ -243,7 +254,9 @@ definition {
 		task ("And the original default instance can be removed") {
 			PortalInstances.openVirtualInstancesAdmin(baseURL = "http://www.able.com:8080");
 
-			PortalInstances.deleteCP(virtualHost = "liferay.com");
+			PortalInstances.deleteCP(
+				virtualHost = "localhost",
+				webId = "liferay.com");
 		}
 	}
 
@@ -368,9 +381,23 @@ definition {
 
 		Alert.viewRequestFailedToComplete();
 
-		AssertTextEquals.assertPartialText(
-			locator1 = "Message#ERROR_1",
-			value1 = "You do not have the required permissions.");
+		var databasePartitionEnabled = PropsUtil.get("database.partition.enabled");
+
+		if (${databasePartitionEnabled} == "true") {
+
+			// Each virtual instance stores its data in its own database
+			// schema, so the document of the other virtual instance cannot be
+			// found
+
+			AssertTextEquals.assertPartialText(
+				locator1 = "Message#ERROR_1",
+				value1 = "The document could not be found.");
+		}
+		else {
+			AssertTextEquals.assertPartialText(
+				locator1 = "Message#ERROR_1",
+				value1 = "You do not have the required permissions.");
+		}
 	}
 
 	@priority = 5
@@ -383,8 +410,7 @@ definition {
 			PagesAdmin.enableWidgetPages();
 		}
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
+		ApplicationsMenu.gotoRootPortlet(
 			panel = "Control Panel",
 			portlet = "System Settings");
 
@@ -591,8 +617,7 @@ definition {
 
 		PortalSettings.viewToggleSwitchNotChecked(portalSetting = "Show in Control Menu");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
+		ApplicationsMenu.gotoRootPortlet(
 			panel = "Control Panel",
 			portlet = "System Settings");
 

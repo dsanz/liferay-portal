@@ -9,25 +9,36 @@ import ClayPanel from '@clayui/panel';
 import classNames from 'classnames';
 import React from 'react';
 
+import {SaveErrors, Scope} from '../types';
+import ScopeSettings from './ScopeSettings';
+
 interface IProps {
-	errorMessage?: string;
+	companyGroupERC: string;
 	expanded: boolean;
 	externalReferenceCode: string;
 	externalReferenceCodeInputRef: React.RefObject<HTMLInputElement>;
 	namespace: string;
 	onExpandedChange: (expanded: boolean) => void;
 	onExternalReferenceCodeChange: (externalReferenceCode: string) => void;
+	onScopeChange: (scope: Scope) => void;
+	saveErrors: SaveErrors;
+	scope: Scope;
 }
 
 export default function GeneralSettings({
-	errorMessage,
+	companyGroupERC,
 	expanded,
 	externalReferenceCode,
 	externalReferenceCodeInputRef,
 	namespace,
 	onExpandedChange,
 	onExternalReferenceCodeChange,
+	onScopeChange,
+	saveErrors,
+	scope,
 }: IProps) {
+	const errorMessage = saveErrors.externalReferenceCode;
+
 	return (
 		<ClayPanel
 			className="audience-builder-general-settings border mt-4 rounded"
@@ -35,16 +46,20 @@ export default function GeneralSettings({
 			collapseHeaderClassNames="align-items-center d-flex justify-content-between px-4 py-3"
 			displayTitle={
 				<span className="font-weight-bold text-6">
-					{Liferay.Language.get('general-settings')}
+					{Liferay.Language.get('settings')}
 				</span>
 			}
 			expanded={expanded}
 			onExpandedChange={onExpandedChange}
 			showCollapseIcon
 		>
-			<ClayPanel.Body>
+			<ClayPanel.Body className="c-mt-1">
+				<p className="sheet-subtitle text-secondary">
+					{Liferay.Language.get('general')}
+				</p>
+
 				<ClayForm.Group
-					className={classNames('mb-0', {
+					className={classNames('c-mb-2', {
 						'has-error': !!errorMessage,
 					})}
 				>
@@ -98,6 +113,14 @@ export default function GeneralSettings({
 						</ClayForm.FeedbackGroup>
 					)}
 				</ClayForm.Group>
+
+				<ScopeSettings
+					companyGroupERC={companyGroupERC}
+					errorMessage={saveErrors.groupERCs}
+					namespace={namespace}
+					onScopeChange={onScopeChange}
+					scope={scope}
+				/>
 			</ClayPanel.Body>
 		</ClayPanel>
 	);

@@ -14,6 +14,7 @@ import com.liferay.headless.commerce.admin.catalog.dto.v1_0.ProductOption;
 import com.liferay.headless.commerce.core.util.LanguageUtils;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.lazy.referencing.LazyReferencingThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -38,18 +39,29 @@ public class ProductOptionUtil {
 
 		CPOption cpOption = null;
 
-		long optionId = GetterUtil.getLong(productOption.getOptionId());
+		String optionExternalReferenceCode =
+			productOption.getOptionExternalReferenceCode();
 
-		if (optionId > 0) {
-			cpOption = cpOptionService.getCPOption(optionId);
+		if (Validator.isNull(optionExternalReferenceCode)) {
+			cpOption = cpOptionService.getCPOption(
+				GetterUtil.getLong(productOption.getOptionId()));
+		}
+		else if (LazyReferencingThreadLocal.isEnabled()) {
+			cpOption = cpOptionService.getOrAddEmptyCPOption(
+				optionExternalReferenceCode,
+				LanguageUtils.getLocalizedMap(productOption.getName()),
+				productOption.getFieldType(),
+				GetterUtil.get(productOption.getSkuContributor(), false),
+				productOption.getKey());
 		}
 		else {
 			cpOption = cpOptionService.fetchCPOptionByExternalReferenceCode(
-				productOption.getOptionExternalReferenceCode(),
-				serviceContext.getCompanyId());
+				optionExternalReferenceCode, serviceContext.getCompanyId());
 
 			if (cpOption == null) {
-				throw new NoSuchCPOptionException();
+				throw new NoSuchCPOptionException(
+					"Unable to find option with external reference code " +
+						optionExternalReferenceCode);
 			}
 		}
 
@@ -99,7 +111,7 @@ public class ProductOptionUtil {
 		if (cpDefinitionOptionRel == null) {
 			cpDefinitionOptionRel =
 				cpDefinitionOptionRelService.addCPDefinitionOptionRel(
-					cpDefinitionId, cpOption.getCPOptionId(),
+					null, cpDefinitionId, cpOption.getCPOptionId(),
 					LanguageUtils.getLocalizedMap(nameMap),
 					LanguageUtils.getLocalizedMap(descriptionMap),
 					GetterUtil.get(

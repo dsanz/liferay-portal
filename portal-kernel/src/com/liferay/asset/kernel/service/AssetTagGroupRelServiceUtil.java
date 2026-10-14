@@ -29,10 +29,11 @@ public class AssetTagGroupRelServiceUtil {
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.portlet.asset.service.impl.AssetTagGroupRelServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
 	 */
-	public static AssetTagGroupRel addAssetTagGroupRel(long groupId, long tagId)
+	public static AssetTagGroupRel addAssetTagGroupRel(
+			long groupId, long tagId, int depotEntryType)
 		throws PortalException {
 
-		return getService().addAssetTagGroupRel(groupId, tagId);
+		return getService().addAssetTagGroupRel(groupId, tagId, depotEntryType);
 	}
 
 	public static List<AssetTagGroupRel> getAssetTagGroupRelsByTagId(long tagId)
@@ -50,10 +51,11 @@ public class AssetTagGroupRelServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
-	public static void setAssetTagGroupRels(long tagId, long[] groupIds)
+	public static void setAssetTagGroupRels(
+			long tagId, long[] groupIds, int depotEntryType)
 		throws PortalException {
 
-		getService().setAssetTagGroupRels(tagId, groupIds);
+		getService().setAssetTagGroupRels(tagId, groupIds, depotEntryType);
 	}
 
 	public static AssetTagGroupRelService getService() {
@@ -67,4 +69,4 @@ public class AssetTagGroupRelServiceUtil {
 	private static volatile AssetTagGroupRelService _service;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:2097904946
+// LIFERAY-SERVICE-BUILDER-HASH:-14402506

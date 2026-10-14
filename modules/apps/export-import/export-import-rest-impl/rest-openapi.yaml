@@ -39,7 +39,7 @@ components:
                     type: string
                 errorMessage:
                     description:
-                        The export process's error message when it did not end successfully.
+                        The export process's error message when it failed.
                     readOnly: true
                     type: string
                 id:
@@ -90,6 +90,10 @@ components:
                     items:
                         $ref: "#/components/schemas/RequestPortletDataHandler"
                     type: array
+                siteExternalReferenceCodes:
+                    items:
+                        type: string
+                    type: array
                 sitePagesSettings:
                     default: false
                     type: boolean
@@ -134,6 +138,11 @@ components:
                         $ref: "#/components/schemas/PreviewPortletDataHandlerSection"
                     readOnly: true
                     type: array
+                previewSites:
+                    items:
+                        $ref: "#/components/schemas/PreviewSite"
+                    readOnly: true
+                    type: array
             type: object
         ImportProcess:
             properties:
@@ -158,7 +167,7 @@ components:
                     type: string
                 errorMessage:
                     description:
-                        The import process's error message when it did not end successfully.
+                        The import process's error message when it failed.
                     readOnly: true
                     type: string
                 id:
@@ -204,6 +213,10 @@ components:
                 requestPortletDataHandlers:
                     items:
                         $ref: "#/components/schemas/RequestPortletDataHandler"
+                    type: array
+                siteExternalReferenceCodes:
+                    items:
+                        type: string
                     type: array
                 sitePagesSettings:
                     default: false
@@ -365,6 +378,29 @@ components:
                             readOnly: true
                             type: array
             type: object
+        PreviewSite:
+            properties:
+                childSitesCount:
+                    format: int32
+                    readOnly: true
+                    type: integer
+                descriptiveName:
+                    readOnly: true
+                    type: string
+                existsInInstance:
+                    description:
+                        Whether the instance being imported into already has a site of the same external reference code. Set only when previewing a file to import.
+                    readOnly: true
+                    type: boolean
+                externalReferenceCode:
+                    readOnly: true
+                    type: string
+                path:
+                    description:
+                        Site's path in the site hierarchy.
+                    readOnly: true
+                    type: string
+            type: object
         ProcessProgress:
             properties:
                 percentage:
@@ -413,7 +449,7 @@ components:
                     type: string
                 errorMessage:
                     description:
-                        The publish process's error message when it did not end successfully.
+                        The publish process's error message when it failed.
                     readOnly: true
                     type: string
                 id:
@@ -682,7 +718,7 @@ components:
             type: object
 info:
     description:
-        "A Java client JAR is available for use with the group ID 'com.liferay', artifact ID 'com.liferay.exportimport.rest.client', and version '1.0.11'."
+        "A Java client JAR is available for use with the group ID 'com.liferay', artifact ID 'com.liferay.exportimport.rest.client', and version '1.0.12'."
     license:
         name: Apache 2.0
         url: http://www.apache.org/licenses/LICENSE-2.0.html
@@ -1010,6 +1046,42 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/ExportPreview"
             tags: ["ExportPreview"]
+    "/export-preview/preview-sites":
+        get:
+            description:
+                Retrieves the sites that can be exported.
+            operationId: getExportPreviewPreviewSitesPage
+            parameters:
+                -   in: query
+                    name: page
+                    schema:
+                        type: integer
+                -   in: query
+                    name: pageSize
+                    schema:
+                        type: integer
+                -   in: query
+                    name: search
+                    schema:
+                        type: string
+                -   in: query
+                    name: sort
+                    schema:
+                        type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/PreviewSite"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/PreviewSite"
+                                type: array
+            tags: ["PreviewSite"]
     "/export-processes":
         get:
             description:

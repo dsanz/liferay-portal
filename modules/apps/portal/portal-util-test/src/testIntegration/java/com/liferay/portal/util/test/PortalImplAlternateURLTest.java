@@ -30,6 +30,8 @@ import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutSet;
 import com.liferay.portal.kernel.model.VirtualHost;
+import com.liferay.portal.kernel.portlet.FriendlyURLResolver;
+import com.liferay.portal.kernel.portlet.FriendlyURLResolverRegistryUtil;
 import com.liferay.portal.kernel.portlet.constants.FriendlyURLResolverConstants;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.GroupLocalService;
@@ -50,6 +52,7 @@ import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.FriendlyURLNormalizer;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.HashMapDictionary;
 import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -57,6 +60,7 @@ import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.PrefsPropsUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.PropsValues;
+import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.TreeMapBuilder;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -71,6 +75,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeMap;
 
 import org.junit.AfterClass;
@@ -82,6 +87,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.Description;
 import org.junit.runner.RunWith;
+
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.ServiceRegistration;
 
 import org.springframework.mock.web.MockHttpServletRequest;
 
@@ -200,6 +210,170 @@ public class PortalImplAlternateURLTest {
 	}
 
 	@Test
+	public void testAlternateURLWithAssetDisplayPageEntry() throws Exception {
+		Collection<Locale> availableLocales = Arrays.asList(
+			LocaleUtil.US, LocaleUtil.SPAIN, LocaleUtil.GERMANY);
+		Locale defaultLocale = LocaleUtil.US;
+
+		_group = GroupTestUtil.updateDisplaySettings(
+			_group.getGroupId(), availableLocales, defaultLocale);
+
+		Map<Locale, String> friendlyURLMap = HashMapBuilder.put(
+			LocaleUtil.GERMANY, _getRandomFriendlyURL()
+		).put(
+			LocaleUtil.SPAIN, _getRandomFriendlyURL()
+		).put(
+			LocaleUtil.US, _getRandomFriendlyURL()
+		).build();
+
+		JournalArticle journalArticle = JournalTestUtil.addArticle(
+			_group.getGroupId(),
+			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID, friendlyURLMap);
+
+		ThemeDisplay themeDisplay = _getThemeDisplay(
+			_group, _getAssetDisplayPageEntryLayout(journalArticle));
+
+		_testAlternateURLWithAssetDisplayPageEntry(
+			availableLocales, defaultLocale, friendlyURLMap, 0,
+			journalArticle.getResourcePrimKey(), themeDisplay);
+		_testAlternateURLWithAssetDisplayPageEntry(
+			availableLocales, defaultLocale, friendlyURLMap, 1,
+			journalArticle.getResourcePrimKey(), themeDisplay);
+		_testAlternateURLWithAssetDisplayPageEntry(
+			availableLocales, defaultLocale, friendlyURLMap, 2,
+			journalArticle.getResourcePrimKey(), themeDisplay);
+		_testAlternateURLWithAssetDisplayPageEntry(
+			availableLocales, defaultLocale, friendlyURLMap, 3,
+			journalArticle.getResourcePrimKey(), themeDisplay);
+	}
+
+	@Test
+	@TestInfo("LPD-108966")
+	public void testAlternateURLWithDifferentCompanyURLSeparator()
+		throws Exception {
+
+		Bundle bundle = FrameworkUtil.getBundle(
+			PortalImplAlternateURLTest.class);
+
+		BundleContext bundleContext = bundle.getBundleContext();
+
+		long companyId = RandomTestUtil.randomLong();
+		String urlSeparator = StringBundler.concat(
+			StringPool.SLASH, _getRandomFriendlyURL(), StringPool.SLASH);
+
+		ServiceRegistration<FriendlyURLResolver> serviceRegistration =
+			bundleContext.registerService(
+				FriendlyURLResolver.class,
+				(FriendlyURLResolver)ProxyUtil.newProxyInstance(
+					FriendlyURLResolver.class.getClassLoader(),
+					new Class<?>[] {FriendlyURLResolver.class},
+					(proxy, method, args) -> {
+						if (Objects.equals(method.getName(), "getCompanyId")) {
+							return companyId;
+						}
+
+						if (Objects.equals(
+								method.getName(), "getURLSeparator")) {
+
+							return urlSeparator;
+						}
+
+						return null;
+					}),
+				new HashMapDictionary<>());
+
+		FriendlyURLResolverRegistryUtil.removeURLSeparators();
+
+		Collection<Locale> availableLocales = Arrays.asList(
+			LocaleUtil.US, LocaleUtil.SPAIN, LocaleUtil.GERMANY);
+		Locale defaultLocale = LocaleUtil.US;
+
+		_group = GroupTestUtil.updateDisplaySettings(
+			_group.getGroupId(), availableLocales, defaultLocale);
+
+		_testAlternateURLWithLayout(
+			availableLocales, defaultLocale,
+			HashMapBuilder.put(
+				LocaleUtil.GERMANY, urlSeparator + _getRandomFriendlyURL()
+			).put(
+				LocaleUtil.SPAIN, urlSeparator + _getRandomFriendlyURL()
+			).put(
+				LocaleUtil.US, urlSeparator + _getRandomFriendlyURL()
+			).build());
+
+		serviceRegistration.unregister();
+
+		FriendlyURLResolverRegistryUtil.removeURLSeparators();
+	}
+
+	@Test
+	public void testAlternateURLWithFriendlyURL() throws Exception {
+		_testAlternateURLWithFriendlyURL(
+			"liferay.com",
+			Arrays.asList(LocaleUtil.US, LocaleUtil.SPAIN, LocaleUtil.GERMANY),
+			LocaleUtil.US, LocaleUtil.BRAZIL, "/pt-BR");
+		_testAlternateURLWithFriendlyURL(
+			"liferay.com",
+			Arrays.asList(LocaleUtil.US, LocaleUtil.SPAIN, LocaleUtil.GERMANY),
+			LocaleUtil.US, LocaleUtil.SPAIN, "/es");
+		_testAlternateURLWithFriendlyURL(
+			"localhost",
+			Arrays.asList(LocaleUtil.US, LocaleUtil.SPAIN, LocaleUtil.GERMANY),
+			LocaleUtil.US, LocaleUtil.BRAZIL, "/pt-BR");
+		_testAlternateURLWithFriendlyURL(
+			"localhost",
+			Arrays.asList(LocaleUtil.US, LocaleUtil.SPAIN, LocaleUtil.GERMANY),
+			LocaleUtil.US, LocaleUtil.SPAIN, "/es");
+	}
+
+	@Test
+	@TestInfo("LPD-43082")
+	public void testAlternateURLWithLayout() throws Exception {
+		Collection<Locale> availableLocales = Arrays.asList(
+			LocaleUtil.US, LocaleUtil.SPAIN, LocaleUtil.GERMANY);
+		Locale defaultLocale = LocaleUtil.US;
+
+		_group = GroupTestUtil.updateDisplaySettings(
+			_group.getGroupId(), availableLocales, defaultLocale);
+
+		_testAlternateURLWithLayout(
+			availableLocales, defaultLocale,
+			HashMapBuilder.put(
+				LocaleUtil.GERMANY,
+				StringPool.SLASH.concat(_getRandomFriendlyURL())
+			).put(
+				LocaleUtil.SPAIN,
+				StringPool.SLASH.concat(_getRandomFriendlyURL())
+			).put(
+				LocaleUtil.US, StringPool.SLASH.concat(_getRandomFriendlyURL())
+			).build());
+
+		LayoutSet layoutSet = _group.getPublicLayoutSet();
+
+		_virtualHostLocalService.updateVirtualHosts(
+			_group.getCompanyId(), layoutSet.getLayoutSetId(),
+			TreeMapBuilder.put(
+				"test.com", StringPool.BLANK
+			).build());
+
+		_testAlternateURLWithLayout(
+			availableLocales, defaultLocale,
+			HashMapBuilder.put(
+				LocaleUtil.GERMANY, "/de" + _getRandomFriendlyURL()
+			).put(
+				LocaleUtil.SPAIN, "/es" + _getRandomFriendlyURL()
+			).put(
+				LocaleUtil.US, "/en" + _getRandomFriendlyURL()
+			).build());
+	}
+
+	@Test
+	public void testAlternateURLWithUrlSeparator() throws Exception {
+		_testAlternateURLWithUrlSeparator("/g/");
+		_testAlternateURLWithUrlSeparator("/p/");
+	}
+
+	@Test
 	public void testAlternateURLsMatchSiteAvailableLocalesFromSitemap()
 		throws Exception {
 
@@ -304,111 +478,6 @@ public class PortalImplAlternateURLTest {
 				alternateURLs.get(LocaleUtil.SPAIN));
 			Assert.assertEquals(canonicalURL, alternateURLs.get(LocaleUtil.US));
 		}
-	}
-
-	@Test
-	public void testAlternateURLWithAssetDisplayPageEntry() throws Exception {
-		Collection<Locale> availableLocales = Arrays.asList(
-			LocaleUtil.US, LocaleUtil.SPAIN, LocaleUtil.GERMANY);
-		Locale defaultLocale = LocaleUtil.US;
-
-		_group = GroupTestUtil.updateDisplaySettings(
-			_group.getGroupId(), availableLocales, defaultLocale);
-
-		Map<Locale, String> friendlyURLMap = HashMapBuilder.put(
-			LocaleUtil.GERMANY, _getRandomFriendlyURL()
-		).put(
-			LocaleUtil.SPAIN, _getRandomFriendlyURL()
-		).put(
-			LocaleUtil.US, _getRandomFriendlyURL()
-		).build();
-
-		JournalArticle journalArticle = JournalTestUtil.addArticle(
-			_group.getGroupId(),
-			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID, friendlyURLMap);
-
-		ThemeDisplay themeDisplay = _getThemeDisplay(
-			_group, _getAssetDisplayPageEntryLayout(journalArticle));
-
-		_testAlternateURLWithAssetDisplayPageEntry(
-			availableLocales, defaultLocale, friendlyURLMap, 0,
-			journalArticle.getResourcePrimKey(), themeDisplay);
-		_testAlternateURLWithAssetDisplayPageEntry(
-			availableLocales, defaultLocale, friendlyURLMap, 1,
-			journalArticle.getResourcePrimKey(), themeDisplay);
-		_testAlternateURLWithAssetDisplayPageEntry(
-			availableLocales, defaultLocale, friendlyURLMap, 2,
-			journalArticle.getResourcePrimKey(), themeDisplay);
-		_testAlternateURLWithAssetDisplayPageEntry(
-			availableLocales, defaultLocale, friendlyURLMap, 3,
-			journalArticle.getResourcePrimKey(), themeDisplay);
-	}
-
-	@Test
-	public void testAlternateURLWithFriendlyURL() throws Exception {
-		_testAlternateURLWithFriendlyURL(
-			"liferay.com",
-			Arrays.asList(LocaleUtil.US, LocaleUtil.SPAIN, LocaleUtil.GERMANY),
-			LocaleUtil.US, LocaleUtil.BRAZIL, "/pt-BR");
-		_testAlternateURLWithFriendlyURL(
-			"liferay.com",
-			Arrays.asList(LocaleUtil.US, LocaleUtil.SPAIN, LocaleUtil.GERMANY),
-			LocaleUtil.US, LocaleUtil.SPAIN, "/es");
-		_testAlternateURLWithFriendlyURL(
-			"localhost",
-			Arrays.asList(LocaleUtil.US, LocaleUtil.SPAIN, LocaleUtil.GERMANY),
-			LocaleUtil.US, LocaleUtil.BRAZIL, "/pt-BR");
-		_testAlternateURLWithFriendlyURL(
-			"localhost",
-			Arrays.asList(LocaleUtil.US, LocaleUtil.SPAIN, LocaleUtil.GERMANY),
-			LocaleUtil.US, LocaleUtil.SPAIN, "/es");
-	}
-
-	@Test
-	@TestInfo("LPD-43082")
-	public void testAlternateURLWithLayout() throws Exception {
-		Collection<Locale> availableLocales = Arrays.asList(
-			LocaleUtil.US, LocaleUtil.SPAIN, LocaleUtil.GERMANY);
-		Locale defaultLocale = LocaleUtil.US;
-
-		_group = GroupTestUtil.updateDisplaySettings(
-			_group.getGroupId(), availableLocales, defaultLocale);
-
-		_testAlternateURLWithLayout(
-			availableLocales, defaultLocale,
-			HashMapBuilder.put(
-				LocaleUtil.GERMANY,
-				StringPool.SLASH.concat(_getRandomFriendlyURL())
-			).put(
-				LocaleUtil.SPAIN,
-				StringPool.SLASH.concat(_getRandomFriendlyURL())
-			).put(
-				LocaleUtil.US, StringPool.SLASH.concat(_getRandomFriendlyURL())
-			).build());
-
-		LayoutSet layoutSet = _group.getPublicLayoutSet();
-
-		_virtualHostLocalService.updateVirtualHosts(
-			_group.getCompanyId(), layoutSet.getLayoutSetId(),
-			TreeMapBuilder.put(
-				"test.com", StringPool.BLANK
-			).build());
-
-		_testAlternateURLWithLayout(
-			availableLocales, defaultLocale,
-			HashMapBuilder.put(
-				LocaleUtil.GERMANY, "/de" + _getRandomFriendlyURL()
-			).put(
-				LocaleUtil.SPAIN, "/es" + _getRandomFriendlyURL()
-			).put(
-				LocaleUtil.US, "/en" + _getRandomFriendlyURL()
-			).build());
-	}
-
-	@Test
-	public void testAlternateURLWithUrlSeparator() throws Exception {
-		_testAlternateURLWithUrlSeparator("/g/");
-		_testAlternateURLWithUrlSeparator("/p/");
 	}
 
 	@Test
@@ -748,39 +817,6 @@ public class PortalImplAlternateURLTest {
 				alternateLocale, layout));
 	}
 
-	private void _testAlternateURLsForSitemapFromGuestGroup(
-			String portalDomain, Collection<Locale> groupAvailableLocales,
-			Locale groupDefaultLocale)
-		throws Exception {
-
-		_group = GroupTestUtil.updateDisplaySettings(
-			_group.getGroupId(), groupAvailableLocales, groupDefaultLocale);
-
-		Layout layout = LayoutTestUtil.addTypePortletLayout(
-			_group.getGroupId(), RandomTestUtil.randomString(), false);
-
-		String canonicalURL = _generateURL(
-			portalDomain, StringPool.BLANK, _group.getFriendlyURL(),
-			layout.getFriendlyURL());
-
-		Map<Locale, String> alternateURLs = _portal.getAlternateURLs(
-			canonicalURL,
-			_getThemeDisplay(
-				_groupLocalService.getGroup(
-					_group.getCompanyId(), GroupConstants.GUEST),
-				canonicalURL),
-			layout);
-
-		Assert.assertEquals(
-			alternateURLs.toString(), groupAvailableLocales.size(),
-			alternateURLs.size());
-
-		for (Locale locale : groupAvailableLocales) {
-			Assert.assertTrue(
-				alternateURLs.toString(), alternateURLs.containsKey(locale));
-		}
-	}
-
 	private void _testAlternateURLWithAssetDisplayPageEntry(
 			Collection<Locale> availableLocales, Locale defaultLocale,
 			Map<Locale, String> friendlyURLMap, int prependFriendlyURLStyle,
@@ -1056,6 +1092,39 @@ public class PortalImplAlternateURLTest {
 				_getThemeDisplayWithVirtualHosts(
 					_group, canonicalAssetPublisherContentURL),
 				alternateLocale, layout));
+	}
+
+	private void _testAlternateURLsForSitemapFromGuestGroup(
+			String portalDomain, Collection<Locale> groupAvailableLocales,
+			Locale groupDefaultLocale)
+		throws Exception {
+
+		_group = GroupTestUtil.updateDisplaySettings(
+			_group.getGroupId(), groupAvailableLocales, groupDefaultLocale);
+
+		Layout layout = LayoutTestUtil.addTypePortletLayout(
+			_group.getGroupId(), RandomTestUtil.randomString(), false);
+
+		String canonicalURL = _generateURL(
+			portalDomain, StringPool.BLANK, _group.getFriendlyURL(),
+			layout.getFriendlyURL());
+
+		Map<Locale, String> alternateURLs = _portal.getAlternateURLs(
+			canonicalURL,
+			_getThemeDisplay(
+				_groupLocalService.getGroup(
+					_group.getCompanyId(), GroupConstants.GUEST),
+				canonicalURL),
+			layout);
+
+		Assert.assertEquals(
+			alternateURLs.toString(), groupAvailableLocales.size(),
+			alternateURLs.size());
+
+		for (Locale locale : groupAvailableLocales) {
+			Assert.assertTrue(
+				alternateURLs.toString(), alternateURLs.containsKey(locale));
+		}
 	}
 
 	private static Locale _defaultLocale;

@@ -934,6 +934,9 @@ public class EmailAddressPersistenceImpl
 		}
 		else {
 			if (!Objects.equals(
+					emailAddress.getUuid(),
+					emailAddress.getExternalReferenceCode()) &&
+				!Objects.equals(
 					emailAddressModelImpl.getColumnOriginalValue(
 						"externalReferenceCode"),
 					emailAddress.getExternalReferenceCode())) {
@@ -1446,4 +1449,4 @@ public class EmailAddressPersistenceImpl
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-920281401
+// LIFERAY-SERVICE-BUILDER-HASH:-1239019940

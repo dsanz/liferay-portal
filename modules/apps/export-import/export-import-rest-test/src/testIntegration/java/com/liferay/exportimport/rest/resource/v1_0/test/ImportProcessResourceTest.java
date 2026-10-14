@@ -139,6 +139,7 @@ public class ImportProcessResourceTest
 	public void testGetImportProcess() throws Exception {
 		super.testGetImportProcess();
 
+		_testGetImportProcessErrorMessageWhenStatusIsSuccessful();
 		_testGetImportProcessErrorMessageWhenStatusMessageIsNotJSON();
 	}
 
@@ -464,14 +465,6 @@ public class ImportProcessResourceTest
 	}
 
 	@Override
-	protected ImportProcess testGetImportProcessesPage_addImportProcess(
-			ImportProcess importProcess)
-		throws Exception {
-
-		return _addImportProcess(_getCompanyGroupId(), randomImportProcess());
-	}
-
-	@Override
 	protected ProcessProgress testGetImportProcessProgress_addProcessProgress(
 			long importProcessId, ProcessProgress processProgress)
 		throws Exception {
@@ -490,6 +483,14 @@ public class ImportProcessResourceTest
 				percentage = 50;
 			}
 		};
+	}
+
+	@Override
+	protected ImportProcess testGetImportProcessesPage_addImportProcess(
+			ImportProcess importProcess)
+		throws Exception {
+
+		return _addImportProcess(_getCompanyGroupId(), randomImportProcess());
 	}
 
 	@Override
@@ -723,6 +724,24 @@ public class ImportProcessResourceTest
 	}
 
 	@TestInfo("LPD-102315")
+	private void _testGetImportProcessErrorMessageWhenStatusIsSuccessful()
+		throws Exception {
+
+		ImportProcess importProcess = _addImportProcess(
+			testGroup.getGroupId(), RandomTestUtil.randomString(),
+			BackgroundTaskExecutorNames.LAYOUT_IMPORT_BACKGROUND_TASK_EXECUTOR);
+
+		_backgroundTaskLocalService.amendBackgroundTask(
+			importProcess.getId(), null, null,
+			BackgroundTaskConstants.STATUS_SUCCESSFUL, null, null);
+
+		ImportProcess successfulImportProcess =
+			importProcessResource.getImportProcess(importProcess.getId());
+
+		Assert.assertNull(successfulImportProcess.getErrorMessage());
+	}
+
+	@TestInfo("LPD-102315")
 	private void _testGetImportProcessErrorMessageWhenStatusMessageIsNotJSON()
 		throws Exception {
 
@@ -818,6 +837,91 @@ public class ImportProcessResourceTest
 				objectDefinition.getObjectDefinitionId()));
 	}
 
+	private void _testPostImportProcessWithPreviewForOtherGroup(
+			long exportImportGroupId,
+			UnsafeFunction<File, ImportPreview, Exception>
+				postImportPreviewUnsafeFunction,
+			UnsafeFunction
+				<ImportProcessRequest, HttpInvoker.HttpResponse, Exception>
+					postImportProcessUnsafeFunction)
+		throws Exception {
+
+		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
+				"com.liferay.portal.vulcan.internal.jaxrs.exception.mapper." +
+					"WebApplicationExceptionMapper",
+				LoggerTestUtil.WARN)) {
+
+			try {
+				postImportPreviewUnsafeFunction.apply(
+					_exportLayoutAsFile(exportImportGroupId));
+
+				assertHttpResponseStatusCode(
+					404,
+					postImportProcessUnsafeFunction.apply(
+						new ImportProcessRequest()));
+			}
+			finally {
+				_deleteTempFileEntries(exportImportGroupId);
+			}
+		}
+	}
+
+	private void _testPostImportProcessWithSettings(
+			long exportImportGroupId,
+			UnsafeFunction<File, ImportPreview, Exception>
+				postImportPreviewUnsafeFunction,
+			UnsafeFunction<ImportProcessRequest, ImportProcess, Exception>
+				postImportProcessUnsafeFunction)
+		throws Exception {
+
+		File file = _exportLayoutAsFile(exportImportGroupId);
+
+		postImportPreviewUnsafeFunction.apply(file);
+
+		ImportProcessRequest importProcessRequest = new ImportProcessRequest() {
+			{
+				dataStrategy = DataStrategy.COPY_AS_NEW;
+				deletions = true;
+				permissions = true;
+				userIdStrategy = UserIdStrategy.ALWAYS_CURRENT_USER_ID;
+			}
+		};
+
+		ImportProcess importProcess = postImportProcessUnsafeFunction.apply(
+			importProcessRequest);
+
+		BackgroundTask backgroundTask =
+			_backgroundTaskLocalService.getBackgroundTask(
+				importProcess.getId());
+
+		long exportImportConfigurationId = MapUtil.getLong(
+			backgroundTask.getTaskContextMap(), "exportImportConfigurationId");
+
+		ExportImportConfiguration exportImportConfiguration =
+			ExportImportConfigurationLocalServiceUtil.
+				getExportImportConfiguration(exportImportConfigurationId);
+
+		Map<String, Serializable> settingsMap =
+			exportImportConfiguration.getSettingsMap();
+
+		Map<String, String[]> parameterMap =
+			(Map<String, String[]>)settingsMap.get("parameterMap");
+
+		Assert.assertEquals(
+			PortletDataHandlerKeys.DATA_STRATEGY_COPY_AS_NEW,
+			MapUtil.getString(
+				parameterMap, PortletDataHandlerKeys.DATA_STRATEGY));
+		Assert.assertTrue(
+			MapUtil.getBoolean(parameterMap, PortletDataHandlerKeys.DELETIONS));
+		Assert.assertTrue(
+			MapUtil.getBoolean(
+				parameterMap, PortletDataHandlerKeys.PERMISSIONS));
+		Assert.assertEquals(
+			UserIdStrategy.ALWAYS_CURRENT_USER_ID,
+			MapUtil.getString(
+				parameterMap, PortletDataHandlerKeys.USER_ID_STRATEGY));
+	}
+
 	@TestInfo("LPD-76327")
 	private void _testPostImportProcessWithoutObjectDefinition(
 			UnsafeSupplier<File, Exception> exportFileUnsafeSupplier,
@@ -905,91 +1009,6 @@ public class ImportProcessResourceTest
 			assertHttpResponseStatusCode(
 				404, unsafeFunction.apply(new ImportProcessRequest()));
 		}
-	}
-
-	private void _testPostImportProcessWithPreviewForOtherGroup(
-			long exportImportGroupId,
-			UnsafeFunction<File, ImportPreview, Exception>
-				postImportPreviewUnsafeFunction,
-			UnsafeFunction
-				<ImportProcessRequest, HttpInvoker.HttpResponse, Exception>
-					postImportProcessUnsafeFunction)
-		throws Exception {
-
-		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
-				"com.liferay.portal.vulcan.internal.jaxrs.exception.mapper." +
-					"WebApplicationExceptionMapper",
-				LoggerTestUtil.WARN)) {
-
-			try {
-				postImportPreviewUnsafeFunction.apply(
-					_exportLayoutAsFile(exportImportGroupId));
-
-				assertHttpResponseStatusCode(
-					404,
-					postImportProcessUnsafeFunction.apply(
-						new ImportProcessRequest()));
-			}
-			finally {
-				_deleteTempFileEntries(exportImportGroupId);
-			}
-		}
-	}
-
-	private void _testPostImportProcessWithSettings(
-			long exportImportGroupId,
-			UnsafeFunction<File, ImportPreview, Exception>
-				postImportPreviewUnsafeFunction,
-			UnsafeFunction<ImportProcessRequest, ImportProcess, Exception>
-				postImportProcessUnsafeFunction)
-		throws Exception {
-
-		File file = _exportLayoutAsFile(exportImportGroupId);
-
-		postImportPreviewUnsafeFunction.apply(file);
-
-		ImportProcessRequest importProcessRequest = new ImportProcessRequest() {
-			{
-				dataStrategy = DataStrategy.COPY_AS_NEW;
-				deletions = true;
-				permissions = true;
-				userIdStrategy = UserIdStrategy.ALWAYS_CURRENT_USER_ID;
-			}
-		};
-
-		ImportProcess importProcess = postImportProcessUnsafeFunction.apply(
-			importProcessRequest);
-
-		BackgroundTask backgroundTask =
-			_backgroundTaskLocalService.getBackgroundTask(
-				importProcess.getId());
-
-		long exportImportConfigurationId = MapUtil.getLong(
-			backgroundTask.getTaskContextMap(), "exportImportConfigurationId");
-
-		ExportImportConfiguration exportImportConfiguration =
-			ExportImportConfigurationLocalServiceUtil.
-				getExportImportConfiguration(exportImportConfigurationId);
-
-		Map<String, Serializable> settingsMap =
-			exportImportConfiguration.getSettingsMap();
-
-		Map<String, String[]> parameterMap =
-			(Map<String, String[]>)settingsMap.get("parameterMap");
-
-		Assert.assertEquals(
-			PortletDataHandlerKeys.DATA_STRATEGY_COPY_AS_NEW,
-			MapUtil.getString(
-				parameterMap, PortletDataHandlerKeys.DATA_STRATEGY));
-		Assert.assertTrue(
-			MapUtil.getBoolean(parameterMap, PortletDataHandlerKeys.DELETIONS));
-		Assert.assertTrue(
-			MapUtil.getBoolean(
-				parameterMap, PortletDataHandlerKeys.PERMISSIONS));
-		Assert.assertEquals(
-			UserIdStrategy.ALWAYS_CURRENT_USER_ID,
-			MapUtil.getString(
-				parameterMap, PortletDataHandlerKeys.USER_ID_STRATEGY));
 	}
 
 	private static final String _STATUS_MESSAGE =

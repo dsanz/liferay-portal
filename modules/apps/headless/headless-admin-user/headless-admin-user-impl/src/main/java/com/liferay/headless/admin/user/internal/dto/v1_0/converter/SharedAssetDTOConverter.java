@@ -6,11 +6,11 @@
 package com.liferay.headless.admin.user.internal.dto.v1_0.converter;
 
 import com.liferay.document.library.display.context.DLMimeTypeDisplayContext;
+import com.liferay.document.library.helper.DLURLHelper;
 import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.document.library.kernel.service.DLAppService;
 import com.liferay.document.library.kernel.service.DLFileEntryLocalService;
-import com.liferay.document.library.util.DLURLHelper;
 import com.liferay.headless.admin.user.dto.v1_0.FileEntry;
 import com.liferay.headless.admin.user.dto.v1_0.Link;
 import com.liferay.headless.admin.user.dto.v1_0.SharedAsset;
@@ -66,7 +66,9 @@ import org.osgi.service.component.annotations.Reference;
  * @author Mikel Lorza
  */
 @Component(
-	property = "dto.class.name=com.liferay.sharing.model.SharingEntry",
+	property = {
+		"default=true", "dto.class.name=com.liferay.sharing.model.SharingEntry"
+	},
 	service = DTOConverter.class
 )
 public class SharedAssetDTOConverter
@@ -83,7 +85,7 @@ public class SharedAssetDTOConverter
 
 	@Override
 	public String getContentType() {
-		return SharingEntry.class.getSimpleName();
+		return SharedAsset.class.getSimpleName();
 	}
 
 	@Override
@@ -394,13 +396,13 @@ public class SharedAssetDTOConverter
 		SharedAssetDTOConverter.class);
 
 	@Reference
+	private DLFileEntryLocalService _dLFileEntryLocalService;
+
+	@Reference
 	private DLAppLocalService _dlAppLocalService;
 
 	@Reference
 	private DLAppService _dlAppService;
-
-	@Reference
-	private DLFileEntryLocalService _dLFileEntryLocalService;
 
 	@Reference
 	private DLMimeTypeDisplayContext _dlMimeTypeDisplayContext;

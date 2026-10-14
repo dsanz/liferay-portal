@@ -16,6 +16,7 @@ import {
 	TRenderer,
 	TSort,
 } from './utils/types';
+import {IUserConfiguration} from './views/ViewsContext';
 
 export interface IFrontendDataSetContext {
 	actionParameterName?: string | null;
@@ -79,8 +80,10 @@ export interface IFrontendDataSetContext {
 	openModal: Function;
 	openSidePanel: Function;
 	portletId?: string;
+	saveDataSetUserConfigurationURL?: string;
 	searchAsYouType: boolean;
 	searchParam?: string;
+	searchSuggestionsEnabled: boolean;
 	searching: boolean;
 	selectable?: boolean;
 	selectedItems?: Array<any>;
@@ -106,6 +109,9 @@ export interface IFrontendDataSetContext {
 	}: IDataSetData) => void;
 	updateFilters: IConfigInURLUpdaterThunk<EConfigInURLKeys.ACTIVE_FILTERS>;
 	updateItem: Function;
+	updateUserConfiguration: (
+		configuration: IUserConfiguration
+	) => Promise<void>;
 	updateView: IConfigInURLUpdaterThunk<EConfigInURLKeys.VIEW_NAME>;
 	updateVisibleFields: IConfigInURLUpdaterThunk<EConfigInURLKeys.VISIBLE_FIELDS>;
 }
@@ -130,6 +136,7 @@ const FrontendDataSetContext = React.createContext({
 	openModal: () => {},
 	openSidePanel: () => {},
 	searchAsYouType: false,
+	searchSuggestionsEnabled: false,
 	selectable: false,
 	selectedItems: [],
 	selectedItemsValue: [],

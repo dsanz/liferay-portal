@@ -113,19 +113,28 @@ public class JournalTransformer {
 			String script, ThemeDisplay themeDisplay, String viewMode)
 		throws Exception {
 
-		Set<String> transformedArticleIds = _transformedArticleIds.get();
+		Set<String> transformedArticleIdAndDDMTemplateKeys =
+			_transformedArticleIdAndDDMTemplateKeys.get();
 
 		String articleId = article.getArticleId();
+		String ddmTemplateKey = _getDDMTemplateKey(ddmTemplate);
 
-		if (transformedArticleIds.contains(articleId)) {
+		String articleIdAndDDMTemplateKey =
+			articleId + StringPool.POUND + ddmTemplateKey;
+
+		if (!transformedArticleIdAndDDMTemplateKeys.add(
+				articleIdAndDDMTemplateKey)) {
+
 			if (_log.isWarnEnabled()) {
-				_log.warn("Article " + articleId + " cannot include itself");
+				_log.warn(
+					StringBundler.concat(
+						"Article ", articleId,
+						" cannot include itself with dynamic data mapping ",
+						"template ", ddmTemplateKey));
 			}
 
 			return StringPool.BLANK;
 		}
-
-		transformedArticleIds.add(articleId);
 
 		try {
 			return _transform(
@@ -135,7 +144,8 @@ public class JournalTransformer {
 				viewMode);
 		}
 		finally {
-			transformedArticleIds.remove(articleId);
+			transformedArticleIdAndDDMTemplateKeys.remove(
+				articleIdAndDDMTemplateKey);
 		}
 	}
 
@@ -564,6 +574,14 @@ public class JournalTransformer {
 		return CompanyLocalServiceUtil.getCompany(companyId);
 	}
 
+	private String _getDDMTemplateKey(DDMTemplate ddmTemplate) {
+		if (ddmTemplate == null) {
+			return "DEFAULT_TEMPLATE";
+		}
+
+		return ddmTemplate.getTemplateKey();
+	}
+
 	private Device _getDevice(ThemeDisplay themeDisplay) {
 		if (themeDisplay != null) {
 			return themeDisplay.getDevice();
@@ -920,12 +938,6 @@ public class JournalTransformer {
 
 		// Transform
 
-		String templateKey = "DEFAULT_TEMPLATE";
-
-		if (ddmTemplate != null) {
-			templateKey = ddmTemplate.getTemplateKey();
-		}
-
 		long companyId = article.getCompanyId();
 		long companyGroupId = 0;
 		long articleGroupId = article.getGroupId();
@@ -949,7 +961,8 @@ public class JournalTransformer {
 
 		Template template = _getTemplate(
 			_getTemplateId(
-				templateKey, companyId, companyGroupId, articleGroupId),
+				_getDDMTemplateKey(ddmTemplate), companyId, companyGroupId,
+				articleGroupId),
 			script);
 
 		PortletRequest originalPortletRequest = null;
@@ -1139,9 +1152,10 @@ public class JournalTransformer {
 		JournalTransformer.class.getName() + ".XmlAfterListener");
 	private static final Log _logXmlBeforeListener = LogFactoryUtil.getLog(
 		JournalTransformer.class.getName() + ".XmlBeforeListener");
-	private static final ThreadLocal<Set<String>> _transformedArticleIds =
-		new CentralizedThreadLocal<>(
-			JournalTransformer.class.getName() + "._transformedArticleIds",
+	private static final ThreadLocal<Set<String>>
+		_transformedArticleIdAndDDMTemplateKeys = new CentralizedThreadLocal<>(
+			JournalTransformer.class.getName() +
+				"._transformedArticleIdAndDDMTemplateKeys",
 			HashSet::new);
 
 }

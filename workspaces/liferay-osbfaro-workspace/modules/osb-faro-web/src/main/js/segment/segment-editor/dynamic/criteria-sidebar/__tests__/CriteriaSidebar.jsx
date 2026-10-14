@@ -1,16 +1,25 @@
 import * as data from 'test/data';
+import apolloClient from 'shared/apollo/client';
 import CriteriaSidebar from '../index';
 import React from 'react';
-import {cleanup, fireEvent, render, screen} from '@testing-library/react';
+import {cleanup, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {DndProvider} from 'react-dnd';
 import {HTML5Backend} from 'react-dnd-html5-backend';
-import {List} from 'immutable';
+import {List, Map} from 'immutable';
 import {Property, PropertyGroup, PropertySubgroup} from 'shared/util/records';
+import {ReferencedObjectsContext} from '../../context/referencedObjects';
 import {SegmentTypes} from 'shared/util/constants';
 import {useQuery} from '@apollo/client';
 
+jest.mock('shared/apollo/client', () => ({
+	__esModule: true,
+	default: {query: jest.fn()}
+}));
+
 const mockLiferayLanguage = key => {
 	const messages = {
+		'add-x': 'Add {0}',
+		'conditions-library': 'Conditions Library',
 		custom: 'Custom',
 		default: 'Default',
 		event: 'event',
@@ -126,11 +135,59 @@ describe('CriteriaSidebar', () => {
 			</DndProvider>
 		);
 
+		expect(screen.getByText('Conditions Library')).toBeInTheDocument();
 		expect(
 			screen.getByText('Interests', {selector: '[role="combobox"]'})
 		).toBeInTheDocument();
 		expect(screen.getByText('Page Views')).toBeInTheDocument();
 		expect(screen.getByText('DXP Custom Fields')).toBeInTheDocument();
+	});
+
+	it('names the property-group picker for assistive technologies', () => {
+		render(
+			<DndProvider backend={HTML5Backend}>
+				<CriteriaSidebar
+					propertyGroupsIList={fullPropertyGroupList}
+					type={SegmentTypes.Batch}
+				/>
+			</DndProvider>
+		);
+
+		expect(
+			screen.getByRole('combobox', {name: 'condition-type'})
+		).toHaveTextContent('Interests');
+	});
+
+	it('keeps a single tab stop and moves focus between items with the arrow keys', () => {
+		render(
+			<DndProvider backend={HTML5Backend}>
+				<CriteriaSidebar
+					propertyGroupsIList={fullPropertyGroupList}
+					type={SegmentTypes.Batch}
+				/>
+			</DndProvider>
+		);
+
+		const [pageViews, pageActions] = screen.getAllByRole('menuitem');
+
+		expect(pageViews).toHaveAttribute('tabindex', '0');
+		expect(pageActions).toHaveAttribute('tabindex', '-1');
+
+		pageViews.focus();
+
+		fireEvent.keyDown(pageViews, {key: 'ArrowDown'});
+
+		expect(pageActions).toHaveFocus();
+		expect(pageActions).toHaveAttribute('tabindex', '0');
+		expect(pageViews).toHaveAttribute('tabindex', '-1');
+
+		fireEvent.keyDown(pageActions, {key: 'Home'});
+
+		expect(pageViews).toHaveFocus();
+
+		fireEvent.keyDown(pageViews, {key: 'End'});
+
+		expect(pageActions).toHaveFocus();
 	});
 
 	it('should render w/ "No results were found." when propertyGroupsIList is empty', () => {
@@ -206,5 +263,103 @@ describe('CriteriaSidebar', () => {
 		fireEvent.click(screen.getByText('Custom'));
 
 		expect(screen.getByText('Loyalty Tier')).toBeInTheDocument();
+	});
+
+	it('paginates the Search Terms section the same way Tags/Vocabularies do', async () => {
+		apolloClient.query.mockResolvedValueOnce({
+			data: {
+				searchTerms: {
+					compositions: [{count: 9, name: 'shoes'}],
+					totalCount: 30
+				}
+			}
+		});
+
+		const searchTermPropertyGroupList = new List([
+			new PropertyGroup({
+				label: 'Search Terms',
+				name: 'Search Terms',
+				propertyKey: 'search-term',
+				propertySubgroups: new List([
+					new PropertySubgroup({properties: new List()})
+				])
+			})
+		]);
+
+		render(
+			<DndProvider backend={HTML5Backend}>
+				<CriteriaSidebar
+					channelId='123'
+					groupId='12345'
+					propertyGroupsIList={searchTermPropertyGroupList}
+					type={SegmentTypes.Batch}
+				/>
+			</DndProvider>
+		);
+
+		await waitFor(() =>
+			expect(screen.getByText('shoes')).toBeInTheDocument()
+		);
+
+		expect(apolloClient.query).toHaveBeenCalledWith(
+			expect.objectContaining({
+				variables: expect.objectContaining({
+					channelId: '123',
+					size: 12,
+					start: 0
+				})
+			})
+		);
+
+		expect(
+			document.querySelector('.sidebar-pagination')
+		).toBeInTheDocument();
+	});
+
+	it('registers each fetched property as a referenced object', async () => {
+		apolloClient.query.mockResolvedValueOnce({
+			data: {
+				searchTerms: {
+					compositions: [{count: 9, name: 'shoes'}],
+					totalCount: 30
+				}
+			}
+		});
+
+		const addProperty = jest.fn();
+
+		const searchTermPropertyGroupList = new List([
+			new PropertyGroup({
+				label: 'Search Terms',
+				name: 'Search Terms',
+				propertyKey: 'search-term',
+				propertySubgroups: new List([
+					new PropertySubgroup({properties: new List()})
+				])
+			})
+		]);
+
+		render(
+			<DndProvider backend={HTML5Backend}>
+				<ReferencedObjectsContext.Provider
+					value={{
+						addProperty,
+						referencedEntities: Map(),
+						referencedProperties: Map()
+					}}
+				>
+					<CriteriaSidebar
+						channelId='123'
+						groupId='12345'
+						propertyGroupsIList={searchTermPropertyGroupList}
+						type={SegmentTypes.Batch}
+					/>
+				</ReferencedObjectsContext.Provider>
+			</DndProvider>
+		);
+
+		await waitFor(() => expect(addProperty).toHaveBeenCalled());
+
+		expect(addProperty.mock.calls[0][0].name).toBe('shoes');
 	});
 });

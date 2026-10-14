@@ -8,9 +8,18 @@ package com.liferay.object.model.impl;
 import com.liferay.object.constants.ObjectFieldConstants;
 import com.liferay.object.model.ObjectField;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.LocalizationUtil;
+import com.liferay.portal.language.LanguageImpl;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
+import com.liferay.portal.util.LocalizationImpl;
+
+import java.util.Collections;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -25,11 +34,60 @@ public class ObjectFieldImplTest {
 	public static final LiferayUnitTestRule liferayUnitTestRule =
 		LiferayUnitTestRule.INSTANCE;
 
+	@Before
+	public void setUp() {
+		LanguageUtil languageUtil = new LanguageUtil();
+
+		languageUtil.setLanguage(new LanguageImpl());
+
+		LocalizationUtil localizationUtil = new LocalizationUtil();
+
+		localizationUtil.setLocalization(new LocalizationImpl());
+	}
+
 	@Test
 	public void testGetAttachmentDownloadActionKey() {
 		_testGetAttachmentDownloadActionKey("formatId", "DOWNLOAD_FORMAT_ID");
 		_testGetAttachmentDownloadActionKey(
 			"friendlyURLMapper", "DOWNLOAD_FRIENDLY_URL_MAPPER");
+	}
+
+	@Test
+	public void testGetDBColumnNames() {
+		ObjectField objectField = _getLocationObjectField();
+
+		Assert.assertArrayEquals(
+			new String[] {
+				"address_" + objectField.getDBColumnName(),
+				"latitude_" + objectField.getDBColumnName(),
+				"longitude_" + objectField.getDBColumnName()
+			},
+			objectField.getDBColumnNames());
+	}
+
+	@Test
+	public void testGetDefaultDBColumnName() {
+		ObjectField objectField = _getLocationObjectField();
+
+		Assert.assertEquals(
+			"address_" + objectField.getDBColumnName(),
+			objectField.getDefaultDBColumnName());
+	}
+
+	@Test
+	public void testGetDefaultLanguageId() {
+		ObjectField objectField = new ObjectFieldImpl();
+
+		objectField.setDescriptionMap(
+			Collections.singletonMap(
+				LocaleUtil.SPAIN, RandomTestUtil.randomString()),
+			LocaleUtil.SPAIN);
+		objectField.setLabelMap(
+			Collections.singletonMap(
+				LocaleUtil.GERMANY, RandomTestUtil.randomString()),
+			LocaleUtil.GERMANY);
+
+		Assert.assertEquals("de_DE", objectField.getDefaultLanguageId());
 	}
 
 	@Test
@@ -46,6 +104,23 @@ public class ObjectFieldImplTest {
 		_testGetReadOnly(
 			ObjectFieldConstants.READ_ONLY_TRUE,
 			ObjectFieldConstants.READ_ONLY_TRUE);
+	}
+
+	@Test
+	public void testHasMultipleDBColumns() {
+		ObjectField objectField = _getLocationObjectField();
+
+		Assert.assertTrue(objectField.hasMultipleDBColumns());
+	}
+
+	private ObjectField _getLocationObjectField() {
+		ObjectField objectField = new ObjectFieldImpl();
+
+		objectField.setBusinessType(
+			ObjectFieldConstants.BUSINESS_TYPE_LOCATION);
+		objectField.setDBColumnName(RandomTestUtil.randomString());
+
+		return objectField;
 	}
 
 	private void _testGetAttachmentDownloadActionKey(

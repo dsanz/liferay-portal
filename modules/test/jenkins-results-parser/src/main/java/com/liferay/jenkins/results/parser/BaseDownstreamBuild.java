@@ -422,6 +422,17 @@ public class BaseDownstreamBuild extends BaseBuild implements DownstreamBuild {
 		return _gitHubMessageElement;
 	}
 
+	@Override
+	public Job getJob() {
+		TopLevelBuild topLevelBuild = getTopLevelBuild();
+
+		if (topLevelBuild != null) {
+			return topLevelBuild.getJob();
+		}
+
+		return super.getJob();
+	}
+
 	public Map<String, List<String>> getTestClassMethodNamesMap() {
 		String batchName = getBatchName();
 
@@ -815,6 +826,7 @@ public class BaseDownstreamBuild extends BaseBuild implements DownstreamBuild {
 			batchName.startsWith("modules-integration") ||
 			batchName.startsWith("modules-unit") ||
 			batchName.startsWith("unit") ||
+			batchName.startsWith("workspaces-integration") ||
 			batchName.startsWith("workspaces-unit")) {
 
 			overheadIncluded = true;
@@ -936,6 +948,7 @@ public class BaseDownstreamBuild extends BaseBuild implements DownstreamBuild {
 			!batchName.startsWith("modules-integration") &&
 			!batchName.startsWith("modules-unit") &&
 			!batchName.startsWith("unit") &&
+			!batchName.startsWith("workspaces-integration") &&
 			!batchName.startsWith("workspaces-unit")) {
 
 			return Collections.emptyList();

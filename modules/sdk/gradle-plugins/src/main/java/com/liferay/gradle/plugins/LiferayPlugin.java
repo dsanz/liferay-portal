@@ -7,17 +7,11 @@ package com.liferay.gradle.plugins;
 
 import com.liferay.gradle.plugins.internal.util.FileUtil;
 import com.liferay.gradle.plugins.internal.util.GradleUtil;
-
-import java.io.File;
-import java.io.IOException;
-
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
+import com.liferay.gradle.plugins.util.ThemeUtil;
 
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.plugins.ExtensionContainer;
@@ -119,23 +113,7 @@ public class LiferayPlugin implements Plugin<Project> {
 	}
 
 	private boolean _isTheme(Project project) {
-		File gulpFile = project.file("gulpfile.js");
-
-		if (!gulpFile.exists()) {
-			return false;
-		}
-
-		String gulpFileContent;
-
-		try {
-			gulpFileContent = new String(
-				Files.readAllBytes(gulpFile.toPath()), StandardCharsets.UTF_8);
-		}
-		catch (IOException ioException) {
-			throw new UncheckedIOException(ioException);
-		}
-
-		return gulpFileContent.contains("require('liferay-theme-tasks')");
+		return ThemeUtil.isTheme(project.getProjectDir());
 	}
 
 }

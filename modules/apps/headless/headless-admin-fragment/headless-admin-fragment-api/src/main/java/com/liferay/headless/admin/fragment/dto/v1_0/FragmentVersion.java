@@ -10,10 +10,13 @@ import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
@@ -27,6 +30,8 @@ import jakarta.xml.bind.annotation.XmlRootElement;
 
 import java.io.Serializable;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -46,8 +51,20 @@ import java.util.function.Supplier;
 	description = "A version of a fragment (draft or published)."
 )
 @JsonFilter("Liferay.Vulcan")
+@JsonSubTypes(
+	{
+		@JsonSubTypes.Type(
+			name = "Approved", value = ApprovedFragmentVersion.class
+		),
+		@JsonSubTypes.Type(name = "Draft", value = DraftFragmentVersion.class)
+	}
+)
+@JsonTypeInfo(
+	include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "status",
+	use = JsonTypeInfo.Id.NAME, visible = true
+)
 @XmlRootElement(name = "FragmentVersion")
-public class FragmentVersion implements Serializable {
+public abstract class FragmentVersion implements Serializable {
 
 	public static FragmentVersion toDTO(String json) {
 		return ObjectMapperUtil.readValue(FragmentVersion.class, json);
@@ -56,49 +73,6 @@ public class FragmentVersion implements Serializable {
 	public static FragmentVersion unsafeToDTO(String json) {
 		return ObjectMapperUtil.unsafeReadValue(FragmentVersion.class, json);
 	}
-
-	@io.swagger.v3.oas.annotations.media.Schema(
-		description = "The fragment version's JSON configuration."
-	)
-	public String getConfiguration() {
-		if (_configurationSupplier != null) {
-			configuration = _configurationSupplier.get();
-
-			_configurationSupplier = null;
-		}
-
-		return configuration;
-	}
-
-	public void setConfiguration(String configuration) {
-		this.configuration = configuration;
-
-		_configurationSupplier = null;
-	}
-
-	@JsonIgnore
-	public void setConfiguration(
-		UnsafeSupplier<String, Exception> configurationUnsafeSupplier) {
-
-		_configurationSupplier = () -> {
-			try {
-				return configurationUnsafeSupplier.get();
-			}
-			catch (RuntimeException runtimeException) {
-				throw runtimeException;
-			}
-			catch (Exception exception) {
-				throw new RuntimeException(exception);
-			}
-		};
-	}
-
-	@GraphQLField(description = "The fragment version's JSON configuration.")
-	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
-	protected String configuration;
-
-	@JsonIgnore
-	private Supplier<String> _configurationSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema(
 		description = "The fragment version's CSS code."
@@ -308,22 +282,6 @@ public class FragmentVersion implements Serializable {
 
 		sb.append("{");
 
-		String configuration = getConfiguration();
-
-		if (configuration != null) {
-			if (sb.length() > 1) {
-				sb.append(", ");
-			}
-
-			sb.append("\"configuration\": ");
-
-			sb.append("\"");
-
-			sb.append(_escape(configuration));
-
-			sb.append("\"");
-		}
-
 		String css = getCss();
 
 		if (css != null) {
@@ -517,6 +475,27 @@ public class FragmentVersion implements Serializable {
 		return sb.toString();
 	}
 
+	private static String _toJSON(Object value) {
+		if (value instanceof Collection) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONArray((Collection<?>)value));
+		}
+		else if (value instanceof Map) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONObject((Map<?, ?>)value));
+		}
+		else if (value instanceof Object[]) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONArray(
+					Arrays.asList((Object[])value)));
+		}
+		else if (value instanceof String) {
+			return StringBundler.concat("\"", _escape(value), "\"");
+		}
+
+		return String.valueOf(value);
+	}
+
 	private static final String[][] _JSON_ESCAPE_STRINGS = {
 		{"\\", "\"", "\b", "\f", "\n", "\r", "\t"},
 		{"\\\\", "\\\"", "\\b", "\\f", "\\n", "\\r", "\\t"}
@@ -525,4 +504,4 @@ public class FragmentVersion implements Serializable {
 	private Map<String, Serializable> _extendedProperties;
 
 }
-// LIFERAY-REST-BUILDER-HASH:-1019086080
+// LIFERAY-REST-BUILDER-HASH:1577870936

@@ -33,7 +33,6 @@ import com.liferay.portal.kernel.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.portlet.url.builder.ResourceURLBuilder;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 
@@ -261,9 +260,8 @@ public class DisplayPageManagementToolbarDisplayContext
 						_themeDisplay.getURLCurrent()
 					).setParameter(
 						"layoutPageTemplateCollectionId",
-						ParamUtil.getLong(
-							httpServletRequest,
-							"layoutPageTemplateCollectionId")
+						_displayPageDisplayContext.
+							getLayoutPageTemplateCollectionId()
 					).buildString());
 				dropdownItem.setIcon("folder");
 				dropdownItem.setLabel(
@@ -280,9 +278,8 @@ public class DisplayPageManagementToolbarDisplayContext
 						_themeDisplay.getURLCurrent()
 					).setParameter(
 						"layoutPageTemplateCollectionId",
-						ParamUtil.getLong(
-							httpServletRequest,
-							"layoutPageTemplateCollectionId")
+						_displayPageDisplayContext.
+							getLayoutPageTemplateCollectionId()
 					).buildString());
 				dropdownItem.setLabel(
 					LanguageUtil.get(
@@ -339,8 +336,7 @@ public class DisplayPageManagementToolbarDisplayContext
 			"display-page-templates"
 		).setParameter(
 			"layoutPageTemplateCollectionId",
-			ParamUtil.getLong(
-				httpServletRequest, "layoutPageTemplateCollectionId")
+			_displayPageDisplayContext.getLayoutPageTemplateCollectionId()
 		).buildString();
 	}
 

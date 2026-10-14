@@ -52,10 +52,11 @@ public class AssetTagGroupRelLocalServiceUtil {
 		return getService().addAssetTagGroupRel(assetTagGroupRel);
 	}
 
-	public static AssetTagGroupRel addAssetTagGroupRel(long groupId, long tagId)
+	public static AssetTagGroupRel addAssetTagGroupRel(
+			long groupId, long tagId, int depotEntryType)
 		throws PortalException {
 
-		return getService().addAssetTagGroupRel(groupId, tagId);
+		return getService().addAssetTagGroupRel(groupId, tagId, depotEntryType);
 	}
 
 	/**
@@ -288,16 +289,32 @@ public class AssetTagGroupRelLocalServiceUtil {
 		return getService().getAssetTagGroupRels(start, end);
 	}
 
-	public static List<AssetTagGroupRel> getAssetTagGroupRelsByGroupyId(
+	public static List<AssetTagGroupRel> getAssetTagGroupRelsByGroupId(
 		long groupId) {
 
-		return getService().getAssetTagGroupRelsByGroupyId(groupId);
+		return getService().getAssetTagGroupRelsByGroupId(groupId);
+	}
+
+	public static List<AssetTagGroupRel>
+		getAssetTagGroupRelsByGroupIdAndDepotEntryType(
+			long groupId, int depotEntryType) {
+
+		return getService().getAssetTagGroupRelsByGroupIdAndDepotEntryType(
+			groupId, depotEntryType);
 	}
 
 	public static List<AssetTagGroupRel> getAssetTagGroupRelsByTagId(
 		long tagId) {
 
 		return getService().getAssetTagGroupRelsByTagId(tagId);
+	}
+
+	public static List<AssetTagGroupRel>
+		getAssetTagGroupRelsByTagIdAndDepotEntryType(
+			long tagId, int depotEntryType) {
+
+		return getService().getAssetTagGroupRelsByTagIdAndDepotEntryType(
+			tagId, depotEntryType);
 	}
 
 	/**
@@ -366,10 +383,11 @@ public class AssetTagGroupRelLocalServiceUtil {
 		return getService().getPersistedModel(primaryKeyObj);
 	}
 
-	public static void setAssetTagGroupRels(long tagId, long[] groupIds)
+	public static void setAssetTagGroupRels(
+			long tagId, long[] groupIds, int depotEntryType)
 		throws PortalException {
 
-		getService().setAssetTagGroupRels(tagId, groupIds);
+		getService().setAssetTagGroupRels(tagId, groupIds, depotEntryType);
 	}
 
 	/**
@@ -399,4 +417,4 @@ public class AssetTagGroupRelLocalServiceUtil {
 	private static volatile AssetTagGroupRelLocalService _service;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:2046644749
+// LIFERAY-SERVICE-BUILDER-HASH:-307302363

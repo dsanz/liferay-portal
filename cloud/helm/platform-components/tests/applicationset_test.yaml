@@ -97,6 +97,26 @@ tests:
                 repoURL: oci://example-registry/liferay-azure
     -   asserts:
             -   equal:
+                    path: spec.template.spec.syncPolicy.managedNamespaceMetadata.labels
+                    value:
+                        licensing.liferay.com/environment: "true"
+                        liferay.com/observable: "true"
+                        pod-security.kubernetes.io/enforce: restricted
+                template: templates/applicationset-infrastructure.yaml
+            -   equal:
+                    path: spec.template.spec.syncPolicy.managedNamespaceMetadata.labels
+                    value:
+                        licensing.liferay.com/environment: "true"
+                        liferay.com/observable: "true"
+                        pod-security.kubernetes.io/enforce: restricted
+                template: templates/applicationset-liferay.yaml
+        it: Labels the environment namespace identically from the infrastructure and Liferay ApplicationSets
+        set:
+            gitops:
+                repository:
+                    url: https://github.com/example/liferay-gitops.git
+    -   asserts:
+            -   equal:
                     path: spec.template.spec.sources[0].helm.valueFiles
                     value:
                         -   $values/liferay/projects/{{path[2]}}/base/infrastructure.yaml
@@ -129,6 +149,25 @@ tests:
                 repoURL: oci://example-registry/liferay-azure
             observability:
                 enabled: true
+    -   asserts:
+            -   contains:
+                    content:
+                        name: global.liferayServiceAccount.create
+                        value: "false"
+                    path: spec.template.spec.sources[0].helm.parameters
+                template: templates/applicationset-liferay.yaml
+        it: Leaves the Liferay service account to the infrastructure composition
+    -   asserts:
+            -   contains:
+                    content:
+                        namespace: argocd-system
+                        server: https://kubernetes.default.svc
+                    path: spec.destinations
+                template: templates/appproject-infrastructure.yaml
+        it: Lets the infrastructure provider application write to the ArgoCD namespace
+        set:
+            infrastructureProvider:
+                repoURL: oci://example-registry/liferay-aws-infrastructure-provider
     -   asserts:
             -   hasDocuments:
                     count: 0
@@ -164,7 +203,7 @@ tests:
                     path: spec.template.spec.sources[0].helm.parameters
                 template: templates/applicationset-infrastructure.yaml
             -   equal:
-                    path: spec.template.spec.sources[0].helm.parameters[6]
+                    path: spec.template.spec.sources[0].helm.parameters[5]
                     value:
                         name: persistence.storageClassName
                         value: managed-csi-premium-v2
@@ -278,6 +317,22 @@ tests:
                             -   liferay-dxp-operator
                     path: spec.template.spec.ignoreDifferences
                 template: templates/applicationset-liferay.yaml
+            -   contains:
+                    content:
+                        group: autoscaling
+                        kind: HorizontalPodAutoscaler
+                        managedFieldsManagers:
+                            -   liferay-dxp-operator
+                    path: spec.template.spec.ignoreDifferences
+                template: templates/applicationset-liferay.yaml
+            -   contains:
+                    content:
+                        group: keda.sh
+                        kind: ScaledObject
+                        managedFieldsManagers:
+                            -   liferay-dxp-operator
+                    path: spec.template.spec.ignoreDifferences
+                template: templates/applicationset-liferay.yaml
             -   equal:
                     path: spec.template.spec.sources[1].ref
                     value: values
@@ -319,6 +374,8 @@ tests:
                     path: spec.destinations
                     value:
                         -   namespace: liferay-*
+                            server: https://kubernetes.default.svc
+                        -   namespace: argocd-system
                             server: https://kubernetes.default.svc
                         -   namespace: crossplane-system
                             server: https://kubernetes.default.svc
@@ -394,6 +451,23 @@ tests:
                         -   https://kedacore.github.io/charts/**
                 template: templates/appproject-operator.yaml
         it: Renders the ApplicationSets and AppProjects by default
+    -   asserts:
+            -   contains:
+                    content:
+                        name: liferay-aws.liferay-default.network.gatewayName
+                        value: "{{path[2]}}-{{path[4]}}-gateway"
+                    path: spec.template.spec.sources[0].helm.parameters
+                template: templates/applicationset-liferay.yaml
+            -   notContains:
+                    any: true
+                    content:
+                        name: liferay-default.network.gatewayName
+                    path: spec.template.spec.sources[0].helm.parameters
+                template: templates/applicationset-liferay.yaml
+        it: Scopes the generated Liferay values under the configured chart prefix
+        set:
+            liferay:
+                valuesPrefix: liferay-aws.liferay-default.
     -   asserts:
             -   equal:
                     path: spec.generators[0].git.repoURL

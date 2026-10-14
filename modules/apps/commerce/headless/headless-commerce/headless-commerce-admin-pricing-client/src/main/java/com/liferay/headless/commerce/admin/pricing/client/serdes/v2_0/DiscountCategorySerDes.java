@@ -10,6 +10,7 @@ import com.liferay.headless.commerce.admin.pricing.client.json.BaseJSONParser;
 
 import jakarta.annotation.Generated;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -126,6 +127,21 @@ public class DiscountCategorySerDes {
 			sb.append(discountCategory.getDiscountId());
 		}
 
+		if (discountCategory.getVocabularyExternalReferenceCode() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"vocabularyExternalReferenceCode\": ");
+
+			sb.append("\"");
+
+			sb.append(
+				_escape(discountCategory.getVocabularyExternalReferenceCode()));
+
+			sb.append("\"");
+		}
+
 		sb.append("}");
 
 		return sb.toString();
@@ -204,6 +220,16 @@ public class DiscountCategorySerDes {
 				"discountId", String.valueOf(discountCategory.getDiscountId()));
 		}
 
+		if (discountCategory.getVocabularyExternalReferenceCode() == null) {
+			map.put("vocabularyExternalReferenceCode", null);
+		}
+		else {
+			map.put(
+				"vocabularyExternalReferenceCode",
+				String.valueOf(
+					discountCategory.getVocabularyExternalReferenceCode()));
+		}
+
 		return map;
 	}
 
@@ -247,6 +273,12 @@ public class DiscountCategorySerDes {
 				return false;
 			}
 			else if (Objects.equals(jsonParserFieldName, "discountId")) {
+				return false;
+			}
+			else if (Objects.equals(
+						jsonParserFieldName,
+						"vocabularyExternalReferenceCode")) {
+
 				return false;
 			}
 
@@ -306,6 +338,15 @@ public class DiscountCategorySerDes {
 						Long.valueOf((String)jsonParserFieldValue));
 				}
 			}
+			else if (Objects.equals(
+						jsonParserFieldName,
+						"vocabularyExternalReferenceCode")) {
+
+				if (jsonParserFieldValue != null) {
+					discountCategory.setVocabularyExternalReferenceCode(
+						(String)jsonParserFieldValue);
+				}
+			}
 		}
 
 	}
@@ -355,6 +396,12 @@ public class DiscountCategorySerDes {
 			return "null";
 		}
 
+		if (value instanceof Collection) {
+			Collection<?> collection = (Collection<?>)value;
+
+			return _toJSON(collection.toArray());
+		}
+
 		if (value instanceof Map) {
 			return _toJSON((Map)value);
 		}
@@ -387,4 +434,4 @@ public class DiscountCategorySerDes {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:913019190
+// LIFERAY-REST-BUILDER-HASH:-380992115

@@ -307,7 +307,7 @@ test(
 	'The filter finds a screen inside an application',
 	{tag: '@LPD-103691'},
 	async ({globalMenuPage, page}) => {
-		const sideNavigation = page.getByLabel('Applications Menu', {
+		const sideNavigation = page.getByLabel('Control Panel Menu', {
 			exact: true,
 		});
 
@@ -334,8 +334,97 @@ test(
 			await waitForPageToBeLoaded(page);
 
 			await expect(
-				page.getByRole('heading', {name: 'System Settings'})
+				page.getByRole('heading', {name: 'File Storage'})
 			).toBeAttached();
+		});
+	}
+);
+
+test(
+	'The filter finds a screen inside a permission filtered application',
+	{tag: '@LPD-103691'},
+	async ({globalMenuPage, page}) => {
+		const sideNavigation = page.getByLabel('Control Panel Menu', {
+			exact: true,
+		});
+
+		const regularRolesItem = page.getByRole('menuitem', {
+			name: 'Regular Roles',
+		});
+
+		await test.step('Go to the Control Panel', async () => {
+			await globalMenuPage.goToControlPanel();
+
+			await expect(sideNavigation).toBeVisible();
+			await expect(regularRolesItem).toBeHidden();
+		});
+
+		await test.step('Filter for a screen inside an application', async () => {
+			await sideNavigation.getByRole('searchbox').fill('Regular Roles');
+
+			await expect(regularRolesItem).toBeVisible();
+		});
+
+		await test.step('Follow the screen', async () => {
+			await regularRolesItem.click();
+
+			await waitForPageToBeLoaded(page);
+
+			await expect(
+				page.getByRole('heading', {name: 'Roles'})
+			).toBeAttached();
+		});
+	}
+);
+
+test(
+	'The Control Panel root shows the System and Instance scopes',
+	{tag: '@LPD-100172'},
+	async ({globalMenuPage, page}) => {
+		const sideNavigation = page.getByLabel('Control Panel Menu', {
+			exact: true,
+		});
+
+		await test.step('Go to the Control Panel', async () => {
+			await globalMenuPage.goToControlPanel();
+
+			await expect(sideNavigation).toBeVisible();
+		});
+
+		await test.step('Both scopes mark the start of a zone', async () => {
+			const scopeItems = sideNavigation.getByTestId(
+				'sideNavigationScopeItem'
+			);
+
+			await expect(scopeItems).toHaveCount(2);
+			await expect(scopeItems.first()).toHaveText('System');
+			await expect(scopeItems.last()).toContainText('Instance:');
+		});
+
+		await test.step('Neither scope is collapsible', async () => {
+			await expect(
+				sideNavigation
+					.getByTestId('sideNavigationScopeItem')
+					.getByRole('button')
+			).toHaveCount(0);
+		});
+
+		await test.step('An application of a scope sits at the root', async () => {
+			await expect(
+				sideNavigation.getByRole('menuitem', {
+					exact: true,
+					name: 'Server Administration',
+				})
+			).not.toHaveAttribute('aria-expanded');
+		});
+
+		await test.step('A category below a scope still collapses', async () => {
+			await expect(
+				sideNavigation.getByRole('menuitem', {
+					exact: true,
+					name: 'Users',
+				})
+			).toHaveAttribute('aria-expanded');
 		});
 	}
 );

@@ -1,9 +1,6 @@
 import BreakdownTable from '../index';
 import React from 'react';
-import {
-	AttributesContext,
-	withAttributesProvider
-} from '../../context/attributes';
+import {AttributesContext, AttributesProvider} from '../../context/attributes';
 import {cleanup, render} from '@testing-library/react';
 import {MockedProvider} from '@apollo/client/testing';
 import {mockEventAnalysisResultReq} from 'test/graphql-data';
@@ -124,8 +121,6 @@ describe('BreakdownTable', () => {
 	});
 
 	it('render with single event', async () => {
-		const BreakdownWithProvider = withAttributesProvider(BreakdownTable);
-
 		const {container} = render(
 			<MemoryRouter>
 				<MockedProvider
@@ -136,15 +131,17 @@ describe('BreakdownTable', () => {
 						})
 					]}
 				>
-					<BreakdownWithProvider
-						channelId='123'
-						compareToPrevious
-						event={event}
-						rangeSelectors={{
-							rangeKey: '30'
-						}}
-						type='TOTAL'
-					/>
+					<AttributesProvider>
+						<BreakdownTable
+							channelId='123'
+							compareToPrevious
+							event={event}
+							rangeSelectors={{
+								rangeKey: '30'
+							}}
+							type='TOTAL'
+						/>
+					</AttributesProvider>
 				</MockedProvider>
 			</MemoryRouter>
 		);
@@ -155,20 +152,6 @@ describe('BreakdownTable', () => {
 			container.querySelector('.breakdown-table-root')
 		).toBeInTheDocument();
 		expect(container.querySelector('table')).toBeInTheDocument();
-	});
-
-	it('render with empty state', () => {
-		const {queryByText} = render(
-			<BreakdownTable
-				compareToPrevious={false}
-				event={null}
-				rangeSelectors={{
-					rangeKey: '30'
-				}}
-			/>
-		);
-
-		expect(queryByText('Add an event to analyze.')).toBeTruthy();
 	});
 
 	it('render breakdown with decoded URL', async () => {

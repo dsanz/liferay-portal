@@ -44,6 +44,9 @@
 		<finder name="GroupId" return-type="Collection">
 			<finder-column name="groupId" />
 		</finder>
+		<finder name="CompanyId" return-type="Collection">
+			<finder-column name="companyId" />
+		</finder>
 		<finder name="ParentCategoryId" return-type="Collection">
 			<finder-column name="parentCategoryId" />
 		</finder>
@@ -221,12 +224,15 @@
 		<finder name="GroupId" return-type="Collection">
 			<finder-column arrayable-operator="OR" name="groupId" />
 		</finder>
+		<finder name="CompanyId" return-type="Collection">
+			<finder-column name="companyId" />
+		</finder>
 		<finder name="Name" return-type="Collection">
-			<finder-column arrayable-operator="OR" case-sensitive="false" name="name" />
+			<finder-column arrayable-operator="OR" name="name" />
 		</finder>
 		<finder name="G_N" return-type="Collection">
 			<finder-column name="groupId" />
-			<finder-column case-sensitive="false" name="name" />
+			<finder-column name="name" />
 		</finder>
 		<finder name="G_LikeN" return-type="Collection">
 			<finder-column arrayable-operator="OR" name="groupId" />
@@ -250,6 +256,7 @@
 		<!-- Other fields -->
 
 		<column name="tagId" type="long" />
+		<column name="depotEntryType" type="int" />
 
 		<!-- Finder methods -->
 
@@ -259,9 +266,18 @@
 		<finder name="TagId" return-type="Collection">
 			<finder-column name="tagId" />
 		</finder>
-		<finder name="G_T" return-type="AssetTagGroupRel">
+		<finder name="G_D" return-type="Collection">
+			<finder-column name="groupId" />
+			<finder-column name="depotEntryType" />
+		</finder>
+		<finder name="T_D" return-type="Collection">
+			<finder-column name="tagId" />
+			<finder-column name="depotEntryType" />
+		</finder>
+		<finder name="G_T_D" return-type="AssetTagGroupRel">
 			<finder-column name="groupId" />
 			<finder-column name="tagId" />
+			<finder-column name="depotEntryType" />
 		</finder>
 	</entity>
 	<entity external-reference-code="group" local-service="true" name="AssetVocabulary" remote-service="true" uuid="true">

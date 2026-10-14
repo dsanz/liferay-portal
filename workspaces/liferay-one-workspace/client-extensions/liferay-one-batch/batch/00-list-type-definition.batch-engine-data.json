@@ -162,11 +162,6 @@
 			"externalReferenceCode": "LT_CONTRACT_TYPE",
 			"listTypeEntries": [
 				{
-					"externalReferenceCode": "LT_CONTRACT_TYPE_AMENDMENT",
-					"key": "amendment",
-					"name": "Amendment"
-				},
-				{
 					"externalReferenceCode": "LT_CONTRACT_TYPE_INITIAL",
 					"key": "initial",
 					"name": "Initial"
@@ -210,6 +205,42 @@
 				}
 			],
 			"name": "Entitlement Status"
+		},
+		{
+			"externalReferenceCode": "LT_ENVIRONMENT_PRIMARY_REGION",
+			"listTypeEntries": [
+				{
+					"externalReferenceCode": "LT_ENVIRONMENT_PRIMARY_REGION_ASIA_PACIFIC",
+					"key": "asiaPacific",
+					"name": "Asia Pacific"
+				},
+				{
+					"externalReferenceCode": "LT_ENVIRONMENT_PRIMARY_REGION_EAST_ASIA",
+					"key": "eastAsia",
+					"name": "East Asia"
+				},
+				{
+					"externalReferenceCode": "LT_ENVIRONMENT_PRIMARY_REGION_EUROPE",
+					"key": "europe",
+					"name": "Europe"
+				},
+				{
+					"externalReferenceCode": "LT_ENVIRONMENT_PRIMARY_REGION_NORTH_AMERICA",
+					"key": "northAmerica",
+					"name": "North America"
+				},
+				{
+					"externalReferenceCode": "LT_ENVIRONMENT_PRIMARY_REGION_SAUDI_ARABIA",
+					"key": "saudiArabia",
+					"name": "Saudi Arabia"
+				},
+				{
+					"externalReferenceCode": "LT_ENVIRONMENT_PRIMARY_REGION_SOUTH_AMERICA",
+					"key": "southAmerica",
+					"name": "South America"
+				}
+			],
+			"name": "Environment Primary Region"
 		},
 		{
 			"externalReferenceCode": "LT_ENVIRONMENT_TYPE",
@@ -331,6 +362,58 @@
 			"name": "Product Type"
 		},
 		{
+			"externalReferenceCode": "LT_PRODUCT_VERSION_LEVEL",
+			"listTypeEntries": [
+				{
+					"externalReferenceCode": "LT_PRODUCT_VERSION_LEVEL_MAJOR",
+					"key": "major",
+					"name": "Major"
+				},
+				{
+					"externalReferenceCode": "LT_PRODUCT_VERSION_LEVEL_PATCH",
+					"key": "patch",
+					"name": "Patch"
+				}
+			],
+			"name": "Product Version Level"
+		},
+		{
+			"externalReferenceCode": "LT_PRODUCT_VERSION_TYPE",
+			"listTypeEntries": [
+				{
+					"externalReferenceCode": "LT_PRODUCT_VERSION_TYPE_DIGITAL_ENTERPRISE",
+					"key": "digitalEnterprise",
+					"name": "Digital Enterprise"
+				},
+				{
+					"externalReferenceCode": "LT_PRODUCT_VERSION_TYPE_FIX_PACK",
+					"key": "fixPack",
+					"name": "Fix Pack"
+				},
+				{
+					"externalReferenceCode": "LT_PRODUCT_VERSION_TYPE_GENERAL_AVAILABILITY",
+					"key": "generalAvailability",
+					"name": "General Availability"
+				},
+				{
+					"externalReferenceCode": "LT_PRODUCT_VERSION_TYPE_QUARTERLY",
+					"key": "quarterly",
+					"name": "Quarterly"
+				},
+				{
+					"externalReferenceCode": "LT_PRODUCT_VERSION_TYPE_SERVICE_PACK",
+					"key": "servicePack",
+					"name": "Service Pack"
+				},
+				{
+					"externalReferenceCode": "LT_PRODUCT_VERSION_TYPE_UPDATE",
+					"key": "update",
+					"name": "Update"
+				}
+			],
+			"name": "Product Version Type"
+		},
+		{
 			"externalReferenceCode": "LT_PUBLISHER_ASSET_ATTACHMENT_TYPE",
 			"listTypeEntries": [
 				{
@@ -376,11 +459,6 @@
 					"name": "Completed"
 				},
 				{
-					"externalReferenceCode": "LT_REQUEST_STATUS_IN_PROGRESS",
-					"key": "inProgress",
-					"name": "In Progress"
-				},
-				{
 					"externalReferenceCode": "LT_REQUEST_STATUS_OPEN",
 					"key": "open",
 					"name": "Open"
@@ -418,6 +496,27 @@
 				}
 			],
 			"name": "Trial Extension Request Status"
+		},
+		{
+			"externalReferenceCode": "LT_USAGE_REPORT_REVIEW_STATUS",
+			"listTypeEntries": [
+				{
+					"externalReferenceCode": "LT_USAGE_REPORT_REVIEW_STATUS_APPROVED",
+					"key": "approved",
+					"name": "Approved"
+				},
+				{
+					"externalReferenceCode": "LT_USAGE_REPORT_REVIEW_STATUS_COMPLETED",
+					"key": "completed",
+					"name": "Completed"
+				},
+				{
+					"externalReferenceCode": "LT_USAGE_REPORT_REVIEW_STATUS_READY_FOR_REVIEW",
+					"key": "readyForReview",
+					"name": "Ready for Review"
+				}
+			],
+			"name": "Usage Report Review Status"
 		}
 	]
 }

@@ -268,8 +268,7 @@ definition {
 	@priority = 3
 	test CanNotFilterAssetByTypeWhenDisableIndexAllArticleVersionsEnabled {
 		task ("Given a site administrator disable Index All Article Versions Enabled") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
+			ApplicationsMenu.gotoRootPortlet(
 				panel = "Control Panel",
 				portlet = "Instance Settings");
 
@@ -928,6 +927,8 @@ definition {
 
 			MenuItem.click(menuItem = "Expire");
 
+			Alert.viewSuccessMessage();
+
 			LexiconList.checkListCheckbox(listEntry = "Web Content Title Version 3");
 
 			ManagementBar.clickInfo();
@@ -1163,7 +1164,7 @@ definition {
 			LexiconTable.viewTableEntryInfo(
 				columnName = "scope",
 				tableEntry = "WC Structure Name",
-				tableEntryInfo = "Asset Library");
+				tableEntryInfo = "Asset Library or Space");
 		}
 	}
 

@@ -25,6 +25,5 @@ ViewRelatedAssetsSectionDisplayContext viewRelatedAssetsSectionDisplayContext = 
 		propsTransformer="{RelatedAssetsFDSPropsTransformer} from site-cms-site-initializer"
 		selectedItemsKey="embedded.id"
 		showPagination="<%= false %>"
-		showSearch="<%= false %>"
 	/>
 </div>

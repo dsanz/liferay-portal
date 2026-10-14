@@ -5,17 +5,25 @@
 
 import {FrameLocator, Locator, Page, expect} from '@playwright/test';
 
+import {clickAndExpectToBeVisible} from '../../../utils/clickAndExpectToBeVisible';
+
 export class CommerceAdminProductDetailsPage {
 	readonly addExistingSpecificationValueTextbox: Locator;
 	readonly addSpecification: Locator;
 	readonly addSpecificationFrame: FrameLocator;
 	readonly backLink: Locator;
 	readonly closeEditFrame: Locator;
+	readonly convertToDraftMenuItem: Locator;
 	readonly createNewSpecificationProduct: Locator;
 	readonly createNewValueSpecificationProduct: Locator;
 	readonly dropdownProductSpecification: (
 		chooseEditOrDelete: string
 	) => Promise<Locator>;
+	readonly duplicateCatalogInput: Locator;
+	readonly duplicateCatalogMenuItem: (catalogName: string) => Locator;
+	readonly duplicateFrame: FrameLocator;
+	readonly duplicateMenuItem: Locator;
+	readonly duplicateSubmitButton: Locator;
 	readonly editFrameSaveButton: Locator;
 	readonly editFrameSpecificationProduct: (
 		specificationValue: string
@@ -32,6 +40,7 @@ export class CommerceAdminProductDetailsPage {
 	) => Promise<string[]>;
 	readonly frameDropdownSpecification: Locator;
 	readonly frameSubmitSpecification: Locator;
+	readonly headerActionsButton: Locator;
 	readonly menuItemSpecification: (chooseAddOrCreate: string) => Locator;
 	readonly nameInputLocaleSelector: Locator;
 	readonly page: Page;
@@ -44,10 +53,13 @@ export class CommerceAdminProductDetailsPage {
 	readonly productOptionsLink: Locator;
 	readonly productRelationsLink: Locator;
 	readonly productSkusLink: Locator;
+	readonly productTitle: (productName: string) => Locator;
 	readonly productVisibilityLink: Locator;
 	readonly publishLink: Locator;
+	readonly saveAsDraftLink: Locator;
 	readonly textTableCell: (text: string) => Locator;
 	readonly visibleToggle: Locator;
+	readonly workflowStatusLabel: (status: string) => Locator;
 
 	constructor(page: Page) {
 		this.addSpecification = page
@@ -61,6 +73,10 @@ export class CommerceAdminProductDetailsPage {
 			.frameLocator('iframe')
 			.getByRole('button')
 			.first();
+		this.convertToDraftMenuItem = page.getByRole('menuitem', {
+			exact: true,
+			name: 'Convert to Draft',
+		});
 		this.createNewSpecificationProduct =
 			this.addSpecificationFrame.getByPlaceholder('Specification');
 		this.createNewValueSpecificationProduct = this.addSpecificationFrame
@@ -71,6 +87,24 @@ export class CommerceAdminProductDetailsPage {
 		) => {
 			return page.getByRole('menuitem', {name: chooseEditOrDelete});
 		};
+		this.duplicateFrame = page
+			.getByRole('dialog', {exact: true, name: 'Duplicate'})
+			.frameLocator('iframe');
+		this.duplicateCatalogInput =
+			this.duplicateFrame.getByPlaceholder('Type Here');
+		this.duplicateCatalogMenuItem = (catalogName: string) =>
+			this.duplicateFrame.getByRole('menuitem', {
+				exact: true,
+				name: catalogName,
+			});
+		this.duplicateMenuItem = page.getByRole('menuitem', {
+			exact: true,
+			name: 'Duplicate',
+		});
+		this.duplicateSubmitButton = this.duplicateFrame.getByRole('button', {
+			exact: true,
+			name: 'Submit',
+		});
 		this.editFrameSpecificationProduct = async (
 			specificationValue: string
 		) => {
@@ -120,6 +154,10 @@ export class CommerceAdminProductDetailsPage {
 			'button',
 			{name: 'Submit'}
 		);
+		this.headerActionsButton = page.getByRole('button', {
+			exact: true,
+			name: 'Actions',
+		});
 		this.menuItemSpecification = (chooseAddOrCreate: string) => {
 			return page.getByRole('menuitem', {name: chooseAddOrCreate});
 		};
@@ -152,10 +190,16 @@ export class CommerceAdminProductDetailsPage {
 		this.productSkusLink = page.getByRole('link', {
 			name: 'Skus',
 		});
+		this.productTitle = (productName: string) =>
+			page.getByRole('heading', {exact: true, name: productName});
 		this.productVisibilityLink = page.getByRole('link', {
 			name: 'Visibility',
 		});
 		this.publishLink = page.getByRole('link', {name: 'Publish'});
+		this.saveAsDraftLink = page.getByRole('link', {
+			exact: true,
+			name: 'Save as Draft',
+		});
 		this.textTableCell = (text: string) =>
 			this.page.getByRole('cell', {
 				exact: true,
@@ -165,6 +209,8 @@ export class CommerceAdminProductDetailsPage {
 			'Visible',
 			{exact: true}
 		);
+		this.workflowStatusLabel = (status: string) =>
+			page.locator('.workflow-status', {hasText: status});
 	}
 
 	async addExistingProductSpecification(
@@ -203,6 +249,28 @@ export class CommerceAdminProductDetailsPage {
 		await this.frameSubmitSpecification.click();
 	}
 
+	async convertToDraft() {
+		const messagePromise = this.page
+			.waitForEvent('dialog')
+			.then(async (dialog) => {
+				const message = dialog.message();
+
+				await dialog.accept();
+
+				return message;
+			});
+
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: this.convertToDraftMenuItem,
+			trigger: this.headerActionsButton,
+		});
+
+		await expect(this.workflowStatusLabel('Draft')).toBeVisible();
+
+		return messagePromise;
+	}
+
 	async createSpecificationProduct(
 		chooseAddOrCreate: string,
 		specificationName: string,
@@ -217,6 +285,22 @@ export class CommerceAdminProductDetailsPage {
 			);
 		}
 		await this.frameSubmitSpecification.click();
+	}
+
+	async duplicate(catalogName: string) {
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: this.duplicateMenuItem,
+			trigger: this.headerActionsButton,
+		});
+
+		await this.duplicateCatalogInput.fill(catalogName);
+
+		await this.duplicateCatalogMenuItem(catalogName).click();
+
+		await this.duplicateSubmitButton.click();
+
+		await expect(this.workflowStatusLabel('Draft')).toBeVisible();
 	}
 
 	async editOrDeleteProductSpecification(
@@ -258,5 +342,32 @@ export class CommerceAdminProductDetailsPage {
 
 	async goToProductVisibility() {
 		await this.productVisibilityLink.click();
+	}
+
+	async publish() {
+		const publishAlert = this.page
+			.locator('.alert-success')
+			.filter({
+				hasText: 'Success:Your request completed successfully.',
+			})
+			.first();
+
+		await expect(async () => {
+			if (await publishAlert.isHidden()) {
+				await this.publishLink.click({timeout: 5000});
+			}
+
+			await expect(publishAlert).toBeVisible({timeout: 5000});
+		}).toPass({timeout: 30000});
+
+		return publishAlert;
+	}
+
+	async saveAsDraft() {
+		await this.page.waitForLoadState('networkidle');
+
+		await this.saveAsDraftLink.click();
+
+		await expect(this.workflowStatusLabel('Draft')).toBeVisible();
 	}
 }

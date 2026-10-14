@@ -22,7 +22,7 @@
 		}
 
 		+ .load-more-container {
-			border-top: 1px solid $mainLighten74;
+			border-top: 1px solid var(--gray-300);
 		}
 	}
 
@@ -32,8 +32,8 @@
 
 	.search-bar-root {
 		.management-bar {
-			border-bottom: 1px solid $mainLighten74;
-			border-top: 1px solid $mainLighten74;
+			border-bottom: 1px solid var(--gray-300);
+			border-top: 1px solid var(--gray-300);
 			margin-bottom: 0;
 
 			.navbar-text {

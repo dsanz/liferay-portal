@@ -47,22 +47,22 @@ public class EditProfileDisplayContext {
 		_renderRequest = renderRequest;
 	}
 
-	public Map<String, Object> getAdditionalProps() {
-		return HashMapBuilder.<String, Object>put(
-			"profileERC", _getProfileERC()
-		).build();
-	}
-
 	public String getAPIURL() {
 		String apiURL = HttpComponentsUtil.addParameter(
 			"/o/mcp/server-profile-tools", "fields",
-			"externalReferenceCode,toolName,toolSetName");
+			"externalReferenceCode,restrictFields,toolName,toolSetName");
 
 		return HttpComponentsUtil.addParameter(
 			apiURL, "filter",
 			StringBundler.concat(
 				"r_mcpServerProfileToTools_l_mcpServerProfileERC eq '",
 				StringUtil.replace(_getProfileERC(), '\'', "''"), "'"));
+	}
+
+	public Map<String, Object> getAdditionalProps() {
+		return HashMapBuilder.<String, Object>put(
+			"profileERC", _getProfileERC()
+		).build();
 	}
 
 	public String getBackURL() {
@@ -102,6 +102,10 @@ public class EditProfileDisplayContext {
 
 	public List<FDSActionDropdownItem> getFDSActionDropdownItems() {
 		return List.of(
+			new FDSActionDropdownItem(
+				"#", "low-vision", "restrict-fields",
+				LanguageUtil.get(_httpServletRequest, "restrict-fields"), "get",
+				null, null),
 			new FDSActionDropdownItem(
 				"#", "times-circle", "remove",
 				LanguageUtil.get(_httpServletRequest, "remove"), "get", null,

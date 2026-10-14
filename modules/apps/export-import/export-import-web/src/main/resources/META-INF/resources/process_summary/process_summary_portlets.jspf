@@ -162,7 +162,7 @@
 							</c:if>
 
 							<c:if test="<%= !Validator.isNull(assetTitle) %>">
-								<label><liferay-ui:message key="title" />: <%= assetTitle %></label>
+								<label><liferay-ui:message key="title" />: <%= HtmlUtil.escape(assetTitle) %></label>
 							</c:if>
 						</div>
 

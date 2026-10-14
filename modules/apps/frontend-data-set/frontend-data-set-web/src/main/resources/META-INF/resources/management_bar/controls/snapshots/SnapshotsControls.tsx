@@ -7,6 +7,7 @@ import ClayButton from '@clayui/button';
 import ClayDropDown from '@clayui/drop-down';
 import ClayForm, {ClayInput} from '@clayui/form';
 import ClayIcon from '@clayui/icon';
+import ClayLabel from '@clayui/label';
 import ClayModal from '@clayui/modal';
 import {
 	ManagementToolbar,
@@ -18,6 +19,7 @@ import React, {Ref, useContext, useMemo, useRef, useState} from 'react';
 
 import FrontendDataSetContext from '../../../FrontendDataSetContext';
 import {DEFAULT_FETCH_HEADERS} from '../../../constants';
+import {IConnectedFDSState} from '../../../utils/connection/types';
 import getRandomId from '../../../utils/getRandomId';
 import ViewsContext, {ISnapshot, ISnapshots} from '../../../views/ViewsContext';
 import {EViewsActionTypes} from '../../../views/viewsReducer';
@@ -194,7 +196,10 @@ const SnapshotsControls = () => {
 		namespace,
 		onSnapshotChange,
 		portletId,
+		updateUserConfiguration,
 	} = useContext(FrontendDataSetContext);
+
+	const {appliedCustomConfigs} = globalFDSState as IConnectedFDSState;
 
 	const [
 		{
@@ -205,6 +210,7 @@ const SnapshotsControls = () => {
 			snapshotUpdated,
 			snapshots,
 			sorts,
+			userConfiguration,
 			visibleFieldNames,
 		},
 		viewsDispatch,
@@ -313,6 +319,7 @@ const SnapshotsControls = () => {
 			portletId,
 			viewConfig: JSON.stringify({
 				activeView,
+				customConfigs: appliedCustomConfigs,
 				filters: globalFDSState.filters,
 				paginationDelta,
 				sorts,
@@ -537,6 +544,33 @@ const SnapshotsControls = () => {
 		});
 	};
 
+	const setInitialDataSetSnapshotERC = () => {
+		if (!activeSnapshot) {
+			return;
+		}
+
+		updateUserConfiguration({
+			...userConfiguration,
+			initialDataSetSnapshotERC: activeSnapshot.erc,
+		})
+			.then(() => {
+				openToast({
+					message: Liferay.Language.get(
+						'the-user-view-was-set-as-the-initial-view'
+					),
+					type: 'success',
+				});
+			})
+			.catch(() => {
+				openToast({
+					message: Liferay.Language.get(
+						'an-unexpected-error-occurred'
+					),
+					type: 'danger',
+				});
+			});
+	};
+
 	return (
 		<>
 			<ManagementToolbar.Item>
@@ -646,6 +680,19 @@ const SnapshotsControls = () => {
 												}
 											>
 												{snapshot.label}
+
+												{snapshot.erc ===
+													userConfiguration?.initialDataSetSnapshotERC && (
+													<ClayLabel
+														aria-hidden="true"
+														className="ml-2"
+														displayType="info"
+													>
+														{Liferay.Language.get(
+															'initial-view'
+														)}
+													</ClayLabel>
+												)}
 											</ClayDropDown.Item>
 										);
 									})}
@@ -700,6 +747,23 @@ const SnapshotsControls = () => {
 						>
 							{Liferay.Language.get('save-view-as')}
 						</ClayDropDown.Item>
+
+						{activeSnapshotERC &&
+							activeSnapshotERC !==
+								userConfiguration?.initialDataSetSnapshotERC && (
+								<ClayDropDown.Item
+									onClick={() => {
+										setInitialDataSetSnapshotERC();
+
+										setActionsDropdownActive(false);
+									}}
+									symbolLeft="star"
+								>
+									{Liferay.Language.get(
+										'set-as-initial-view'
+									)}
+								</ClayDropDown.Item>
+							)}
 
 						{activeSnapshotERC && isActiveSnapshotOwned && (
 							<>

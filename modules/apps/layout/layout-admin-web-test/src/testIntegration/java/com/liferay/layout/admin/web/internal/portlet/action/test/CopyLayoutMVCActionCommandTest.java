@@ -79,6 +79,7 @@ import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 import com.liferay.segments.service.SegmentsExperienceLocalService;
 import com.liferay.site.navigation.constants.SiteNavigationConstants;
 import com.liferay.site.navigation.model.SiteNavigationMenu;
+import com.liferay.site.navigation.model.SiteNavigationMenuItem;
 import com.liferay.site.navigation.service.SiteNavigationMenuItemLocalService;
 import com.liferay.site.navigation.service.SiteNavigationMenuLocalService;
 
@@ -262,29 +263,13 @@ public class CopyLayoutMVCActionCommandTest {
 				String.valueOf(siteNavigationMenu.getSiteNavigationMenuId())
 			).build());
 
-		long navigationItemCount =
-			_siteNavigationMenuItemLocalService.getSiteNavigationMenuItemsCount(
+		List<SiteNavigationMenuItem> siteNavigationMenuItems =
+			_siteNavigationMenuItemLocalService.getSiteNavigationMenuItems(
 				siteNavigationMenu.getSiteNavigationMenuId());
 
-		Assert.assertEquals(1, navigationItemCount);
-	}
-
-	@Test
-	public void testCopyLayoutWithoutPermissions() throws Exception {
-		_addFragmentEntryLinkToLayout(null);
-
-		User user = _userLocalService.getDefaultUser(_group.getCompanyId());
-
-		try (ContextUserReplace contextUserReplace = new ContextUserReplace(
-				user, PermissionCheckerFactoryUtil.create(user))) {
-
-			Exception exception = Assert.assertThrows(
-				PortletException.class,
-				() -> _processAction(false, Collections.emptyMap(), user));
-
-			Assert.assertTrue(
-				exception.getCause() instanceof PrincipalException);
-		}
+		Assert.assertEquals(
+			siteNavigationMenuItems.toString(), 1,
+			siteNavigationMenuItems.size());
 	}
 
 	@Test
@@ -327,6 +312,24 @@ public class CopyLayoutMVCActionCommandTest {
 			count,
 			_segmentsExperienceLocalService.getSegmentsExperiencesCount(
 				_group.getGroupId(), draftLayout.getPlid()));
+	}
+
+	@Test
+	public void testCopyLayoutWithoutPermissions() throws Exception {
+		_addFragmentEntryLinkToLayout(null);
+
+		User user = _userLocalService.getDefaultUser(_group.getCompanyId());
+
+		try (ContextUserReplace contextUserReplace = new ContextUserReplace(
+				user, PermissionCheckerFactoryUtil.create(user))) {
+
+			Exception exception = Assert.assertThrows(
+				PortletException.class,
+				() -> _processAction(false, Collections.emptyMap(), user));
+
+			Assert.assertTrue(
+				exception.getCause() instanceof PrincipalException);
+		}
 	}
 
 	private void _addFragmentEntryLinkToLayout(String editableValues)

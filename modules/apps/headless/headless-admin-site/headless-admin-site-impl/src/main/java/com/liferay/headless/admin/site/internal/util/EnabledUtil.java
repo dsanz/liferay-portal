@@ -28,11 +28,17 @@ public class EnabledUtil {
 			company.getCompanyId(), "LPD-76864");
 	}
 
-	public static void checkEnabled(Company company) {
-		checkEnabled(company, false);
+	public static void checkDesignLibrariesEnabled(Company company) {
+		FeatureFlagManagerUtil.checkEnabled(
+			company.getCompanyId(), "LPD-57283");
 	}
 
-	public static void checkEnabled(Company company, boolean privateLayout) {
+	public static void checkPageSpecificationVersionEnabled(Company company) {
+		FeatureFlagManagerUtil.checkEnabled(
+			company.getCompanyId(), "LPD-10622");
+	}
+
+	public static void checkPrivateLayoutEnabled(Company company) {
 		if (LazyReferencingThreadLocal.isEnabled() ||
 			ExportImportThreadLocal.isExportInProcess() ||
 			ExportImportThreadLocal.isImportInProcess() ||
@@ -42,17 +48,7 @@ public class EnabledUtil {
 		}
 
 		FeatureFlagManagerUtil.checkEnabled(
-			company.getCompanyId(), "LPD-35443");
-
-		if (privateLayout) {
-			FeatureFlagManagerUtil.checkEnabled(
-				company.getCompanyId(), "LPD-38869");
-		}
-	}
-
-	public static void checkPageSpecificationVersionEnabled(Company company) {
-		FeatureFlagManagerUtil.checkEnabled(
-			company.getCompanyId(), "LPD-10622");
+			company.getCompanyId(), "LPD-38869");
 	}
 
 }

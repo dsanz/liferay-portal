@@ -8,17 +8,21 @@ import ClayEmptyState from '@clayui/empty-state';
 import {ClayVerticalNav} from '@clayui/nav';
 import ClaySticker from '@clayui/sticker';
 import {SearchResultsMessage} from '@liferay/layout-js-components-web';
+import classNames from 'classnames';
+import {useId} from 'frontend-js-components-web';
 import {sub} from 'frontend-js-web';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 import SideNavigationColorSchemeButton from './SideNavigationColorSchemeButton';
 import SideNavigationItemContent from './SideNavigationItemContent';
 import SideNavigationResultsSkeleton from './SideNavigationResultsSkeleton';
+import SideNavigationScopeItem from './SideNavigationScopeItem';
 import SideNavigationSearchInput from './SideNavigationSearchInput';
 import SideNavigationSiteSelector from './SideNavigationSiteSelector';
 import {SideNavigationItem} from './types/SideNavigation';
 import {useSideNavigationFilter} from './useSideNavigationFilter';
 import {useSideNavigationItems} from './useSideNavigationItems';
+import {useSideNavigationStuck} from './useSideNavigationStuck';
 
 interface Props {
 	canonicalName: string;
@@ -81,6 +85,10 @@ function SideNavigation({
 		useState<Set<React.Key>>(initialExpandedKeys);
 
 	const [visible, setVisible] = useState(initialVisible);
+
+	const baseId = useId();
+
+	const scrollRef = useRef<HTMLDivElement>(null);
 
 	const {
 		items: navigationItems,
@@ -163,6 +171,8 @@ function SideNavigation({
 
 	const showResultsSkeleton = isFilterActive && loading && !numberOfResults;
 
+	const stuck = useSideNavigationStuck(scrollRef, items);
+
 	return (
 		<SidePanel
 			aria-label={sub(Liferay.Language.get('x-menu'), label)}
@@ -231,68 +241,96 @@ function SideNavigation({
 				</SidePanel.Title>
 			</SidePanel.Header>
 
-			<SidePanel.Body className="c-pt-2 c-px-0">
-				<SideNavigationSearchInput
-					onChange={setQuery}
-					onFocus={prefetchFilterOnlyItems}
-				/>
+			<SideNavigationSearchInput
+				onChange={setQuery}
+				onFocus={prefetchFilterOnlyItems}
+			/>
 
-				<SearchResultsMessage
-					numberOfResults={
-						showResultsSkeleton ? null : numberOfResults
-					}
-					resultType={Liferay.Language.get('navigation-items')}
-				/>
+			<SearchResultsMessage
+				numberOfResults={showResultsSkeleton ? null : numberOfResults}
+				resultType={Liferay.Language.get('navigation-items')}
+			/>
 
-				{showResultsSkeleton ? (
-					<SideNavigationResultsSkeleton />
-				) : numberOfResults ? (
-					<ClayVerticalNav
-						active={selectedPortletId}
-						defaultExpandedKeys={initialExpandedKeys}
-						displayType="primary"
-						expandedKeys={effectiveExpandedKeys}
-						itemAriaCurrent={true}
-						items={items}
-						onExpandedChange={updateExpandedKeys}
-						stacked={true}
-					>
-						{(item) => {
-							if (typeof item === 'string') {
-								return <span>{item}</span>;
-							}
+			<div
+				className={classNames('side-navigation-scroll', {
+					'side-navigation-scroll-stuck': stuck,
+				})}
+				ref={scrollRef}
+			>
+				<SidePanel.Body className="c-px-0">
+					{showResultsSkeleton ? (
+						<SideNavigationResultsSkeleton />
+					) : numberOfResults ? (
+						<ClayVerticalNav
+							active={selectedPortletId}
+							defaultExpandedKeys={initialExpandedKeys}
+							displayType="primary"
+							expandedKeys={effectiveExpandedKeys}
+							itemAriaCurrent={true}
+							items={items}
+							onExpandedChange={updateExpandedKeys}
+							stacked={true}
+						>
+							{(collectionItem) => {
+								if (typeof collectionItem === 'string') {
+									return <span>{collectionItem}</span>;
+								}
 
-							return (
-								<ClayVerticalNav.Item
-									className={
-										item.parentLabel
-											? 'side-navigation-section-item'
-											: undefined
-									}
-									data-canonical-name={item.canonicalName}
-									href={item.href}
-									items={item.items}
-									key={item.id}
-									textValue={item.label}
-								>
-									<SideNavigationItemContent
-										item={item as SideNavigationItem}
-									/>
-								</ClayVerticalNav.Item>
-							);
-						}}
-					</ClayVerticalNav>
-				) : (
-					<ClayEmptyState
-						className="c-mt-n2 c-px-4 text-center"
-						description={Liferay.Language.get(
-							'adjust-or-clear-the-search-to-view-all-navigation-items'
-						)}
-						small
-						title={Liferay.Language.get('no-matching-items')}
-					/>
-				)}
-			</SidePanel.Body>
+								const item =
+									collectionItem as SideNavigationItem;
+								const scopeItemId = `${baseId}-${item.scope}`;
+
+								if (item.scopeMarker && item.scope) {
+									return (
+										<SideNavigationScopeItem
+											id={scopeItemId}
+											key={item.id}
+											label={item.label}
+											scope={item.scope}
+										/>
+									);
+								}
+
+								return (
+									<ClayVerticalNav.Item
+										aria-describedby={
+											item.scope ? scopeItemId : undefined
+										}
+										className={classNames({
+											'side-navigation-scope-zone':
+												item.scope,
+											[`side-navigation-scope-zone-${item.scope}`]:
+												item.scope,
+											'side-navigation-section-item':
+												item.parentLabel,
+										})}
+										data-canonical-name={item.canonicalName}
+										href={item.href}
+										items={item.items}
+										key={item.id}
+										textValue={item.label}
+									>
+										<SideNavigationItemContent
+											item={item}
+										/>
+									</ClayVerticalNav.Item>
+								);
+							}}
+						</ClayVerticalNav>
+					) : (
+						<ClayEmptyState
+							className="c-mt-n2 c-px-4 text-center"
+							description={Liferay.Language.get(
+								'adjust-or-clear-the-search-to-view-all-navigation-items'
+							)}
+							small
+							title={Liferay.Language.get('no-matching-items')}
+						/>
+					)}
+				</SidePanel.Body>
+
+				<div className="side-navigation-scroll-shadow" />
+			</div>
 		</SidePanel>
 	);
 }

@@ -44,7 +44,8 @@ public interface AssetTagGroupRelService extends BaseService {
 	 *
 	 * Never modify this interface directly. Add custom service methods to <code>com.liferay.portlet.asset.service.impl.AssetTagGroupRelServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface. Consume the asset tag group rel remote service via injection or a <code>org.osgi.util.tracker.ServiceTracker</code>. Use {@link AssetTagGroupRelServiceUtil} if injection and service tracking are not available.
 	 */
-	public AssetTagGroupRel addAssetTagGroupRel(long groupId, long tagId)
+	public AssetTagGroupRel addAssetTagGroupRel(
+			long groupId, long tagId, int depotEntryType)
 		throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -58,8 +59,9 @@ public interface AssetTagGroupRelService extends BaseService {
 	 */
 	public String getOSGiServiceIdentifier();
 
-	public void setAssetTagGroupRels(long tagId, long[] groupIds)
+	public void setAssetTagGroupRels(
+			long tagId, long[] groupIds, int depotEntryType)
 		throws PortalException;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:174110848
+// LIFERAY-SERVICE-BUILDER-HASH:221438804

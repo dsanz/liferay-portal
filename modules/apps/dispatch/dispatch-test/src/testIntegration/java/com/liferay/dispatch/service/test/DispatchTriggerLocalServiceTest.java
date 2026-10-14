@@ -24,7 +24,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.cache.PortalCache;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
-import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.model.CacheModel;
 import com.liferay.portal.kernel.model.Company;
@@ -40,6 +39,7 @@ import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.CalendarFactoryUtil;
+import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.SystemProperties;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.UnicodeProperties;
@@ -55,9 +55,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 
@@ -171,9 +169,10 @@ public class DispatchTriggerLocalServiceTest {
 
 		TimeZone timeZone = TimeZone.getTimeZone(timeZoneId);
 
-		Assert.assertEquals(
-			dispatchTrigger.getStartDate(),
-			new Date(date.getTime() - timeZone.getOffset(date.getTime())));
+		Assert.assertTrue(
+			DateUtil.equals(
+				dispatchTrigger.getStartDate(),
+				new Date(date.getTime() - timeZone.getOffset(date.getTime()))));
 
 		Assert.assertEquals(dispatchTrigger.getTimeZoneStartDate(), date);
 
@@ -252,10 +251,9 @@ public class DispatchTriggerLocalServiceTest {
 			0,
 			_dispatchLogLocalService.getDispatchLogsCount(
 				dispatchTrigger.getDispatchTriggerId()));
-		Assert.assertEquals(
-			0,
-			_dispatchTriggerLocalService.getUserDispatchTriggersCount(
-				user.getCompanyId(), user.getUserId()));
+		Assert.assertNull(
+			_dispatchTriggerLocalService.fetchDispatchTrigger(
+				dispatchTrigger.getDispatchTriggerId()));
 	}
 
 	@Test
@@ -332,51 +330,6 @@ public class DispatchTriggerLocalServiceTest {
 				singleNodeDispatchTaskClusterModes.contains(
 					DispatchTaskClusterMode.valueOf(
 						dispatchTrigger.getDispatchTaskClusterMode())));
-		}
-	}
-
-	@Test
-	public void testGetUserDispatchTriggers() throws Exception {
-		Map<User, Integer> userDispatchTriggersCounts = new HashMap<>();
-
-		for (int i = 0; i < 3; i++) {
-			User user = UserTestUtil.addUser();
-
-			int dispatchTriggersCount = RandomTestUtil.randomInt(5, 15);
-
-			userDispatchTriggersCounts.put(user, dispatchTriggersCount);
-
-			while (dispatchTriggersCount-- > 0) {
-				_addDispatchTrigger(
-					DispatchTriggerTestUtil.randomDispatchTrigger(
-						user, _getRandomDispatchExecutorType(),
-						RandomTestUtil.nextInt()));
-			}
-		}
-
-		for (Map.Entry<User, Integer> userDispatchTriggersCountEntry :
-				userDispatchTriggersCounts.entrySet()) {
-
-			User user = userDispatchTriggersCountEntry.getKey();
-			Integer count = userDispatchTriggersCountEntry.getValue();
-
-			Assert.assertEquals(
-				count.intValue(),
-				_dispatchTriggerLocalService.getUserDispatchTriggersCount(
-					user.getCompanyId(), user.getUserId()));
-
-			List<DispatchTrigger> userDispatchTriggers =
-				_dispatchTriggerLocalService.getUserDispatchTriggers(
-					user.getCompanyId(), user.getUserId(), QueryUtil.ALL_POS,
-					QueryUtil.ALL_POS);
-
-			for (DispatchTrigger dispatchTrigger : userDispatchTriggers) {
-				Assert.assertEquals(
-					user.getUserId(), dispatchTrigger.getUserId());
-				Assert.assertEquals(
-					DispatchTaskStatus.NEVER_RAN,
-					dispatchTrigger.getDispatchTaskStatus());
-			}
 		}
 	}
 

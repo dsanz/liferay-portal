@@ -361,11 +361,14 @@ public class CPOptionLocalServiceUtil {
 	}
 
 	public static CPOption getOrAddEmptyCPOption(
-			String externalReferenceCode, long companyId, long userId)
+			String externalReferenceCode, long companyId, long userId,
+			Map<java.util.Locale, String> nameMap, String commerceOptionTypeKey,
+			boolean skuContributor, String key)
 		throws PortalException {
 
 		return getService().getOrAddEmptyCPOption(
-			externalReferenceCode, companyId, userId);
+			externalReferenceCode, companyId, userId, nameMap,
+			commerceOptionTypeKey, skuContributor, key);
 	}
 
 	/**
@@ -440,4 +443,4 @@ public class CPOptionLocalServiceUtil {
 			CPOptionLocalServiceUtil.class, CPOptionLocalService.class);
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:1537211176
+// LIFERAY-SERVICE-BUILDER-HASH:512829781

@@ -271,9 +271,12 @@ public class LayoutStructureRenderer {
 	private void _renderCol(
 			CollectionStyledLayoutStructureItem
 				collectionStyledLayoutStructureItem,
-			int index, InfoForm infoForm, InfoItemDetails infoItemDetails)
+			int index, InfoForm infoForm, Object infoItem,
+			InfoItemDetails infoItemDetails)
 		throws Exception {
 
+		_httpServletRequest.setAttribute(
+			InfoDisplayWebKeys.COLLECTION_INFO_ITEM, infoItem);
 		_httpServletRequest.setAttribute(
 			InfoDisplayWebKeys.INFO_ITEM_REFERENCE,
 			infoItemDetails.getInfoItemReference());
@@ -536,6 +539,8 @@ public class LayoutStructureRenderer {
 				renderCollectionLayoutStructureItemDisplayContext)
 		throws Exception {
 
+		Object currentInfoItem = _httpServletRequest.getAttribute(
+			InfoDisplayWebKeys.COLLECTION_INFO_ITEM);
 		InfoItemReference currentInfoItemReference =
 			(InfoItemReference)_httpServletRequest.getAttribute(
 				InfoDisplayWebKeys.INFO_ITEM_REFERENCE);
@@ -617,7 +622,7 @@ public class LayoutStructureRenderer {
 
 					_renderCol(
 						collectionStyledLayoutStructureItem,
-						i % numberOfColumns, infoForm,
+						i % numberOfColumns, infoForm, collection.get(i),
 						infoItemDetailsProvider.getInfoItemDetails(
 							collection.get(i)));
 				}
@@ -649,6 +654,7 @@ public class LayoutStructureRenderer {
 
 						_renderCol(
 							collectionStyledLayoutStructureItem, j, infoForm,
+							collection.get(index),
 							infoItemDetailsProvider.getInfoItemDetails(
 								collection.get(index)));
 					}
@@ -660,6 +666,8 @@ public class LayoutStructureRenderer {
 			containerTag.doEndTag();
 		}
 		finally {
+			_httpServletRequest.setAttribute(
+				InfoDisplayWebKeys.COLLECTION_INFO_ITEM, currentInfoItem);
 			_httpServletRequest.setAttribute(
 				InfoDisplayWebKeys.INFO_ITEM_REFERENCE,
 				currentInfoItemReference);
@@ -1061,7 +1069,7 @@ public class LayoutStructureRenderer {
 				relatedItemExternalReferenceCode);
 
 			String formRelationshipStyledLayoutStructureItemContentId =
-				PortalUUIDUtil.generate();
+				PortalUtil.getUniqueElementId();
 
 			if (layoutDisplayPageObjectProvider == null) {
 				_renderFormRelationshipStyledLayoutStructureItemContent(
@@ -1603,8 +1611,9 @@ public class LayoutStructureRenderer {
 
 		if (fragmentStyledLayoutStructureItem.getFragmentEntryLinkId() > 0) {
 			FragmentEntryLink fragmentEntryLink =
-				FragmentEntryLinkLocalServiceUtil.fetchFragmentEntryLink(
-					fragmentStyledLayoutStructureItem.getFragmentEntryLinkId());
+				_fragmentEntryLinks.computeIfAbsent(
+					fragmentStyledLayoutStructureItem.getFragmentEntryLinkId(),
+					FragmentEntryLinkLocalServiceUtil::fetchFragmentEntryLink);
 
 			if (fragmentEntryLink != null) {
 				DefaultFragmentRendererContext defaultFragmentRendererContext =
@@ -2039,6 +2048,8 @@ public class LayoutStructureRenderer {
 
 	private static final String _INITIAL_UUID_PREFIX = "0000";
 
+	private final Map<Long, FragmentEntryLink> _fragmentEntryLinks =
+		new HashMap<>();
 	private final HttpServletRequest _httpServletRequest;
 	private final LayoutStructure _layoutStructure;
 	private final List<LayoutStructureItemRenderTime>

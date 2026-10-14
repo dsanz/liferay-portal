@@ -37,6 +37,7 @@ describe('Forms Plugin', () => {
 	let duration: number;
 
 	beforeEach(() => {
+		fetchMock.mockGlobal();
 
 		// Force attaching DOM Content Loaded event
 
@@ -77,7 +78,7 @@ describe('Forms Plugin', () => {
 			];
 		}
 
-		fetchMock.mock('*', () => 200);
+		fetchMock.route('*', () => 200);
 
 		Analytics = AnalyticsClient.create(INITIAL_ANALYTICS_CONFIG);
 	});
@@ -86,7 +87,7 @@ describe('Forms Plugin', () => {
 		Analytics.reset();
 		AnalyticsClient.dispose();
 
-		fetchMock.restore();
+		fetchMock.hardReset();
 	});
 
 	describe('formViewed event', () => {

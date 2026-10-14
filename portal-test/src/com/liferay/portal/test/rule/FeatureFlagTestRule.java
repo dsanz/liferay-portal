@@ -5,19 +5,18 @@
 
 package com.liferay.portal.test.rule;
 
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManager;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
-import com.liferay.portal.kernel.feature.flag.constants.FeatureFlagConstants;
 import com.liferay.portal.kernel.module.service.Snapshot;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.rule.AbstractTestRule;
+import com.liferay.portal.kernel.test.util.FeatureFlagTestUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.KeyValuePair;
 import com.liferay.portal.kernel.util.PropsUtil;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -27,35 +26,42 @@ import org.junit.runner.Description;
  * @author Alejandro Tardín
  */
 public class FeatureFlagTestRule
-	extends AbstractTestRule<Map<String, String>, Map<String, String>> {
+	extends AbstractTestRule<SafeCloseable, SafeCloseable> {
 
 	public static final FeatureFlagTestRule INSTANCE =
 		new FeatureFlagTestRule();
 
 	@Override
 	protected void afterClass(
-			Description description, Map<String, String> previousValues)
+			Description description, SafeCloseable safeCloseable)
 		throws Throwable {
 
-		_restoreFeatureFlags(previousValues);
+		safeCloseable.close();
+
+		if (_serviceSupplier == null) {
+			return;
+		}
+
+		Snapshot<FeatureFlagManager> featureFlagManagerSnapshot =
+			ReflectionTestUtil.getFieldValue(
+				FeatureFlagManagerUtil.class, "_featureFlagManagerSnapshot");
 
 		ReflectionTestUtil.setFieldValue(
-			FeatureFlagManagerUtil.class, "_featureFlagManagerSnapshot",
-			new Snapshot<>(
-				FeatureFlagManagerUtil.class, FeatureFlagManager.class));
+			featureFlagManagerSnapshot, "_serviceSupplier", _serviceSupplier);
+
+		_serviceSupplier = null;
 	}
 
 	@Override
 	protected void afterMethod(
-			Description description, Map<String, String> previousValues,
-			Object target)
+			Description description, SafeCloseable safeCloseable, Object target)
 		throws Throwable {
 
-		_restoreFeatureFlags(previousValues);
+		safeCloseable.close();
 	}
 
 	@Override
-	protected Map<String, String> beforeClass(Description description)
+	protected SafeCloseable beforeClass(Description description)
 		throws Throwable {
 
 		Snapshot<FeatureFlagManager> featureFlagManagerSnapshot =
@@ -66,43 +72,29 @@ public class FeatureFlagTestRule
 			featureFlagManagerSnapshot.get();
 
 		if (featureFlagManager != null) {
+			if (_serviceSupplier == null) {
+				_serviceSupplier = ReflectionTestUtil.getFieldValue(
+					featureFlagManagerSnapshot, "_serviceSupplier");
+			}
+
 			ReflectionTestUtil.setFieldValue(
 				featureFlagManagerSnapshot, "_serviceSupplier",
 				(Supplier<Object>)() -> new MockFeatureFlagManager(
 					featureFlagManager));
 		}
 
-		return _updateFeatureFlags(description);
+		return _setFeatureFlags(description);
 	}
 
 	@Override
-	protected Map<String, String> beforeMethod(
-			Description description, Object target)
+	protected SafeCloseable beforeMethod(Description description, Object target)
 		throws Throwable {
 
-		return _updateFeatureFlags(description);
+		return _setFeatureFlags(description);
 	}
 
-	private void _restoreFeatureFlags(Map<String, String> previousValues) {
-		for (Map.Entry<String, String> entry : previousValues.entrySet()) {
-			PropsUtil.set(entry.getKey(), entry.getValue());
-		}
-	}
-
-	private KeyValuePair _updateFeatureFlag(FeatureFlag featureFlag) {
-		String featureFlagKey = FeatureFlagConstants.getKey(
-			featureFlag.value());
-
-		KeyValuePair previousKeyValuePair = new KeyValuePair(
-			featureFlagKey, PropsUtil.get(featureFlagKey));
-
-		PropsUtil.set(featureFlagKey, String.valueOf(featureFlag.enable()));
-
-		return previousKeyValuePair;
-	}
-
-	private Map<String, String> _updateFeatureFlags(Description description) {
-		Map<String, String> previousValues = new HashMap<>();
+	private SafeCloseable _setFeatureFlags(Description description) {
+		List<SafeCloseable> safeCloseables = new ArrayList<>();
 
 		FeatureFlags featureFlags = description.getAnnotation(
 			FeatureFlags.class);
@@ -113,26 +105,28 @@ public class FeatureFlagTestRule
 					continue;
 				}
 
-				KeyValuePair previousKeyValuePair = _updateFeatureFlag(
-					featureFlag);
-
-				previousValues.put(
-					previousKeyValuePair.getKey(),
-					previousKeyValuePair.getValue());
+				safeCloseables.add(
+					FeatureFlagTestUtil.setFeatureFlagsWithSafeCloseable(
+						featureFlag.enable(), featureFlag.value()));
 			}
 		}
 
 		FeatureFlag featureFlag = description.getAnnotation(FeatureFlag.class);
 
 		if (featureFlag != null) {
-			KeyValuePair previousKeyValuePair = _updateFeatureFlag(featureFlag);
-
-			previousValues.put(
-				previousKeyValuePair.getKey(), previousKeyValuePair.getValue());
+			safeCloseables.add(
+				FeatureFlagTestUtil.setFeatureFlagsWithSafeCloseable(
+					featureFlag.enable(), featureFlag.value()));
 		}
 
-		return previousValues;
+		return () -> {
+			for (SafeCloseable safeCloseable : safeCloseables) {
+				safeCloseable.close();
+			}
+		};
 	}
+
+	private Supplier<Object> _serviceSupplier;
 
 	private static class MockFeatureFlagManager implements FeatureFlagManager {
 

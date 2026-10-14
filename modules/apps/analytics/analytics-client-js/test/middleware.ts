@@ -24,7 +24,9 @@ describe('Analytics MiddleWare Integration', () => {
 	let Analytics: AnalyticsClient;
 
 	beforeEach(() => {
-		fetchMock.mock('*', () => 200);
+		fetchMock.mockGlobal();
+
+		fetchMock.route('*', () => 200);
 
 		Analytics = AnalyticsClient.create(INITIAL_CONFIG);
 	});
@@ -33,7 +35,7 @@ describe('Analytics MiddleWare Integration', () => {
 		Analytics.reset();
 		AnalyticsClient.dispose();
 
-		fetchMock.restore();
+		fetchMock.hardReset();
 	});
 
 	describe('registerMiddleware()', () => {

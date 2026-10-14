@@ -21,7 +21,6 @@
 			"label": {
 				"en_US": "MCP Server Profile Data Mask"
 			},
-			"modifiable": true,
 			"name": "MCPServerProfileDataMask",
 			"objectFields": [
 				{
@@ -88,7 +87,7 @@
 					"type": "String"
 				}
 			],
-			"panelCategoryKey": "control_panel.object",
+			"panelCategoryKey": "",
 			"pluralLabel": {
 				"en_US": "MCP Server Profile Data Masks"
 			},

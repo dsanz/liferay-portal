@@ -33,24 +33,25 @@ import selectStructureChildren from '../selectors/selectStructureChildren';
 import selectStructureLocalizedLabel from '../selectors/selectStructureLocalizedLabel';
 import selectStructureUuid from '../selectors/selectStructureUuid';
 import {
+	Group,
 	ReferencedStructure,
 	RelatedContent,
-	RepeatableGroup,
 	Structure,
 	StructureChild,
 } from '../types/Structure';
 import {Uuid} from '../types/Uuid';
 import {FIELD_TYPE_ICON, FieldType} from '../utils/field';
-import handleAddRepeatableGroup from '../utils/handleAddRepeatableGroup';
+import handleAddGroup from '../utils/handleAddGroup';
 import handleDeleteChildren from '../utils/handleDeleteChildren';
 import handleMoveChildren from '../utils/handleMoveChildren';
 import handlePaste from '../utils/handlePaste';
-import handleUngroupRepeatableGroup from '../utils/handleUngroupRepeatableGroup';
+import handleUngroup from '../utils/handleUngroup';
 import isCopyable from '../utils/isCopyable';
 import isField from '../utils/isField';
 import isLocked from '../utils/isLocked';
 import isReferenced from '../utils/isReferenced';
 import isRenamable from '../utils/isRenamable';
+import isRepeatableGroup from '../utils/isRepeatableGroup';
 import AddChildDropdown from './AddChildDropdown';
 
 type TreeItem = {
@@ -70,6 +71,7 @@ type TreeItem = {
 	icon: string;
 	id: Uuid;
 	invalid?: boolean;
+	isRepeatable?: boolean;
 	label: string;
 	locked?: boolean;
 	name?: string;
@@ -77,7 +79,7 @@ type TreeItem = {
 		| FieldType
 		| ReferencedStructure['type']
 		| RelatedContent['type']
-		| RepeatableGroup['type'];
+		| Group['type'];
 };
 
 export type SelectionMode = 'multiple' | 'range' | 'single';
@@ -309,7 +311,7 @@ export default function StructureTree({search}: {search: string}) {
 					return true;
 				}
 
-				if (target.type !== 'repeatable-group') {
+				if (target.type !== 'group') {
 					return false;
 				}
 
@@ -377,7 +379,7 @@ export default function StructureTree({search}: {search: string}) {
 								'structure-builder__tree-node--field-icon':
 									isField(item),
 								'structure-builder__tree-node--group-icon':
-									item.type === 'repeatable-group',
+									item.type === 'group',
 								'structure-builder__tree-node--structure-icon':
 									item.type === 'referenced-structure',
 							})}
@@ -393,8 +395,7 @@ export default function StructureTree({search}: {search: string}) {
 								actions={
 									isBeingRenamed(childItem.id) ? undefined : (
 										<>
-											{childItem.type ===
-												'repeatable-group' &&
+											{childItem.type === 'group' &&
 											!isReferenced({
 												root: structure,
 												uuid: childItem.id,
@@ -482,8 +483,7 @@ function ItemContent({id, item}: {id?: string; item: TreeItem}) {
 				<ItemStatus item={item} />
 			</span>
 
-			{item.type === 'referenced-structure' ||
-			item.type === 'repeatable-group' ? (
+			{item.type === 'referenced-structure' || item.isRepeatable ? (
 				<ClayIcon
 					className="mt-0"
 					data-title={Liferay.Language.get('repeatable')}
@@ -716,7 +716,7 @@ function buildItems({
 	search,
 	structure,
 }: {
-	children: (ReferencedStructure | RepeatableGroup | Structure)['children'];
+	children: (ReferencedStructure | Group | Structure)['children'];
 	clipboard: Clipboard | null;
 	dispatch: React.Dispatch<Action>;
 	invalids: State['invalids'];
@@ -748,7 +748,7 @@ function buildItems({
 			}
 			else if (
 				child.type === 'referenced-structure' ||
-				child.type === 'repeatable-group'
+				child.type === 'group'
 			) {
 				const label = getLocalizedValue(child.label);
 
@@ -773,6 +773,7 @@ function buildItems({
 					icon: 'fieldset',
 					id: child.uuid,
 					invalid: invalids.has(child.uuid),
+					isRepeatable: isRepeatableGroup(child),
 					label,
 					type: child.type,
 				};
@@ -856,25 +857,29 @@ function getItemActions({
 
 	if (isField(item)) {
 		actions.push({
-			label: Liferay.Language.get('create-repeatable-group'),
+			label: Liferay.FeatureFlags['LPD-96666']
+				? Liferay.Language.get('group')
+				: Liferay.Language.get('create-repeatable-group'),
 			onClick: () =>
-				handleAddRepeatableGroup({
+				handleAddGroup({
 					dispatch,
 					publishedChildren,
 					structure,
 					uuids: [item.uuid],
 				}),
-			symbolLeft: 'repeat',
+			symbolLeft: Liferay.FeatureFlags['LPD-96666']
+				? 'fieldset'
+				: 'repeat',
 		});
 
 		actions.push({type: 'divider' as const});
 	}
 
-	if (item.type === 'repeatable-group') {
+	if (item.type === 'group') {
 		actions.push({
 			label: Liferay.Language.get('ungroup'),
 			onClick: () =>
-				handleUngroupRepeatableGroup({
+				handleUngroup({
 					dispatch,
 					publishedChildren,
 					uuid: item.uuid,
@@ -898,7 +903,7 @@ function getItemActions({
 		symbolLeft: 'copy',
 	});
 
-	if (item.type === 'repeatable-group') {
+	if (item.type === 'group') {
 		actions.push({
 			disabled: !clipboard?.items.length,
 			label: Liferay.Language.get('paste'),
@@ -956,14 +961,14 @@ function getRootActions({
 }
 
 function hasReferencedStructureChild(
-	children: (RepeatableGroup | Structure)['children']
+	children: (Group | Structure)['children']
 ): boolean {
 	for (const child of children.values()) {
 		if (child.type === 'referenced-structure') {
 			return true;
 		}
 
-		if (child.type === 'repeatable-group') {
+		if (child.type === 'group') {
 			return hasReferencedStructureChild(child.children);
 		}
 	}

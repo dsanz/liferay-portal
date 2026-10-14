@@ -118,7 +118,7 @@ public class CheckIndividualSegmentsSchedulerJobConfiguration
 					individualSegment.getExternalReferenceCode(),
 					individualSegment.getId(), nameMap, Collections.emptyMap(),
 					true, null, SegmentsEntryConstants.SOURCE_ASAH_FARO_BACKEND,
-					serviceContext);
+					_getType(individualSegment), serviceContext);
 
 				return;
 			}
@@ -126,7 +126,8 @@ public class CheckIndividualSegmentsSchedulerJobConfiguration
 			_segmentsEntryLocalService.updateSegmentsEntry(
 				individualSegment.getExternalReferenceCode(),
 				segmentsEntry.getSegmentsEntryId(), individualSegment.getId(),
-				nameMap, null, true, null, serviceContext);
+				nameMap, null, true, null, _getType(individualSegment),
+				serviceContext);
 		}
 		catch (PortalException portalException) {
 			_log.error(
@@ -315,6 +316,10 @@ public class CheckIndividualSegmentsSchedulerJobConfiguration
 		List<SegmentsEntry> segmentsEntries =
 			_segmentsEntryLocalService.getSegmentsEntriesBySource(
 				SegmentsEntryConstants.SOURCE_ASAH_FARO_BACKEND,
+				new int[] {
+					SegmentsEntryConstants.TYPE_BATCH,
+					SegmentsEntryConstants.TYPE_REAL_TIME
+				},
 				QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 
 		for (SegmentsEntry segmentsEntry : segmentsEntries) {
@@ -328,8 +333,12 @@ public class CheckIndividualSegmentsSchedulerJobConfiguration
 
 		List<SegmentsEntry> segmentsEntries =
 			_segmentsEntryLocalService.getSegmentsEntriesBySource(
-				SegmentsEntryConstants.SOURCE_ASAH_FARO_BACKEND, 0, _DELTA,
-				null);
+				SegmentsEntryConstants.SOURCE_ASAH_FARO_BACKEND,
+				new int[] {
+					SegmentsEntryConstants.TYPE_BATCH,
+					SegmentsEntryConstants.TYPE_REAL_TIME
+				},
+				0, _DELTA, null);
 
 		if (individualSegmentResults.getTotal() > 0) {
 			segmentsEntries = ListUtil.filter(
@@ -386,6 +395,17 @@ public class CheckIndividualSegmentsSchedulerJobConfiguration
 		serviceContext.setUserId(user.getUserId());
 
 		return serviceContext;
+	}
+
+	private int _getType(IndividualSegment individualSegment) {
+		if (Objects.equals(
+				individualSegment.getSegmentType(),
+				IndividualSegment.Type.REAL_TIME.name())) {
+
+			return SegmentsEntryConstants.TYPE_REAL_TIME;
+		}
+
+		return SegmentsEntryConstants.TYPE_BATCH;
 	}
 
 	private Long _getUserId(

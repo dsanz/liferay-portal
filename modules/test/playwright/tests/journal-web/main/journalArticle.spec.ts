@@ -775,9 +775,7 @@ baseTest(
 
 		await journalEditArticlePage.publishArticle();
 
-		await page.getByLabel('Select View, Currently').click();
-
-		await page.getByRole('menuitem', {name: 'Table'}).click();
+		await journalPage.changeView('Table');
 
 		await expect(
 			page.getByRole('cell', {name: 'Description'})
@@ -1983,6 +1981,7 @@ baseTest(
 	'LPD-29527 - Can delete translation of a web content created from a structure with at least one required and non-localizable field',
 	async ({apiHelpers, journalEditArticlePage, journalPage, page, site}) => {
 		const basicTextFieldName = 'Text1234';
+		const catalanContent = getRandomString();
 		const content = getRandomString();
 		const nonLocalizableFieldName = 'TextNonLocalizable';
 		const structureName = 'Structure 1';
@@ -2036,7 +2035,7 @@ baseTest(
 			await fillAndClickOutside(
 				page,
 				page.getByLabel(basicTextFieldName),
-				content
+				catalanContent
 			);
 
 			await translationButton.click();
@@ -2389,6 +2388,63 @@ ckeditor4Test(
 		);
 
 		await expect(satelliteImage).toBeVisible();
+		await expect(satelliteImage).toHaveAttribute('data-fileentryid');
+
+		const satelliteImageFileEntryId = await satelliteImage
+
+			// eslint-disable-next-line @liferay/no-get-data-attribute
+			.getAttribute('data-fileentryid');
+
+		await expect(moonImageFileEntryId).not.toBe(satelliteImageFileEntryId);
+	}
+);
+
+ckeditor4Test(
+	'Replace selected image from toolbar, in editor with "adaptivemedia" plugin',
+	{tag: ['@LPD-106164']},
+	async ({journalEditArticlePage, page, site}) => {
+		await ckeditor4Test.step('Open new Basic Web Content', async () => {
+			await journalEditArticlePage.goto({siteUrl: site.friendlyUrlPath});
+		});
+
+		const ckeditor4Page = new CKEditor4ClassicPage(page);
+
+		await ckeditor4Page.page.getByLabel('Image', {exact: true}).click();
+
+		await ckeditor4Page.selectImageWithItemSelector({
+			cardTitle: 'moon.png',
+		});
+
+		const editableFrame = journalEditArticlePage.page
+			.locator('.edit-article-panel')
+			.frameLocator('iframe[title="editor"]');
+
+		const moonImage = editableFrame.locator(
+			'img[src="/documents/d/guest/moon-png"]'
+		);
+
+		await expect(moonImage).toBeVisible();
+		await expect(moonImage).toHaveAttribute('data-fileentryid');
+
+		const moonImageFileEntryId = await moonImage
+
+			// eslint-disable-next-line @liferay/no-get-data-attribute
+			.getAttribute('data-fileentryid');
+
+		await moonImage.click();
+
+		await ckeditor4Page.page.getByLabel('Image', {exact: true}).click();
+
+		await ckeditor4Page.selectImageWithItemSelector({
+			cardTitle: 'satellite.png',
+		});
+
+		const satelliteImage = editableFrame.locator(
+			'img[src="/documents/d/guest/satellite-png"]'
+		);
+
+		await expect(satelliteImage).toBeVisible();
+		await expect(moonImage).toHaveCount(0);
 		await expect(satelliteImage).toHaveAttribute('data-fileentryid');
 
 		const satelliteImageFileEntryId = await satelliteImage

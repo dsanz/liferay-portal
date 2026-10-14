@@ -233,7 +233,6 @@ $dropdown-item-base: map-deep-merge(
 
 		active-class: (
 			font-weight: $dropdown-link-active-font-weight,
-			pointer-events: none,
 
 			c-kbd-inline: (
 				color: $dropdown-link-active-color,
@@ -1163,6 +1162,12 @@ $dropdown-menu-palette: map-deep-merge(
 				padding-left: 1.75rem,
 				padding-right: 0.5rem,
 				padding-top: 0.3125rem,
+
+				disabled: (
+					focus: (
+						box-shadow: $component-focus-inset-box-shadow,
+					),
+				),
 			),
 
 			dropdown-item-scroll: (

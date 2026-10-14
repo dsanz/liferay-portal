@@ -280,25 +280,7 @@ public class FragmentLink implements Serializable {
 
 			sb.append("\"href\": ");
 
-			if (href instanceof Collection) {
-				sb.append(JSONFactoryUtil.createJSONArray((Collection<?>)href));
-			}
-			else if (href instanceof Map) {
-				sb.append(JSONFactoryUtil.createJSONObject((Map<?, ?>)href));
-			}
-			else if (href instanceof Object[]) {
-				sb.append(
-					JSONFactoryUtil.createJSONArray(
-						Arrays.asList((Object[])href)));
-			}
-			else if (href instanceof String) {
-				sb.append("\"");
-				sb.append(_escape((String)href));
-				sb.append("\"");
-			}
-			else {
-				sb.append(href);
-			}
+			sb.append(_toJSON(href));
 		}
 
 		Target target = getTarget();
@@ -470,6 +452,27 @@ public class FragmentLink implements Serializable {
 		return sb.toString();
 	}
 
+	private static String _toJSON(Object value) {
+		if (value instanceof Collection) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONArray((Collection<?>)value));
+		}
+		else if (value instanceof Map) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONObject((Map<?, ?>)value));
+		}
+		else if (value instanceof Object[]) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONArray(
+					Arrays.asList((Object[])value)));
+		}
+		else if (value instanceof String) {
+			return StringBundler.concat("\"", _escape(value), "\"");
+		}
+
+		return String.valueOf(value);
+	}
+
 	private static final String[][] _JSON_ESCAPE_STRINGS = {
 		{"\\", "\"", "\b", "\f", "\n", "\r", "\t"},
 		{"\\\\", "\\\"", "\\b", "\\f", "\\n", "\\r", "\\t"}
@@ -478,4 +481,4 @@ public class FragmentLink implements Serializable {
 	private Map<String, Serializable> _extendedProperties;
 
 }
-// LIFERAY-REST-BUILDER-HASH:-1261717482
+// LIFERAY-REST-BUILDER-HASH:-1345275076

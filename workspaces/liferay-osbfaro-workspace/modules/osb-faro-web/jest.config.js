@@ -637,6 +637,7 @@ module.exports = {
 		},
 	},
 	moduleNameMapper: {
+		'^(.+\\.svg)\\?url$': '$1',
 		'^@clayui/icon-runtime$': '@clayui/icon',
 		'^@liferay/frontend-data-set-web$':
 			'<rootDir>/src/main/js/test/__mocks__/@liferay/frontend-data-set-web.js',
@@ -662,16 +663,29 @@ module.exports = {
 		'^touchpoints(.*)': '<rootDir>/src/main/js/touchpoints$1',
 		'^ui-kit(.*)$': '<rootDir>/src/main/js/ui-kit$1',
 	},
+	reporters: [
+		'default',
+		[
+			'jest-junit',
+			{
+				ancestorSeparator: ' > ',
+				classNameTemplate: '{filepath}',
+				outputName: 'TEST-frontend-js.xml',
+				reportTestSuiteErrors: true,
+				suiteNameTemplate: '{filepath}',
+				titleTemplate: '{classname} > {title}',
+			},
+		],
+	],
 	setupFilesAfterEnv: ['<rootDir>/src/main/js/test/setup.js'],
 	testEnvironment: 'jsdom',
 	testEnvironmentOptions: {
 		url: 'http://liferay.com',
 	},
-	testResultsProcessor: '@liferay/jest-junit-reporter',
 	transform: {
 		'^.+\\.jsx?$': 'babel-jest',
 		'^.+\\.svg$': '<rootDir>/src/main/js/test/svgTransformer.js',
 		'^.+\\.tsx?$': ['ts-jest', {tsconfig: 'tsconfig.test.json'}],
 	},
-	transformIgnorePatterns: ['/node_modules/'],
+	transformIgnorePatterns: ['/node_modules/(?!.+\\.svg$)'],
 };

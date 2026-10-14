@@ -41,6 +41,7 @@ public class AssetTagGroupRelWrapper
 		attributes.put("groupId", getGroupId());
 		attributes.put("companyId", getCompanyId());
 		attributes.put("tagId", getTagId());
+		attributes.put("depotEntryType", getDepotEntryType());
 
 		return attributes;
 	}
@@ -88,6 +89,12 @@ public class AssetTagGroupRelWrapper
 		if (tagId != null) {
 			setTagId(tagId);
 		}
+
+		Integer depotEntryType = (Integer)attributes.get("depotEntryType");
+
+		if (depotEntryType != null) {
+			setDepotEntryType(depotEntryType);
+		}
 	}
 
 	@Override
@@ -123,6 +130,16 @@ public class AssetTagGroupRelWrapper
 	@Override
 	public long getCtCollectionId() {
 		return model.getCtCollectionId();
+	}
+
+	/**
+	 * Returns the depot entry type of this asset tag group rel.
+	 *
+	 * @return the depot entry type of this asset tag group rel
+	 */
+	@Override
+	public int getDepotEntryType() {
+		return model.getDepotEntryType();
 	}
 
 	/**
@@ -211,6 +228,16 @@ public class AssetTagGroupRelWrapper
 	}
 
 	/**
+	 * Sets the depot entry type of this asset tag group rel.
+	 *
+	 * @param depotEntryType the depot entry type of this asset tag group rel
+	 */
+	@Override
+	public void setDepotEntryType(int depotEntryType) {
+		model.setDepotEntryType(depotEntryType);
+	}
+
+	/**
 	 * Sets the group ID of this asset tag group rel.
 	 *
 	 * @param groupId the group ID of this asset tag group rel
@@ -285,4 +312,4 @@ public class AssetTagGroupRelWrapper
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:1132746136
+// LIFERAY-SERVICE-BUILDER-HASH:-891540536

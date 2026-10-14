@@ -17,7 +17,10 @@ import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.PortalPreferenceValueLocalService;
 import com.liferay.portal.kernel.service.PortalPreferencesLocalService;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.transaction.TransactionCallbackUtil;
+import com.liferay.portal.kernel.transaction.TransactionConfig;
+import com.liferay.portal.kernel.transaction.TransactionInvokerUtil;
 import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.util.PrefsProps;
 import com.liferay.portal.test.rule.Inject;
@@ -74,6 +77,30 @@ public class PortalPreferencesLocalServiceTest {
 					companyId, PortletKeys.PREFS_OWNER_TYPE_COMPANY, null);
 
 			Assert.assertNull(_prefsProps.getString(companyId, "test.key"));
+
+			PortalPreferencesImpl portalPreferencesImpl =
+				(PortalPreferencesImpl)
+					_portalPreferenceValueLocalService.getPortalPreferences(
+						portalPreferences, false);
+
+			portalPreferencesImpl.setValue(null, "test.key", "test.value");
+
+			try {
+				TransactionInvokerUtil.invoke(
+					_transactionConfig,
+					() -> {
+						_portalPreferencesLocalService.updatePreferences(
+							companyId, PortletKeys.PREFS_OWNER_TYPE_COMPANY,
+							portalPreferencesImpl);
+
+						throw new Exception("Roll back");
+					});
+
+				Assert.fail();
+			}
+			catch (Throwable throwable) {
+				Assert.assertEquals("Roll back", throwable.getMessage());
+			}
 
 			CountDownLatch countDownLatch1 = new CountDownLatch(1);
 			CountDownLatch countDownLatch2 = new CountDownLatch(1);
@@ -135,13 +162,6 @@ public class PortalPreferencesLocalServiceTest {
 				},
 				null);
 
-			PortalPreferencesImpl portalPreferencesImpl =
-				(PortalPreferencesImpl)
-					_portalPreferenceValueLocalService.getPortalPreferences(
-						portalPreferences, false);
-
-			portalPreferencesImpl.setValue(null, "test.key", "test.value");
-
 			_portalPreferencesLocalService.updatePreferences(
 				companyId, PortletKeys.PREFS_OWNER_TYPE_COMPANY,
 				portalPreferencesImpl);
@@ -160,14 +180,18 @@ public class PortalPreferencesLocalServiceTest {
 		}
 	}
 
-	private BundleContext _bundleContext;
+	private static final TransactionConfig _transactionConfig =
+		TransactionConfig.Factory.create(
+			Propagation.REQUIRED, new Class<?>[] {Exception.class});
 
-	@Inject
-	private PortalPreferencesLocalService _portalPreferencesLocalService;
+	private BundleContext _bundleContext;
 
 	@Inject
 	private PortalPreferenceValueLocalService
 		_portalPreferenceValueLocalService;
+
+	@Inject
+	private PortalPreferencesLocalService _portalPreferencesLocalService;
 
 	@Inject
 	private PrefsProps _prefsProps;

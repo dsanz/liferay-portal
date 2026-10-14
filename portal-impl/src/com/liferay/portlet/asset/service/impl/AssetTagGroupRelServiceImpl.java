@@ -20,13 +20,15 @@ public class AssetTagGroupRelServiceImpl
 	extends AssetTagGroupRelServiceBaseImpl {
 
 	@Override
-	public AssetTagGroupRel addAssetTagGroupRel(long groupId, long tagId)
+	public AssetTagGroupRel addAssetTagGroupRel(
+			long groupId, long tagId, int depotEntryType)
 		throws PortalException {
 
 		AssetTagsPermission.check(
 			getPermissionChecker(), tagId, ActionKeys.UPDATE);
 
-		return assetTagGroupRelLocalService.addAssetTagGroupRel(groupId, tagId);
+		return assetTagGroupRelLocalService.addAssetTagGroupRel(
+			groupId, tagId, depotEntryType);
 	}
 
 	@Override
@@ -40,13 +42,15 @@ public class AssetTagGroupRelServiceImpl
 	}
 
 	@Override
-	public void setAssetTagGroupRels(long tagId, long[] groupIds)
+	public void setAssetTagGroupRels(
+			long tagId, long[] groupIds, int depotEntryType)
 		throws PortalException {
 
 		AssetTagsPermission.check(
 			getPermissionChecker(), tagId, ActionKeys.UPDATE);
 
-		assetTagGroupRelLocalService.setAssetTagGroupRels(tagId, groupIds);
+		assetTagGroupRelLocalService.setAssetTagGroupRels(
+			tagId, groupIds, depotEntryType);
 	}
 
 }

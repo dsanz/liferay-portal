@@ -6,14 +6,14 @@
 import ClayButton from '@clayui/button';
 import {TreeView} from '@clayui/core';
 import {ClayCheckbox} from '@clayui/form';
-import ClayManagementToolbar, {
-	ClayResultsBar,
-} from '@clayui/management-toolbar';
-import ClayModal, {useModal} from '@clayui/modal';
+import ClayManagementToolbar from '@clayui/management-toolbar';
+import ClayModal from '@clayui/modal';
 import React, {useMemo, useState} from 'react';
 
 import AutoSearch from '../components/AutoSearch';
+import FilterResultsStatus from '../components/FilterResultsStatus';
 import Highlight from '../components/Highlight';
+import SelectedItemsBar from '../components/SelectedItemsBar';
 import {postProfileDataMask} from '../services/postProfileDataMask';
 import {DataMask, DataMaskTreeItem} from '../types';
 import {
@@ -48,11 +48,11 @@ export default function AddDataMasksModal({
 	const [saving, setSaving] = useState(false);
 	const [selectedKeys, setSelectedKeys] = useState<Set<React.Key>>(new Set());
 
-	const {observer} = useModal({onClose});
+	const trimmedQuery = query.trim();
 
-	const items = useMemo(
-		() => filterDataMaskTree(tree, query).items,
-		[query, tree]
+	const {matchCount, visibleKeys} = useMemo(
+		() => filterDataMaskTree(tree, trimmedQuery),
+		[tree, trimmedQuery]
 	);
 
 	const selectedExternalReferenceCodes =
@@ -64,8 +64,14 @@ export default function AddDataMasksModal({
 	const onSearch = (value: string) => {
 		setQuery(value);
 
-		setExpandedKeys(new Set(filterDataMaskTree(tree, value).expandedKeys));
+		setExpandedKeys(filterDataMaskTree(tree, value).expandedKeys);
 	};
+
+	const isVisible = (item: DataMaskTreeItem) =>
+		!trimmedQuery || visibleKeys.has(item.id);
+
+	const getRowClassName = (item: DataMaskTreeItem) =>
+		isVisible(item) ? undefined : 'd-none';
 
 	const addSelected = async () => {
 		setSaving(true);
@@ -115,7 +121,7 @@ export default function AddDataMasksModal({
 	};
 
 	return (
-		<ClayModal observer={observer} size="lg">
+		<>
 			<ClayModal.Header
 				closeButtonAriaLabel={Liferay.Language.get('close')}
 			>
@@ -123,98 +129,93 @@ export default function AddDataMasksModal({
 			</ClayModal.Header>
 
 			<ClayModal.Body className="pt-0 px-0">
-				<ClayManagementToolbar>
-					<ClayManagementToolbar.Search
-						onSubmit={(event) => event.preventDefault()}
-					>
-						<AutoSearch onSearch={onSearch} query={query} />
-					</ClayManagementToolbar.Search>
-				</ClayManagementToolbar>
+				{!!tree.length && (
+					<div className="sticky-top">
+						<ClayManagementToolbar role="none">
+							<AutoSearch onSearch={onSearch} query={query} />
+						</ClayManagementToolbar>
 
-				{!!selectedExternalReferenceCodes.length && (
-					<ClayResultsBar>
-						<ClayResultsBar.Item expand>
-							<span
-								className="component-text text-truncate-inline"
-								role="status"
-							>
-								<span className="text-truncate">
-									{selectedExternalReferenceCodes.length}
-									&nbsp;
-									{selectedExternalReferenceCodes.length === 1
-										? Liferay.Language.get('item-selected')
-										: Liferay.Language.get(
-												'items-selected'
-											)}
-								</span>
-							</span>
-						</ClayResultsBar.Item>
-
-						<ClayResultsBar.Item>
-							<ClayButton
-								className="component-link tbar-link"
-								displayType="unstyled"
-								onClick={() => setSelectedKeys(new Set())}
-							>
-								{Liferay.Language.get('deselect-all')}
-							</ClayButton>
-						</ClayResultsBar.Item>
-					</ClayResultsBar>
+						<SelectedItemsBar
+							count={selectedExternalReferenceCodes.length}
+							onDeselectAll={() => setSelectedKeys(new Set())}
+						/>
+					</div>
 				)}
 
-				<div className="cadmin container-fluid container-fluid-max-xl px-4 py-2">
-					{items.length ? (
-						<TreeView
-							className="bg-transparent"
-							expandedKeys={expandedKeys}
-							items={items}
-							nestedKey="children"
-							onExpandedChange={setExpandedKeys}
-							onSelectionChange={setSelectedKeys}
-							selectedKeys={selectedKeys}
-							selectionMode="multiple-recursive"
-							showExpanderOnHover={false}
-						>
-							{(item: DataMaskTreeItem) => (
-								<TreeView.Item>
-									<TreeView.ItemStack expandOnClick={false}>
-										<ClayCheckbox
-											aria-label={item.name}
-											checked
-										/>
+				<div className="px-4 py-2">
+					{tree.length ? (
+						<>
+							<FilterResultsStatus
+								matchCount={matchCount}
+								query={trimmedQuery}
+							/>
 
-										<span className="font-weight-normal pl-1 text-3">
-											<Highlight
-												query={query}
-												text={item.name}
+							<TreeView
+								aria-label={Liferay.Language.get('data-masks')}
+								className="bg-transparent"
+								defaultItems={tree}
+								expandedKeys={expandedKeys}
+								key={trimmedQuery}
+								nestedKey="children"
+								onExpandedChange={setExpandedKeys}
+								onSelectionChange={setSelectedKeys}
+								selectedKeys={selectedKeys}
+								selectionMode="multiple-recursive"
+								showExpanderOnHover={false}
+							>
+								{(item: DataMaskTreeItem) => (
+									<TreeView.Item
+										className={getRowClassName(item)}
+									>
+										<TreeView.ItemStack
+											expandOnClick={false}
+										>
+											<ClayCheckbox
+												aria-label={item.name}
+												checked
 											/>
-										</span>
-									</TreeView.ItemStack>
 
-									<TreeView.Group items={item.children}>
-										{(child: DataMaskTreeItem) => (
-											<TreeView.Item>
-												<ClayCheckbox
-													aria-label={child.name}
-													checked
+											<span className="font-weight-normal pl-1 text-3">
+												<Highlight
+													query={trimmedQuery}
+													text={item.name}
 												/>
+											</span>
+										</TreeView.ItemStack>
 
-												<span className="font-weight-normal pl-1 text-3">
-													<Highlight
-														query={query}
-														text={child.name}
+										<TreeView.Group items={item.children}>
+											{(child: DataMaskTreeItem) => (
+												<TreeView.Item
+													className={getRowClassName(
+														child
+													)}
+												>
+													<ClayCheckbox
+														aria-label={child.name}
+														checked
 													/>
-												</span>
-											</TreeView.Item>
-										)}
-									</TreeView.Group>
-								</TreeView.Item>
-							)}
-						</TreeView>
+
+													<span className="font-weight-normal pl-1 text-3">
+														<Highlight
+															query={trimmedQuery}
+															text={child.name}
+														/>
+													</span>
+												</TreeView.Item>
+											)}
+										</TreeView.Group>
+									</TreeView.Item>
+								)}
+							</TreeView>
+						</>
 					) : (
-						<p className="text-secondary">
-							{Liferay.Language.get('no-data-masks-were-found')}
-						</p>
+						<div className="align-items-center d-flex justify-content-center py-4">
+							<p className="text-secondary">
+								{Liferay.Language.get(
+									'no-data-masks-were-found'
+								)}
+							</p>
+						</div>
 					)}
 				</div>
 			</ClayModal.Body>
@@ -231,9 +232,11 @@ export default function AddDataMasksModal({
 						</ClayButton>
 
 						<ClayButton
+							aria-busy={saving}
 							disabled={
 								!selectedExternalReferenceCodes.length || saving
 							}
+							loading={saving}
 							onClick={addSelected}
 							type="button"
 						>
@@ -242,6 +245,6 @@ export default function AddDataMasksModal({
 					</ClayButton.Group>
 				}
 			/>
-		</ClayModal>
+		</>
 	);
 }

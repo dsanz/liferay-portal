@@ -131,7 +131,8 @@ public class ExecuteInfoItemActionStrutsActionTest {
 		_objectAction = _objectActionLocalService.addObjectAction(
 			RandomTestUtil.randomString(), _user.getUserId(),
 			_objectDefinition.getObjectDefinitionId(), true, StringPool.BLANK,
-			RandomTestUtil.randomString(), _errorMessageMap,
+			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
+			_errorMessageMap,
 			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 			RandomTestUtil.randomString(),
 			ObjectActionExecutorConstants.KEY_GROOVY,
@@ -168,8 +169,8 @@ public class ExecuteInfoItemActionStrutsActionTest {
 	private ObjectDefinition _addObjectDefinition() throws Exception {
 		ObjectDefinition objectDefinition =
 			_objectDefinitionLocalService.addCustomObjectDefinition(
-				null, _user.getUserId(), 0, null, true, false, true, false,
-				true, false, false, false, false, null,
+				null, _user.getUserId(), 0, null, null, true, false, true,
+				false, true, false, false, false, false, null,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				ObjectDefinitionTestUtil.getRandomName(), null,
 				"control_panel.sites",

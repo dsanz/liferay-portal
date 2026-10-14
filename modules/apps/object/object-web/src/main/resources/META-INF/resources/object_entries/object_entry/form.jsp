@@ -240,7 +240,9 @@ if (ParamUtil.getBoolean(request, "showHeader", true)) {
 		Liferay.provide(window, '<portlet:namespace />submitObjectEntry', () => {
 			const form = document.getElementById('<portlet:namespace />fm');
 
-			const DDMFormInstance = Liferay.component('editObjectEntry');
+			const DDMFormInstance = Liferay.component(
+				'<portlet:namespace />editObjectEntry'
+			);
 
 			const current = DDMFormInstance.reactComponentRef.current;
 
@@ -354,7 +356,7 @@ if (ParamUtil.getBoolean(request, "showHeader", true)) {
 								});
 							}
 
-							const friendlyURLInputs = document.querySelectorAll(
+							const friendlyURLInputs = form.querySelectorAll(
 								'[data-field-name="friendlyURL"]'
 							);
 
@@ -487,11 +489,8 @@ if (ParamUtil.getBoolean(request, "showHeader", true)) {
 										}
 
 										for (const error of errorMessageArray) {
-											const portletBody =
-												document.querySelector('.portlet-body');
-
 											const existingAlert =
-												portletBody.querySelector('.alert');
+												form.querySelector('.alert');
 
 											if (existingAlert) {
 												existingAlert.remove();

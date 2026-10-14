@@ -25,6 +25,16 @@ export interface Group {
 	items: CriteriaNode[];
 }
 
+export type Scope = 'all' | Site[];
+
+export interface Site {
+	descriptiveName: string;
+	externalReferenceCode: string;
+	hasElementVariations?: boolean;
+	id: number;
+	logo: string;
+}
+
 export interface SerializedGroup {
 	conjunction: string;
 	rules: Array<SerializedGroup | SerializedRule>;
@@ -49,6 +59,6 @@ export interface Rule {
 	value: string;
 }
 
-export type SaveErrorField = 'externalReferenceCode' | 'name';
+export type SaveErrorField = 'externalReferenceCode' | 'groupERCs' | 'name';
 
 export type SaveErrors = Partial<Record<SaveErrorField, string>>;

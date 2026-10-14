@@ -1,0 +1,241 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2026 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+// eslint-disable-next-line @liferay/portal/no-cross-module-deep-import
+import {checkAccessibility} from '@liferay/layout-js-components-web/test/__lib__/index';
+import {fireEvent, render, screen} from '@testing-library/react';
+import React from 'react';
+
+import '@testing-library/jest-dom';
+
+import FieldTimePicker from '../../../../../src/main/resources/META-INF/resources/revamp/js/components/forms/FieldTimePicker';
+
+describe('FieldTimePicker', () => {
+	afterEach(() => {
+		(Liferay.ThemeDisplay.getBCP47LanguageId as jest.Mock).mockReturnValue(
+			'en-US'
+		);
+	});
+
+	it('shows a stored time on the 12 hour clock of a 12 hour portal locale', () => {
+		render(
+			<FieldTimePicker
+				id="time"
+				label="Time of Day"
+				name="time"
+				value="17:05"
+			/>
+		);
+
+		expect(screen.getByLabelText('hours')).toHaveValue('05');
+		expect(screen.getByLabelText('minutes')).toHaveValue('05');
+		expect(screen.getByLabelText('am-pm')).toHaveValue('PM');
+	});
+
+	it('shows a stored time on the 24 hour clock of a 24 hour portal locale', () => {
+		(Liferay.ThemeDisplay.getBCP47LanguageId as jest.Mock).mockReturnValue(
+			'es-ES'
+		);
+
+		render(
+			<FieldTimePicker
+				id="time"
+				label="Time of Day"
+				name="time"
+				value="17:05"
+			/>
+		);
+
+		expect(screen.getByLabelText('hours')).toHaveValue('17');
+		expect(screen.queryByLabelText('am-pm')).not.toBeInTheDocument();
+	});
+
+	it('reports a complete time on the 24 hour clock and a partial one as empty', () => {
+		const onChange = jest.fn();
+
+		render(
+			<FieldTimePicker
+				id="time"
+				label="Time of Day"
+				name="time"
+				onChange={onChange}
+			/>
+		);
+
+		fireEvent.keyDown(screen.getByLabelText('hours'), {key: '5'});
+
+		expect(onChange).toHaveBeenLastCalledWith('');
+
+		fireEvent.keyDown(screen.getByLabelText('minutes'), {key: '3'});
+		fireEvent.keyDown(screen.getByLabelText('am-pm'), {key: 'ArrowUp'});
+
+		expect(onChange).toHaveBeenLastCalledWith('17:03');
+	});
+
+	it('labels the field and disables every segment with it', () => {
+		render(
+			<FieldTimePicker
+				disabled
+				id="time"
+				label="Time of Day"
+				name="time"
+				required
+				value="09:45"
+			/>
+		);
+
+		expect(
+			screen.getByRole('group', {name: /Time of Day/})
+		).toBeInTheDocument();
+
+		expect(screen.getByLabelText('hours')).toBeDisabled();
+		expect(screen.getByLabelText('minutes')).toBeDisabled();
+		expect(screen.getByLabelText('am-pm')).toBeDisabled();
+	});
+
+	it('shows an error message', () => {
+		render(
+			<FieldTimePicker
+				errorMessage="This field is required."
+				id="time"
+				label="Time of Day"
+				name="time"
+			/>
+		);
+
+		expect(screen.getByText('This field is required.')).toBeInTheDocument();
+	});
+
+	it('does not call onBlur while the focus moves between segments', () => {
+		const onBlur = jest.fn();
+
+		render(
+			<FieldTimePicker
+				id="time"
+				label="Time of Day"
+				name="time"
+				onBlur={onBlur}
+			/>
+		);
+
+		fireEvent.blur(screen.getByLabelText('hours'), {
+			relatedTarget: screen.getByLabelText('minutes'),
+		});
+
+		expect(onBlur).not.toHaveBeenCalled();
+	});
+
+	it('calls onBlur once the focus leaves the field', () => {
+		const onBlur = jest.fn();
+
+		render(
+			<FieldTimePicker
+				id="time"
+				label="Time of Day"
+				name="time"
+				onBlur={onBlur}
+			/>
+		);
+
+		fireEvent.blur(screen.getByLabelText('minutes'), {
+			relatedTarget: document.body,
+		});
+
+		expect(onBlur).toHaveBeenCalledTimes(1);
+	});
+
+	it('groups the segments under the field label', () => {
+		render(
+			<FieldTimePicker
+				id="time"
+				label="Time of Day"
+				name="time"
+				required
+			/>
+		);
+
+		expect(
+			screen.getByRole('group', {name: 'Time of Day mandatory'})
+		).toBeInTheDocument();
+	});
+
+	it('describes the segments with the error message', () => {
+		render(
+			<FieldTimePicker
+				errorMessage="This field is required."
+				id="time"
+				label="Time of Day"
+				name="time"
+			/>
+		);
+
+		expect(
+			screen.getByRole('group', {name: 'Time of Day'})
+		).toHaveAccessibleDescription('This field is required.');
+	});
+
+	it('follows a value replaced from outside', () => {
+		const {rerender} = render(
+			<FieldTimePicker
+				id="time"
+				label="Time of Day"
+				name="time"
+				value="17:03"
+			/>
+		);
+
+		rerender(
+			<FieldTimePicker
+				id="time"
+				label="Time of Day"
+				name="time"
+				value="09:45"
+			/>
+		);
+
+		expect(screen.getByLabelText('hours')).toHaveValue('09');
+		expect(screen.getByLabelText('minutes')).toHaveValue('45');
+		expect(screen.getByLabelText('am-pm')).toHaveValue('AM');
+	});
+
+	it('keeps the remaining segments while a cleared one is echoed back as empty', () => {
+		const {rerender} = render(
+			<FieldTimePicker
+				id="time"
+				label="Time of Day"
+				name="time"
+				value="17:03"
+			/>
+		);
+
+		fireEvent.keyDown(screen.getByLabelText('hours'), {key: 'Backspace'});
+
+		rerender(
+			<FieldTimePicker
+				id="time"
+				label="Time of Day"
+				name="time"
+				value=""
+			/>
+		);
+
+		expect(screen.getByLabelText('hours')).toHaveValue('--');
+		expect(screen.getByLabelText('minutes')).toHaveValue('03');
+		expect(screen.getByLabelText('am-pm')).toHaveValue('PM');
+	});
+
+	it('has no accessibility violations', async () => {
+		const {container} = render(
+			<FieldTimePicker
+				id="time"
+				label="Time of Day"
+				name="time"
+				value="09:45"
+			/>
+		);
+
+		await checkAccessibility({context: container});
+	});
+});

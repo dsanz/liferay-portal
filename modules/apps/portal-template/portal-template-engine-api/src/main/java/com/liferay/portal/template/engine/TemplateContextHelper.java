@@ -310,11 +310,16 @@ public class TemplateContextHelper {
 			contextObjects.put("themeDisplay", themeDisplay);
 			contextObjects.put("timeZone", themeDisplay.getTimeZone());
 
-			User user = UserLocalServiceUtil.fetchUser(
-				PrincipalThreadLocal.getUserId());
+			User user = themeDisplay.getUser();
 
-			if (user == null) {
-				user = themeDisplay.getUser();
+			long userId = PrincipalThreadLocal.getUserId();
+
+			if ((user == null) || (user.getUserId() != userId)) {
+				User principalUser = UserLocalServiceUtil.fetchUser(userId);
+
+				if (principalUser != null) {
+					user = principalUser;
+				}
 			}
 
 			contextObjects.put("user", user);
@@ -824,26 +829,6 @@ public class TemplateContextHelper {
 		}
 
 		@Override
-		public Cookie[] getCookies() {
-			return _http.getCookies();
-		}
-
-		@Override
-		public boolean hasProxyConfig() {
-			return _http.hasProxyConfig();
-		}
-
-		@Override
-		public boolean isNonProxyHost(String host) {
-			return _http.isNonProxyHost(host);
-		}
-
-		@Override
-		public boolean isProxyHost(String host) {
-			return _http.isProxyHost(host);
-		}
-
-		@Override
 		public byte[] URLtoByteArray(Options options) throws IOException {
 			if (isLocationAccessDenied(options.getLocation())) {
 				throw new IOException(
@@ -985,6 +970,26 @@ public class TemplateContextHelper {
 			options.setLocation(url.toString());
 
 			return URLtoString(options);
+		}
+
+		@Override
+		public Cookie[] getCookies() {
+			return _http.getCookies();
+		}
+
+		@Override
+		public boolean hasProxyConfig() {
+			return _http.hasProxyConfig();
+		}
+
+		@Override
+		public boolean isNonProxyHost(String host) {
+			return _http.isNonProxyHost(host);
+		}
+
+		@Override
+		public boolean isProxyHost(String host) {
+			return _http.isProxyHost(host);
 		}
 
 		protected boolean isLocationAccessDenied(String location)

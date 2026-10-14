@@ -7,6 +7,7 @@ import {Locator, Page, expect} from '@playwright/test';
 
 import {clickAndExpectToBeVisible} from '../../utils/clickAndExpectToBeVisible';
 import {waitForAlert} from '../../utils/waitForAlert';
+import {waitForPageToBeLoaded} from '../../utils/waitForPageToBeLoaded';
 import {GlobalMenuPage} from '../product-navigation-applications-menu/GlobalMenuPage';
 
 export class ContentSecurityPolicyPage {
@@ -118,11 +119,19 @@ export class ContentSecurityPolicyPage {
 				trigger: this.actions,
 			});
 
-			await waitForAlert(this.page);
+			await expect(
+				this.page.getByText(
+					'This configuration is not saved yet. The values shown are the default.'
+				)
+			).toBeVisible();
 		}
 	}
 
 	async saveConfiguration() {
+		await this.page.evaluate(() => {
+			(window as any).savingConfiguration = true;
+		});
+
 		if (await this.page.isVisible('button:has-text("Update")')) {
 			await this.updateButton.click();
 		}
@@ -130,10 +139,26 @@ export class ContentSecurityPolicyPage {
 			await this.saveButton.click();
 		}
 
-		await waitForAlert(
-			this.page,
-			`Success:Your request completed successfully.`
+		// Toggling CSP crosses a CSP boundary, so the page reloads and the
+		// success message is lost
+
+		await this.page.waitForFunction(
+			() =>
+				!(window as any).savingConfiguration ||
+				!!document.querySelector('.alert-success')
 		);
+
+		if (
+			await this.page.evaluate(() => (window as any).savingConfiguration)
+		) {
+			await waitForAlert(
+				this.page,
+				`Success:Your request completed successfully.`
+			);
+		}
+		else {
+			await waitForPageToBeLoaded(this.page);
+		}
 	}
 
 	async setPolicy(policy: string) {

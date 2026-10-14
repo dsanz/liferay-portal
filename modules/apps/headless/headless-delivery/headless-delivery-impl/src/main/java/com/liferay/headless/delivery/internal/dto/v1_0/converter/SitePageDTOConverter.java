@@ -8,8 +8,8 @@ package com.liferay.headless.delivery.internal.dto.v1_0.converter;
 import com.liferay.asset.kernel.model.AssetTag;
 import com.liferay.asset.kernel.service.AssetCategoryLocalService;
 import com.liferay.asset.kernel.service.AssetTagLocalService;
+import com.liferay.document.library.helper.DLURLHelper;
 import com.liferay.document.library.kernel.service.DLAppService;
-import com.liferay.document.library.util.DLURLHelper;
 import com.liferay.headless.delivery.dto.v1_0.Experience;
 import com.liferay.headless.delivery.dto.v1_0.PageDefinition;
 import com.liferay.headless.delivery.dto.v1_0.PagePermission;
@@ -71,7 +71,9 @@ import org.osgi.service.component.annotations.Reference;
  * @author Jürgen Kappler
  */
 @Component(
-	property = "dto.class.name=com.liferay.portal.kernel.model.Layout",
+	property = {
+		"default=true", "dto.class.name=com.liferay.portal.kernel.model.Layout"
+	},
 	service = DTOConverter.class
 )
 public class SitePageDTOConverter implements DTOConverter<Layout, SitePage> {

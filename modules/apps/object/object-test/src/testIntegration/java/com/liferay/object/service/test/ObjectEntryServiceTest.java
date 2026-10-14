@@ -37,15 +37,19 @@ import com.liferay.object.service.ObjectEntryService;
 import com.liferay.object.service.ObjectFieldLocalService;
 import com.liferay.object.service.ObjectRelationshipLocalService;
 import com.liferay.object.test.util.ObjectDefinitionTestUtil;
+import com.liferay.object.test.util.ObjectRelationshipTestUtil;
 import com.liferay.object.test.util.TreeTestUtil;
 import com.liferay.object.tree.Edge;
 import com.liferay.object.tree.Node;
 import com.liferay.object.tree.Tree;
 import com.liferay.object.tree.constants.TreeConstants;
+import com.liferay.petra.function.UnsafeBiFunction;
 import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
+import com.liferay.portal.configuration.test.util.ConfigurationTemporarySwapper;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
@@ -86,6 +90,7 @@ import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.log.LogCapture;
@@ -659,6 +664,28 @@ public class ObjectEntryServiceTest {
 	}
 
 	@Test
+	public void testGetManyToManyObjectEntries() throws Exception {
+		UnsafeBiFunction<Long, Long, List<ObjectEntry>, PortalException>
+			unsafeBiFunction = (objectRelationshipId, primaryKey) ->
+				_objectEntryService.getManyToManyObjectEntries(
+					_group.getGroupId(), objectRelationshipId, primaryKey, true,
+					false, null, QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+
+		_testGetObjectEntries(
+			false, false, ObjectRelationshipConstants.TYPE_MANY_TO_MANY,
+			unsafeBiFunction);
+		_testGetObjectEntries(
+			false, true, ObjectRelationshipConstants.TYPE_MANY_TO_MANY,
+			unsafeBiFunction);
+		_testGetObjectEntries(
+			true, false, ObjectRelationshipConstants.TYPE_MANY_TO_MANY,
+			unsafeBiFunction);
+		_testGetObjectEntries(
+			true, true, ObjectRelationshipConstants.TYPE_MANY_TO_MANY,
+			unsafeBiFunction);
+	}
+
+	@Test
 	public void testGetObjectEntry() throws Exception {
 
 		// Can get object entry with individual model permission
@@ -890,7 +917,7 @@ public class ObjectEntryServiceTest {
 				null, TestPropsValues.getUserId(),
 				accountEntryObjectDefinition.getObjectDefinitionId(),
 				objectDefinitionAA.getObjectDefinitionId(), 0,
-				ObjectRelationshipConstants.DELETION_TYPE_PREVENT, false,
+				ObjectRelationshipConstants.DELETION_TYPE_PREVENT, null, false,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				"relationship", false,
 				ObjectRelationshipConstants.TYPE_ONE_TO_MANY, null);
@@ -965,6 +992,29 @@ public class ObjectEntryServiceTest {
 			objectRelationship);
 
 		_accountEntryLocalService.deleteAccountEntry(accountEntry);
+	}
+
+	@Test
+	public void testGetOneToManyObjectEntries() throws Exception {
+		UnsafeBiFunction<Long, Long, List<ObjectEntry>, PortalException>
+			unsafeBiFunction = (objectRelationshipId, primaryKey) ->
+				_objectEntryService.getOneToManyObjectEntries(
+					_group.getGroupId(), objectRelationshipId, null, false,
+					primaryKey, true, null, QueryUtil.ALL_POS,
+					QueryUtil.ALL_POS, null);
+
+		_testGetObjectEntries(
+			false, false, ObjectRelationshipConstants.TYPE_ONE_TO_MANY,
+			unsafeBiFunction);
+		_testGetObjectEntries(
+			false, true, ObjectRelationshipConstants.TYPE_ONE_TO_MANY,
+			unsafeBiFunction);
+		_testGetObjectEntries(
+			true, false, ObjectRelationshipConstants.TYPE_ONE_TO_MANY,
+			unsafeBiFunction);
+		_testGetObjectEntries(
+			true, true, ObjectRelationshipConstants.TYPE_ONE_TO_MANY,
+			unsafeBiFunction);
 	}
 
 	@Test
@@ -1061,7 +1111,7 @@ public class ObjectEntryServiceTest {
 				null, TestPropsValues.getUserId(),
 				accountEntryObjectDefinition.getObjectDefinitionId(),
 				_objectDefinition.getObjectDefinitionId(), 0,
-				ObjectRelationshipConstants.DELETION_TYPE_PREVENT, false,
+				ObjectRelationshipConstants.DELETION_TYPE_PREVENT, null, false,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				"relationship", false,
 				ObjectRelationshipConstants.TYPE_ONE_TO_MANY, null);
@@ -1574,6 +1624,83 @@ public class ObjectEntryServiceTest {
 
 			_objectEntryService.deleteObjectEntry(
 				objectEntry.getObjectEntryId());
+		}
+	}
+
+	private void _testGetObjectEntries(
+			boolean hasPermission, boolean sqlCheckEnabled, String type,
+			UnsafeBiFunction<Long, Long, List<ObjectEntry>, PortalException>
+				unsafeBiFunction)
+		throws Exception {
+
+		ObjectRelationship objectRelationship =
+			_objectRelationshipLocalService.addObjectRelationship(
+				null, TestPropsValues.getUserId(),
+				_objectDefinition.getObjectDefinitionId(),
+				_objectDefinition.getObjectDefinitionId(), 0,
+				ObjectRelationshipConstants.DELETION_TYPE_PREVENT, null, false,
+				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
+				"relationship", false, type, null);
+
+		ObjectEntry objectEntry = _addObjectEntry(_adminUser);
+		ObjectEntry relatedObjectEntry1 = _addObjectEntry(_adminUser);
+		ObjectEntry relatedObjectEntry2 = _addObjectEntry(_adminUser);
+
+		ObjectRelationshipTestUtil.relateObjectEntries(
+			objectEntry.getObjectEntryId(),
+			relatedObjectEntry1.getObjectEntryId(), objectRelationship,
+			TestPropsValues.getUserId());
+		ObjectRelationshipTestUtil.relateObjectEntries(
+			objectEntry.getObjectEntryId(),
+			relatedObjectEntry2.getObjectEntryId(), objectRelationship,
+			TestPropsValues.getUserId());
+
+		_setResourcePermissions(
+			_objectDefinition.getClassName(),
+			ResourceConstants.SCOPE_INDIVIDUAL,
+			String.valueOf(relatedObjectEntry1.getObjectEntryId()),
+			RoleConstants.USER, new String[] {ActionKeys.VIEW});
+
+		if (hasPermission) {
+			_setResourcePermissions(
+				_objectDefinition.getClassName(),
+				ResourceConstants.SCOPE_INDIVIDUAL,
+				String.valueOf(relatedObjectEntry2.getObjectEntryId()),
+				RoleConstants.USER, new String[] {ActionKeys.VIEW});
+		}
+
+		_setUser(_user);
+
+		try (ConfigurationTemporarySwapper configurationTemporarySwapper =
+				new ConfigurationTemporarySwapper(
+					"com.liferay.portal.security.permission.internal." +
+						"configuration.InlinePermissionConfiguration",
+					HashMapDictionaryBuilder.<String, Object>put(
+						"sqlCheckEnabled", sqlCheckEnabled
+					).build())) {
+
+			if (hasPermission) {
+				Assert.assertEquals(
+					SetUtil.fromArray(relatedObjectEntry1, relatedObjectEntry2),
+					SetUtil.fromList(
+						unsafeBiFunction.apply(
+							objectRelationship.getObjectRelationshipId(),
+							objectEntry.getObjectEntryId())));
+			}
+			else {
+				Assert.assertEquals(
+					SetUtil.fromArray(relatedObjectEntry1),
+					SetUtil.fromList(
+						unsafeBiFunction.apply(
+							objectRelationship.getObjectRelationshipId(),
+							objectEntry.getObjectEntryId())));
+			}
+		}
+		finally {
+			_setUser(_adminUser);
+
+			_objectRelationshipLocalService.deleteObjectRelationship(
+				objectRelationship);
 		}
 	}
 

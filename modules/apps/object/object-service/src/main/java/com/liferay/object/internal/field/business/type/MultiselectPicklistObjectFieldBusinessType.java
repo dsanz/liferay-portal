@@ -62,24 +62,6 @@ public class MultiselectPicklistObjectFieldBusinessType
 	}
 
 	@Override
-	public String getDescription(Locale locale) {
-		return _language.get(locale, "choose-from-a-picklist");
-	}
-
-	@Override
-	public Object getDisplayContextValue(
-			ObjectField objectField, long userId, Map<String, Object> values)
-		throws PortalException {
-
-		if (objectField.isLocalized()) {
-			return getLocalizedValues(objectField, userId, values);
-		}
-
-		return ObjectFieldBusinessType.super.getDisplayContextValue(
-			objectField, userId, values);
-	}
-
-	@Override
 	public Serializable getDTOValue(
 			DTOConverterContext dtoConverterContext,
 			ObjectDefinition objectDefinition, ObjectEntry objectEntry,
@@ -122,18 +104,37 @@ public class MultiselectPicklistObjectFieldBusinessType
 	}
 
 	@Override
+	public String getDescription(Locale locale) {
+		return _language.get(locale, "choose-from-a-picklist");
+	}
+
+	@Override
+	public Object getDisplayContextValue(
+			ObjectField objectField, long userId, Map<String, Object> values)
+		throws PortalException {
+
+		if (objectField.isLocalized()) {
+			return getLocalizedValues(null, objectField, userId, values);
+		}
+
+		return ObjectFieldBusinessType.super.getDisplayContextValue(
+			objectField, userId, values);
+	}
+
+	@Override
 	public String getLabel(Locale locale) {
 		return _language.get(locale, "multiselect-picklist");
 	}
 
 	@Override
 	public Map<String, Object> getLocalizedValues(
-			ObjectField objectField, Long userId, Map<String, Object> values)
+			Long groupId, ObjectField objectField, Long userId,
+			Map<String, Object> values)
 		throws PortalException {
 
 		Map<String, Object> localizedValues =
 			ObjectFieldBusinessType.super.getLocalizedValues(
-				objectField, userId, values);
+				groupId, objectField, userId, values);
 
 		if (localizedValues == null) {
 			return null;

@@ -83,7 +83,9 @@ public class JUnitTestClass extends BaseTestClass {
 		JSONObject jsonObject = super.getJSONObject();
 
 		if ((_testPropertiesFile != null) && _testPropertiesFile.exists()) {
-			jsonObject.put("test_properties_file", _testPropertiesFile);
+			jsonObject.put(
+				"test_properties_file",
+				JenkinsResultsParserUtil.getCanonicalPath(_testPropertiesFile));
 		}
 
 		if (!JenkinsResultsParserUtil.isNullOrEmpty(
@@ -136,10 +138,6 @@ public class JUnitTestClass extends BaseTestClass {
 			_getPackageName(), ".", _getClassName());
 	}
 
-	public String getTestrayMainComponentName() {
-		return _testrayMainComponentName;
-	}
-
 	@Override
 	public String getTestTaskName() {
 		String taskName = getTaskName();
@@ -155,6 +153,10 @@ public class JUnitTestClass extends BaseTestClass {
 			".*/modules(/.+)/src/" + taskName + "/.+", "$1");
 
 		return testTaskName.replaceAll("/", ":") + ":" + taskName;
+	}
+
+	public String getTestrayMainComponentName() {
+		return _testrayMainComponentName;
 	}
 
 	@Override

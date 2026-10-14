@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
@@ -18,10 +19,14 @@ import com.liferay.portal.vulcan.util.ObjectMapperUtil;
 
 import jakarta.annotation.Generated;
 
+import jakarta.validation.constraints.NotEmpty;
+
 import jakarta.xml.bind.annotation.XmlRootElement;
 
 import java.io.Serializable;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -34,11 +39,12 @@ import java.util.function.Supplier;
  */
 @Generated("")
 @GraphQLName(
-	description = "The result of exporting a portal instance.",
+	description = "The export of a portal instance.",
 	value = "PortalInstanceExport"
 )
 @io.swagger.v3.oas.annotations.media.Schema(
-	description = "The result of exporting a portal instance."
+	description = "The export of a portal instance.",
+	requiredProperties = {"portalInstanceId"}
 )
 @JsonFilter("Liferay.Vulcan")
 @XmlRootElement(name = "PortalInstanceExport")
@@ -92,11 +98,55 @@ public class PortalInstanceExport implements Serializable {
 	@GraphQLField(
 		description = "The name of the schema created by the export (e.g., lexported_12345)."
 	)
-	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String exportedPartitionName;
 
 	@JsonIgnore
 	private Supplier<String> _exportedPartitionNameSupplier;
+
+	@io.swagger.v3.oas.annotations.media.Schema(
+		description = "The web ID of the portal instance to export."
+	)
+	public String getPortalInstanceId() {
+		if (_portalInstanceIdSupplier != null) {
+			portalInstanceId = _portalInstanceIdSupplier.get();
+
+			_portalInstanceIdSupplier = null;
+		}
+
+		return portalInstanceId;
+	}
+
+	public void setPortalInstanceId(String portalInstanceId) {
+		this.portalInstanceId = portalInstanceId;
+
+		_portalInstanceIdSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setPortalInstanceId(
+		UnsafeSupplier<String, Exception> portalInstanceIdUnsafeSupplier) {
+
+		_portalInstanceIdSupplier = () -> {
+			try {
+				return portalInstanceIdUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField(description = "The web ID of the portal instance to export.")
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	@NotEmpty
+	protected String portalInstanceId;
+
+	@JsonIgnore
+	private Supplier<String> _portalInstanceIdSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema(
 		description = "The ID of the source company that was exported (e.g., 12345)."
@@ -137,7 +187,7 @@ public class PortalInstanceExport implements Serializable {
 	@GraphQLField(
 		description = "The ID of the source company that was exported (e.g., 12345)."
 	)
-	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Long sourceCompanyId;
 
 	@JsonIgnore
@@ -183,6 +233,22 @@ public class PortalInstanceExport implements Serializable {
 			sb.append("\"");
 
 			sb.append(_escape(exportedPartitionName));
+
+			sb.append("\"");
+		}
+
+		String portalInstanceId = getPortalInstanceId();
+
+		if (portalInstanceId != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"portalInstanceId\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(portalInstanceId));
 
 			sb.append("\"");
 		}
@@ -292,6 +358,27 @@ public class PortalInstanceExport implements Serializable {
 		return sb.toString();
 	}
 
+	private static String _toJSON(Object value) {
+		if (value instanceof Collection) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONArray((Collection<?>)value));
+		}
+		else if (value instanceof Map) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONObject((Map<?, ?>)value));
+		}
+		else if (value instanceof Object[]) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONArray(
+					Arrays.asList((Object[])value)));
+		}
+		else if (value instanceof String) {
+			return StringBundler.concat("\"", _escape(value), "\"");
+		}
+
+		return String.valueOf(value);
+	}
+
 	private static final String[][] _JSON_ESCAPE_STRINGS = {
 		{"\\", "\"", "\b", "\f", "\n", "\r", "\t"},
 		{"\\\\", "\\\"", "\\b", "\\f", "\\n", "\\r", "\\t"}
@@ -300,4 +387,4 @@ public class PortalInstanceExport implements Serializable {
 	private Map<String, Serializable> _extendedProperties;
 
 }
-// LIFERAY-REST-BUILDER-HASH:1945410648
+// LIFERAY-REST-BUILDER-HASH:-1890914690

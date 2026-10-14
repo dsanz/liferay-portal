@@ -87,11 +87,15 @@ public class OpenAPIResourceImpl {
 		{
 			add(AccountResourceImpl.class);
 
+			add(AccountLifecycleStageTransitionResourceImpl.class);
+
 			add(AssetSummaryMetricResourceImpl.class);
 
 			add(ChannelResourceImpl.class);
 
 			add(EventResourceImpl.class);
+
+			add(EventMetricResourceImpl.class);
 
 			add(IndividualResourceImpl.class);
 
@@ -99,9 +103,15 @@ public class OpenAPIResourceImpl {
 
 			add(IndividualSegmentMembershipResourceImpl.class);
 
+			add(IndividualSegmentMembershipChangeResourceImpl.class);
+
+			add(IndividualSegmentMembershipChangeMetricResourceImpl.class);
+
 			add(PageMetricResourceImpl.class);
 
 			add(SearchTermResourceImpl.class);
+
+			add(UserSessionResourceImpl.class);
 
 			add(WorkspaceResourceImpl.class);
 
@@ -110,4 +120,4 @@ public class OpenAPIResourceImpl {
 	};
 
 }
-// LIFERAY-REST-BUILDER-HASH:-1664468973
+// LIFERAY-REST-BUILDER-HASH:1174181246

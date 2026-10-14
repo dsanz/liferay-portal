@@ -13,7 +13,7 @@ import com.liferay.account.exception.DuplicateAccountGroupRelException;
 import com.liferay.account.model.AccountEntry;
 import com.liferay.account.model.AccountGroup;
 import com.liferay.account.service.AccountEntryLocalService;
-import com.liferay.account.service.AccountEntryOrganizationRelLocalService;
+import com.liferay.account.service.AccountEntryOrganizationRelService;
 import com.liferay.account.service.AccountEntryService;
 import com.liferay.account.service.AccountEntryUserRelLocalService;
 import com.liferay.account.service.AccountGroupRelService;
@@ -22,6 +22,7 @@ import com.liferay.account.service.AccountRoleLocalService;
 import com.liferay.asset.kernel.model.AssetCategory;
 import com.liferay.asset.kernel.service.AssetCategoryService;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
+import com.liferay.document.library.kernel.service.DLAppService;
 import com.liferay.expando.kernel.service.ExpandoColumnLocalService;
 import com.liferay.expando.kernel.service.ExpandoTableLocalService;
 import com.liferay.exportimport.constants.ExportImportConstants;
@@ -71,7 +72,7 @@ import com.liferay.portal.kernel.service.ContactService;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ListTypeLocalService;
 import com.liferay.portal.kernel.service.OrganizationService;
-import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
+import com.liferay.portal.kernel.service.ResourcePermissionService;
 import com.liferay.portal.kernel.service.RoleService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -152,7 +153,7 @@ public class AccountResourceImpl
 		throws Exception {
 
 		for (Long accountId : accountIds) {
-			_accountEntryOrganizationRelLocalService.
+			_accountEntryOrganizationRelService.
 				deleteAccountEntryOrganizationRel(accountId, organizationId);
 		}
 	}
@@ -163,7 +164,7 @@ public class AccountResourceImpl
 		throws Exception {
 
 		for (String externalReferenceCode : externalReferenceCodes) {
-			_accountEntryOrganizationRelLocalService.
+			_accountEntryOrganizationRelService.
 				deleteAccountEntryOrganizationRel(
 					DTOConverterUtil.getModelPrimaryKey(
 						_accountResourceDTOConverter, externalReferenceCode),
@@ -515,8 +516,8 @@ public class AccountResourceImpl
 		throws Exception {
 
 		for (Long accountId : accountIds) {
-			_accountEntryOrganizationRelLocalService.
-				addAccountEntryOrganizationRel(accountId, organizationId);
+			_accountEntryOrganizationRelService.addAccountEntryOrganizationRel(
+				accountId, organizationId);
 		}
 	}
 
@@ -526,11 +527,10 @@ public class AccountResourceImpl
 		throws Exception {
 
 		for (String externalReferenceCode : externalReferenceCodes) {
-			_accountEntryOrganizationRelLocalService.
-				addAccountEntryOrganizationRel(
-					DTOConverterUtil.getModelPrimaryKey(
-						_accountResourceDTOConverter, externalReferenceCode),
-					organizationId);
+			_accountEntryOrganizationRelService.addAccountEntryOrganizationRel(
+				DTOConverterUtil.getModelPrimaryKey(
+					_accountResourceDTOConverter, externalReferenceCode),
+				organizationId);
 		}
 	}
 
@@ -871,84 +871,6 @@ public class AccountResourceImpl
 			Objects::nonNull);
 	}
 
-	private long _getDefaultBillingAddressId(
-			Account account, long accountEntryId, long defaultBillingAddressId)
-		throws Exception {
-
-		if (Validator.isNotNull(
-				account.getDefaultBillingAddressExternalReferenceCode())) {
-
-			Address address = _addressLocalService.getOrAddEmptyAddress(
-				account.getDefaultBillingAddressExternalReferenceCode(),
-				contextCompany.getCompanyId(), contextUser.getUserId(),
-				AccountEntry.class.getName(), accountEntryId);
-
-			return address.getAddressId();
-		}
-
-		long billingAddressId = GetterUtil.getLong(
-			account.getDefaultBillingAddressId());
-
-		if (billingAddressId != 0) {
-			return billingAddressId;
-		}
-
-		Address address =
-			_addressLocalService.fetchAddressByExternalReferenceCode(
-				account.getDefaultBillingAddressExternalReferenceCode(),
-				contextCompany.getCompanyId());
-
-		if (address != null) {
-			return address.getAddressId();
-		}
-
-		return defaultBillingAddressId;
-	}
-
-	private long _getDefaultShippingAddressId(
-			Account account, long accountEntryId, long defaultShippingAddressId)
-		throws Exception {
-
-		if (Validator.isNotNull(
-				account.getDefaultShippingAddressExternalReferenceCode())) {
-
-			Address address = _addressLocalService.getOrAddEmptyAddress(
-				account.getDefaultShippingAddressExternalReferenceCode(),
-				contextCompany.getCompanyId(), contextUser.getUserId(),
-				AccountEntry.class.getName(), accountEntryId);
-
-			return address.getAddressId();
-		}
-
-		long shippingAddressId = GetterUtil.getLong(
-			account.getDefaultShippingAddressId());
-
-		if (shippingAddressId != 0) {
-			return shippingAddressId;
-		}
-
-		Address address =
-			_addressLocalService.fetchAddressByExternalReferenceCode(
-				account.getDefaultShippingAddressExternalReferenceCode(),
-				contextCompany.getCompanyId());
-
-		if (address != null) {
-			return address.getAddressId();
-		}
-
-		return defaultShippingAddressId;
-	}
-
-	private String[] _getDomains(Account account) {
-		String[] domains = account.getDomains();
-
-		if (domains == null) {
-			return new String[0];
-		}
-
-		return domains;
-	}
-
 	private DTOConverterContext _getDTOConverterContext(long accountEntryId) {
 		return new DefaultDTOConverterContext(
 			contextAcceptLanguage.isAcceptAllLanguages(),
@@ -1038,6 +960,84 @@ public class AccountResourceImpl
 			contextUser);
 	}
 
+	private long _getDefaultBillingAddressId(
+			Account account, long accountEntryId, long defaultBillingAddressId)
+		throws Exception {
+
+		if (Validator.isNotNull(
+				account.getDefaultBillingAddressExternalReferenceCode())) {
+
+			Address address = _addressLocalService.getOrAddEmptyAddress(
+				account.getDefaultBillingAddressExternalReferenceCode(),
+				contextCompany.getCompanyId(), contextUser.getUserId(),
+				AccountEntry.class.getName(), accountEntryId);
+
+			return address.getAddressId();
+		}
+
+		long billingAddressId = GetterUtil.getLong(
+			account.getDefaultBillingAddressId());
+
+		if (billingAddressId != 0) {
+			return billingAddressId;
+		}
+
+		Address address =
+			_addressLocalService.fetchAddressByExternalReferenceCode(
+				account.getDefaultBillingAddressExternalReferenceCode(),
+				contextCompany.getCompanyId());
+
+		if (address != null) {
+			return address.getAddressId();
+		}
+
+		return defaultBillingAddressId;
+	}
+
+	private long _getDefaultShippingAddressId(
+			Account account, long accountEntryId, long defaultShippingAddressId)
+		throws Exception {
+
+		if (Validator.isNotNull(
+				account.getDefaultShippingAddressExternalReferenceCode())) {
+
+			Address address = _addressLocalService.getOrAddEmptyAddress(
+				account.getDefaultShippingAddressExternalReferenceCode(),
+				contextCompany.getCompanyId(), contextUser.getUserId(),
+				AccountEntry.class.getName(), accountEntryId);
+
+			return address.getAddressId();
+		}
+
+		long shippingAddressId = GetterUtil.getLong(
+			account.getDefaultShippingAddressId());
+
+		if (shippingAddressId != 0) {
+			return shippingAddressId;
+		}
+
+		Address address =
+			_addressLocalService.fetchAddressByExternalReferenceCode(
+				account.getDefaultShippingAddressExternalReferenceCode(),
+				contextCompany.getCompanyId());
+
+		if (address != null) {
+			return address.getAddressId();
+		}
+
+		return defaultShippingAddressId;
+	}
+
+	private String[] _getDomains(Account account) {
+		String[] domains = account.getDomains();
+
+		if (domains == null) {
+			return new String[0];
+		}
+
+		return domains;
+	}
+
 	private List<EmailAddress> _getEmailAddresses(
 			Account account, AccountEntry accountEntry)
 		throws Exception {
@@ -1100,7 +1100,7 @@ public class AccountResourceImpl
 			return null;
 		}
 
-		FileEntry fileEntry = _dlAppLocalService.getFileEntry(logoId);
+		FileEntry fileEntry = _dlAppService.getFileEntry(logoId);
 
 		return _file.getBytes(fileEntry.getContentStream());
 	}
@@ -1337,8 +1337,8 @@ public class AccountResourceImpl
 		long[] organizationIds = _getOrganizationIds(account);
 
 		if (organizationIds != null) {
-			_accountEntryOrganizationRelLocalService.
-				setAccountEntryOrganizationRels(accountId, organizationIds);
+			_accountEntryOrganizationRelService.setAccountEntryOrganizationRels(
+				accountId, organizationIds);
 		}
 
 		UserAccount[] userAccounts = account.getAccountUserAccounts();
@@ -1430,7 +1430,7 @@ public class AccountResourceImpl
 
 		return ResourcePermissionUtil.setResourcePermissions(
 			accountEntry, accountEntry.getCompanyId(), account.getPermissions(),
-			_resourcePermissionLocalService, _roleService,
+			_resourcePermissionService, _roleService,
 			_roleTypeContributorProvider);
 	}
 
@@ -1449,8 +1449,8 @@ public class AccountResourceImpl
 		_accountEntryModelResourcePermission;
 
 	@Reference
-	private AccountEntryOrganizationRelLocalService
-		_accountEntryOrganizationRelLocalService;
+	private AccountEntryOrganizationRelService
+		_accountEntryOrganizationRelService;
 
 	@Reference
 	private AccountEntryService _accountEntryService;
@@ -1481,6 +1481,9 @@ public class AccountResourceImpl
 
 	@Reference
 	private DLAppLocalService _dlAppLocalService;
+
+	@Reference
+	private DLAppService _dlAppService;
 
 	@Reference
 	private DTOConverterRegistry _dtoConverterRegistry;
@@ -1514,7 +1517,7 @@ public class AccountResourceImpl
 	private Portal _portal;
 
 	@Reference
-	private ResourcePermissionLocalService _resourcePermissionLocalService;
+	private ResourcePermissionService _resourcePermissionService;
 
 	@Reference
 	private RoleService _roleService;

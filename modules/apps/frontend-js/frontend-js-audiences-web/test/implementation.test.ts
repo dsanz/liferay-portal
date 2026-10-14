@@ -17,6 +17,7 @@ function mockAudiencesDefinition(audienceIds: string[]) {
 			rules: [
 				{attribute: 'hostname', operator: 'eq', value: 'localhost'},
 			],
+			scope: [],
 		})),
 	};
 
@@ -36,6 +37,26 @@ describe('implementation', () => {
 
 		audiences.setLogEnabled(false);
 		audiences.clear();
+	});
+
+	describe('runDetection', () => {
+		it('detects every audience when filterAudiences is absent', async () => {
+			mockAudiencesDefinition(['a', 'b', 'c']);
+
+			await audiences.runDetection(DEFINITION_URL);
+
+			expect([...audiences.get()].sort()).toEqual(['a', 'b', 'c']);
+		});
+
+		it('detects only the audiences accepted by filterAudiences', async () => {
+			mockAudiencesDefinition(['a', 'b', 'c']);
+
+			await audiences.runDetection(DEFINITION_URL, {
+				filterAudiences: (audience) => audience.id !== 'b',
+			});
+
+			expect([...audiences.get()].sort()).toEqual(['a', 'c']);
+		});
 	});
 
 	describe('runHandlers', () => {
@@ -138,23 +159,57 @@ describe('implementation', () => {
 		});
 	});
 
-	describe('getPriority', () => {
+	describe('set', () => {
+		it('replaces the detected audiences', async () => {
+			mockAudiencesDefinition(['a', 'b']);
+
+			await audiences.runDetection(DEFINITION_URL);
+
+			audiences.set(['c']);
+
+			expect([...audiences.get()]).toEqual(['c']);
+		});
+
+		it('sets the priorities in the given order', () => {
+			audiences.set(['b', 'a']);
+
+			expect(audiences.getAudienceIndex('a')).toBe(1);
+			expect(audiences.getAudienceIndex('b')).toBe(0);
+		});
+
+		it('runs the handlers of the audiences it sets', async () => {
+			const handler = jest.fn();
+			const otherHandler = jest.fn();
+
+			audiences.on('a', handler);
+			audiences.on('b', otherHandler);
+
+			audiences.set(['a']);
+
+			await audiences.runHandlers();
+
+			expect(handler).toHaveBeenCalledTimes(1);
+			expect(otherHandler).not.toHaveBeenCalled();
+		});
+	});
+
+	describe('getAudienceIndex', () => {
 		it('reflects the definition order', async () => {
 			mockAudiencesDefinition(['a', 'b', 'c']);
 
 			await audiences.runDetection(DEFINITION_URL);
 
-			expect(audiences.getPriority('a')).toBe(0);
-			expect(audiences.getPriority('b')).toBe(1);
-			expect(audiences.getPriority('c')).toBe(2);
+			expect(audiences.getAudienceIndex('a')).toBe(0);
+			expect(audiences.getAudienceIndex('b')).toBe(1);
+			expect(audiences.getAudienceIndex('c')).toBe(2);
 		});
 
-		it('returns Infinity for an audience absent from the definition', async () => {
+		it('returns undefined for an audience absent from the definition', async () => {
 			mockAudiencesDefinition(['a']);
 
 			await audiences.runDetection(DEFINITION_URL);
 
-			expect(audiences.getPriority('missing')).toBe(Infinity);
+			expect(audiences.getAudienceIndex('missing')).toBeUndefined();
 		});
 
 		it('refreshes the priorities on a second runDetection', async () => {
@@ -162,15 +217,15 @@ describe('implementation', () => {
 
 			await audiences.runDetection(DEFINITION_URL);
 
-			expect(audiences.getPriority('a')).toBe(0);
-			expect(audiences.getPriority('b')).toBe(1);
+			expect(audiences.getAudienceIndex('a')).toBe(0);
+			expect(audiences.getAudienceIndex('b')).toBe(1);
 
 			mockAudiencesDefinition(['b', 'a']);
 
 			await audiences.runDetection(DEFINITION_URL);
 
-			expect(audiences.getPriority('b')).toBe(0);
-			expect(audiences.getPriority('a')).toBe(1);
+			expect(audiences.getAudienceIndex('b')).toBe(0);
+			expect(audiences.getAudienceIndex('a')).toBe(1);
 		});
 	});
 });

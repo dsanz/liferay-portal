@@ -68,12 +68,12 @@ public class PropertyDefinition {
 		return _propertyClassDescription;
 	}
 
-	public Set<Class<?>> getPropertyClasses() {
-		return _propertyClasses;
-	}
-
 	public String getPropertyClassName() {
 		return _propertyClassName;
+	}
+
+	public Set<Class<?>> getPropertyClasses() {
+		return _propertyClasses;
 	}
 
 	public List<PropertyDefinition> getPropertyDefinitions() {
@@ -125,7 +125,9 @@ public class PropertyDefinition {
 			PropertyType.DECIMAL,
 			SetUtil.fromArray(Float.class, Integer.class, Long.class)
 		).<PropertyType, Set<Class<?>>>put(
-			PropertyType.DOUBLE, SetUtil.fromArray(Double.class, Float.class)
+			PropertyType.DOUBLE,
+			SetUtil.fromArray(
+				Double.class, Float.class, Integer.class, Long.class)
 		).<PropertyType, Set<Class<?>>>put(
 			PropertyType.INTEGER, SetUtil.fromArray(Integer.class)
 		).<PropertyType, Set<Class<?>>>put(
@@ -135,8 +137,8 @@ public class PropertyDefinition {
 		).build();
 
 	private String _propertyClassDescription;
-	private final Set<Class<?>> _propertyClasses;
 	private String _propertyClassName;
+	private final Set<Class<?>> _propertyClasses;
 	private List<PropertyDefinition> _propertyDefinitions;
 	private final String _propertyDescription;
 	private final String _propertyName;

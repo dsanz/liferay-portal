@@ -32,9 +32,11 @@ const svgContent = `
 
 describe('Diagram', () => {
 	beforeEach(() => {
+		fetchMock.mockGlobal();
+
 		mockCommonEndpoints();
 
-		fetchMock.mock(defaultDiagramProps.imageURL, () => {
+		fetchMock.route(defaultDiagramProps.imageURL, () => {
 			return {
 				body: svgContent,
 				headers: new Headers({'Content-Type': 'text/html'}),
@@ -43,7 +45,7 @@ describe('Diagram', () => {
 	});
 
 	afterEach(() => {
-		fetchMock.restore();
+		fetchMock.hardReset();
 	});
 
 	describe('SVG Renderer Admin', () => {

@@ -21,7 +21,7 @@ export default class OpenStreetMapMarker extends MarkerBase {
 	_getNativeMarker(location, map) {
 		if (!this._nativeMarker) {
 			this._nativeMarker = L.marker(location, {
-				draggable: true,
+				draggable: this.draggable,
 			}).addTo(map);
 
 			this._nativeMarker.on(
@@ -66,6 +66,23 @@ export default class OpenStreetMapMarker extends MarkerBase {
 		return {
 			location: nativeEvent.target.getLatLng(),
 		};
+	}
+
+	/**
+	 * @inheritDoc
+	 * @review
+	 */
+	setDraggable(draggable) {
+		super.setDraggable(draggable);
+
+		if (this._nativeMarker) {
+			if (draggable) {
+				this._nativeMarker.dragging.enable();
+			}
+			else {
+				this._nativeMarker.dragging.disable();
+			}
+		}
 	}
 
 	/**

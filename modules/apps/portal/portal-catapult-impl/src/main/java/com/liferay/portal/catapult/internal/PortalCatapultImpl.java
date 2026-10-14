@@ -8,11 +8,14 @@ package com.liferay.portal.catapult.internal;
 import com.liferay.oauth.client.LocalOAuthClient;
 import com.liferay.oauth2.provider.model.OAuth2Application;
 import com.liferay.oauth2.provider.service.OAuth2ApplicationLocalService;
+import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerList;
+import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerListFactory;
 import com.liferay.petra.executor.PortalExecutorManager;
 import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.catapult.PortalCatapult;
+import com.liferay.portal.catapult.PortalCatapultHeaderContributor;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
@@ -23,13 +26,25 @@ import com.liferay.portal.kernel.transaction.TransactionConfig;
 import com.liferay.portal.kernel.transaction.TransactionInvokerUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Validator;
 
 import java.io.IOException;
 
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
+import org.osgi.framework.BundleContext;
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 
 /**
@@ -57,14 +72,21 @@ public class PortalCatapultImpl implements PortalCatapult {
 				StringPool.UTF8);
 		}
 
+		options.setFollowRedirects(false);
+
 		OAuth2Application oAuth2Application =
 			_oAuth2ApplicationLocalService.
 				getOAuth2ApplicationByExternalReferenceCode(
 					oAuth2ApplicationExternalReferenceCode, companyId);
 
-		options.setLocation(_getLocation(oAuth2Application, resourcePath));
+		String location = _getLocation(oAuth2Application, resourcePath);
+
+		options.setLocation(location);
 
 		options.setMethod(method);
+
+		_addRequestHeaders(
+			companyId, location, oAuth2Application, options, userId);
 
 		try {
 			TransactionInvokerUtil.invoke(
@@ -72,7 +94,7 @@ public class PortalCatapultImpl implements PortalCatapult {
 				() -> {
 					_localOAuthClient.consumeAccessToken(
 						accessToken -> options.addHeader(
-							"Authorization", "Bearer " + accessToken),
+							HttpHeaders.AUTHORIZATION, "Bearer " + accessToken),
 						oAuth2Application, userId);
 
 					return null;
@@ -89,7 +111,35 @@ public class PortalCatapultImpl implements PortalCatapult {
 		return executorService.submit(
 			() -> {
 				try {
-					return _http.URLtoByteArray(options);
+					byte[] bytes = _http.URLtoByteArray(options);
+
+					Http.Response response = options.getResponse();
+
+					for (int i = 0; i < _MAX_REDIRECTS; i++) {
+						String redirectLocation = _getRedirectLocation(
+							location, options, response);
+
+						if (redirectLocation == null) {
+							break;
+						}
+
+						options.setLocation(redirectLocation);
+						options.setResponse(new Http.Response());
+
+						bytes = _http.URLtoByteArray(options);
+
+						response = options.getResponse();
+					}
+
+					if ((response.getResponseCode() >=
+							HttpURLConnection.HTTP_MULT_CHOICE) ||
+						(response.getResponseCode() <
+							HttpURLConnection.HTTP_OK)) {
+
+						throw new PortalException(new String(bytes));
+					}
+
+					return bytes;
 				}
 				catch (IOException ioException) {
 					_log.error(ioException);
@@ -97,6 +147,49 @@ public class PortalCatapultImpl implements PortalCatapult {
 					return ReflectionUtil.throwException(ioException);
 				}
 			});
+	}
+
+	@Activate
+	protected void activate(BundleContext bundleContext) {
+		_serviceTrackerList = ServiceTrackerListFactory.open(
+			bundleContext, PortalCatapultHeaderContributor.class);
+	}
+
+	@Deactivate
+	protected void deactivate() {
+		_serviceTrackerList.close();
+	}
+
+	private void _addRequestHeaders(
+		long companyId, String location, OAuth2Application oAuth2Application,
+		Http.Options options, long userId) {
+
+		Map<String, String> headers = new HashMap<>();
+
+		for (PortalCatapultHeaderContributor portalCatapultHeaderContributor :
+				_serviceTrackerList) {
+
+			portalCatapultHeaderContributor.contribute(
+				companyId, headers, oAuth2Application.getHomePageURL(),
+				location, oAuth2Application.getFeaturesList(), userId);
+		}
+
+		for (Map.Entry<String, String> entry : headers.entrySet()) {
+			String name = entry.getKey();
+
+			if (StringUtil.equalsIgnoreCase(name, HttpHeaders.AUTHORIZATION) ||
+				StringUtil.equalsIgnoreCase(name, HttpHeaders.CONTENT_TYPE)) {
+
+				if (_log.isWarnEnabled()) {
+					_log.warn(
+						"Unable to add the reserved header \"" + name + "\"");
+				}
+
+				continue;
+			}
+
+			options.addHeader(name, entry.getValue());
+		}
 	}
 
 	private String _getLocation(
@@ -120,6 +213,66 @@ public class PortalCatapultImpl implements PortalCatapult {
 			homePageURL, StringPool.SLASH, resourcePath);
 	}
 
+	private String _getOrigin(URI uri) {
+		int port = uri.getPort();
+
+		if (port == -1) {
+			if (StringUtil.equalsIgnoreCase(uri.getScheme(), Http.HTTPS)) {
+				port = Http.HTTPS_PORT;
+			}
+			else {
+				port = Http.HTTP_PORT;
+			}
+		}
+
+		return StringBundler.concat(
+			uri.getScheme(), StringPool.COLON,
+			StringUtil.toLowerCase(uri.getHost()), StringPool.COLON, port);
+	}
+
+	private String _getRedirectLocation(
+		String location, Http.Options options, Http.Response response) {
+
+		String redirect = response.getRedirect();
+
+		if ((options.getMethod() != Http.Method.GET) ||
+			(response.getResponseCode() >=
+				HttpURLConnection.HTTP_BAD_REQUEST) ||
+			(response.getResponseCode() < HttpURLConnection.HTTP_MULT_CHOICE) ||
+			Validator.isNull(redirect)) {
+
+			return null;
+		}
+
+		try {
+			URI uri = new URI(options.getLocation());
+
+			URI redirectURI = uri.resolve(new URI(redirect));
+
+			if (Objects.equals(
+					_getOrigin(new URI(location)), _getOrigin(redirectURI))) {
+
+				return redirectURI.toString();
+			}
+
+			if (_log.isWarnEnabled()) {
+				_log.warn(
+					StringBundler.concat(
+						"Unable to follow the redirect to ", redirectURI,
+						" because it leaves the origin of ", location));
+			}
+		}
+		catch (URISyntaxException uriSyntaxException) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(uriSyntaxException);
+			}
+		}
+
+		return null;
+	}
+
+	private static final int _MAX_REDIRECTS = 5;
+
 	private static final Log _log = LogFactoryUtil.getLog(
 		PortalCatapultImpl.class);
 
@@ -138,5 +291,8 @@ public class PortalCatapultImpl implements PortalCatapult {
 
 	@Reference
 	private PortalExecutorManager _portalExecutorManager;
+
+	private ServiceTrackerList<PortalCatapultHeaderContributor>
+		_serviceTrackerList;
 
 }

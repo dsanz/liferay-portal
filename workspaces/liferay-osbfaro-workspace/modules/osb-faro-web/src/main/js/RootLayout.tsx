@@ -4,9 +4,10 @@ import ModalRenderer from 'shared/components/ModalRenderer';
 import React, {Suspense, useEffect, useState} from 'react';
 import TrackingConsentBanner from 'shared/components/TrackingConsentBanner';
 import {FaroEnv} from 'shared/util/constants';
-import {Outlet, useMatch} from 'react-router-dom';
+import {Outlet, ScrollRestoration, useMatch} from 'react-router-dom';
 import {Pendo, TrackingConsentValues} from 'shared/util/pendo';
 import {Project} from 'shared/util/records';
+import {syncAIHubChatbot} from 'shared/util/ai-hub-chatbot';
 import {useFetchCurrentUser} from 'shared/hooks/useCurrentUser';
 import {useSelector} from 'react-redux';
 
@@ -23,21 +24,29 @@ const RootLayout = () => {
 	const [trackingConsent, setTrackingConsent] =
 		useState<TrackingConsentValues | null>(null);
 
+	// The chatbot is provisioned per workspace, so it follows the route.
+
+	useEffect(() => {
+		syncAIHubChatbot(match?.params.groupId);
+	}, [match?.params.groupId]);
+
 	// The stored cookie decides whether Pendo may start. `trackingConsent` is
 	// not read here: it only re-runs the effect once the banner stores a
-	// decision, so tracking starts without a reload.
+	// decision, so tracking starts without a reload. A loaded workspace is
+	// enough: LDP workspaces carry no corp project, so gating on one would
+	// leave them untracked.
 
 	useEffect(() => {
 		const pendo = new Pendo();
 
 		if (
 			currentUser?.id &&
-			project?.corpProjectName &&
+			project?.groupId &&
 			pendo.getUserConsent() === TrackingConsentValues.Accepted
 		) {
 			pendo.initialize({currentUser, project});
 		}
-	}, [currentUser?.id, project?.corpProjectName, trackingConsent]);
+	}, [currentUser?.id, project?.groupId, trackingConsent]);
 
 	if (loading) {
 		return <Loading />;
@@ -45,6 +54,8 @@ const RootLayout = () => {
 
 	return (
 		<>
+			<ScrollRestoration />
+
 			<AlertFeed />
 
 			<ModalRenderer />

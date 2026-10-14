@@ -3,29 +3,21 @@
 exports[`CriteriaSidebarItem should render 1`] = `
 <div>
   <li
-    class="criteria-sidebar-item-root"
+    aria-label="Add Page Views"
+    class="align-items-center c-gap-3 criteria-sidebar-item-root d-flex mb-1 mx-4 p-2 text-4"
     data-testid="criteria-item-Page Views"
+    role="menuitem"
+    tabindex="-1"
   >
     <span
-      class="inline-item"
-    >
-      <svg
-        class="lexicon-icon lexicon-icon-drag icon-root"
-        role="presentation"
-      >
-        <use
-          href="#drag"
-        />
-      </svg>
-    </span>
-    <span
-      class="criteria-sidebar-item-type sticker"
+      class="sticker criteria-sidebar-item-sticker flex-shrink-0"
+      style="--criteria-sticker-bg: var(--cadmin-indigo-l5); --criteria-sticker-color: var(--cadmin-indigo);"
     >
       <span
-        class="inline-item"
+        class="sticker-overlay"
       >
         <svg
-          class="lexicon-icon lexicon-icon-text icon-root"
+          class="lexicon-icon lexicon-icon-text"
           role="presentation"
         >
           <use
@@ -35,10 +27,19 @@ exports[`CriteriaSidebarItem should render 1`] = `
       </span>
     </span>
     <span
-      class="criteria-sidebar-item-label"
+      class="autofit-col-expand"
     >
       Page Views
     </span>
+    <svg
+      aria-hidden="true"
+      class="lexicon-icon lexicon-icon-plus criteria-sidebar-item-add flex-shrink-0 mr-2 text-secondary"
+      role="presentation"
+    >
+      <use
+        href="#plus"
+      />
+    </svg>
   </li>
 </div>
 `;

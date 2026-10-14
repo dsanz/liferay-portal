@@ -61,9 +61,11 @@ DisplayPageManagementToolbarDisplayContext displayPageManagementToolbarDisplayCo
 			<liferay-ui:success key="displayPageContentTypeChanged" message='<%= GetterUtil.getString(SessionMessages.get(renderRequest, "displayPageContentTypeChanged")) %>' />
 			<liferay-ui:success key="displayPageTemplateDeleted" message='<%= GetterUtil.getString(MultiSessionMessages.get(renderRequest, "displayPageTemplateDeleted")) %>' />
 
-			<liferay-site-navigation:breadcrumb
-				breadcrumbEntries="<%= displayPageDisplayContext.getLayoutPageTemplateBreadcrumbEntries() %>"
-			/>
+			<c:if test="<%= displayPageDisplayContext.isShowBreadcrumb() %>">
+				<liferay-site-navigation:breadcrumb
+					breadcrumbEntries="<%= displayPageDisplayContext.getLayoutPageTemplateBreadcrumbEntries() %>"
+				/>
+			</c:if>
 
 			<liferay-ui:search-container
 				searchContainer="<%= displayPageDisplayContext.getDisplayPagesSearchContainer() %>"

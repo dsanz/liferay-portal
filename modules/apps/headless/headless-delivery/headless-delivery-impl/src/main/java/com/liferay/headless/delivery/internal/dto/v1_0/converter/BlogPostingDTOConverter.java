@@ -12,8 +12,8 @@ import com.liferay.asset.kernel.service.AssetTagLocalService;
 import com.liferay.asset.link.service.AssetLinkLocalService;
 import com.liferay.blogs.model.BlogsEntry;
 import com.liferay.blogs.service.BlogsEntryService;
+import com.liferay.document.library.helper.DLURLHelper;
 import com.liferay.document.library.kernel.service.DLAppService;
-import com.liferay.document.library.util.DLURLHelper;
 import com.liferay.headless.delivery.dto.v1_0.BlogPosting;
 import com.liferay.headless.delivery.dto.v1_0.Image;
 import com.liferay.headless.delivery.dto.v1_0.TaxonomyCategoryBrief;
@@ -27,6 +27,7 @@ import com.liferay.headless.delivery.internal.resource.v1_0.BaseBlogPostingResou
 import com.liferay.info.item.InfoItemServiceRegistry;
 import com.liferay.layout.display.page.LayoutDisplayPageProviderRegistry;
 import com.liferay.layout.page.template.service.LayoutPageTemplateEntryService;
+import com.liferay.layout.util.LayoutServiceContextHelper;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.portal.kernel.comment.CommentManager;
 import com.liferay.portal.kernel.repository.model.FileEntry;
@@ -53,7 +54,9 @@ import org.osgi.service.component.annotations.Reference;
  * @author Rubén Pulido
  */
 @Component(
-	property = "dto.class.name=com.liferay.blogs.model.BlogsEntry",
+	property = {
+		"default=true", "dto.class.name=com.liferay.blogs.model.BlogsEntry"
+	},
 	service = DTOConverter.class
 )
 public class BlogPostingDTOConverter
@@ -143,6 +146,7 @@ public class BlogPostingDTOConverter
 						blogsEntry, _infoItemServiceRegistry,
 						_layoutDisplayPageProviderRegistry, _layoutService,
 						_layoutPageTemplateEntryService,
+						_layoutServiceContextHelper,
 						"getBlogPostingRenderedContentByDisplayPageDisplay" +
 							"PageKey"));
 				setSiteId(blogsEntry::getGroupId);
@@ -224,6 +228,9 @@ public class BlogPostingDTOConverter
 
 	@Reference
 	private LayoutService _layoutService;
+
+	@Reference
+	private LayoutServiceContextHelper _layoutServiceContextHelper;
 
 	@Reference
 	private Portal _portal;

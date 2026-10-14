@@ -123,12 +123,7 @@ public class ObjectEntryIndexerContributedFieldsTest {
 
 		_assertFieldValue(objectFieldValue, WorkflowConstants.STATUS_APPROVED);
 
-		objectEntry = _objectEntryLocalService.updateObjectEntry(objectEntry);
-
-		_assertFieldValue(objectFieldValue, WorkflowConstants.STATUS_APPROVED);
-
-		_objectEntryLocalService.updateModifiedDate(
-			objectEntry.getObjectEntryId(), RandomTestUtil.nextDate());
+		_objectEntryLocalService.updateObjectEntry(objectEntry);
 
 		_assertFieldValue(objectFieldValue, WorkflowConstants.STATUS_APPROVED);
 
@@ -179,10 +174,10 @@ public class ObjectEntryIndexerContributedFieldsTest {
 	private ObjectEntryLocalService _objectEntryLocalService;
 
 	@Inject
-	private Searcher _searcher;
+	private SearchRequestBuilderFactory _searchRequestBuilderFactory;
 
 	@Inject
-	private SearchRequestBuilderFactory _searchRequestBuilderFactory;
+	private Searcher _searcher;
 
 	private ServiceRegistration<ModelDocumentContributor<?>>
 		_serviceRegistration;

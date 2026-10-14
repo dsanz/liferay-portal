@@ -5,10 +5,12 @@
 
 package com.liferay.layout.page.template.admin.web.internal.display.context;
 
+import com.liferay.design.library.util.DesignLibraryUtil;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemListBuilder;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.VerticalNavItemList;
 import com.liferay.layout.page.template.admin.constants.LayoutPageTemplateAdminPortletKeys;
+import com.liferay.layout.page.template.admin.web.internal.constants.LayoutPageTemplateAdminWebKeys;
 import com.liferay.layout.page.template.admin.web.internal.security.permission.resource.LayoutPageTemplateCollectionPermission;
 import com.liferay.layout.page.template.admin.web.internal.security.permission.resource.LayoutPageTemplatePermission;
 import com.liferay.layout.page.template.admin.web.internal.util.LayoutPageTemplatePortletUtil;
@@ -25,6 +27,7 @@ import com.liferay.portal.kernel.portlet.SearchOrderByUtil;
 import com.liferay.portal.kernel.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -113,26 +116,26 @@ public class LayoutPageTemplateDisplayContext {
 			return _layoutPageTemplateCollectionId;
 		}
 
-		long defaultLayoutPageTemplateCollectionId = 0;
+		long layoutPageTemplateCollectionId = GetterUtil.getLong(
+			_httpServletRequest.getAttribute(
+				LayoutPageTemplateAdminWebKeys.
+					LAYOUT_PAGE_TEMPLATE_COLLECTION_ID));
 
-		List<LayoutPageTemplateCollection> layoutPageTemplateCollections =
-			getLayoutPageTemplateCollections();
-
-		if (ListUtil.isNotEmpty(layoutPageTemplateCollections)) {
+		if (layoutPageTemplateCollectionId <= 0) {
 			LayoutPageTemplateCollection layoutPageTemplateCollection =
-				layoutPageTemplateCollections.get(0);
+				LayoutPageTemplatePortletUtil.fetchLayoutPageTemplateCollection(
+					_httpServletRequest, _themeDisplay.getScopeGroupId());
 
-			defaultLayoutPageTemplateCollectionId =
-				layoutPageTemplateCollection.
-					getLayoutPageTemplateCollectionId();
+			if (layoutPageTemplateCollection != null) {
+				layoutPageTemplateCollectionId =
+					layoutPageTemplateCollection.
+						getLayoutPageTemplateCollectionId();
+			}
 		}
-
-		long layoutPageTemplateCollectionId = ParamUtil.getLong(
-			_httpServletRequest, "layoutPageTemplateCollectionId");
 
 		if (layoutPageTemplateCollectionId <= 0) {
 			layoutPageTemplateCollectionId =
-				defaultLayoutPageTemplateCollectionId;
+				_getDefaultLayoutPageTemplateCollectionId();
 		}
 
 		_layoutPageTemplateCollectionId = layoutPageTemplateCollectionId;
@@ -359,6 +362,15 @@ public class LayoutPageTemplateDisplayContext {
 		return verticalNavItemList;
 	}
 
+	public boolean isDesignLibraryScope() {
+		return DesignLibraryUtil.isDesignLibraryScope(
+			_themeDisplay.getScopeGroup());
+	}
+
+	public boolean isHideCollectionsPanel() {
+		return isDesignLibraryScope();
+	}
+
 	public boolean isSearch() {
 		return Validator.isNotNull(getKeywords());
 	}
@@ -367,6 +379,20 @@ public class LayoutPageTemplateDisplayContext {
 		return LayoutPageTemplatePermission.contains(
 			_themeDisplay.getPermissionChecker(),
 			_themeDisplay.getSiteGroupId(), actionId);
+	}
+
+	private long _getDefaultLayoutPageTemplateCollectionId() {
+		List<LayoutPageTemplateCollection> layoutPageTemplateCollections =
+			getLayoutPageTemplateCollections();
+
+		if (ListUtil.isEmpty(layoutPageTemplateCollections)) {
+			return 0;
+		}
+
+		LayoutPageTemplateCollection layoutPageTemplateCollection =
+			layoutPageTemplateCollections.get(0);
+
+		return layoutPageTemplateCollection.getLayoutPageTemplateCollectionId();
 	}
 
 	private final HttpServletRequest _httpServletRequest;

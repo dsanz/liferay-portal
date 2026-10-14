@@ -2132,7 +2132,7 @@ test.describe('Manage object relationships through Objects Admin UI', () => {
 			await page.getByRole('link', {name: entryA.id.toString()}).click();
 
 			await page
-				.locator('#editObjectEntry')
+				.locator('[id$="editObjectEntry"]')
 				.getByPlaceholder('Search')
 				.fill('!@#$%');
 
@@ -2564,7 +2564,7 @@ test.describe('Manage object relationships through Objects Admin UI', () => {
 			await page.getByRole('link', {name: entryB.id.toString()}).click();
 
 			await page
-				.locator('#editObjectEntry')
+				.locator('[id$="editObjectEntry"]')
 				.getByPlaceholder('Search')
 				.click();
 
@@ -2942,24 +2942,24 @@ test.describe('Manage object relationships with system objects', () => {
 
 				await page.getByText('Relationship Tab', {exact: true}).click();
 
-				await page.getByLabel('Select Existing One').first().click();
-				await page
-					.frameLocator('iframe[title="Select"]')
-					.getByText(String(userAccount1.id), {exact: true})
-					.first()
-					.click();
+				for (const userAccount of [userAccount1, userAccount2]) {
+					await page
+						.getByLabel('Select Existing One')
+						.first()
+						.click();
+					await page
+						.frameLocator('iframe[title="Select"]')
+						.getByText(String(userAccount.id), {exact: true})
+						.first()
+						.click();
 
-				await page.reload();
-
-				await page
-					.getByRole('link', {exact: true, name: 'Relationship Tab'})
-					.click();
-
-				await page.getByLabel('Select Existing One').first().click();
-				await page
-					.frameLocator('iframe[title="Select"]')
-					.getByText(String(userAccount2.id), {exact: true})
-					.click();
+					await expect(
+						page.getByRole('cell', {
+							exact: true,
+							name: String(userAccount.id),
+						})
+					).toBeVisible();
+				}
 			};
 
 			const deleteAllRelationsFromEntry = async (entryLabel: string) => {
@@ -2973,17 +2973,22 @@ test.describe('Manage object relationships with system objects', () => {
 
 				await page.getByText('Relationship Tab', {exact: true}).click();
 
-				const rowActions = page.getByRole('button', {name: 'Actions'});
+				const deleteLinks = page.getByRole('link', {
+					exact: true,
+					name: 'Delete',
+				});
 
-				const initialCount = await rowActions.count();
+				await expect(deleteLinks).toHaveCount(2);
 
-				for (let i = 0; i < initialCount; i++) {
-					await rowActions.first().click();
-					await page.getByRole('menuitem', {name: 'Delete'}).click();
-					await page.getByRole('button', {name: 'Delete'}).click();
+				await deleteLinks.first().click();
 
-					await expect(rowActions).toHaveCount(initialCount - i - 1);
-				}
+				await expect(deleteLinks).toHaveCount(1);
+
+				await deleteLinks.first().click();
+
+				await expect(
+					page.getByText('No Results Found', {exact: true})
+				).toBeVisible();
 			};
 
 			await test.step('relate Entry A to both users', () =>
@@ -5490,6 +5495,283 @@ test.describe('View relationship hierarchy labels', () => {
 				.click();
 
 			await expect(iframe.getByText('Child')).toBeVisible();
+		}
+	);
+});
+
+test.describe('Manage object relationship descriptions', () => {
+	test(
+		'can add description through Model Builder',
+		{tag: '@LPD-103748'},
+		async ({
+			apiHelpers,
+			modelBuilderDiagramPage,
+			modelBuilderLeftSidebarPage,
+			modelBuilderRightSidebarPage,
+			viewObjectDefinitionsPage,
+		}) => {
+			const objectFolder =
+				await apiHelpers.objectAdmin.postRandomObjectFolder();
+
+			apiHelpers.data.push({id: objectFolder.id, type: 'objectFolder'});
+
+			const objectDefinition1 =
+				await apiHelpers.objectAdmin.postRandomObjectDefinition({
+					objectFolderExternalReferenceCode:
+						objectFolder.externalReferenceCode,
+					status: {code: 0},
+				});
+
+			apiHelpers.data.push({
+				id: objectDefinition1.id,
+				type: 'objectDefinition',
+			});
+
+			const objectDefinition2 =
+				await apiHelpers.objectAdmin.postRandomObjectDefinition({
+					objectFolderExternalReferenceCode:
+						objectFolder.externalReferenceCode,
+					status: {code: 0},
+				});
+
+			apiHelpers.data.push({
+				id: objectDefinition2.id,
+				type: 'objectDefinition',
+			});
+
+			const objectRelationshipLabel =
+				'objectRelationshipLabel' + getRandomInt();
+
+			const objectRelationshipAPIClient =
+				await apiHelpers.buildRestClient(ObjectRelationshipAPI);
+
+			const {body: objectRelationship} =
+				await objectRelationshipAPIClient.postObjectDefinitionByExternalReferenceCodeObjectRelationship(
+					objectDefinition1.externalReferenceCode,
+					{
+						label: {en_US: objectRelationshipLabel},
+						name: await getFreshObjectRelationshipName(apiHelpers, [
+							objectDefinition1.externalReferenceCode!,
+							objectDefinition2.externalReferenceCode!,
+						]),
+						objectDefinitionExternalReferenceCode1:
+							objectDefinition1.externalReferenceCode,
+						objectDefinitionExternalReferenceCode2:
+							objectDefinition2.externalReferenceCode,
+						objectDefinitionId1: objectDefinition1.id,
+						objectDefinitionId2: objectDefinition2.id,
+						objectDefinitionName2: objectDefinition2.name,
+						type: 'oneToMany',
+					}
+				);
+
+			apiHelpers.data.push({
+				id: objectRelationship.id,
+				type: 'objectRelationship',
+			});
+
+			const description = 'Each claim has many service visits.';
+
+			await viewObjectDefinitionsPage.goto();
+
+			await viewObjectDefinitionsPage.openObjectFolder(
+				objectFolder.label['en_US']
+			);
+
+			await viewObjectDefinitionsPage.viewInModelBuilderButton.click();
+
+			await modelBuilderDiagramPage.clickObjectRelationshipEdge(
+				objectRelationshipLabel
+			);
+
+			await modelBuilderRightSidebarPage.sidebarDescriptionInput.fill(
+				description
+			);
+
+			await modelBuilderRightSidebarPage.sidebarDescriptionInput.blur();
+
+			await modelBuilderLeftSidebarPage.sidebarItems
+				.filter({hasText: objectDefinition1.label['en_US']})
+				.click();
+
+			await modelBuilderDiagramPage.clickObjectRelationshipEdge(
+				objectRelationshipLabel
+			);
+
+			await expect(
+				modelBuilderRightSidebarPage.sidebarDescriptionInput
+			).toHaveValue(description);
+		}
+	);
+
+	test(
+		'can manage description through Objects Admin',
+		{tag: '@LPD-103748'},
+		async ({apiHelpers, objectRelationshipsPage, page}) => {
+			const objectDefinition1 =
+				await apiHelpers.objectAdmin.postRandomObjectDefinition({
+					status: {code: 0},
+				});
+
+			apiHelpers.data.push({
+				id: objectDefinition1.id,
+				type: 'objectDefinition',
+			});
+
+			const objectDefinition2 =
+				await apiHelpers.objectAdmin.postRandomObjectDefinition({
+					status: {code: 0},
+				});
+
+			apiHelpers.data.push({
+				id: objectDefinition2.id,
+				type: 'objectDefinition',
+			});
+
+			const objectRelationshipLabel =
+				'objectRelationshipLabel' + getRandomInt();
+
+			const objectRelationshipAPIClient =
+				await apiHelpers.buildRestClient(ObjectRelationshipAPI);
+
+			const {body: objectRelationship} =
+				await objectRelationshipAPIClient.postObjectDefinitionByExternalReferenceCodeObjectRelationship(
+					objectDefinition1.externalReferenceCode,
+					{
+						label: {en_US: objectRelationshipLabel},
+						name: 'rel' + getRandomInt(),
+						objectDefinitionExternalReferenceCode2:
+							objectDefinition2.externalReferenceCode,
+						type: 'oneToMany',
+					}
+				);
+
+			apiHelpers.data.push({
+				id: objectRelationship.id,
+				type: 'objectRelationship',
+			});
+
+			const description = 'Each claim has many service visits.';
+			const updatedDescription = 'Each claim has many repair visits.';
+
+			const saveAndReopen = async () => {
+				await objectRelationshipsPage.saveObjectRelationship();
+
+				await objectRelationshipsPage.goto(
+					objectDefinition1.label['en_US']
+				);
+
+				await page
+					.getByRole('link', {name: objectRelationshipLabel})
+					.click();
+			};
+
+			await objectRelationshipsPage.goto(
+				objectDefinition1.label['en_US']
+			);
+
+			await page
+				.getByRole('link', {name: objectRelationshipLabel})
+				.click();
+
+			await objectRelationshipsPage.descriptionInput.fill(description);
+
+			await saveAndReopen();
+
+			await expect(objectRelationshipsPage.descriptionInput).toHaveValue(
+				description
+			);
+
+			await objectRelationshipsPage.descriptionInput.fill(
+				updatedDescription
+			);
+
+			await saveAndReopen();
+
+			await expect(objectRelationshipsPage.descriptionInput).toHaveValue(
+				updatedDescription
+			);
+
+			await objectRelationshipsPage.descriptionInput.clear();
+
+			await saveAndReopen();
+
+			await expect(objectRelationshipsPage.descriptionInput).toBeEmpty();
+		}
+	);
+
+	test(
+		'mirrors the description to the reverse self relationship',
+		{tag: '@LPD-103748'},
+		async ({apiHelpers, objectRelationshipsPage, page}) => {
+			const objectDefinition =
+				await apiHelpers.objectAdmin.postRandomObjectDefinition({
+					status: {code: 0},
+				});
+
+			apiHelpers.data.push({
+				id: objectDefinition.id,
+				type: 'objectDefinition',
+			});
+
+			const objectRelationshipLabel =
+				'objectRelationshipLabel' + getRandomInt();
+
+			const objectRelationshipAPIClient =
+				await apiHelpers.buildRestClient(ObjectRelationshipAPI);
+
+			const {body: objectRelationship} =
+				await objectRelationshipAPIClient.postObjectDefinitionByExternalReferenceCodeObjectRelationship(
+					objectDefinition.externalReferenceCode,
+					{
+						label: {en_US: objectRelationshipLabel},
+						name: 'rel' + getRandomInt(),
+						objectDefinitionExternalReferenceCode2:
+							objectDefinition.externalReferenceCode,
+						type: 'manyToMany',
+					}
+				);
+
+			apiHelpers.data.push({
+				id: objectRelationship.id,
+				type: 'objectRelationship',
+			});
+
+			const description = 'Each claim relates to other claims.';
+
+			await objectRelationshipsPage.goto(objectDefinition.label['en_US']);
+
+			const objectRelationshipLinks = page.getByRole('link', {
+				name: objectRelationshipLabel,
+			});
+
+			await expect(objectRelationshipLinks).toHaveCount(2);
+
+			await objectRelationshipLinks.first().click();
+
+			await objectRelationshipsPage.descriptionInput.fill(description);
+
+			await objectRelationshipsPage.saveObjectRelationship();
+
+			await objectRelationshipsPage.goto(objectDefinition.label['en_US']);
+
+			await objectRelationshipLinks.first().click();
+
+			await expect(objectRelationshipsPage.descriptionInput).toHaveValue(
+				description
+			);
+
+			await objectRelationshipsPage.cancelButton.click();
+
+			await objectRelationshipLinks.nth(1).click();
+
+			await expect(
+				objectRelationshipsPage.descriptionInput
+			).toBeDisabled();
+
+			await expect(objectRelationshipsPage.descriptionInput).toHaveValue(
+				description
+			);
 		}
 	);
 });

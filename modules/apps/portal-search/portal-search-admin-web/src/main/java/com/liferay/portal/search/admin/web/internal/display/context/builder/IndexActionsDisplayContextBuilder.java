@@ -24,7 +24,6 @@ import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CollatorUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
-import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.SetUtil;
@@ -85,10 +84,10 @@ public class IndexActionsDisplayContextBuilder {
 		return indexActionsDisplayContext;
 	}
 
-	public void setIndexReindexerClassNames(
-		List<String> indexReindexerClassNames) {
+	public void setIndexReindexerClassNamesMap(
+		Map<String, List<String>> indexReindexerClassNamesMap) {
 
-		_indexReindexerClassNames = indexReindexerClassNames;
+		_indexReindexerClassNamesMap = indexReindexerClassNamesMap;
 	}
 
 	public void setStatsInformationFactory(
@@ -107,7 +106,7 @@ public class IndexActionsDisplayContextBuilder {
 		).put(
 			"indexersMap", _getIndexersMap()
 		).put(
-			"indexReindexerNames", _getIndexReindexerNames()
+			"indexReindexersMap", _getIndexReindexersMap()
 		).put(
 			"initialCompanyIds", _getInitialCompanyIds()
 		).put(
@@ -121,6 +120,38 @@ public class IndexActionsDisplayContextBuilder {
 		).put(
 			"virtualInstances", _getVirtualInstancesJSONArray()
 		).build();
+	}
+
+	private Map<String, List<Object>> _getIndexReindexersMap() {
+		Map<String, List<Object>> indexReindexersMap = new TreeMap<>();
+
+		if (_indexReindexerClassNamesMap == null) {
+			return indexReindexersMap;
+		}
+
+		for (Map.Entry<String, List<String>> entry :
+				_indexReindexerClassNamesMap.entrySet()) {
+
+			List<Object> indexReindexers = new ArrayList<>();
+
+			for (String indexReindexerClassName : entry.getValue()) {
+				indexReindexers.add(
+					HashMapBuilder.put(
+						"className", indexReindexerClassName
+					).put(
+						"displayName",
+						_language.get(
+							_httpServletRequest,
+							"model.resource." + indexReindexerClassName)
+					).build());
+			}
+
+			indexReindexersMap.put(
+				_language.get(_httpServletRequest, entry.getKey()),
+				indexReindexers);
+		}
+
+		return indexReindexersMap;
 	}
 
 	private Map<String, List<Object>> _getIndexersMap() {
@@ -202,26 +233,6 @@ public class IndexActionsDisplayContextBuilder {
 		}
 
 		return indexersMap;
-	}
-
-	private List<Object> _getIndexReindexerNames() {
-		List<Object> indexReindexerNames = new ArrayList<>();
-
-		if (ListUtil.isNotNull(_indexReindexerClassNames)) {
-			for (String indexReindexerClassName : _indexReindexerClassNames) {
-				indexReindexerNames.add(
-					HashMapBuilder.put(
-						"className", indexReindexerClassName
-					).put(
-						"displayName",
-						_language.get(
-							_httpServletRequest,
-							"model.resource." + indexReindexerClassName)
-					).build());
-			}
-		}
-
-		return indexReindexerNames;
 	}
 
 	private long[] _getInitialCompanyIds() {
@@ -319,7 +330,7 @@ public class IndexActionsDisplayContextBuilder {
 		IndexActionsDisplayContextBuilder.class);
 
 	private final HttpServletRequest _httpServletRequest;
-	private List<String> _indexReindexerClassNames;
+	private Map<String, List<String>> _indexReindexerClassNamesMap;
 	private final Language _language;
 	private final PermissionChecker _permissionChecker;
 	private final ReindexConfiguration _reindexConfiguration;

@@ -46,7 +46,6 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.log.Log;
@@ -187,7 +186,7 @@ public class AssetListAssetEntryProviderImpl
 			if (classNameIds.length == 1) {
 				classTypeIds = _getClassTypeIds(
 					assetListEntry, unicodeProperties,
-					_portal.getClassName(classNameIds[0]));
+					_portal.fetchClassName(classNameIds[0]));
 
 				assetEntryQuery.setClassTypeIds(classTypeIds);
 			}
@@ -242,23 +241,26 @@ public class AssetListAssetEntryProviderImpl
 				"ddmStructureFieldValue", ddmStructureFieldValue);
 		}
 
-		if (FeatureFlagManagerUtil.isEnabled(
-				assetListEntry.getCompanyId(), "LPD-74731")) {
+		String filtersJSON = unicodeProperties.getProperty("filters");
 
-			String filtersJSON = unicodeProperties.getProperty("filters");
+		if (Validator.isNotNull(filtersJSON)) {
+			JSONArray filtersJSONArray = null;
 
-			if (Validator.isNotNull(filtersJSON)) {
-				try {
-					assetEntryQuery.setAttribute(
-						"filters", _jsonFactory.createJSONArray(filtersJSON));
+			try {
+				filtersJSONArray = _jsonFactory.createJSONArray(filtersJSON);
+			}
+			catch (Exception exception) {
+				if (_log.isDebugEnabled()) {
+					_log.debug(
+						"Unable to parse filters: " + filtersJSON, exception);
 				}
-				catch (Exception exception) {
-					if (_log.isDebugEnabled()) {
-						_log.debug(
-							"Unable to parse filters: " + filtersJSON,
-							exception);
-					}
-				}
+			}
+
+			if (filtersJSONArray != null) {
+				assetEntryQuery.setAttribute("filters", filtersJSONArray);
+
+				_setAssetEntryQueryLegacyFilters(
+					assetEntryQuery, filtersJSONArray);
 			}
 		}
 
@@ -290,6 +292,11 @@ public class AssetListAssetEntryProviderImpl
 		String keywords, int start, int end) {
 
 		try {
+			assetEntryQueries = ListUtil.filter(
+				assetEntryQueries,
+				assetEntryQuery -> ArrayUtil.isNotEmpty(
+					assetEntryQuery.getClassNameIds()));
+
 			if (ListUtil.isEmpty(assetEntryQueries)) {
 				return InfoPage.of(Collections.emptyList());
 			}
@@ -506,22 +513,25 @@ public class AssetListAssetEntryProviderImpl
 			return availableClassNameIds;
 		}
 
-		long defaultClassNameId = GetterUtil.getLong(
-			unicodeProperties.getProperty("anyAssetType", null));
-
-		if (defaultClassNameId > 0) {
-			return new long[] {defaultClassNameId};
-		}
-
 		long[] classNameIds = GetterUtil.getLongValues(
 			StringUtil.split(
 				unicodeProperties.getProperty("classNameIds", null)));
 
-		if (ArrayUtil.isNotEmpty(classNameIds)) {
-			return classNameIds;
+		long defaultClassNameId = GetterUtil.getLong(
+			unicodeProperties.getProperty("anyAssetType", null));
+
+		if (defaultClassNameId != 0) {
+			classNameIds = new long[] {defaultClassNameId};
 		}
 
-		return availableClassNameIds;
+		if (ArrayUtil.isEmpty(classNameIds)) {
+			return availableClassNameIds;
+		}
+
+		return ArrayUtil.filter(
+			classNameIds,
+			classNameId -> ArrayUtil.contains(
+				availableClassNameIds, classNameId));
 	}
 
 	private long[] _getClassTypeIds(
@@ -982,10 +992,8 @@ public class AssetListAssetEntryProviderImpl
 			return _toAssetEntryQueryOrderByColumn(orderByColumn);
 		}
 
-		if (FeatureFlagManagerUtil.isEnabled(companyId, "LPD-74731")) {
-			orderByColumn = AssetListOrderByColumnUtil.toOrderByColumn(
-				companyId, orderByColumn);
-		}
+		orderByColumn = AssetListOrderByColumnUtil.toOrderByColumn(
+			companyId, orderByColumn);
 
 		if (orderByColumn.startsWith(StringPool.OPEN_CURLY_BRACE)) {
 			return _toAssetEntryQueryOrderByColumn(defaultOrderByColumn);
@@ -1020,6 +1028,86 @@ public class AssetListAssetEntryProviderImpl
 		}
 
 		return groupIds;
+	}
+
+	private void _setAssetEntryQueryLegacyFilters(
+		AssetEntryQuery assetEntryQuery, JSONArray filtersJSONArray) {
+
+		long[] groupIds = _getReferencedModelsGroupIds(
+			assetEntryQuery.getGroupIds());
+
+		for (String assetTagName :
+				AssetListFiltersUtil.getAssetTagNames(
+					true, true, filtersJSONArray)) {
+
+			assetEntryQuery.addAllTagIdsArray(
+				_assetTagLocalService.getTagIds(groupIds, assetTagName));
+		}
+
+		for (String assetTagName :
+				AssetListFiltersUtil.getAssetTagNames(
+					true, false, filtersJSONArray)) {
+
+			assetEntryQuery.addNotAllTagIdsArray(
+				_assetTagLocalService.getTagIds(groupIds, assetTagName));
+		}
+
+		assetEntryQuery.setAllCategoryIds(
+			ArrayUtil.append(
+				assetEntryQuery.getAllCategoryIds(),
+				_filterAssetCategoryIds(
+					AssetListFiltersUtil.getAssetCategoryIds(
+						true, true, filtersJSONArray))));
+		assetEntryQuery.setAllKeywords(
+			ArrayUtil.append(
+				assetEntryQuery.getAllKeywords(),
+				AssetListFiltersUtil.getKeywords(
+					true, true, filtersJSONArray)));
+		assetEntryQuery.setAnyCategoryIds(
+			ArrayUtil.append(
+				assetEntryQuery.getAnyCategoryIds(),
+				_filterAssetCategoryIds(
+					AssetListFiltersUtil.getAssetCategoryIds(
+						false, true, filtersJSONArray))));
+		assetEntryQuery.setAnyKeywords(
+			ArrayUtil.append(
+				assetEntryQuery.getAnyKeywords(),
+				AssetListFiltersUtil.getKeywords(
+					false, true, filtersJSONArray)));
+		assetEntryQuery.setAnyTagIds(
+			ArrayUtil.append(
+				assetEntryQuery.getAnyTagIds(),
+				_assetTagLocalService.getTagIds(
+					groupIds,
+					AssetListFiltersUtil.getAssetTagNames(
+						false, true, filtersJSONArray))));
+		assetEntryQuery.setNotAllCategoryIds(
+			ArrayUtil.append(
+				assetEntryQuery.getNotAllCategoryIds(),
+				AssetListFiltersUtil.getAssetCategoryIds(
+					true, false, filtersJSONArray)));
+		assetEntryQuery.setNotAllKeywords(
+			ArrayUtil.append(
+				assetEntryQuery.getNotAllKeywords(),
+				AssetListFiltersUtil.getKeywords(
+					true, false, filtersJSONArray)));
+		assetEntryQuery.setNotAnyCategoryIds(
+			ArrayUtil.append(
+				assetEntryQuery.getNotAnyCategoryIds(),
+				AssetListFiltersUtil.getAssetCategoryIds(
+					false, false, filtersJSONArray)));
+		assetEntryQuery.setNotAnyKeywords(
+			ArrayUtil.append(
+				assetEntryQuery.getNotAnyKeywords(),
+				AssetListFiltersUtil.getKeywords(
+					false, false, filtersJSONArray)));
+		assetEntryQuery.setNotAnyTagIds(
+			ArrayUtil.append(
+				assetEntryQuery.getNotAnyTagIds(),
+				_assetTagLocalService.getTagIds(
+					groupIds,
+					AssetListFiltersUtil.getAssetTagNames(
+						false, false, filtersJSONArray))));
 	}
 
 	private void _setCategoriesAndTagsAndKeywords(

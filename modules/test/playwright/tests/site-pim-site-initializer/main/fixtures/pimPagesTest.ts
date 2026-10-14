@@ -8,23 +8,44 @@ import {mergeTests, test} from '@playwright/test';
 import {featureFlagsTest} from '../../../../fixtures/featureFlagsTest';
 import {loginTest} from '../../../../fixtures/loginTest';
 import {ApiHelpers} from '../../../../helpers/ApiHelpers';
+import {ConnectorSchedulePage} from '../pages/ConnectorSchedulePage';
 import {ConnectorsPage} from '../pages/ConnectorsPage';
 import {EditConnectorPage} from '../pages/EditConnectorPage';
+import {EditFieldMappingsPage} from '../pages/EditFieldMappingsPage';
+import {FieldMappingsPage} from '../pages/FieldMappingsPage';
 import {ProductPage} from '../pages/ProductPage';
+import {ProductRelationshipsPage} from '../pages/ProductRelationshipsPage';
+import {ProductStructuresPage} from '../pages/ProductStructuresPage';
 import {ProductsPage} from '../pages/ProductsPage';
+import {SpaceSelectorPage} from '../pages/SpaceSelectorPage';
 
 const pimPages = test.extend<{
+	connectorSchedulePage: ConnectorSchedulePage;
 	connectorsPage: ConnectorsPage;
 	editConnectorPage: EditConnectorPage;
+	editFieldMappingsPage: EditFieldMappingsPage;
+	fieldMappingsPage: FieldMappingsPage;
 	pimSetup;
 	productPage: ProductPage;
+	productRelationshipsPage: ProductRelationshipsPage;
+	productStructuresPage: ProductStructuresPage;
 	productsPage: ProductsPage;
+	spaceSelectorPage: SpaceSelectorPage;
 }>({
+	connectorSchedulePage: async ({page}, use) => {
+		await use(new ConnectorSchedulePage(page));
+	},
 	connectorsPage: async ({page}, use) => {
 		await use(new ConnectorsPage(page));
 	},
 	editConnectorPage: async ({page}, use) => {
 		await use(new EditConnectorPage(page));
+	},
+	editFieldMappingsPage: async ({page}, use) => {
+		await use(new EditFieldMappingsPage(page));
+	},
+	fieldMappingsPage: async ({page}, use) => {
+		await use(new FieldMappingsPage(page));
 	},
 	pimSetup: [
 		async ({page}, use) => {
@@ -42,8 +63,17 @@ const pimPages = test.extend<{
 	productPage: async ({page}, use) => {
 		await use(new ProductPage(page));
 	},
+	productRelationshipsPage: async ({page}, use) => {
+		await use(new ProductRelationshipsPage(page));
+	},
+	productStructuresPage: async ({page}, use) => {
+		await use(new ProductStructuresPage(page));
+	},
 	productsPage: async ({page}, use) => {
 		await use(new ProductsPage(page));
+	},
+	spaceSelectorPage: async ({page}, use) => {
+		await use(new SpaceSelectorPage(page));
 	},
 });
 

@@ -324,45 +324,183 @@ public interface AssetTagGroupRelPersistence
 	public int countByTagId(long tagId);
 
 	/**
-	 * Returns the asset tag group rel where groupId = &#63; and tagId = &#63; or throws a <code>NoSuchTagGroupRelException</code> if it could not be found.
+	 * Returns an ordered range of all the asset tag group rels where groupId = &#63; and depotEntryType = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>com.liferay.portlet.asset.model.impl.AssetTagGroupRelModelImpl</code>.
+	 * </p>
+	 *
+	 * @param groupId the group ID
+	 * @param depotEntryType the depot entry type
+	 * @param start the lower bound of the range of asset tag group rels
+	 * @param end the upper bound of the range of asset tag group rels (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the ordered range of matching asset tag group rels
+	 */
+	public java.util.List<AssetTagGroupRel> findByG_D(
+		long groupId, int depotEntryType, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<AssetTagGroupRel>
+			orderByComparator,
+		boolean useFinderCache);
+
+	/**
+	 * Returns the first asset tag group rel in the ordered set where groupId = &#63; and depotEntryType = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param depotEntryType the depot entry type
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching asset tag group rel
+	 * @throws NoSuchTagGroupRelException if a matching asset tag group rel could not be found
+	 */
+	public AssetTagGroupRel findByG_D_First(
+			long groupId, int depotEntryType,
+			com.liferay.portal.kernel.util.OrderByComparator<AssetTagGroupRel>
+				orderByComparator)
+		throws NoSuchTagGroupRelException;
+
+	/**
+	 * Returns the first asset tag group rel in the ordered set where groupId = &#63; and depotEntryType = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param depotEntryType the depot entry type
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching asset tag group rel, or <code>null</code> if a matching asset tag group rel could not be found
+	 */
+	public AssetTagGroupRel fetchByG_D_First(
+		long groupId, int depotEntryType,
+		com.liferay.portal.kernel.util.OrderByComparator<AssetTagGroupRel>
+			orderByComparator);
+
+	/**
+	 * Removes all the asset tag group rels where groupId = &#63; and depotEntryType = &#63; from the database.
+	 *
+	 * @param groupId the group ID
+	 * @param depotEntryType the depot entry type
+	 */
+	public void removeByG_D(long groupId, int depotEntryType);
+
+	/**
+	 * Returns the number of asset tag group rels where groupId = &#63; and depotEntryType = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param depotEntryType the depot entry type
+	 * @return the number of matching asset tag group rels
+	 */
+	public int countByG_D(long groupId, int depotEntryType);
+
+	/**
+	 * Returns an ordered range of all the asset tag group rels where tagId = &#63; and depotEntryType = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>com.liferay.portlet.asset.model.impl.AssetTagGroupRelModelImpl</code>.
+	 * </p>
+	 *
+	 * @param tagId the tag ID
+	 * @param depotEntryType the depot entry type
+	 * @param start the lower bound of the range of asset tag group rels
+	 * @param end the upper bound of the range of asset tag group rels (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the ordered range of matching asset tag group rels
+	 */
+	public java.util.List<AssetTagGroupRel> findByT_D(
+		long tagId, int depotEntryType, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<AssetTagGroupRel>
+			orderByComparator,
+		boolean useFinderCache);
+
+	/**
+	 * Returns the first asset tag group rel in the ordered set where tagId = &#63; and depotEntryType = &#63;.
+	 *
+	 * @param tagId the tag ID
+	 * @param depotEntryType the depot entry type
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching asset tag group rel
+	 * @throws NoSuchTagGroupRelException if a matching asset tag group rel could not be found
+	 */
+	public AssetTagGroupRel findByT_D_First(
+			long tagId, int depotEntryType,
+			com.liferay.portal.kernel.util.OrderByComparator<AssetTagGroupRel>
+				orderByComparator)
+		throws NoSuchTagGroupRelException;
+
+	/**
+	 * Returns the first asset tag group rel in the ordered set where tagId = &#63; and depotEntryType = &#63;.
+	 *
+	 * @param tagId the tag ID
+	 * @param depotEntryType the depot entry type
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching asset tag group rel, or <code>null</code> if a matching asset tag group rel could not be found
+	 */
+	public AssetTagGroupRel fetchByT_D_First(
+		long tagId, int depotEntryType,
+		com.liferay.portal.kernel.util.OrderByComparator<AssetTagGroupRel>
+			orderByComparator);
+
+	/**
+	 * Removes all the asset tag group rels where tagId = &#63; and depotEntryType = &#63; from the database.
+	 *
+	 * @param tagId the tag ID
+	 * @param depotEntryType the depot entry type
+	 */
+	public void removeByT_D(long tagId, int depotEntryType);
+
+	/**
+	 * Returns the number of asset tag group rels where tagId = &#63; and depotEntryType = &#63;.
+	 *
+	 * @param tagId the tag ID
+	 * @param depotEntryType the depot entry type
+	 * @return the number of matching asset tag group rels
+	 */
+	public int countByT_D(long tagId, int depotEntryType);
+
+	/**
+	 * Returns the asset tag group rel where groupId = &#63; and tagId = &#63; and depotEntryType = &#63; or throws a <code>NoSuchTagGroupRelException</code> if it could not be found.
 	 *
 	 * @param groupId the group ID
 	 * @param tagId the tag ID
+	 * @param depotEntryType the depot entry type
 	 * @return the matching asset tag group rel
 	 * @throws NoSuchTagGroupRelException if a matching asset tag group rel could not be found
 	 */
-	public AssetTagGroupRel findByG_T(long groupId, long tagId)
+	public AssetTagGroupRel findByG_T_D(
+			long groupId, long tagId, int depotEntryType)
 		throws NoSuchTagGroupRelException;
 
 	/**
-	 * Returns the asset tag group rel where groupId = &#63; and tagId = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
+	 * Returns the asset tag group rel where groupId = &#63; and tagId = &#63; and depotEntryType = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
 	 *
 	 * @param groupId the group ID
 	 * @param tagId the tag ID
+	 * @param depotEntryType the depot entry type
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching asset tag group rel, or <code>null</code> if a matching asset tag group rel could not be found
 	 */
-	public AssetTagGroupRel fetchByG_T(
-		long groupId, long tagId, boolean useFinderCache);
+	public AssetTagGroupRel fetchByG_T_D(
+		long groupId, long tagId, int depotEntryType, boolean useFinderCache);
 
 	/**
-	 * Removes the asset tag group rel where groupId = &#63; and tagId = &#63; from the database.
+	 * Removes the asset tag group rel where groupId = &#63; and tagId = &#63; and depotEntryType = &#63; from the database.
 	 *
 	 * @param groupId the group ID
 	 * @param tagId the tag ID
+	 * @param depotEntryType the depot entry type
 	 * @return the asset tag group rel that was removed
 	 */
-	public AssetTagGroupRel removeByG_T(long groupId, long tagId)
+	public AssetTagGroupRel removeByG_T_D(
+			long groupId, long tagId, int depotEntryType)
 		throws NoSuchTagGroupRelException;
 
 	/**
-	 * Returns the number of asset tag group rels where groupId = &#63; and tagId = &#63;.
+	 * Returns the number of asset tag group rels where groupId = &#63; and tagId = &#63; and depotEntryType = &#63;.
 	 *
 	 * @param groupId the group ID
 	 * @param tagId the tag ID
+	 * @param depotEntryType the depot entry type
 	 * @return the number of matching asset tag group rels
 	 */
-	public int countByG_T(long groupId, long tagId);
+	public int countByG_T_D(long groupId, long tagId, int depotEntryType);
 
 	/**
 	 * Creates a new asset tag group rel with the primary key. Does not add the asset tag group rel to the database.
@@ -414,14 +552,17 @@ public interface AssetTagGroupRelPersistence
 	}
 
 	/**
-	 * Returns the asset tag group rel where groupId = &#63; and tagId = &#63; or returns <code>null</code> if it could not be found. Uses the finder cache.
+	 * Returns the asset tag group rel where groupId = &#63; and tagId = &#63; and depotEntryType = &#63; or returns <code>null</code> if it could not be found. Uses the finder cache.
 	 *
 	 * @param groupId the group ID
 	 * @param tagId the tag ID
+	 * @param depotEntryType the depot entry type
 	 * @return the matching asset tag group rel, or <code>null</code> if a matching asset tag group rel could not be found
 	 */
-	public default AssetTagGroupRel fetchByG_T(long groupId, long tagId) {
-		return fetchByG_T(groupId, tagId, true);
+	public default AssetTagGroupRel fetchByG_T_D(
+		long groupId, long tagId, int depotEntryType) {
+
+		return fetchByG_T_D(groupId, tagId, depotEntryType, true);
 	}
 
 	/**
@@ -637,5 +778,121 @@ public interface AssetTagGroupRelPersistence
 		return findByTagId(tagId, start, end, orderByComparator, true);
 	}
 
+	/**
+	 * Returns all the asset tag group rels where groupId = &#63; and depotEntryType = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param depotEntryType the depot entry type
+	 * @return the matching asset tag group rels
+	 */
+	public default java.util.List<AssetTagGroupRel> findByG_D(
+		long groupId, int depotEntryType) {
+
+		return findByG_D(
+			groupId, depotEntryType,
+			com.liferay.portal.kernel.dao.orm.QueryUtil.ALL_POS,
+			com.liferay.portal.kernel.dao.orm.QueryUtil.ALL_POS, null, true);
+	}
+
+	/**
+	 * Returns a range of all the asset tag group rels where groupId = &#63; and depotEntryType = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>com.liferay.portlet.asset.model.impl.AssetTagGroupRelModelImpl</code>.
+	 * </p>
+	 *
+	 * @param groupId the group ID
+	 * @param depotEntryType the depot entry type
+	 * @param start the lower bound of the range of asset tag group rels
+	 * @param end the upper bound of the range of asset tag group rels (not inclusive)
+	 * @return the range of matching asset tag group rels
+	 */
+	public default java.util.List<AssetTagGroupRel> findByG_D(
+		long groupId, int depotEntryType, int start, int end) {
+
+		return findByG_D(groupId, depotEntryType, start, end, null, true);
+	}
+
+	/**
+	 * Returns an ordered range of all the asset tag group rels where groupId = &#63; and depotEntryType = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>com.liferay.portlet.asset.model.impl.AssetTagGroupRelModelImpl</code>.
+	 * </p>
+	 *
+	 * @param groupId the group ID
+	 * @param depotEntryType the depot entry type
+	 * @param start the lower bound of the range of asset tag group rels
+	 * @param end the upper bound of the range of asset tag group rels (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching asset tag group rels
+	 */
+	public default java.util.List<AssetTagGroupRel> findByG_D(
+		long groupId, int depotEntryType, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<AssetTagGroupRel>
+			orderByComparator) {
+
+		return findByG_D(
+			groupId, depotEntryType, start, end, orderByComparator, true);
+	}
+
+	/**
+	 * Returns all the asset tag group rels where tagId = &#63; and depotEntryType = &#63;.
+	 *
+	 * @param tagId the tag ID
+	 * @param depotEntryType the depot entry type
+	 * @return the matching asset tag group rels
+	 */
+	public default java.util.List<AssetTagGroupRel> findByT_D(
+		long tagId, int depotEntryType) {
+
+		return findByT_D(
+			tagId, depotEntryType,
+			com.liferay.portal.kernel.dao.orm.QueryUtil.ALL_POS,
+			com.liferay.portal.kernel.dao.orm.QueryUtil.ALL_POS, null, true);
+	}
+
+	/**
+	 * Returns a range of all the asset tag group rels where tagId = &#63; and depotEntryType = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>com.liferay.portlet.asset.model.impl.AssetTagGroupRelModelImpl</code>.
+	 * </p>
+	 *
+	 * @param tagId the tag ID
+	 * @param depotEntryType the depot entry type
+	 * @param start the lower bound of the range of asset tag group rels
+	 * @param end the upper bound of the range of asset tag group rels (not inclusive)
+	 * @return the range of matching asset tag group rels
+	 */
+	public default java.util.List<AssetTagGroupRel> findByT_D(
+		long tagId, int depotEntryType, int start, int end) {
+
+		return findByT_D(tagId, depotEntryType, start, end, null, true);
+	}
+
+	/**
+	 * Returns an ordered range of all the asset tag group rels where tagId = &#63; and depotEntryType = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>com.liferay.portlet.asset.model.impl.AssetTagGroupRelModelImpl</code>.
+	 * </p>
+	 *
+	 * @param tagId the tag ID
+	 * @param depotEntryType the depot entry type
+	 * @param start the lower bound of the range of asset tag group rels
+	 * @param end the upper bound of the range of asset tag group rels (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching asset tag group rels
+	 */
+	public default java.util.List<AssetTagGroupRel> findByT_D(
+		long tagId, int depotEntryType, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<AssetTagGroupRel>
+			orderByComparator) {
+
+		return findByT_D(
+			tagId, depotEntryType, start, end, orderByComparator, true);
+	}
+
 }
-// LIFERAY-SERVICE-BUILDER-HASH:585083592
+// LIFERAY-SERVICE-BUILDER-HASH:552988667

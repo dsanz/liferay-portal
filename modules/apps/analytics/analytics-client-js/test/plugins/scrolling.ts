@@ -17,6 +17,7 @@ describe('Scrolling Plugin', () => {
 	let Analytics: AnalyticsClient;
 
 	beforeEach(() => {
+		fetchMock.mockGlobal();
 
 		// Force attaching DOM Content Loaded event
 
@@ -33,7 +34,7 @@ describe('Scrolling Plugin', () => {
 			value: 1000,
 		});
 
-		fetchMock.mock('*', () => 200);
+		fetchMock.route('*', () => 200);
 
 		// Recreate with a flush interval large enough that the queue is not
 		// drained before the debounced scroll depth event is asserted.
@@ -48,7 +49,7 @@ describe('Scrolling Plugin', () => {
 		Analytics.reset();
 		AnalyticsClient.dispose();
 
-		fetchMock.restore();
+		fetchMock.hardReset();
 	});
 
 	describe('pageDepthReached event', () => {

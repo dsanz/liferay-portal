@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
@@ -27,6 +28,8 @@ import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
@@ -349,6 +352,48 @@ public class ImportPreview implements Serializable {
 	private Supplier<PreviewPortletDataHandlerSection[]>
 		_previewPortletDataHandlerSectionsSupplier;
 
+	@io.swagger.v3.oas.annotations.media.Schema
+	@Valid
+	public PreviewSite[] getPreviewSites() {
+		if (_previewSitesSupplier != null) {
+			previewSites = _previewSitesSupplier.get();
+
+			_previewSitesSupplier = null;
+		}
+
+		return previewSites;
+	}
+
+	public void setPreviewSites(PreviewSite[] previewSites) {
+		this.previewSites = previewSites;
+
+		_previewSitesSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setPreviewSites(
+		UnsafeSupplier<PreviewSite[], Exception> previewSitesUnsafeSupplier) {
+
+		_previewSitesSupplier = () -> {
+			try {
+				return previewSitesUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	protected PreviewSite[] previewSites;
+
+	@JsonIgnore
+	private Supplier<PreviewSite[]> _previewSitesSupplier;
+
 	@Override
 	public boolean equals(Object object) {
 		if (this == object) {
@@ -486,6 +531,28 @@ public class ImportPreview implements Serializable {
 			sb.append("]");
 		}
 
+		PreviewSite[] previewSites = getPreviewSites();
+
+		if (previewSites != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"previewSites\": ");
+
+			sb.append("[");
+
+			for (int i = 0; i < previewSites.length; i++) {
+				sb.append(String.valueOf(previewSites[i]));
+
+				if ((i + 1) < previewSites.length) {
+					sb.append(", ");
+				}
+			}
+
+			sb.append("]");
+		}
+
 		sb.append("}");
 
 		return sb.toString();
@@ -579,6 +646,27 @@ public class ImportPreview implements Serializable {
 		return sb.toString();
 	}
 
+	private static String _toJSON(Object value) {
+		if (value instanceof Collection) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONArray((Collection<?>)value));
+		}
+		else if (value instanceof Map) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONObject((Map<?, ?>)value));
+		}
+		else if (value instanceof Object[]) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONArray(
+					Arrays.asList((Object[])value)));
+		}
+		else if (value instanceof String) {
+			return StringBundler.concat("\"", _escape(value), "\"");
+		}
+
+		return String.valueOf(value);
+	}
+
 	private static final String[][] _JSON_ESCAPE_STRINGS = {
 		{"\\", "\"", "\b", "\f", "\n", "\r", "\t"},
 		{"\\\\", "\\\"", "\\b", "\\f", "\\n", "\\r", "\\t"}
@@ -587,4 +675,4 @@ public class ImportPreview implements Serializable {
 	private Map<String, Serializable> _extendedProperties;
 
 }
-// LIFERAY-REST-BUILDER-HASH:1503217189
+// LIFERAY-REST-BUILDER-HASH:1461636162

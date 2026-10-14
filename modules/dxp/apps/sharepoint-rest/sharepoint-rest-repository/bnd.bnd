@@ -1,6 +1,6 @@
 Bundle-Name: Liferay Sharepoint REST Repository
 Bundle-SymbolicName: com.liferay.sharepoint.rest.repository
-Bundle-Version: 5.0.42
+Bundle-Version: 5.0.44
 Import-Package:\
 	!com.mashape.unirest.*,\
 	\
@@ -10,3 +10,4 @@ Import-Package:\
 	\
 	*
 Liferay-Releng-Module-Group-Title: Sharepoint
+-dsannotations-options: inherit

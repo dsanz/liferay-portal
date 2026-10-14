@@ -6,11 +6,11 @@
 import {expect, mergeTests} from '@playwright/test';
 
 import {dataApiHelpersTest} from '../../../fixtures/dataApiHelpersTest';
-import {featureFlagsTest} from '../../../fixtures/featureFlagsTest';
 import {loginTest} from '../../../fixtures/loginTest';
 import {mcpServerWebPagesTest} from '../../../fixtures/mcpServerWebPagesTest';
 import {DataApiHelpers} from '../../../helpers/ApiHelpers';
 import {FDSTablePage} from '../../../pages/mcp-server-web/FDSTablePage';
+import {applyFDSSelectionFilter} from '../../../utils/applyFDSSelectionFilter';
 import getRandomString from '../../../utils/getRandomString';
 import {
 	expectFDSTableColumns,
@@ -22,10 +22,6 @@ import {
 
 const baseTest = mergeTests(
 	dataApiHelpersTest,
-	featureFlagsTest({
-		'LPD-63311': {enabled: true},
-		'LPD-89575': {enabled: true},
-	}),
 	loginTest(),
 	mcpServerWebPagesTest
 );
@@ -38,7 +34,8 @@ function promptName() {
 
 async function createPrompt(
 	apiHelpers: DataApiHelpers,
-	name: string
+	name: string,
+	promptStatusKey: 'active' | 'inactive' = 'active'
 ): Promise<ObjectEntry> {
 	const prompt = await apiHelpers.objectEntry.postObjectEntry(
 		{
@@ -46,7 +43,7 @@ async function createPrompt(
 			identifier: name,
 			name,
 			prompt: 'Prompt body created by Playwright',
-			promptStatus: {key: 'active'},
+			promptStatus: {key: promptStatusKey},
 		},
 		PROMPTS_API
 	);
@@ -105,6 +102,7 @@ test.describe('Prompts - FDS Table', () => {
 		async ({fdsTablePage}) => {
 			await expectFDSTableSortOptions(fdsTablePage, [
 				'Name',
+				'Status',
 				'Last Modified',
 			]);
 		}
@@ -449,6 +447,30 @@ test.describe('Prompts - Detail (Create / Edit)', () => {
 
 			await promptsPage.waitForTable();
 			await expect(promptsPage.newPromptButton).toBeVisible();
+		}
+	);
+});
+
+test.describe('Prompts - Status filter', () => {
+	test(
+		'Filters the table by status',
+		{tag: '@LPD-106400'},
+		async ({apiHelpers, page, promptsPage}) => {
+			const activeName = promptName();
+			const inactiveName = promptName();
+
+			await createPrompt(apiHelpers, activeName);
+			await createPrompt(apiHelpers, inactiveName, 'inactive');
+
+			await promptsPage.goto();
+
+			await applyFDSSelectionFilter(page, {
+				filter: 'Status',
+				value: 'Active',
+			});
+
+			await expect(promptsPage.row(activeName)).toBeVisible();
+			await expect(promptsPage.row(inactiveName)).toBeHidden();
 		}
 	);
 });

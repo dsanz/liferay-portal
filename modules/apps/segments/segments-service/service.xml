@@ -30,6 +30,7 @@
 		<column name="active" type="boolean" />
 		<column name="criteria" type="String" />
 		<column name="source" type="String" />
+		<column name="type" type="int" />
 		<column name="lastPublishDate" type="Date" />
 
 		<!-- Order -->
@@ -68,10 +69,24 @@
 			<finder-column name="companyId" />
 			<finder-column arrayable-operator="OR" name="source" />
 		</finder>
+		<finder name="SRC_T" return-type="Collection">
+			<finder-column arrayable-operator="OR" name="source" />
+			<finder-column arrayable-operator="OR" name="type" />
+		</finder>
 		<finder name="G_A_SRC" return-type="Collection">
 			<finder-column arrayable-operator="OR" name="groupId" />
 			<finder-column name="active" />
 			<finder-column arrayable-operator="OR" name="source" />
+		</finder>
+		<finder name="G_SRC_T" return-type="Collection">
+			<finder-column arrayable-operator="OR" name="groupId" />
+			<finder-column arrayable-operator="OR" name="source" />
+			<finder-column arrayable-operator="OR" name="type" />
+		</finder>
+		<finder name="C_SRC_T" return-type="Collection">
+			<finder-column name="companyId" />
+			<finder-column arrayable-operator="OR" name="source" />
+			<finder-column arrayable-operator="OR" name="type" />
 		</finder>
 	</entity>
 	<entity local-service="true" name="SegmentsEntryRel" remote-service="true">

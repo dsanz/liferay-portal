@@ -2,3 +2,34 @@ input[type='search']::-webkit-search-decoration:hover,
 input[type='search']::-webkit-search-cancel-button:hover {
 	cursor: pointer;
 }
+
+.fds-search-suggestions {
+	.fds-search-suggestions-item {
+		align-items: center;
+		display: flex;
+
+		// The row carries the highlight rather than the entry alone, so that it
+		// reaches behind the remove button instead of stopping short of it
+
+		&:focus-within,
+		&:hover {
+			background-color: $dropdown-link-hover-bg;
+
+			.fds-search-suggestions-item-remove {
+				visibility: visible;
+			}
+		}
+
+		.dropdown-item {
+			background-color: transparent;
+			flex-grow: 1;
+			text-align: left;
+		}
+
+		.fds-search-suggestions-item-remove {
+			flex-shrink: 0;
+			margin-right: 0.5rem;
+			visibility: hidden;
+		}
+	}
+}

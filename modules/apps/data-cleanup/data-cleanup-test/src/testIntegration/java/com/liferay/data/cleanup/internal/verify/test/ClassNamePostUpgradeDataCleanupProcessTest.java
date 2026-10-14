@@ -537,18 +537,18 @@ public class ClassNamePostUpgradeDataCleanupProcessTest
 	}
 
 	@Override
-	protected Object[] getPostUpgradeDataCleanupProcessArguments() {
-		return new Object[] {
-			_classNameLocalService, _companyLocalService, connection,
-			_objectDefinitionLocalService
-		};
-	}
-
-	@Override
 	protected Class<?>[] getPostUpgradeDataCleanupProcessArgumentTypes() {
 		return new Class<?>[] {
 			ClassNameLocalService.class, CompanyLocalService.class,
 			Connection.class, ObjectDefinitionLocalService.class
+		};
+	}
+
+	@Override
+	protected Object[] getPostUpgradeDataCleanupProcessArguments() {
+		return new Object[] {
+			_classNameLocalService, _companyLocalService, connection,
+			_objectDefinitionLocalService
 		};
 	}
 
@@ -564,6 +564,13 @@ public class ClassNamePostUpgradeDataCleanupProcessTest
 			UnsafeRunnable<Exception> cleanUpDataUnsafeRunnable,
 			UnsafeRunnable<Exception> initializeDataUnsafeRunnable)
 		throws Exception {
+
+		super.test(
+			null,
+			() -> {
+			},
+			() -> {
+			});
 
 		long classNameCount = _classNameLocalService.getClassNamesCount();
 

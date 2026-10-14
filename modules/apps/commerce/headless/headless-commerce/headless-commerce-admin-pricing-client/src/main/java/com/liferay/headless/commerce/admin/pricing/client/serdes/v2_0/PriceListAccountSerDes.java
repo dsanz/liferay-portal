@@ -10,6 +10,7 @@ import com.liferay.headless.commerce.admin.pricing.client.json.BaseJSONParser;
 
 import jakarta.annotation.Generated;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -79,6 +80,18 @@ public class PriceListAccountSerDes {
 			sb.append("\"accountId\": ");
 
 			sb.append(priceListAccount.getAccountId());
+		}
+
+		if (priceListAccount.getAccountType() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"accountType\": ");
+
+			sb.append("\"");
+			sb.append(priceListAccount.getAccountType());
+			sb.append("\"");
 		}
 
 		if (priceListAccount.getActions() != null) {
@@ -180,6 +193,15 @@ public class PriceListAccountSerDes {
 				"accountId", String.valueOf(priceListAccount.getAccountId()));
 		}
 
+		if (priceListAccount.getAccountType() == null) {
+			map.put("accountType", null);
+		}
+		else {
+			map.put(
+				"accountType",
+				String.valueOf(priceListAccount.getAccountType()));
+		}
+
 		if (priceListAccount.getActions() == null) {
 			map.put("actions", null);
 		}
@@ -251,6 +273,9 @@ public class PriceListAccountSerDes {
 			else if (Objects.equals(jsonParserFieldName, "accountId")) {
 				return false;
 			}
+			else if (Objects.equals(jsonParserFieldName, "accountType")) {
+				return false;
+			}
 			else if (Objects.equals(jsonParserFieldName, "actions")) {
 				return true;
 			}
@@ -298,6 +323,13 @@ public class PriceListAccountSerDes {
 				if (jsonParserFieldValue != null) {
 					priceListAccount.setAccountId(
 						Long.valueOf((String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "accountType")) {
+				if (jsonParserFieldValue != null) {
+					priceListAccount.setAccountType(
+						PriceListAccount.AccountType.create(
+							(String)jsonParserFieldValue));
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "actions")) {
@@ -384,6 +416,12 @@ public class PriceListAccountSerDes {
 			return "null";
 		}
 
+		if (value instanceof Collection) {
+			Collection<?> collection = (Collection<?>)value;
+
+			return _toJSON(collection.toArray());
+		}
+
 		if (value instanceof Map) {
 			return _toJSON((Map)value);
 		}
@@ -416,4 +454,4 @@ public class PriceListAccountSerDes {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:-2043581591
+// LIFERAY-REST-BUILDER-HASH:909356499

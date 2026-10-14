@@ -9,6 +9,7 @@ import {featureFlagsTest} from '../../../fixtures/featureFlagsTest';
 import {instanceSettingsPagesTest} from '../../../fixtures/instanceSettingsPagesTest';
 import {loginTest} from '../../../fixtures/loginTest';
 import {systemSettingsPageTest} from '../../../fixtures/systemSettingsPageTest';
+import {waitForAlert} from '../../../utils/waitForAlert';
 
 const test = mergeTests(
 	featureFlagsTest({
@@ -38,8 +39,8 @@ test(
 			'Virtual Instance Scope'
 		);
 
-		await expect(page.getByLabel('Enabled')).toBeChecked();
 		await expect(instanceSettingsPage.saveButton).toBeVisible();
+		await expect(page.getByLabel('Enabled', {exact: true})).toBeHidden();
 	}
 );
 
@@ -49,7 +50,7 @@ test(
 	async ({page, systemSettingsPage}) => {
 		await systemSettingsPage.goToSystemSetting('Audit', 'Audit');
 
-		await expect(page.getByLabel('Enabled')).toBeVisible();
+		await expect(page.getByLabel('Enabled', {exact: true})).toBeVisible();
 		await expect(
 			page.getByLabel('Audit Message Maximum Queue Size')
 		).toBeHidden();
@@ -62,55 +63,10 @@ testWithoutFeatureFlag(
 	async ({page, systemSettingsPage}) => {
 		await systemSettingsPage.goToSystemSetting('Audit', 'Audit');
 
-		await expect(page.getByLabel('Enabled')).toBeVisible();
+		await expect(page.getByLabel('Enabled', {exact: true})).toBeVisible();
 		await expect(
 			page.getByLabel('Audit Message Maximum Queue Size')
 		).toBeVisible();
-	}
-);
-
-test(
-	'Assert that the database processor configuration is rendered on the instance scope',
-	{tag: '@LPD-98545'},
-	async ({instanceSettingsPage, page}) => {
-		await instanceSettingsPage.goToInstanceSetting(
-			'Audit',
-			'Audit',
-			true,
-			'Virtual Instance Scope'
-		);
-
-		await expect(
-			page.getByRole('heading', {name: 'Database Processor'})
-		).toBeVisible();
-
-		await expect(
-			page.getByLabel('Enable Database Processor')
-		).toBeChecked();
-		await expect(page.getByLabel('Buffer Size')).toHaveValue('2000');
-		await expect(
-			page.getByLabel('Flush Interval in Milliseconds')
-		).toHaveValue('60000');
-	}
-);
-
-test(
-	'Assert that the database processor configuration is rendered on the system scope',
-	{tag: '@LPD-98545'},
-	async ({page, systemSettingsPage}) => {
-		await systemSettingsPage.goToSystemSetting('Audit', 'Audit');
-
-		await expect(
-			page.getByRole('heading', {name: 'Database Processor'})
-		).toBeVisible();
-
-		await expect(
-			page.getByLabel('Enable Database Processor')
-		).toBeChecked();
-		await expect(page.getByLabel('Buffer Size')).toHaveValue('2000');
-		await expect(
-			page.getByLabel('Flush Interval in Milliseconds')
-		).toHaveValue('60000');
 	}
 );
 
@@ -128,32 +84,6 @@ testWithoutFeatureFlag(
 
 		await expect(
 			page.getByRole('heading', {name: 'Database Processor'})
-		).toBeHidden();
-	}
-);
-
-test(
-	'Assert that the database processor has no separate configuration entry on the instance scope',
-	{tag: '@LPD-98545'},
-	async ({instanceSettingsPage, page}) => {
-		await instanceSettingsPage.goto();
-
-		await page.getByRole('link', {exact: true, name: 'Audit'}).click();
-
-		const menubar = page
-			.locator('div')
-			.filter({hasText: 'Virtual Instance Scope'})
-			.locator('+ div')
-			.getByRole('menubar');
-
-		await expect(
-			menubar.getByRole('menuitem', {exact: true, name: 'Audit'})
-		).toBeVisible();
-
-		await expect(
-			menubar.getByRole('menuitem', {
-				name: 'Persistent Message Audit Message Processor',
-			})
 		).toBeHidden();
 	}
 );
@@ -196,8 +126,10 @@ testWithoutFeatureFlag(
 	}
 );
 
-test.describe('Database Processor instance configuration', () => {
-	test.afterEach(async ({instanceSettingsPage, page}) => {
+test(
+	'Assert that the pseudonymization toggle is rendered and enabled by default on the instance scope',
+	{tag: '@LPD-97702'},
+	async ({instanceSettingsPage, page}) => {
 		await instanceSettingsPage.goToInstanceSetting(
 			'Audit',
 			'Audit',
@@ -205,112 +137,19 @@ test.describe('Database Processor instance configuration', () => {
 			'Virtual Instance Scope'
 		);
 
-		await page.getByLabel('Enable Database Processor').setChecked(true);
-		await page.getByLabel('Buffer Size').fill('2000');
-		await page.getByLabel('Flush Interval in Milliseconds').fill('60000');
+		await expect(page.getByLabel('Pseudonymization Enabled')).toBeChecked();
+	}
+);
 
-		await instanceSettingsPage.saveAndWaitForAlert();
-	});
-
-	test(
-		'Assert that the database processor configuration is saved and persisted on the instance scope',
-		{tag: '@LPD-98545'},
-		async ({instanceSettingsPage, page}) => {
-			await instanceSettingsPage.goToInstanceSetting(
-				'Audit',
-				'Audit',
-				true,
-				'Virtual Instance Scope'
-			);
-
-			await page
-				.getByLabel('Enable Database Processor')
-				.setChecked(false);
-			await page.getByLabel('Buffer Size').fill('500');
-			await page
-				.getByLabel('Flush Interval in Milliseconds')
-				.fill('30000');
-
-			await instanceSettingsPage.saveAndWaitForAlert();
-
-			await instanceSettingsPage.goToInstanceSetting(
-				'Audit',
-				'Audit',
-				true,
-				'Virtual Instance Scope'
-			);
-
-			await expect(
-				page.getByLabel('Enable Database Processor')
-			).not.toBeChecked();
-			await expect(page.getByLabel('Buffer Size')).toHaveValue('500');
-			await expect(
-				page.getByLabel('Flush Interval in Milliseconds')
-			).toHaveValue('30000');
-		}
-	);
-
-	test(
-		'Assert that a database processor override on the instance scope does not change the system scope',
-		{tag: '@LPD-98545'},
-		async ({instanceSettingsPage, page, systemSettingsPage}) => {
-			await instanceSettingsPage.goToInstanceSetting(
-				'Audit',
-				'Audit',
-				true,
-				'Virtual Instance Scope'
-			);
-
-			await page.getByLabel('Buffer Size').fill('500');
-
-			await instanceSettingsPage.saveAndWaitForAlert();
-
-			await systemSettingsPage.goToSystemSetting('Audit', 'Audit');
-
-			await expect(page.getByLabel('Buffer Size')).toHaveValue('2000');
-		}
-	);
-});
-
-test.describe('Database Processor system configuration', () => {
-	test.afterEach(async ({page, systemSettingsPage}) => {
+test(
+	'Assert that the pseudonymization toggle is rendered and enabled by default on the system scope',
+	{tag: '@LPD-97702'},
+	async ({page, systemSettingsPage}) => {
 		await systemSettingsPage.goToSystemSetting('Audit', 'Audit');
 
-		await page.getByLabel('Enable Database Processor').setChecked(true);
-		await page.getByLabel('Buffer Size').fill('2000');
-		await page.getByLabel('Flush Interval in Milliseconds').fill('60000');
-
-		await systemSettingsPage.saveAndWaitForAlert();
-	});
-
-	test(
-		'Assert that the database processor configuration is saved and persisted on the system scope',
-		{tag: '@LPD-98545'},
-		async ({page, systemSettingsPage}) => {
-			await systemSettingsPage.goToSystemSetting('Audit', 'Audit');
-
-			await page
-				.getByLabel('Enable Database Processor')
-				.setChecked(false);
-			await page.getByLabel('Buffer Size').fill('500');
-			await page
-				.getByLabel('Flush Interval in Milliseconds')
-				.fill('30000');
-
-			await systemSettingsPage.saveAndWaitForAlert();
-
-			await systemSettingsPage.goToSystemSetting('Audit', 'Audit');
-
-			await expect(
-				page.getByLabel('Enable Database Processor')
-			).not.toBeChecked();
-			await expect(page.getByLabel('Buffer Size')).toHaveValue('500');
-			await expect(
-				page.getByLabel('Flush Interval in Milliseconds')
-			).toHaveValue('30000');
-		}
-	);
-});
+		await expect(page.getByLabel('Pseudonymization Enabled')).toBeChecked();
+	}
+);
 
 test.describe('File System Processor instance configuration', () => {
 	let defaultOutputDirectory: string;
@@ -376,6 +215,122 @@ test.describe('File System Processor instance configuration', () => {
 				'data/test'
 			);
 			await expect(page.getByLabel('Output Format')).toHaveValue('CSV');
+		}
+	);
+});
+
+test.describe('Pseudonymization instance configuration', () => {
+	const disablePseudonymizationWarning =
+		'While pseudonymization is disabled, new audit records store ' +
+		'personally identifiable information as plaintext. This is a high ' +
+		'risk operation.';
+
+	test.afterEach(async ({instanceSettingsPage, page}) => {
+		await instanceSettingsPage.goToInstanceSetting(
+			'Audit',
+			'Audit',
+			true,
+			'Virtual Instance Scope'
+		);
+
+		await page.getByLabel('Pseudonymization Enabled').setChecked(true);
+
+		await instanceSettingsPage.saveAndWaitForAlert();
+	});
+
+	test(
+		'Assert that disabling pseudonymization warns and persists after confirmation',
+		{tag: '@LPD-97702'},
+		async ({instanceSettingsPage, page}) => {
+			await instanceSettingsPage.goToInstanceSetting(
+				'Audit',
+				'Audit',
+				true,
+				'Virtual Instance Scope'
+			);
+
+			await page.getByLabel('Pseudonymization Enabled').uncheck();
+
+			page.once('dialog', async (dialogWindow) => {
+				expect(dialogWindow.message()).toContain(
+					disablePseudonymizationWarning
+				);
+
+				await dialogWindow.accept();
+			});
+
+			await instanceSettingsPage.saveButton.click();
+
+			await waitForAlert(page);
+
+			await instanceSettingsPage.goToInstanceSetting(
+				'Audit',
+				'Audit',
+				true,
+				'Virtual Instance Scope'
+			);
+
+			await expect(
+				page.getByLabel('Pseudonymization Enabled')
+			).not.toBeChecked();
+		}
+	);
+
+	test(
+		'Assert that canceling the warning keeps pseudonymization enabled',
+		{tag: '@LPD-97702'},
+		async ({instanceSettingsPage, page}) => {
+			await instanceSettingsPage.goToInstanceSetting(
+				'Audit',
+				'Audit',
+				true,
+				'Virtual Instance Scope'
+			);
+
+			const configurationURL = page.url();
+
+			await page.getByLabel('Pseudonymization Enabled').uncheck();
+
+			const warningDismissed = new Promise<void>((resolve) => {
+				page.once('dialog', async (dialogWindow) => {
+					expect(dialogWindow.message()).toContain(
+						disablePseudonymizationWarning
+					);
+
+					await dialogWindow.dismiss();
+
+					resolve();
+				});
+			});
+
+			await instanceSettingsPage.saveButton.click();
+
+			await warningDismissed;
+
+			await page.goto(configurationURL);
+
+			await expect(
+				page.getByLabel('Pseudonymization Enabled')
+			).toBeChecked();
+		}
+	);
+
+	test(
+		'Assert that saving without disabling pseudonymization does not warn',
+		{tag: '@LPD-97702'},
+		async ({instanceSettingsPage, page}) => {
+			await instanceSettingsPage.goToInstanceSetting(
+				'Audit',
+				'Audit',
+				true,
+				'Virtual Instance Scope'
+			);
+
+			await expect(
+				page.getByLabel('Pseudonymization Enabled')
+			).toBeChecked();
+
+			await instanceSettingsPage.saveAndWaitForAlert();
 		}
 	);
 });

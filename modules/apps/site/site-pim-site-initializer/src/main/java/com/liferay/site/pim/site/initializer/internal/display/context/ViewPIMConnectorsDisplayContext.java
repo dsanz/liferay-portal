@@ -10,14 +10,13 @@ import com.liferay.frontend.data.set.model.FDSActionDropdownItemBuilder;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenu;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenuBuilder;
 import com.liferay.object.model.ObjectDefinition;
-import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.language.LanguageUtil;
-import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.site.pim.site.initializer.internal.util.PIMURLUtil;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -26,6 +25,7 @@ import java.util.Map;
 
 /**
  * @author Andrea Sbarra
+ * @author Stefano Motta
  */
 public class ViewPIMConnectorsDisplayContext {
 
@@ -51,9 +51,11 @@ public class ViewPIMConnectorsDisplayContext {
 	public CreationMenu getCreationMenu() {
 		return CreationMenuBuilder.addPrimaryDropdownItem(
 			dropdownItem -> {
-				dropdownItem.setHref(_getEditURL());
+				dropdownItem.setHref(
+					PIMURLUtil.getEditConnectorURL(
+						StringPool.BLANK, _themeDisplay));
 				dropdownItem.setLabel(
-					LanguageUtil.get(_httpServletRequest, "new-connector"));
+					LanguageUtil.get(_httpServletRequest, "new"));
 			}
 		).build();
 	}
@@ -72,7 +74,20 @@ public class ViewPIMConnectorsDisplayContext {
 	public List<FDSActionDropdownItem> getFDSActionDropdownItems() {
 		return ListUtil.fromArray(
 			FDSActionDropdownItemBuilder.setHref(
-				_getEditURL() + "&objectEntryId={id}"
+				PIMURLUtil.getFieldMappingsURL("{id}", _themeDisplay)
+			).setIcon(
+				"sheets"
+			).setLabel(
+				LanguageUtil.get(_httpServletRequest, "map-fields")
+			).setMethod(
+				"get"
+			).setPermissionKey(
+				"update"
+			).build(
+				"fieldMappings"
+			),
+			FDSActionDropdownItemBuilder.setHref(
+				PIMURLUtil.getEditConnectorURL("{id}", _themeDisplay)
 			).setIcon(
 				"pencil"
 			).setLabel(
@@ -85,44 +100,47 @@ public class ViewPIMConnectorsDisplayContext {
 				"edit"
 			),
 			FDSActionDropdownItemBuilder.setHref(
-				"/o/pim/export-to-liferay-commerce"
+				PIMURLUtil.getConnectorExecuteURL("{id}")
 			).setIcon(
-				"download"
+				"play"
 			).setLabel(
-				LanguageUtil.get(_httpServletRequest, "export")
+				LanguageUtil.get(_httpServletRequest, "execute")
+			).setMethod(
+				"post"
+			).setSuccessMessage(
+				LanguageUtil.get(
+					_httpServletRequest,
+					"execution-has-started-successfully-and-will-continue-in-" +
+						"the-background")
+			).setTarget(
+				"async"
+			).setVisibilityFilters(
+				HashMapBuilder.<String, Object>put(
+					"active", Boolean.TRUE
+				).build()
+			).build(
+				"execute"
+			),
+			FDSActionDropdownItemBuilder.setHref(
+				PIMURLUtil.getConnectorScheduleURL("{id}", _themeDisplay)
+			).setIcon(
+				"date-time"
+			).setLabel(
+				LanguageUtil.get(_httpServletRequest, "schedule")
 			).setMethod(
 				"get"
-			).setTarget(
-				"blank"
 			).build(
-				"export"
+				"schedule"
 			),
-			FDSActionDropdownItemBuilder.setConfirmationMessage(
-				LanguageUtil.get(
-					_httpServletRequest, "are-you-sure-you-want-to-delete-this")
-			).setHref(
-				"{actions.delete.href}"
-			).setIcon(
+			FDSActionDropdownItemBuilder.setIcon(
 				"trash"
 			).setLabel(
 				LanguageUtil.get(_httpServletRequest, "delete")
-			).setMethod(
-				"delete"
 			).setPermissionKey(
 				"delete"
-			).setTarget(
-				"headless"
 			).build(
 				"delete"
 			));
-	}
-
-	private String _getEditURL() {
-		Group group = _themeDisplay.getScopeGroup();
-
-		return StringBundler.concat(
-			_themeDisplay.getPathFriendlyURLPublic(), group.getFriendlyURL(),
-			"/edit-connector?backURL=", _themeDisplay.getURLCurrent());
 	}
 
 	private final HttpServletRequest _httpServletRequest;

@@ -5,6 +5,7 @@
 
 package com.liferay.document.library.internal.trash;
 
+import com.liferay.document.library.helper.DLURLHelper;
 import com.liferay.document.library.kernel.exception.NoSuchFolderException;
 import com.liferay.document.library.kernel.model.DLFileShortcut;
 import com.liferay.document.library.kernel.model.DLFileShortcutConstants;
@@ -13,7 +14,6 @@ import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.document.library.kernel.service.DLFileShortcutLocalService;
 import com.liferay.document.library.kernel.util.DLUtil;
-import com.liferay.document.library.util.DLURLHelper;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -123,6 +123,14 @@ public class DLFileShortcutTrashHandler extends BaseDLTrashHandler {
 	}
 
 	@Override
+	public TrashRenderer getTrashRenderer(long classPK) throws PortalException {
+		DLFileShortcut dlFileShortcut =
+			_dlFileShortcutLocalService.getFileShortcut(classPK);
+
+		return new DLFileShortcutTrashRenderer(dlFileShortcut, _trashHelper);
+	}
+
+	@Override
 	public TrashedModel getTrashedModel(long classPK) {
 		try {
 			return _getDLFileShortcut(classPK);
@@ -134,14 +142,6 @@ public class DLFileShortcutTrashHandler extends BaseDLTrashHandler {
 
 			return null;
 		}
-	}
-
-	@Override
-	public TrashRenderer getTrashRenderer(long classPK) throws PortalException {
-		DLFileShortcut dlFileShortcut =
-			_dlFileShortcutLocalService.getFileShortcut(classPK);
-
-		return new DLFileShortcutTrashRenderer(dlFileShortcut, _trashHelper);
 	}
 
 	@Override

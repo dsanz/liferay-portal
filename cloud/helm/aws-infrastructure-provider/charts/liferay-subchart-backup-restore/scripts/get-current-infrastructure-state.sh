@@ -9,7 +9,7 @@ function main {
 	liferay_infrastructure_json=$( \
 		kubectl \
 			get \
-			liferayinfrastructure \
+			liferayinfrastructures.liferay.com \
 			--output json \
 			| jq ".items[0]")
 

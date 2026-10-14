@@ -335,28 +335,7 @@ public class FormConfig implements Serializable {
 
 			sb.append("\"formReference\": ");
 
-			if (formReference instanceof Collection) {
-				sb.append(
-					JSONFactoryUtil.createJSONArray(
-						(Collection<?>)formReference));
-			}
-			else if (formReference instanceof Map) {
-				sb.append(
-					JSONFactoryUtil.createJSONObject((Map<?, ?>)formReference));
-			}
-			else if (formReference instanceof Object[]) {
-				sb.append(
-					JSONFactoryUtil.createJSONArray(
-						Arrays.asList((Object[])formReference)));
-			}
-			else if (formReference instanceof String) {
-				sb.append("\"");
-				sb.append(_escape((String)formReference));
-				sb.append("\"");
-			}
-			else {
-				sb.append(formReference);
-			}
+			sb.append(_toJSON(formReference));
 		}
 
 		Object formSuccessSubmissionResult = getFormSuccessSubmissionResult();
@@ -368,29 +347,7 @@ public class FormConfig implements Serializable {
 
 			sb.append("\"formSuccessSubmissionResult\": ");
 
-			if (formSuccessSubmissionResult instanceof Collection) {
-				sb.append(
-					JSONFactoryUtil.createJSONArray(
-						(Collection<?>)formSuccessSubmissionResult));
-			}
-			else if (formSuccessSubmissionResult instanceof Map) {
-				sb.append(
-					JSONFactoryUtil.createJSONObject(
-						(Map<?, ?>)formSuccessSubmissionResult));
-			}
-			else if (formSuccessSubmissionResult instanceof Object[]) {
-				sb.append(
-					JSONFactoryUtil.createJSONArray(
-						Arrays.asList((Object[])formSuccessSubmissionResult)));
-			}
-			else if (formSuccessSubmissionResult instanceof String) {
-				sb.append("\"");
-				sb.append(_escape((String)formSuccessSubmissionResult));
-				sb.append("\"");
-			}
-			else {
-				sb.append(formSuccessSubmissionResult);
-			}
+			sb.append(_toJSON(formSuccessSubmissionResult));
 		}
 
 		FormType formType = getFormType();
@@ -562,6 +519,27 @@ public class FormConfig implements Serializable {
 		return sb.toString();
 	}
 
+	private static String _toJSON(Object value) {
+		if (value instanceof Collection) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONArray((Collection<?>)value));
+		}
+		else if (value instanceof Map) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONObject((Map<?, ?>)value));
+		}
+		else if (value instanceof Object[]) {
+			return String.valueOf(
+				JSONFactoryUtil.createJSONArray(
+					Arrays.asList((Object[])value)));
+		}
+		else if (value instanceof String) {
+			return StringBundler.concat("\"", _escape(value), "\"");
+		}
+
+		return String.valueOf(value);
+	}
+
 	private static final String[][] _JSON_ESCAPE_STRINGS = {
 		{"\\", "\"", "\b", "\f", "\n", "\r", "\t"},
 		{"\\\\", "\\\"", "\\b", "\\f", "\\n", "\\r", "\\t"}
@@ -570,4 +548,4 @@ public class FormConfig implements Serializable {
 	private Map<String, Serializable> _extendedProperties;
 
 }
-// LIFERAY-REST-BUILDER-HASH:-697862190
+// LIFERAY-REST-BUILDER-HASH:-1491862007

@@ -5,7 +5,6 @@
 
 import {Locator, Page, expect} from '@playwright/test';
 
-import {OBJECT_ENTRY_FOLDER_CLASS_NAME} from '../../../../../../apps/site/site-cms-site-initializer/src/main/resources/META-INF/resources/js/common/utils/constants';
 import {ApiHelpers} from '../../../../helpers/ApiHelpers';
 import {clickAndExpectToBeVisible} from '../../../../utils/clickAndExpectToBeVisible';
 import {PORTLET_URLS} from '../../../../utils/portletUrls';
@@ -20,8 +19,10 @@ interface ExecItemActionArgs {
 		| 'Copy To'
 		| 'Delete'
 		| 'Download'
+		| 'Download Folder'
 		| 'Duplicate'
 		| 'Edit'
+		| 'Edit Image'
 		| 'Expire'
 		| 'Export for Translation'
 		| 'Import Translation'
@@ -149,7 +150,7 @@ export class AssetsPage {
 	async gotoFolder(folderId: string, folderTitle: string) {
 		const className =
 			await this.apiHelpers.jsonWebServicesClassName.fetchClassName(
-				OBJECT_ENTRY_FOLDER_CLASS_NAME
+				'com.liferay.object.model.ObjectEntryFolder'
 			);
 
 		await this.page.goto(

@@ -6,6 +6,27 @@ templates:
     -   templates/rbac.yaml
 tests:
     -   asserts:
+            -   exists:
+                    path: rules[?(@.resources[0]=="clientextensions")]
+            -   exists:
+                    path: rules[?(@.resources[0]=="clientextensions/finalizers")]
+            -   exists:
+                    path: rules[?(@.resources[0]=="clientextensions/status")]
+            -   exists:
+                    path: rules[?(@.resources[0]=="configmaps")]
+            -   exists:
+                    path: rules[?(@.resources[0]=="cronjobs")]
+            -   exists:
+                    path: rules[?(@.resources[0]=="deployments")]
+            -   exists:
+                    path: rules[?(@.resources[0]=="jobs")]
+        documentSelector:
+            path: kind
+            value: ClusterRole
+        it: Adds the ClientExtension rules when the ClientExtension controller is enabled
+        set:
+            clientExtensions.enabled: true
+    -   asserts:
             -   equal:
                     path: metadata.annotations
                     value:
@@ -43,12 +64,40 @@ tests:
             serviceAccount.name: operator-sa
     -   asserts:
             -   equal:
+                    path: rules[?(@.resources[0]=="configmaps")].verbs
+                    value:
+                        -   get
+                        -   list
+                        -   watch
+        documentSelector:
+            path: kind
+            value: ClusterRole
+        it: Grants only reading ConfigMaps cluster wide
+        set:
+            clientExtensions.enabled: true
+    -   asserts:
+            -   equal:
+                    path: rules[?(@.resources[0]=="clientextensions/finalizers")].verbs
+                    value:
+                        -   update
+            -   equal:
+                    path: rules[?(@.resources[0]=="clientextensions/status")].verbs
+                    value:
+                        -   get
+                        -   patch
+                        -   update
+        documentSelector:
+            path: kind
+            value: ClusterRole
+        it: Grants the verbs each ClientExtension subresource needs
+        set:
+            clientExtensions.enabled: true
+    -   asserts:
+            -   equal:
                     path: rules[?(@.resources[0]=="liferayenvironments")].verbs
                     value:
                         -   get
                         -   list
-                        -   patch
-                        -   update
                         -   watch
             -   equal:
                     path: rules[?(@.resources[0]=="liferayenvironments/finalizers")].verbs
@@ -58,7 +107,6 @@ tests:
                     path: rules[?(@.resources[0]=="liferayenvironments/status")].verbs
                     value:
                         -   get
-                        -   patch
                         -   update
         documentSelector:
             path: kind
@@ -101,15 +149,31 @@ tests:
             serviceAccount.create: false
     -   asserts:
             -   notExists:
+                    path: rules[?(@.resources[0]=="clientextensions")]
+            -   notExists:
+                    path: rules[?(@.resources[0]=="clientextensions/finalizers")]
+            -   notExists:
+                    path: rules[?(@.resources[0]=="clientextensions/status")]
+            -   notExists:
+                    path: rules[?(@.resources[0]=="configmaps")]
+            -   notExists:
+                    path: rules[?(@.resources[0]=="cronjobs")]
+            -   notExists:
+                    path: rules[?(@.resources[0]=="deployments")]
+            -   notExists:
+                    path: rules[?(@.resources[0]=="jobs")]
+        documentSelector:
+            path: kind
+            value: ClusterRole
+        it: Omits the ClientExtension rules by default
+    -   asserts:
+            -   notExists:
                     path: metadata.annotations
         documentSelector:
             path: kind
             value: ServiceAccount
         it: Omits the service account annotations by default
     -   asserts:
-            -   lengthEqual:
-                    count: 8
-                    path: rules
             -   contains:
                     content:
                         apiGroups:
@@ -129,7 +193,6 @@ tests:
                         verbs:
                             -   get
                             -   list
-                            -   patch
                             -   update
                             -   watch
                     path: rules
@@ -142,8 +205,17 @@ tests:
                         verbs:
                             -   get
                             -   list
-                            -   patch
-                            -   update
+                            -   watch
+                    path: rules
+            -   contains:
+                    content:
+                        apiGroups:
+                            -   apiextensions.k8s.io
+                        resources:
+                            -   customresourcedefinitions
+                        verbs:
+                            -   get
+                            -   list
                             -   watch
                     path: rules
             -   contains:
@@ -155,8 +227,31 @@ tests:
                         verbs:
                             -   get
                             -   list
-                            -   patch
                             -   update
+                            -   watch
+                    path: rules
+            -   contains:
+                    content:
+                        apiGroups:
+                            -   autoscaling
+                        resources:
+                            -   horizontalpodautoscalers
+                        verbs:
+                            -   get
+                            -   list
+                            -   patch
+                            -   watch
+                    path: rules
+            -   contains:
+                    content:
+                        apiGroups:
+                            -   keda.sh
+                        resources:
+                            -   scaledobjects
+                        verbs:
+                            -   get
+                            -   list
+                            -   patch
                             -   watch
                     path: rules
         documentSelector:

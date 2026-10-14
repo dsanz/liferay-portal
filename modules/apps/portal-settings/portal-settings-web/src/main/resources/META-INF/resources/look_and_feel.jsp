@@ -14,8 +14,16 @@
 <aui:fieldset>
 	<aui:input label="allow-site-administrators-to-use-their-own-logo" name='<%= "settings--" + PropsKeys.COMPANY_SECURITY_SITE_LOGO + "--" %>' type="checkbox" value="<%= company.isSiteLogo() %>" />
 
+	<%
+	String currentLogoURL = themeDisplay.getPathImage() + "/liferay_logo?img_id=" + company.getLogoId();
+
+	if (company.getLogoId() != 0) {
+		currentLogoURL += "&t=" + WebServerServletTokenUtil.getToken(company.getLogoId());
+	}
+	%>
+
 	<liferay-frontend:logo-selector
-		currentLogoURL='<%= themeDisplay.getPathImage() + "/liferay_logo?img_id=" + company.getLogoId() %>'
+		currentLogoURL="<%= currentLogoURL %>"
 		defaultLogoURL='<%= themeDisplay.getPathImage() + "/liferay_logo?img_id=0" %>'
 	/>
 </aui:fieldset>

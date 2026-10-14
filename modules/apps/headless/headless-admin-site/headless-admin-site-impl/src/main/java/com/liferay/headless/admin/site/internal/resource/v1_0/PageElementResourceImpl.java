@@ -22,7 +22,7 @@ import com.liferay.layout.util.structure.CollectionStyledLayoutStructureItem;
 import com.liferay.layout.util.structure.LayoutStructure;
 import com.liferay.layout.util.structure.LayoutStructureItem;
 import com.liferay.layout.util.structure.LayoutStructureItemUtil;
-import com.liferay.layout.util.structure.exception.NoSuchLayoutStructureItemException;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
@@ -30,6 +30,7 @@ import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.vulcan.dto.converter.DTOConverter;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterContext;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterRegistry;
@@ -39,6 +40,10 @@ import com.liferay.segments.service.SegmentsExperienceService;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.tags.Tags;
+
+import jakarta.ws.rs.NotFoundException;
+
+import java.util.Objects;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -74,14 +79,8 @@ public class PageElementResourceImpl extends BasePageElementResourceImpl {
 		Layout layout = _layoutLocalService.getLayoutByExternalReferenceCode(
 			pageSpecificationExternalReferenceCode, groupId);
 
-		SegmentsExperience segmentsExperience =
-			_segmentsExperienceService.
-				getSegmentsExperienceByExternalReferenceCode(
-					pageExperienceExternalReferenceCode, groupId);
-
-		if (layout.getPlid() != segmentsExperience.getPlid()) {
-			throw new UnsupportedOperationException();
-		}
+		SegmentsExperience segmentsExperience = _getSegmentsExperience(
+			groupId, pageExperienceExternalReferenceCode, layout.getPlid());
 
 		_segmentsExperienceResourcePermission.check(
 			PermissionThreadLocal.getPermissionChecker(), segmentsExperience,
@@ -96,13 +95,8 @@ public class PageElementResourceImpl extends BasePageElementResourceImpl {
 			layoutPageTemplateStructure.getData(
 				segmentsExperience.getSegmentsExperienceKey()));
 
-		LayoutStructureItem layoutStructureItem =
-			layoutStructure.getLayoutStructureItem(
-				pageElementExternalReferenceCode);
-
-		if (layoutStructureItem == null) {
-			throw new NoSuchLayoutStructureItemException();
-		}
+		_getLayoutStructureItem(
+			layoutStructure, pageElementExternalReferenceCode);
 
 		layoutStructure.deleteLayoutStructureItem(
 			pageElementExternalReferenceCode);
@@ -133,14 +127,8 @@ public class PageElementResourceImpl extends BasePageElementResourceImpl {
 		Layout layout = _layoutLocalService.getLayoutByExternalReferenceCode(
 			pageSpecificationExternalReferenceCode, groupId);
 
-		SegmentsExperience segmentsExperience =
-			_segmentsExperienceService.
-				getSegmentsExperienceByExternalReferenceCode(
-					pageExperienceExternalReferenceCode, groupId);
-
-		if (layout.getPlid() != segmentsExperience.getPlid()) {
-			throw new UnsupportedOperationException();
-		}
+		SegmentsExperience segmentsExperience = _getSegmentsExperience(
+			groupId, pageExperienceExternalReferenceCode, layout.getPlid());
 
 		LayoutPageTemplateStructure layoutPageTemplateStructure =
 			_layoutPageTemplateStructureLocalService.
@@ -152,12 +140,8 @@ public class PageElementResourceImpl extends BasePageElementResourceImpl {
 				segmentsExperience.getSegmentsExperienceKey()));
 
 		LayoutStructureItem layoutStructureItem =
-			layoutStructure.getLayoutStructureItem(
-				pageElementExternalReferenceCode);
-
-		if (layoutStructureItem == null) {
-			throw new NoSuchLayoutStructureItemException();
-		}
+			_getPageElementLayoutStructureItem(
+				layoutStructure, pageElementExternalReferenceCode);
 
 		PageElement pageElement = _pageElementDTOConverter.toDTO(
 			_getDTOConverterContext(
@@ -167,7 +151,11 @@ public class PageElementResourceImpl extends BasePageElementResourceImpl {
 			layoutStructureItem);
 
 		if (pageElement == null) {
-			throw new UnsupportedOperationException();
+			throw new NotFoundException(
+				StringBundler.concat(
+					"No page element with the external reference code \"",
+					pageElementExternalReferenceCode,
+					"\" exists in this page experience"));
 		}
 
 		return pageElement;
@@ -194,14 +182,8 @@ public class PageElementResourceImpl extends BasePageElementResourceImpl {
 		Layout layout = _layoutLocalService.getLayoutByExternalReferenceCode(
 			pageSpecificationExternalReferenceCode, groupId);
 
-		SegmentsExperience segmentsExperience =
-			_segmentsExperienceService.
-				getSegmentsExperienceByExternalReferenceCode(
-					pageExperienceExternalReferenceCode, groupId);
-
-		if (layout.getPlid() != segmentsExperience.getPlid()) {
-			throw new UnsupportedOperationException();
-		}
+		SegmentsExperience segmentsExperience = _getSegmentsExperience(
+			groupId, pageExperienceExternalReferenceCode, layout.getPlid());
 
 		LayoutPageTemplateStructure layoutPageTemplateStructure =
 			_layoutPageTemplateStructureLocalService.
@@ -212,9 +194,8 @@ public class PageElementResourceImpl extends BasePageElementResourceImpl {
 			layoutPageTemplateStructure.getData(
 				segmentsExperience.getSegmentsExperienceKey()));
 
-		LayoutStructureItem layoutStructureItem =
-			layoutStructure.getLayoutStructureItem(
-				pageElementExternalReferenceCode);
+		LayoutStructureItem layoutStructureItem = _getLayoutStructureItem(
+			layoutStructure, pageElementExternalReferenceCode);
 
 		DTOConverterContext dtoConverterContext = _getDTOConverterContext(
 			layoutPageTemplateStructure.getCompanyId(), null, layout.getPlid(),
@@ -249,14 +230,8 @@ public class PageElementResourceImpl extends BasePageElementResourceImpl {
 		Layout layout = _layoutLocalService.getLayoutByExternalReferenceCode(
 			pageSpecificationExternalReferenceCode, groupId);
 
-		SegmentsExperience segmentsExperience =
-			_segmentsExperienceService.
-				getSegmentsExperienceByExternalReferenceCode(
-					pageExperienceExternalReferenceCode, groupId);
-
-		if (layout.getPlid() != segmentsExperience.getPlid()) {
-			throw new UnsupportedOperationException();
-		}
+		SegmentsExperience segmentsExperience = _getSegmentsExperience(
+			groupId, pageExperienceExternalReferenceCode, layout.getPlid());
 
 		LayoutPageTemplateStructure layoutPageTemplateStructure =
 			_layoutPageTemplateStructureLocalService.
@@ -299,18 +274,17 @@ public class PageElementResourceImpl extends BasePageElementResourceImpl {
 		Layout layout = _layoutLocalService.getLayoutByExternalReferenceCode(
 			pageSpecificationExternalReferenceCode, groupId);
 
-		SegmentsExperience segmentsExperience =
-			_segmentsExperienceService.
-				getSegmentsExperienceByExternalReferenceCode(
-					pageExperienceExternalReferenceCode, groupId);
-
-		if (layout.getPlid() != segmentsExperience.getPlid()) {
-			throw new UnsupportedOperationException();
-		}
+		SegmentsExperience segmentsExperience = _getSegmentsExperience(
+			groupId, pageExperienceExternalReferenceCode, layout.getPlid());
 
 		_segmentsExperienceResourcePermission.check(
 			PermissionThreadLocal.getPermissionChecker(), segmentsExperience,
 			ActionKeys.UPDATE);
+
+		if (Validator.isNull(pageElement.getExternalReferenceCode())) {
+			throw new IllegalArgumentException(
+				"An external reference code is required");
+		}
 
 		LayoutPageTemplateStructure layoutPageTemplateStructure =
 			_layoutPageTemplateStructureLocalService.
@@ -326,7 +300,10 @@ public class PageElementResourceImpl extends BasePageElementResourceImpl {
 				pageElement.getExternalReferenceCode());
 
 		if (layoutStructureItem != null) {
-			throw new UnsupportedOperationException();
+			throw new IllegalArgumentException(
+				"A page element with the external reference code \"" +
+					pageElement.getExternalReferenceCode() +
+						"\" already exists");
 		}
 
 		return _addOrUpdatePageElement(
@@ -354,14 +331,8 @@ public class PageElementResourceImpl extends BasePageElementResourceImpl {
 		Layout layout = _layoutLocalService.getLayoutByExternalReferenceCode(
 			pageSpecificationExternalReferenceCode, groupId);
 
-		SegmentsExperience segmentsExperience =
-			_segmentsExperienceService.
-				getSegmentsExperienceByExternalReferenceCode(
-					pageExperienceExternalReferenceCode, groupId);
-
-		if (layout.getPlid() != segmentsExperience.getPlid()) {
-			throw new UnsupportedOperationException();
-		}
+		SegmentsExperience segmentsExperience = _getSegmentsExperience(
+			groupId, pageExperienceExternalReferenceCode, layout.getPlid());
 
 		_segmentsExperienceResourcePermission.check(
 			PermissionThreadLocal.getPermissionChecker(), segmentsExperience,
@@ -398,6 +369,11 @@ public class PageElementResourceImpl extends BasePageElementResourceImpl {
 						_infoItemServiceRegistry, layout, segmentsExperienceId,
 						contextUser),
 					pageElement);
+
+			if (layoutStructureItem == null) {
+				throw new IllegalArgumentException(
+					"The page element definition is invalid");
+			}
 
 			_layoutPageTemplateStructureLocalService.
 				updateLayoutPageTemplateStructureData(
@@ -473,6 +449,66 @@ public class PageElementResourceImpl extends BasePageElementResourceImpl {
 			).build(),
 			_dtoConverterRegistry, contextHttpServletRequest, itemId,
 			contextUriInfo, contextUser);
+	}
+
+	private LayoutStructureItem _getLayoutStructureItem(
+			LayoutStructure layoutStructure,
+			String pageElementExternalReferenceCode)
+		throws Exception {
+
+		LayoutStructureItem layoutStructureItem =
+			layoutStructure.getLayoutStructureItem(
+				pageElementExternalReferenceCode);
+
+		if (layoutStructureItem == null) {
+			throw new NotFoundException(
+				StringBundler.concat(
+					"No page element with the external reference code \"",
+					pageElementExternalReferenceCode,
+					"\" exists in this page experience"));
+		}
+
+		return layoutStructureItem;
+	}
+
+	private LayoutStructureItem _getPageElementLayoutStructureItem(
+			LayoutStructure layoutStructure,
+			String pageElementExternalReferenceCode)
+		throws Exception {
+
+		LayoutStructureItem layoutStructureItem = _getLayoutStructureItem(
+			layoutStructure, pageElementExternalReferenceCode);
+
+		if (Objects.equals(
+				layoutStructure.getMainItemId(),
+				layoutStructureItem.getItemId())) {
+
+			throw new NotFoundException(
+				StringBundler.concat(
+					"No page element with the external reference code \"",
+					pageElementExternalReferenceCode,
+					"\" exists in this page experience"));
+		}
+
+		return layoutStructureItem;
+	}
+
+	private SegmentsExperience _getSegmentsExperience(
+			long groupId, String pageExperienceExternalReferenceCode, long plid)
+		throws Exception {
+
+		SegmentsExperience segmentsExperience =
+			_segmentsExperienceService.
+				getSegmentsExperienceByExternalReferenceCode(
+					pageExperienceExternalReferenceCode, groupId);
+
+		if (plid != segmentsExperience.getPlid()) {
+			throw new IllegalArgumentException(
+				"The page experience does not belong to this page " +
+					"specification");
+		}
+
+		return segmentsExperience;
 	}
 
 	@Reference

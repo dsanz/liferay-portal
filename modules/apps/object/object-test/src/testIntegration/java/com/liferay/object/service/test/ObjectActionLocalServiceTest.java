@@ -28,6 +28,8 @@ import com.liferay.expando.kernel.model.ExpandoColumn;
 import com.liferay.expando.kernel.model.ExpandoColumnConstants;
 import com.liferay.expando.kernel.model.ExpandoTableConstants;
 import com.liferay.expando.test.util.ExpandoTestUtil;
+import com.liferay.map.geocoder.GeocoderResult;
+import com.liferay.map.test.util.GeocoderTestUtil;
 import com.liferay.notification.constants.NotificationConstants;
 import com.liferay.notification.constants.NotificationQueueEntryConstants;
 import com.liferay.notification.constants.NotificationRecipientSettingConstants;
@@ -63,7 +65,9 @@ import com.liferay.object.exception.ObjectActionSystemException;
 import com.liferay.object.exception.ObjectActionTriggerKeyException;
 import com.liferay.object.field.builder.AssigneeObjectFieldBuilder;
 import com.liferay.object.field.builder.AutoIncrementObjectFieldBuilder;
+import com.liferay.object.field.builder.LocationObjectFieldBuilder;
 import com.liferay.object.field.builder.TextObjectFieldBuilder;
+import com.liferay.object.field.business.type.ObjectFieldBusinessTypeRegistry;
 import com.liferay.object.field.setting.builder.ObjectFieldSettingBuilder;
 import com.liferay.object.field.util.ObjectFieldUtil;
 import com.liferay.object.model.ObjectAction;
@@ -86,6 +90,7 @@ import com.liferay.object.test.util.ObjectRelationshipTestUtil;
 import com.liferay.object.test.util.TreeTestUtil;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
@@ -489,15 +494,36 @@ public class ObjectActionLocalServiceTest {
 				StringPool.BLANK, RandomTestUtil.randomString(),
 				ObjectActionTriggerConstants.KEY_ON_AFTER_ADD, true));
 
+		ObjectAction objectAction1 = _addObjectAction(
+			_objectDefinition.getObjectDefinitionId(),
+			ObjectActionExecutorConstants.KEY_WEBHOOK,
+			ObjectActionTriggerConstants.KEY_ON_AFTER_ADD,
+			UnicodePropertiesBuilder.put(
+				"url", "https://onafteradd.com"
+			).put(
+				"urlHostsAllowed", "onafteradd.com, [::1], 203.0.113.1"
+			).build());
+
+		UnicodeProperties parametersUnicodeProperties =
+			objectAction1.getParametersUnicodeProperties();
+
+		Assert.assertEquals(
+			"onafteradd.com,[::1],203.0.113.1",
+			parametersUnicodeProperties.get("urlHostsAllowed"));
+
+		_objectActionLocalService.deleteObjectAction(objectAction1);
+
 		String name = RandomTestUtil.randomString();
 
-		ObjectAction objectAction1 = _addObjectAction(
+		ObjectAction objectAction2 = _addObjectAction(
 			name, ObjectActionExecutorConstants.KEY_WEBHOOK,
 			ObjectActionTriggerConstants.KEY_ON_AFTER_ADD,
 			UnicodePropertiesBuilder.put(
 				"secret", "onafteradd"
 			).put(
 				"url", "https://onafteradd.com"
+			).put(
+				"urlLocalNetworkAccessEnabled", "true"
 			).build(),
 			false);
 
@@ -544,7 +570,7 @@ public class ObjectActionLocalServiceTest {
 				RandomTestUtil.randomString(), RandomTestUtil.randomString(),
 				ObjectActionTriggerConstants.KEY_ON_AFTER_ROOT_UPDATE, false));
 
-		ObjectAction objectAction2 = _addObjectAction(
+		ObjectAction objectAction3 = _addObjectAction(
 			RandomTestUtil.randomString(),
 			ObjectActionExecutorConstants.KEY_WEBHOOK,
 			ObjectActionTriggerConstants.KEY_ON_AFTER_DELETE,
@@ -552,9 +578,11 @@ public class ObjectActionLocalServiceTest {
 				"secret", "onafterdelete"
 			).put(
 				"url", "https://onafterdelete.com"
+			).put(
+				"urlLocalNetworkAccessEnabled", "true"
 			).build(),
 			false);
-		ObjectAction objectAction3 = _addObjectAction(
+		ObjectAction objectAction4 = _addObjectAction(
 			RandomTestUtil.randomString(),
 			ObjectActionExecutorConstants.KEY_WEBHOOK,
 			ObjectActionTriggerConstants.KEY_ON_AFTER_UPDATE,
@@ -562,9 +590,11 @@ public class ObjectActionLocalServiceTest {
 				"secret", "onafterupdate"
 			).put(
 				"url", "https://onafterupdate.com"
+			).put(
+				"urlLocalNetworkAccessEnabled", "true"
 			).build(),
 			false);
-		ObjectAction objectAction4 = _addObjectAction(
+		ObjectAction objectAction5 = _addObjectAction(
 			RandomTestUtil.randomString(),
 			ObjectActionExecutorConstants.KEY_GROOVY,
 			ObjectActionTriggerConstants.KEY_STANDALONE,
@@ -625,7 +655,7 @@ public class ObjectActionLocalServiceTest {
 			"objectDefinitionId",
 			String.valueOf(_objectDefinition.getObjectDefinitionId()));
 
-		ObjectAction objectAction5 = _addObjectAction(
+		ObjectAction objectAction6 = _addObjectAction(
 			RandomTestUtil.randomString(),
 			ObjectActionExecutorConstants.KEY_UPDATE_OBJECT_ENTRY,
 			ObjectActionTriggerConstants.KEY_STANDALONE, unicodeProperties,
@@ -765,7 +795,7 @@ public class ObjectActionLocalServiceTest {
 
 			try {
 				objectEntryResource.putObjectEntryObjectActionObjectActionName(
-					objectEntry.getObjectEntryId(), objectAction4.getName());
+					objectEntry.getObjectEntryId(), objectAction5.getName());
 
 				Assert.fail();
 			}
@@ -775,15 +805,15 @@ public class ObjectActionLocalServiceTest {
 					CoreMatchers.containsString(
 						StringBundler.concat(
 							"User ", _user.getUserId(), " must have ",
-							objectAction4.getName(), " permission for")));
+							objectAction5.getName(), " permission for")));
 			}
 
 			_addModelResourcePermissions(
-				objectAction4.getName(), objectEntry.getObjectEntryId(),
+				objectAction5.getName(), objectEntry.getObjectEntryId(),
 				_user.getUserId());
 
 			objectEntryResource.putObjectEntryObjectActionObjectActionName(
-				objectEntry.getObjectEntryId(), objectAction4.getName());
+				objectEntry.getObjectEntryId(), objectAction5.getName());
 
 			_assertGroovyObjectActionExecutorArguments("John", objectEntry);
 
@@ -815,7 +845,7 @@ public class ObjectActionLocalServiceTest {
 				objectEntryResource.
 					putByExternalReferenceCodeObjectActionObjectActionName(
 						objectEntry.getExternalReferenceCode(),
-						objectAction5.getName());
+						objectAction6.getName());
 
 				Assert.fail();
 			}
@@ -825,17 +855,17 @@ public class ObjectActionLocalServiceTest {
 					CoreMatchers.containsString(
 						StringBundler.concat(
 							"User ", _user.getUserId(), " must have ",
-							objectAction5.getName(), " permission for")));
+							objectAction6.getName(), " permission for")));
 			}
 
 			_addModelResourcePermissions(
-				objectAction5.getName(), objectEntry.getObjectEntryId(),
+				objectAction6.getName(), objectEntry.getObjectEntryId(),
 				_user.getUserId());
 
 			objectEntryResource.
 				putByExternalReferenceCodeObjectActionObjectActionName(
 					objectEntry.getExternalReferenceCode(),
-					objectAction5.getName());
+					objectAction6.getName());
 
 			Map<String, Serializable> values =
 				_objectEntryLocalService.getValues(
@@ -926,7 +956,7 @@ public class ObjectActionLocalServiceTest {
 				serviceContext);
 
 			_assertWebhookObjectAction(
-				null, "John", null,
+				null, "John", StringPool.BLANK,
 				ObjectActionTriggerConstants.KEY_ON_AFTER_ADD,
 				_objectDefinition, null, null, WorkflowConstants.STATUS_DRAFT);
 
@@ -999,6 +1029,8 @@ public class ObjectActionLocalServiceTest {
 					"secret", "onafterrootupdate"
 				).put(
 					"url", "https://onafterrootupdate.com"
+				).put(
+					"urlLocalNetworkAccessEnabled", "true"
 				).build());
 
 			ObjectEntry rootObjectEntry =
@@ -1074,13 +1106,13 @@ public class ObjectActionLocalServiceTest {
 			_objectRelationshipLocalService.updateObjectRelationship(
 				objectRelationshipA_AA.getExternalReferenceCode(),
 				objectRelationshipA_AA.getObjectRelationshipId(), 0,
-				objectRelationshipA_AA.getDeletionType(), false,
+				objectRelationshipA_AA.getDeletionType(), null, false,
 				objectRelationshipA_AA.getLabelMap(), null);
 
 			_objectRelationshipLocalService.updateObjectRelationship(
 				objectRelationshipAA_AAA.getExternalReferenceCode(),
 				objectRelationshipAA_AAA.getObjectRelationshipId(), 0,
-				objectRelationshipAA_AAA.getDeletionType(), false,
+				objectRelationshipAA_AAA.getDeletionType(), null, false,
 				objectRelationshipAA_AAA.getLabelMap(), null);
 
 			_objectDefinitionLocalService.deleteObjectDefinition(
@@ -1098,7 +1130,6 @@ public class ObjectActionLocalServiceTest {
 
 		// Delete object actions
 
-		_objectActionLocalService.deleteObjectAction(objectAction1);
 		_objectActionLocalService.deleteObjectAction(objectAction2);
 		_objectActionLocalService.deleteObjectAction(objectAction3);
 		_objectActionLocalService.deleteObjectAction(objectAction4);
@@ -1206,7 +1237,8 @@ public class ObjectActionLocalServiceTest {
 		ObjectAction objectAction1 = _objectActionLocalService.addObjectAction(
 			RandomTestUtil.randomString(), TestPropsValues.getUserId(),
 			commerceOrderObjectDefinition.getObjectDefinitionId(), true,
-			"oldValue(\"orderStatus\") == 1", RandomTestUtil.randomString(),
+			"oldValue(\"orderStatus\") == 1",
+			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 			RandomTestUtil.randomString(),
@@ -1235,7 +1267,8 @@ public class ObjectActionLocalServiceTest {
 		ObjectAction objectAction2 = _objectActionLocalService.addObjectAction(
 			RandomTestUtil.randomString(), TestPropsValues.getUserId(),
 			commerceOrderObjectDefinition.getObjectDefinitionId(), true,
-			"orderStatus == 10", RandomTestUtil.randomString(),
+			"orderStatus == 10",
+			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 			RandomTestUtil.randomString(),
@@ -1992,7 +2025,8 @@ public class ObjectActionLocalServiceTest {
 			_objectActionLocalService.addObjectAction(
 				RandomTestUtil.randomString(), TestPropsValues.getUserId(),
 				_objectDefinition.getObjectDefinitionId(), true,
-				"equals(firstName, \"John\")", "Able Description",
+				"equals(firstName, \"John\")",
+				LocalizedMapUtil.getLocalizedMap("Able Description"),
 				LocalizedMapUtil.getLocalizedMap("Able Error Message"),
 				LocalizedMapUtil.getLocalizedMap("Able Label"), "Able",
 				ObjectActionExecutorConstants.KEY_WEBHOOK,
@@ -2001,6 +2035,8 @@ public class ObjectActionLocalServiceTest {
 					"secret", "0123456789"
 				).put(
 					"url", "https://onafteradd.com"
+				).put(
+					"urlLocalNetworkAccessEnabled", "true"
 				).build(),
 				true);
 
@@ -2027,6 +2063,8 @@ public class ObjectActionLocalServiceTest {
 				"secret", "onafterupdate"
 			).put(
 				"url", "https://onafterupdate.com"
+			).put(
+				"urlLocalNetworkAccessEnabled", "true"
 			).build());
 
 		_workflowDefinitionLinkLocalService.updateWorkflowDefinitionLink(
@@ -2091,6 +2129,8 @@ public class ObjectActionLocalServiceTest {
 				"secret", "onafterlogin"
 			).put(
 				"url", "https://onafterlogin.com"
+			).put(
+				"urlLocalNetworkAccessEnabled", "true"
 			).build());
 
 		Assert.assertEquals(0, _argumentsList.size());
@@ -2421,7 +2461,8 @@ public class ObjectActionLocalServiceTest {
 		_objectActionLocalService.addObjectAction(
 			RandomTestUtil.randomString(), TestPropsValues.getUserId(),
 			objectDefinition.getObjectDefinitionId(), true,
-			"oldValue(\"name\") == \"Paul\"", RandomTestUtil.randomString(),
+			"oldValue(\"name\") == \"Paul\"",
+			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 			RandomTestUtil.randomString(),
@@ -2526,6 +2567,83 @@ public class ObjectActionLocalServiceTest {
 		}
 	}
 
+	@FeatureFlag("LPD-11388")
+	@Test
+	public void testExecuteObjectActionWithLocationObjectField()
+		throws Exception {
+
+		GeocoderResult geocoderResult = new GeocoderResult(
+			RandomTestUtil.randomString(), RandomTestUtil.randomDouble(),
+			RandomTestUtil.randomDouble());
+
+		try (SafeCloseable safeCloseable =
+				GeocoderTestUtil.swapWithSafeCloseable(
+					geocoderResult,
+					_objectFieldBusinessTypeRegistry.getObjectFieldBusinessType(
+						ObjectFieldConstants.BUSINESS_TYPE_LOCATION))) {
+
+			ObjectFieldUtil.addCustomObjectField(
+				new LocationObjectFieldBuilder(
+				).labelMap(
+					RandomTestUtil.randomLocaleStringMap()
+				).name(
+					"location"
+				).objectDefinitionId(
+					_objectDefinition.getObjectDefinitionId()
+				).userId(
+					TestPropsValues.getUserId()
+				).build());
+
+			_objectDefinition = _publishCustomObjectDefinition();
+
+			String address = RandomTestUtil.randomString();
+
+			ObjectAction objectAction = _addObjectAction(
+				StringPool.BLANK,
+				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
+				RandomTestUtil.randomString(),
+				ObjectActionExecutorConstants.KEY_UPDATE_OBJECT_ENTRY,
+				ObjectActionTriggerConstants.KEY_ON_AFTER_ADD,
+				UnicodePropertiesBuilder.put(
+					"objectDefinitionId",
+					_objectDefinition.getObjectDefinitionId()
+				).put(
+					"predefinedValues",
+					JSONUtil.putAll(
+						JSONUtil.put(
+							"inputAsValue", true
+						).put(
+							"name", "location"
+						).put(
+							"value", address
+						)
+					).toString()
+				).build(),
+				false);
+
+			ObjectEntry objectEntry = _objectEntryLocalService.addObjectEntry(
+				0, TestPropsValues.getUserId(),
+				_objectDefinition.getObjectDefinitionId(),
+				ObjectEntryFolderConstants.
+					PARENT_OBJECT_ENTRY_FOLDER_ID_DEFAULT,
+				null,
+				HashMapBuilder.<String, Serializable>put(
+					"firstName", RandomTestUtil.randomString()
+				).build(),
+				ServiceContextTestUtil.getServiceContext());
+
+			Map<String, Serializable> values = objectEntry.getValues();
+
+			Assert.assertEquals(
+				address,
+				MapUtil.getString(
+					(Map<String, Serializable>)values.get("location"),
+					"address"));
+
+			_objectActionLocalService.deleteObjectAction(objectAction);
+		}
+	}
+
 	@Test
 	public void testExecuteObjectActionWithUnmodifiableSystemObjectDefinition()
 		throws Exception {
@@ -2542,6 +2660,8 @@ public class ObjectActionLocalServiceTest {
 				"secret", "onafterupdate"
 			).put(
 				"url", "https://onafterupdate.com"
+			).put(
+				"urlLocalNetworkAccessEnabled", "true"
 			).build());
 
 		String expandoColumnName = "A" + RandomTestUtil.randomString();
@@ -2717,7 +2837,8 @@ public class ObjectActionLocalServiceTest {
 		_objectActionLocalService.updateObjectAction(
 			objectAction.getExternalReferenceCode(),
 			objectAction.getObjectActionId(), true,
-			objectAction.getConditionExpression(), StringPool.BLANK,
+			objectAction.getConditionExpression(),
+			LocalizedMapUtil.getLocalizedMap(StringPool.BLANK),
 			objectAction.getErrorMessageMap(), objectAction.getLabelMap(),
 			objectAction.getName(), objectAction.getObjectActionExecutorKey(),
 			objectAction.getObjectActionTriggerKey(), unicodeProperties);
@@ -2758,6 +2879,127 @@ public class ObjectActionLocalServiceTest {
 		_objectDefinitionLocalService.deleteObjectDefinition(objectDefinition);
 
 		_userLocalService.deleteUser(user);
+	}
+
+	@Test
+	public void testExecuteObjectActionWithWebhookURL() throws Exception {
+
+		// Allowed host
+
+		_publishCustomObjectDefinition();
+
+		ObjectAction objectAction = _addObjectAction(
+			_objectDefinition.getObjectDefinitionId(),
+			ObjectActionExecutorConstants.KEY_WEBHOOK,
+			ObjectActionTriggerConstants.KEY_ON_AFTER_ADD,
+			UnicodePropertiesBuilder.put(
+				"url", "http://203.0.113.1/webhook"
+			).put(
+				"urlHostsAllowed", "203.0.113.1"
+			).build());
+
+		_assertWebhookObjectActionExecuted(
+			objectAction.getObjectActionId(), "http://203.0.113.1/webhook");
+
+		_objectActionLocalService.deleteObjectAction(objectAction);
+
+		// Disallowed host with local network access
+
+		objectAction = _addObjectAction(
+			_objectDefinition.getObjectDefinitionId(),
+			ObjectActionExecutorConstants.KEY_WEBHOOK,
+			ObjectActionTriggerConstants.KEY_ON_AFTER_ADD,
+			UnicodePropertiesBuilder.put(
+				"url", "http://127.0.0.1/webhook"
+			).put(
+				"urlHostsAllowed", "203.0.113.1"
+			).put(
+				"urlLocalNetworkAccessEnabled", "true"
+			).build());
+
+		_assertWebhookObjectActionNotExecuted(objectAction.getObjectActionId());
+
+		_objectActionLocalService.deleteObjectAction(objectAction);
+
+		// Disallowed host without local network access
+
+		objectAction = _addObjectAction(
+			_objectDefinition.getObjectDefinitionId(),
+			ObjectActionExecutorConstants.KEY_WEBHOOK,
+			ObjectActionTriggerConstants.KEY_ON_AFTER_ADD,
+			UnicodePropertiesBuilder.put(
+				"url", "http://203.0.113.1/webhook"
+			).put(
+				"urlHostsAllowed", "198.51.100.1"
+			).build());
+
+		_assertWebhookObjectActionExecuted(
+			objectAction.getObjectActionId(), "http://203.0.113.1/webhook");
+
+		_objectActionLocalService.deleteObjectAction(objectAction);
+
+		// Local network address
+
+		objectAction = _addObjectAction(
+			_objectDefinition.getObjectDefinitionId(),
+			ObjectActionExecutorConstants.KEY_WEBHOOK,
+			ObjectActionTriggerConstants.KEY_ON_AFTER_ADD,
+			UnicodePropertiesBuilder.put(
+				"url", "http://127.0.0.1/webhook"
+			).build());
+
+		_assertWebhookObjectActionNotExecuted(objectAction.getObjectActionId());
+
+		_objectActionLocalService.deleteObjectAction(objectAction);
+
+		// Local network address with allowed host
+
+		objectAction = _addObjectAction(
+			_objectDefinition.getObjectDefinitionId(),
+			ObjectActionExecutorConstants.KEY_WEBHOOK,
+			ObjectActionTriggerConstants.KEY_ON_AFTER_ADD,
+			UnicodePropertiesBuilder.put(
+				"url", "http://127.0.0.1/webhook"
+			).put(
+				"urlHostsAllowed", "127.0.0.1"
+			).build());
+
+		_assertWebhookObjectActionNotExecuted(objectAction.getObjectActionId());
+
+		_objectActionLocalService.deleteObjectAction(objectAction);
+
+		// Local network address with local network access
+
+		objectAction = _addObjectAction(
+			_objectDefinition.getObjectDefinitionId(),
+			ObjectActionExecutorConstants.KEY_WEBHOOK,
+			ObjectActionTriggerConstants.KEY_ON_AFTER_ADD,
+			UnicodePropertiesBuilder.put(
+				"url", "http://127.0.0.1/webhook"
+			).put(
+				"urlHostsAllowed", "127.0.0.1"
+			).put(
+				"urlLocalNetworkAccessEnabled", "true"
+			).build());
+
+		_assertWebhookObjectActionExecuted(
+			objectAction.getObjectActionId(), "http://127.0.0.1/webhook");
+
+		_objectActionLocalService.deleteObjectAction(objectAction);
+
+		// Unsupported scheme
+
+		objectAction = _addObjectAction(
+			_objectDefinition.getObjectDefinitionId(),
+			ObjectActionExecutorConstants.KEY_WEBHOOK,
+			ObjectActionTriggerConstants.KEY_ON_AFTER_ADD,
+			UnicodePropertiesBuilder.put(
+				"url", "file:///etc/passwd"
+			).put(
+				"urlLocalNetworkAccessEnabled", "true"
+			).build());
+
+		_assertWebhookObjectActionNotExecuted(objectAction.getObjectActionId());
 	}
 
 	@Test
@@ -3161,7 +3403,8 @@ public class ObjectActionLocalServiceTest {
 		ObjectAction objectAction = _objectActionLocalService.addObjectAction(
 			externalReferenceCode1, TestPropsValues.getUserId(),
 			_objectDefinition.getObjectDefinitionId(), true,
-			"equals(firstName, \"John\")", "Able Description",
+			"equals(firstName, \"John\")",
+			LocalizedMapUtil.getLocalizedMap("Able Description"),
 			LocalizedMapUtil.getLocalizedMap("Able Error Message"),
 			LocalizedMapUtil.getLocalizedMap("Able Label"), "Able",
 			ObjectActionExecutorConstants.KEY_WEBHOOK,
@@ -3170,11 +3413,14 @@ public class ObjectActionLocalServiceTest {
 				"secret", "0123456789"
 			).put(
 				"url", "https://onafteradd.com"
+			).put(
+				"urlLocalNetworkAccessEnabled", "true"
 			).build(),
 			false);
 
 		_assertObjectAction(
-			true, "equals(firstName, \"John\")", "Able Description",
+			true, "equals(firstName, \"John\")",
+			LocalizedMapUtil.getLocalizedMap("Able Description"),
 			LocalizedMapUtil.getLocalizedMap("Able Error Message"),
 			LocalizedMapUtil.getLocalizedMap("Able Label"), "Able",
 			objectAction, ObjectActionExecutorConstants.KEY_WEBHOOK,
@@ -3183,12 +3429,15 @@ public class ObjectActionLocalServiceTest {
 				"secret", "0123456789"
 			).put(
 				"url", "https://onafteradd.com"
+			).put(
+				"urlLocalNetworkAccessEnabled", "true"
 			).build(),
 			ObjectActionConstants.STATUS_NEVER_RAN);
 
 		objectAction = _objectActionLocalService.updateObjectAction(
 			externalReferenceCode1, objectAction.getObjectActionId(), false,
-			"equals(firstName, \"João\")", "Baker Description",
+			"equals(firstName, \"João\")",
+			LocalizedMapUtil.getLocalizedMap("Baker Description"),
 			LocalizedMapUtil.getLocalizedMap("Baker Error Message"),
 			LocalizedMapUtil.getLocalizedMap("Baker Label"), "Baker",
 			ObjectActionExecutorConstants.KEY_GROOVY,
@@ -3200,7 +3449,8 @@ public class ObjectActionLocalServiceTest {
 			).build());
 
 		_assertObjectAction(
-			false, "equals(firstName, \"João\")", "Baker Description",
+			false, "equals(firstName, \"João\")",
+			LocalizedMapUtil.getLocalizedMap("Baker Description"),
 			LocalizedMapUtil.getLocalizedMap("Baker Error Message"),
 			LocalizedMapUtil.getLocalizedMap("Baker Label"), "Baker",
 			objectAction, ObjectActionExecutorConstants.KEY_GROOVY,
@@ -3216,7 +3466,8 @@ public class ObjectActionLocalServiceTest {
 
 		objectAction = _objectActionLocalService.updateObjectAction(
 			externalReferenceCode1, objectAction.getObjectActionId(), true,
-			"equals(firstName, \"John\")", "Charlie Description",
+			"equals(firstName, \"John\")",
+			LocalizedMapUtil.getLocalizedMap("Charlie Description"),
 			LocalizedMapUtil.getLocalizedMap("Charlie Error Message"),
 			LocalizedMapUtil.getLocalizedMap("Charlie Label"), "Charlie",
 			ObjectActionExecutorConstants.KEY_WEBHOOK,
@@ -3225,10 +3476,13 @@ public class ObjectActionLocalServiceTest {
 				"secret", "0123456789"
 			).put(
 				"url", "https://onafterdelete.com"
+			).put(
+				"urlLocalNetworkAccessEnabled", "true"
 			).build());
 
 		_assertObjectAction(
-			true, "equals(firstName, \"John\")", "Charlie Description",
+			true, "equals(firstName, \"John\")",
+			LocalizedMapUtil.getLocalizedMap("Charlie Description"),
 			LocalizedMapUtil.getLocalizedMap("Charlie Error Message"),
 			LocalizedMapUtil.getLocalizedMap("Charlie Label"), "Baker",
 			objectAction, ObjectActionExecutorConstants.KEY_WEBHOOK,
@@ -3237,6 +3491,8 @@ public class ObjectActionLocalServiceTest {
 				"secret", "0123456789"
 			).put(
 				"url", "https://onafterdelete.com"
+			).put(
+				"urlLocalNetworkAccessEnabled", "true"
 			).build(),
 			ObjectActionConstants.STATUS_NEVER_RAN);
 
@@ -3246,7 +3502,8 @@ public class ObjectActionLocalServiceTest {
 			_objectActionLocalService.addObjectAction(
 				externalReferenceCode2, TestPropsValues.getUserId(),
 				_objectDefinition.getObjectDefinitionId(), true,
-				"equals(firstName, \"John\")", "Able Description",
+				"equals(firstName, \"John\")",
+				LocalizedMapUtil.getLocalizedMap("Able Description"),
 				LocalizedMapUtil.getLocalizedMap("Able Error Message"),
 				LocalizedMapUtil.getLocalizedMap("Able Label"), "Able",
 				ObjectActionExecutorConstants.KEY_WEBHOOK,
@@ -3255,12 +3512,15 @@ public class ObjectActionLocalServiceTest {
 					"secret", "0123456789"
 				).put(
 					"url", "https://onafteradd.com"
+				).put(
+					"urlLocalNetworkAccessEnabled", "true"
 				).build(),
 				true);
 
 		systemObjectAction = _objectActionLocalService.updateObjectAction(
 			externalReferenceCode2, systemObjectAction.getObjectActionId(),
-			false, "equals(firstName, \"João\")", "Baker Description",
+			false, "equals(firstName, \"João\")",
+			LocalizedMapUtil.getLocalizedMap("Baker Description"),
 			LocalizedMapUtil.getLocalizedMap("Baker Error Message"),
 			LocalizedMapUtil.getLocalizedMap("Baker Label"), "Baker",
 			ObjectActionExecutorConstants.KEY_GROOVY,
@@ -3272,7 +3532,8 @@ public class ObjectActionLocalServiceTest {
 			).build());
 
 		_assertObjectAction(
-			false, "equals(firstName, \"João\")", "Baker Description",
+			false, "equals(firstName, \"João\")",
+			LocalizedMapUtil.getLocalizedMap("Baker Description"),
 			LocalizedMapUtil.getLocalizedMap("Baker Error Message"),
 			LocalizedMapUtil.getLocalizedMap("Baker Label"), "Able",
 			systemObjectAction, ObjectActionExecutorConstants.KEY_GROOVY,
@@ -3293,7 +3554,8 @@ public class ObjectActionLocalServiceTest {
 		try {
 			systemObjectAction = _objectActionLocalService.updateObjectAction(
 				externalReferenceCode2, systemObjectAction.getObjectActionId(),
-				false, "equals(firstName, \"John\")", "Charlie Description",
+				false, "equals(firstName, \"John\")",
+				LocalizedMapUtil.getLocalizedMap("Charlie Description"),
 				LocalizedMapUtil.getLocalizedMap("Charlie Error Message"),
 				LocalizedMapUtil.getLocalizedMap("Charlie Label"), "Able",
 				ObjectActionExecutorConstants.KEY_WEBHOOK,
@@ -3302,6 +3564,8 @@ public class ObjectActionLocalServiceTest {
 					"secret", "0123456789"
 				).put(
 					"url", "https://onafteradd.com"
+				).put(
+					"urlLocalNetworkAccessEnabled", "true"
 				).build());
 		}
 		finally {
@@ -3309,7 +3573,8 @@ public class ObjectActionLocalServiceTest {
 		}
 
 		_assertObjectAction(
-			false, "equals(firstName, \"João\")", "Baker Description",
+			false, "equals(firstName, \"João\")",
+			LocalizedMapUtil.getLocalizedMap("Baker Description"),
 			LocalizedMapUtil.getLocalizedMap("Baker Error Message"),
 			LocalizedMapUtil.getLocalizedMap("Charlie Label"), "Able",
 			systemObjectAction, ObjectActionExecutorConstants.KEY_GROOVY,
@@ -3323,6 +3588,81 @@ public class ObjectActionLocalServiceTest {
 
 		_objectActionLocalService.deleteObjectAction(objectAction);
 		_objectActionLocalService.deleteObjectAction(systemObjectAction);
+	}
+
+	@Test
+	public void testUpdateObjectActionWithEmptyDescriptionMap()
+		throws Exception {
+
+		ObjectAction objectAction = _addObjectAction(
+			RandomTestUtil.randomString(),
+			ObjectActionExecutorConstants.KEY_WEBHOOK,
+			ObjectActionTriggerConstants.KEY_ON_AFTER_ADD,
+			UnicodePropertiesBuilder.put(
+				"secret", "0123456789"
+			).put(
+				"url", "https://onafteradd.com"
+			).build(),
+			false);
+
+		Map<Locale, String> descriptionMap = objectAction.getDescriptionMap();
+
+		objectAction = _objectActionLocalService.updateObjectAction(
+			objectAction.getExternalReferenceCode(),
+			objectAction.getObjectActionId(), objectAction.isActive(),
+			objectAction.getConditionExpression(), Collections.emptyMap(),
+			objectAction.getErrorMessageMap(), objectAction.getLabelMap(),
+			objectAction.getName(), objectAction.getObjectActionExecutorKey(),
+			objectAction.getObjectActionTriggerKey(),
+			objectAction.getParametersUnicodeProperties());
+
+		Assert.assertEquals(descriptionMap, objectAction.getDescriptionMap());
+
+		_objectActionLocalService.deleteObjectAction(objectAction);
+	}
+
+	@Test
+	public void testUpdateObjectActionWithWebhookNetworkParameters()
+		throws Exception {
+
+		ObjectAction objectAction = _addObjectAction(
+			_objectDefinition.getObjectDefinitionId(),
+			ObjectActionExecutorConstants.KEY_WEBHOOK,
+			ObjectActionTriggerConstants.KEY_ON_AFTER_ADD,
+			UnicodePropertiesBuilder.put(
+				"url", "https://onafteradd.com"
+			).put(
+				"urlHostsAllowed", "onafteradd.com"
+			).put(
+				"urlLocalNetworkAccessEnabled", "true"
+			).build());
+
+		objectAction = _objectActionLocalService.updateObjectAction(
+			objectAction.getExternalReferenceCode(),
+			objectAction.getObjectActionId(), true, StringPool.BLANK,
+			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
+			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
+			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
+			objectAction.getName(), ObjectActionExecutorConstants.KEY_GROOVY,
+			ObjectActionTriggerConstants.KEY_ON_AFTER_ADD,
+			UnicodePropertiesBuilder.put(
+				"script", "println 'onAfterAdd'"
+			).put(
+				"urlHostsAllowed", "onafteradd.com"
+			).put(
+				"urlLocalNetworkAccessEnabled", "true"
+			).build());
+
+		UnicodeProperties parametersUnicodeProperties =
+			objectAction.getParametersUnicodeProperties();
+
+		Assert.assertEquals(
+			"println 'onAfterAdd'", parametersUnicodeProperties.get("script"));
+		Assert.assertFalse(
+			parametersUnicodeProperties.containsKey("urlHostsAllowed"));
+		Assert.assertFalse(
+			parametersUnicodeProperties.containsKey(
+				"urlLocalNetworkAccessEnabled"));
 	}
 
 	@Rule
@@ -3433,7 +3773,7 @@ public class ObjectActionLocalServiceTest {
 		return _objectActionLocalService.addObjectAction(
 			RandomTestUtil.randomString(), TestPropsValues.getUserId(),
 			objectDefinitionId, true, StringPool.BLANK,
-			RandomTestUtil.randomString(),
+			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 			RandomTestUtil.randomString(), objectActionExecutorKey,
@@ -3450,7 +3790,8 @@ public class ObjectActionLocalServiceTest {
 		return _objectActionLocalService.addObjectAction(
 			RandomTestUtil.randomString(), TestPropsValues.getUserId(),
 			_objectDefinition.getObjectDefinitionId(), true,
-			conditionExpression, RandomTestUtil.randomString(),
+			conditionExpression,
+			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 			labelMap, name, objectActionExecutorKey, objectActionTriggerKey,
 			unicodeProperties, system);
@@ -3464,7 +3805,7 @@ public class ObjectActionLocalServiceTest {
 		_objectActionLocalService.addObjectAction(
 			externalReferenceCode, TestPropsValues.getUserId(),
 			_objectDefinition.getObjectDefinitionId(), true, StringPool.BLANK,
-			RandomTestUtil.randomString(),
+			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 			LocalizedMapUtil.getLocalizedMap(errorMessage),
 			LocalizedMapUtil.getLocalizedMap(label), name,
 			ObjectActionExecutorConstants.KEY_GROOVY, objectActionTriggerKey,
@@ -3579,23 +3920,16 @@ public class ObjectActionLocalServiceTest {
 	}
 
 	private void _assertObjectAction(
-		boolean active, String name, ObjectAction objectAction) {
-
-		Assert.assertEquals(active, objectAction.isActive());
-		Assert.assertEquals(name, objectAction.getName());
-	}
-
-	private void _assertObjectAction(
-		boolean active, String conditionExpression, String description,
-		Map<Locale, String> errorMessageMap, Map<Locale, String> labelMap,
-		String name, ObjectAction objectAction, String objectActionExecutorKey,
-		String objectActionTriggerKey,
+		boolean active, String conditionExpression,
+		Map<Locale, String> descriptionMap, Map<Locale, String> errorMessageMap,
+		Map<Locale, String> labelMap, String name, ObjectAction objectAction,
+		String objectActionExecutorKey, String objectActionTriggerKey,
 		UnicodeProperties parametersUnicodeProperties, int status) {
 
 		Assert.assertEquals(active, objectAction.isActive());
 		Assert.assertEquals(
 			conditionExpression, objectAction.getConditionExpression());
-		Assert.assertEquals(description, objectAction.getDescription());
+		Assert.assertEquals(descriptionMap, objectAction.getDescriptionMap());
 		Assert.assertEquals(errorMessageMap, objectAction.getErrorMessageMap());
 		Assert.assertEquals(labelMap, objectAction.getLabelMap());
 		Assert.assertEquals(name, objectAction.getName());
@@ -3607,6 +3941,13 @@ public class ObjectActionLocalServiceTest {
 			parametersUnicodeProperties,
 			objectAction.getParametersUnicodeProperties());
 		Assert.assertEquals(status, objectAction.getStatus());
+	}
+
+	private void _assertObjectAction(
+		boolean active, String name, ObjectAction objectAction) {
+
+		Assert.assertEquals(active, objectAction.isActive());
+		Assert.assertEquals(name, objectAction.getName());
 	}
 
 	private void _assertObjectAction(
@@ -3735,6 +4076,56 @@ public class ObjectActionLocalServiceTest {
 				JSONUtil.getValue(
 					payloadJSONObject, "JSONObject/originalObjectEntry"));
 		}
+	}
+
+	private void _assertWebhookObjectActionExecuted(
+			long objectActionId, String url)
+		throws Exception {
+
+		_addObjectEntry(
+			_objectDefinition,
+			HashMapBuilder.<String, Serializable>put(
+				"firstName", RandomTestUtil.randomString()
+			).build());
+
+		Assert.assertEquals(1, _argumentsList.size());
+
+		Object[] arguments = _argumentsList.poll();
+
+		Http.Options options = (Http.Options)arguments[0];
+
+		Assert.assertEquals(url, options.getLocation());
+		Assert.assertFalse(options.isFollowRedirects());
+
+		ObjectAction objectAction = _objectActionLocalService.getObjectAction(
+			objectActionId);
+
+		Assert.assertEquals(
+			ObjectActionConstants.STATUS_SUCCESS, objectAction.getStatus());
+	}
+
+	private void _assertWebhookObjectActionNotExecuted(long objectActionId)
+		throws Exception {
+
+		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
+				"com.liferay.object.internal.action.engine." +
+					"ObjectActionEngineImpl",
+				LoggerTestUtil.OFF)) {
+
+			_addObjectEntry(
+				_objectDefinition,
+				HashMapBuilder.<String, Serializable>put(
+					"firstName", RandomTestUtil.randomString()
+				).build());
+		}
+
+		Assert.assertEquals(0, _argumentsList.size());
+
+		ObjectAction objectAction = _objectActionLocalService.getObjectAction(
+			objectActionId);
+
+		Assert.assertEquals(
+			ObjectActionConstants.STATUS_FAILED, objectAction.getStatus());
 	}
 
 	private FutureTask<Void> _getAddObjectEntryFutureTask(String firstName) {
@@ -3882,6 +4273,8 @@ public class ObjectActionLocalServiceTest {
 				"secret", "onafteradd"
 			).put(
 				"url", "https://onafteradd.com"
+			).put(
+				"urlLocalNetworkAccessEnabled", "true"
 			).build());
 
 		Assert.assertEquals(0, _argumentsList.size());
@@ -3935,6 +4328,8 @@ public class ObjectActionLocalServiceTest {
 				"secret", "onafterdelete"
 			).put(
 				"url", "https://onafterdelete.com"
+			).put(
+				"urlLocalNetworkAccessEnabled", "true"
 			).build());
 
 		Assert.assertEquals(0, _argumentsList.size());
@@ -3988,6 +4383,8 @@ public class ObjectActionLocalServiceTest {
 				"secret", "onafterupdate"
 			).put(
 				"url", "https://onafterupdate.com"
+			).put(
+				"urlLocalNetworkAccessEnabled", "true"
 			).build());
 
 		ObjectEntry objectEntry5 = _objectEntryLocalService.addObjectEntry(
@@ -4293,6 +4690,9 @@ public class ObjectActionLocalServiceTest {
 
 	@Inject
 	private ObjectEntryLocalService _objectEntryLocalService;
+
+	@Inject
+	private ObjectFieldBusinessTypeRegistry _objectFieldBusinessTypeRegistry;
 
 	@Inject
 	private ObjectFieldLocalService _objectFieldLocalService;

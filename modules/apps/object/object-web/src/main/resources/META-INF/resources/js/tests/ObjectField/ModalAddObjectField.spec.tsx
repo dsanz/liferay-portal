@@ -52,11 +52,13 @@ const renderComponent = () => {
 
 describe('The ModalAddObjectField', () => {
 	afterEach(() => {
-		fetchMock.restore();
+		fetchMock.hardReset();
 		jest.restoreAllMocks();
 	});
 
 	beforeEach(() => {
+		fetchMock.mockGlobal();
+
 		fetchMock.get('http://localhost/url', {
 			objectFieldBusinessTypes: [
 				{

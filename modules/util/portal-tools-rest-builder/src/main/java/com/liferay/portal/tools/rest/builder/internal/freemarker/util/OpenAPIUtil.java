@@ -11,6 +11,7 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.tools.rest.builder.internal.freemarker.tool.java.parser.util.OpenAPIParserUtil;
 import com.liferay.portal.tools.rest.builder.internal.yaml.config.ConfigYAML;
 import com.liferay.portal.tools.rest.builder.internal.yaml.openapi.Components;
+import com.liferay.portal.tools.rest.builder.internal.yaml.openapi.Discriminator;
 import com.liferay.portal.tools.rest.builder.internal.yaml.openapi.Info;
 import com.liferay.portal.tools.rest.builder.internal.yaml.openapi.Items;
 import com.liferay.portal.tools.rest.builder.internal.yaml.openapi.OpenAPIYAML;
@@ -89,13 +90,27 @@ public class OpenAPIUtil {
 
 		Queue<Map<String, Schema>> queue = new LinkedList<>();
 
-		queue.add(allExternalSchemas);
+		queue.add(new TreeMap<>(allExternalSchemas));
 
 		Map<String, Schema> map = null;
 
 		while ((map = queue.poll()) != null) {
 			for (Map.Entry<String, Schema> entry : map.entrySet()) {
 				Schema schema = entry.getValue();
+
+				Discriminator discriminator = schema.getDiscriminator();
+
+				if ((discriminator != null) &&
+					(discriminator.getMapping() != null)) {
+
+					Map<String, String> mapping = discriminator.getMapping();
+
+					for (String mappingReference : mapping.values()) {
+						_addExternalReference(
+							allExternalSchemas, externalSchemas, queue,
+							mappingReference);
+					}
+				}
 
 				Map<String, Schema> propertySchemas = null;
 
@@ -114,9 +129,16 @@ public class OpenAPIUtil {
 				else if (schema.getAllOfSchemas() != null) {
 					List<Schema> allOfSchemas = schema.getAllOfSchemas();
 
-					queue.add(
-						Collections.singletonMap(
-							entry.getKey(), allOfSchemas.get(0)));
+					for (Schema allOfSchema : allOfSchemas) {
+						if (allOfSchema.getReference() != null) {
+							_addExternalReference(
+								allExternalSchemas, externalSchemas, queue,
+								allOfSchema.getReference());
+						}
+						else if (allOfSchema.getPropertySchemas() != null) {
+							queue.add(allOfSchema.getPropertySchemas());
+						}
+					}
 				}
 				else if (schema.getReference() != null) {
 					_addExternalReference(

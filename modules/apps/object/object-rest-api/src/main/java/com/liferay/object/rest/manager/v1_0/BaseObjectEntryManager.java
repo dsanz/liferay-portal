@@ -20,6 +20,7 @@ import com.liferay.object.field.util.ObjectFieldUtil;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.model.ObjectField;
+import com.liferay.object.model.bag.ObjectFieldBag;
 import com.liferay.object.rest.dto.v1_0.ListEntry;
 import com.liferay.object.rest.dto.v1_0.Status;
 import com.liferay.object.rest.dto.v1_0.util.CreatorUtil;
@@ -322,35 +323,52 @@ public abstract class BaseObjectEntryManager {
 	}
 
 	protected void validateReadOnlyObjectFields(
+			ObjectDefinition objectDefinition,
+			com.liferay.object.rest.dto.v1_0.ObjectEntry objectEntry,
+			ObjectEntry serviceBuilderObjectEntry)
+		throws Exception {
+
+		Map<String, Object> values = HashMapBuilder.<String, Object>putAll(
+			objectEntryLocalService.getSystemValues(serviceBuilderObjectEntry)
+		).putAll(
+			serviceBuilderObjectEntry.getValues()
+		).build();
+
+		ObjectFieldBag objectFieldBag = objectDefinition.getObjectFieldBag();
+
+		ObjectFieldUtil.validateReadOnlyObjectFields(
+			ddmExpressionFactory, values, objectFieldBag.getObjectFields(),
+			objectEntry.getProperties());
+	}
+
+	protected void validateReadOnlyObjectFields(
 			String externalReferenceCode, long groupId,
 			ObjectDefinition objectDefinition,
 			com.liferay.object.rest.dto.v1_0.ObjectEntry objectEntry)
 		throws Exception {
 
-		Map<String, Object> values = new HashMap<>();
+		if (externalReferenceCode == null) {
+			ObjectFieldBag objectFieldBag =
+				objectDefinition.getObjectFieldBag();
 
-		if (externalReferenceCode != null) {
-			ObjectEntry serviceBuilderObjectEntry =
-				objectEntryLocalService.fetchObjectEntry(
-					externalReferenceCode, groupId,
-					objectDefinition.getObjectDefinitionId());
+			ObjectFieldUtil.validateReadOnlyObjectFields(
+				ddmExpressionFactory, new HashMap<>(),
+				objectFieldBag.getObjectFields(), objectEntry.getProperties());
 
-			if (serviceBuilderObjectEntry == null) {
-				return;
-			}
-
-			values.putAll(
-				objectEntryLocalService.getSystemValues(
-					serviceBuilderObjectEntry));
-			values.putAll(
-				objectEntryLocalService.getValues(serviceBuilderObjectEntry));
+			return;
 		}
 
-		ObjectFieldUtil.validateReadOnlyObjectFields(
-			ddmExpressionFactory, values,
-			objectFieldLocalService.getObjectFields(
-				objectDefinition.getObjectDefinitionId()),
-			objectEntry.getProperties());
+		ObjectEntry serviceBuilderObjectEntry =
+			objectEntryLocalService.fetchObjectEntry(
+				externalReferenceCode, groupId,
+				objectDefinition.getObjectDefinitionId());
+
+		if (serviceBuilderObjectEntry == null) {
+			return;
+		}
+
+		validateReadOnlyObjectFields(
+			objectDefinition, objectEntry, serviceBuilderObjectEntry);
 	}
 
 	@Reference
