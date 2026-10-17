@@ -8,6 +8,7 @@ package com.liferay.adaptive.media.image.internal.processor;
 import com.liferay.adaptive.media.exception.AMRuntimeException;
 import com.liferay.adaptive.media.image.configuration.AMImageConfigurationEntry;
 import com.liferay.adaptive.media.image.configuration.AMImageConfigurationHelper;
+import com.liferay.adaptive.media.image.internal.util.AMImageAdaptationUtil;
 import com.liferay.adaptive.media.image.model.AMImageEntry;
 import com.liferay.adaptive.media.image.scaler.AMImageScaledImage;
 import com.liferay.adaptive.media.image.scaler.AMImageScaler;
@@ -162,6 +163,12 @@ public final class AMImageAMProcessor implements AMProcessor<FileVersion> {
 			FileVersion fileVersion,
 			AMImageConfigurationEntry amImageConfigurationEntry)
 		throws PortalException {
+
+		if (AMImageAdaptationUtil.isAdaptationDelegated(
+				amImageConfigurationEntry, fileVersion.getCompanyId())) {
+
+			return;
+		}
 
 		try {
 			AMImageEntry amImageEntry =

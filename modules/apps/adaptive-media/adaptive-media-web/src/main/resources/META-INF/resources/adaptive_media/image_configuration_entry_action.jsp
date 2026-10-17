@@ -38,6 +38,14 @@ if (optimizeImageSingleBackgroundTasks != null) {
 }
 
 String entryUuid = String.valueOf(amImageConfigurationEntry.getUUID());
+
+boolean delegateImageAdaptation = false;
+
+if (FeatureFlagManagerUtil.isEnabled(themeDisplay.getCompanyId(), "LPD-94784")) {
+	Map<String, String> properties = amImageConfigurationEntry.getProperties();
+
+	delegateImageAdaptation = GetterUtil.getBoolean(properties.get("delegate-image-adaptation"));
+}
 %>
 
 <liferay-ui:icon-menu
@@ -102,13 +110,16 @@ String entryUuid = String.valueOf(amImageConfigurationEntry.getUUID());
 	String onClick = liferayPortletResponse.getNamespace() + "adaptRemaining('" + entryUuid + "', '" + optimizeImagesURL.toString() + "');";
 
 	int percentage = AMImageEntryLocalServiceUtil.getPercentage(themeDisplay.getCompanyId(), entryUuid, GetterUtil.getInteger(request.getAttribute(AMWebKeys.TOTAL_IMAGES)));
+
+	boolean adaptRemainingDisabled = delegateImageAdaptation || !amImageConfigurationEntry.isEnabled() || (percentage == 100) || !optimizeImagesEnabled;
 	%>
 
 	<liferay-ui:icon
-		cssClass='<%= (!amImageConfigurationEntry.isEnabled() || (percentage == 100) || !optimizeImagesEnabled) ? "disabled" : StringPool.BLANK %>'
+		cssClass='<%= adaptRemainingDisabled ? "disabled" : StringPool.BLANK %>'
 		id='<%= "icon-adapt-remaining" + entryUuid %>'
+		linkCssClass='<%= adaptRemainingDisabled ? "disabled" : StringPool.BLANK %>'
 		message="adapt-remaining"
-		onClick="<%= onClick %>"
+		onClick="<%= adaptRemainingDisabled ? StringPool.BLANK : onClick %>"
 		url="javascript:void(0);"
 	/>
 
