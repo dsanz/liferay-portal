@@ -60,14 +60,18 @@ const EditAdaptiveMedia = ({
 	const [automaticId, setAutomaticId] = useState(automaticUuid);
 	const [errorMessage, setErrorMessage] = useState(null);
 
-	const nameId = `${namespace}name`;
-	const descriptionId = `${namespace}description`;
-	const maxWidthId = `${namespace}maxWidth`;
-	const maxHeightId = `${namespace}maxHeight`;
-	const highResolutionId = `${namespace}addHighResolution`;
-	const newUuidId = `${namespace}newUuid`;
+	const adaptationURLParametersId = `${namespace}adaptationURLParameters`;
 	const automaticRadioId = `${namespace}automaticUuid`;
+	const delegateImageAdaptationId = `${namespace}delegateImageAdaptation`;
+	const descriptionId = `${namespace}description`;
+	const highResolutionId = `${namespace}addHighResolution`;
+	const maxHeightId = `${namespace}maxHeight`;
+	const maxWidthId = `${namespace}maxWidth`;
+	const nameId = `${namespace}name`;
+	const newUuidId = `${namespace}newUuid`;
 
+	let adaptationURLParameters = '';
+	let delegateImageAdaptation = false;
 	let maxWidth = '';
 	let maxHeight = '';
 
@@ -83,10 +87,16 @@ const EditAdaptiveMedia = ({
 		if (Number(currentMaxHeight) !== 0) {
 			maxHeight = currentMaxHeight;
 		}
+
+		adaptationURLParameters = properties['adaptation-url-parameters'] || '';
+		delegateImageAdaptation =
+			properties['delegate-image-adaptation'] === 'true';
 	}
 
 	const formik = useFormik({
 		initialValues: {
+			[adaptationURLParametersId]: adaptationURLParameters,
+			[delegateImageAdaptationId]: delegateImageAdaptation,
 			[descriptionId]: amImageConfigurationEntry
 				? amImageConfigurationEntry.description
 				: '',
@@ -293,6 +303,49 @@ const EditAdaptiveMedia = ({
 				)}
 			</div>
 
+			{Liferay.FeatureFlags['LPD-94784'] && (
+				<div className="sheet-section">
+					<h3 className="sheet-subtitle">
+						{Liferay.Language.get('image-delivery')}
+					</h3>
+
+					<ClayCheckbox
+						checked={values[delegateImageAdaptationId]}
+						id={delegateImageAdaptationId}
+						label={Liferay.Language.get(
+							'delegate-image-adaptation'
+						)}
+						name={delegateImageAdaptationId}
+						onChange={(event) => {
+							setFieldValue(
+								delegateImageAdaptationId,
+								event.target.checked
+							);
+						}}
+					>
+						<HelpMessage
+							message={Liferay.Language.get(
+								'delegate-image-adaptation-help'
+							)}
+						/>
+					</ClayCheckbox>
+
+					<Input
+						disabled={!values[delegateImageAdaptationId]}
+						helpMessage={Liferay.Language.get(
+							'adaptation-url-parameters-help'
+						)}
+						label={Liferay.Language.get(
+							'adaptation-url-parameters'
+						)}
+						name={adaptationURLParametersId}
+						onBlur={handleBlur}
+						onChange={handleChange}
+						value={values[adaptationURLParametersId]}
+					/>
+				</div>
+			)}
+
 			<div className="sheet-section">
 				<h3 className="sheet-subtitle">
 					{Liferay.Language.get('identifier')}
@@ -360,6 +413,8 @@ EditAdaptiveMedia.propTypes = {
 		description: PropTypes.string,
 		name: PropTypes.string,
 		properties: PropTypes.shape({
+			['adaptation-url-parameters']: PropTypes.string,
+			['delegate-image-adaptation']: PropTypes.string,
 			['max-height']: PropTypes.string,
 			['max-width']: PropTypes.string,
 		}),

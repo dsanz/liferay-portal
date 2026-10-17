@@ -64,6 +64,13 @@ public class EditImageConfigurationEntryMVCActionCommand
 		String uuid = ParamUtil.getString(actionRequest, "uuid");
 
 		Map<String, String> properties = HashMapBuilder.put(
+			"adaptation-url-parameters",
+			ParamUtil.getString(actionRequest, "adaptationURLParameters")
+		).put(
+			"delegate-image-adaptation",
+			String.valueOf(
+				ParamUtil.getBoolean(actionRequest, "delegateImageAdaptation"))
+		).put(
 			"max-height", ParamUtil.getString(actionRequest, "maxHeight")
 		).put(
 			"max-width", ParamUtil.getString(actionRequest, "maxWidth")
@@ -109,7 +116,13 @@ public class EditImageConfigurationEntryMVCActionCommand
 
 					newUuid = amImageConfigurationEntry.getUUID();
 
-					properties = amImageConfigurationEntry.getProperties();
+					Map<String, String> currentProperties =
+						amImageConfigurationEntry.getProperties();
+
+					properties.put(
+						"max-height", currentProperties.get("max-height"));
+					properties.put(
+						"max-width", currentProperties.get("max-width"));
 
 					autoModifiedUuid = false;
 				}
