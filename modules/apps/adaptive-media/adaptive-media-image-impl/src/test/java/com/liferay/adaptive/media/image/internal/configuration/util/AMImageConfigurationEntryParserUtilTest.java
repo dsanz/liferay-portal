@@ -7,10 +7,12 @@ package com.liferay.adaptive.media.image.internal.configuration.util;
 
 import com.liferay.adaptive.media.image.configuration.AMImageConfigurationEntry;
 import com.liferay.adaptive.media.image.internal.configuration.AMImageConfigurationEntryImpl;
+import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Assert;
@@ -110,6 +112,38 @@ public class AMImageConfigurationEntryParserUtilTest {
 		Assert.assertEquals("100", properties.get("max-height"));
 		Assert.assertEquals("200", properties.get("max-width"));
 		Assert.assertEquals(properties.toString(), 2, properties.size());
+	}
+
+	@Test
+	public void testGetConfigurationStringEncodesAPropertyValue() {
+		AMImageConfigurationEntry amImageConfigurationEntry =
+			new AMImageConfigurationEntryImpl(
+				"test", "desc", "12345",
+				HashMapBuilder.put(
+					"adaptation-url-parameters", "format=webp&quality=80"
+				).build(),
+				true);
+
+		Assert.assertEquals(
+			"test:desc:12345:adaptation-url-parameters=" +
+				"format%3Dwebp%26quality%3D80:enabled=true",
+			AMImageConfigurationEntryParserUtil.getConfigurationString(
+				amImageConfigurationEntry));
+	}
+
+	@Test
+	public void testGetConfigurationStringEncodesTheSeparators() {
+		Assert.assertEquals(
+			"test:desc:12345:adaptation-url-parameters=" +
+				"bg-color%3D255%3A0%3A0%3Bquality%3D80:enabled=true",
+			AMImageConfigurationEntryParserUtil.getConfigurationString(
+				new AMImageConfigurationEntryImpl(
+					"test", "desc", "12345",
+					HashMapBuilder.put(
+						"adaptation-url-parameters",
+						"bg-color=255:0:0;quality=80"
+					).build(),
+					true)));
 	}
 
 	@Test
@@ -275,6 +309,30 @@ public class AMImageConfigurationEntryParserUtilTest {
 	@Test(expected = IllegalArgumentException.class)
 	public void testNullString() {
 		AMImageConfigurationEntryParserUtil.parse(null);
+	}
+
+	@Test
+	public void testParseReadsBackTheSeparators() {
+		Map<String, String> properties = HashMapBuilder.put(
+			"adaptation-url-parameters",
+			"bg-color=255:0:0;format=webp&quality=80"
+		).put(
+			"delegate-image-adaptation", "true"
+		).put(
+			"max-width", "200"
+		).build();
+
+		AMImageConfigurationEntry amImageConfigurationEntry =
+			AMImageConfigurationEntryParserUtil.parse(
+				AMImageConfigurationEntryParserUtil.getConfigurationString(
+					new AMImageConfigurationEntryImpl(
+						RandomTestUtil.randomString(),
+						RandomTestUtil.randomString(),
+						RandomTestUtil.randomString(), properties, true)));
+
+		Assert.assertEquals(
+			new HashMap<>(properties),
+			amImageConfigurationEntry.getProperties());
 	}
 
 	@Test
